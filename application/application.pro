@@ -1,0 +1,10 @@
+QT = core sql
+TEMPLATE = lib
+CONFIG += staticlib c++17
+CONFIG -= app_bundle debug_and_release debug_and_release_target
+TARGET = aster_application
+DESTDIR = $$OUT_PWD/../lib
+INCLUDEPATH += $$PWD/../src
+win32-msvc:QMAKE_CXXFLAGS += /utf-8
+SOURCES += ../src/application/batch_runner.cpp
+HEADERS += ../src/application/batch_runner.h ../src/application/execution_defaults.h

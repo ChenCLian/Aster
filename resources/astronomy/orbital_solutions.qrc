@@ -1,0 +1,15 @@
+<RCC>
+ <qresource prefix="/orbital_solutions">
+  <file alias="catalogue.json">solutions/catalogue.json</file>
+  <file alias="la2010a.qz" compress="0">solutions/la2010a.qz</file>
+  <file alias="la2010b.qz" compress="0">solutions/la2010b.qz</file>
+  <file alias="la2010c.qz" compress="0">solutions/la2010c.qz</file>
+  <file alias="la2010d.qz" compress="0">solutions/la2010d.qz</file>
+  <file alias="zb18a.qz" compress="0">solutions/zb18a.qz</file>
+  <file alias="zb20a.qz" compress="0">solutions/zb20a.qz</file>
+  <file alias="zb20b.qz" compress="0">solutions/zb20b.qz</file>
+  <file alias="zb20c.qz" compress="0">solutions/zb20c.qz</file>
+  <file alias="zb20d.qz" compress="0">solutions/zb20d.qz</file>
+  <file alias="pt_zb18a.qz" compress="0">solutions/pt_zb18a.qz</file>
+ </qresource>
+</RCC>

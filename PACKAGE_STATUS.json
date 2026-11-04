@@ -1,0 +1,54 @@
+{
+  "project": "Aster",
+  "version": "1.1.0",
+  "update_mode": "public_github_release_check_and_browser_download",
+  "automatic_installation": false,
+  "private_repository_authentication": false,
+  "numeric_stack": [
+    "OpenBLAS / LP64 LAPACK",
+    "PocketFFT",
+    "GSL"
+  ],
+  "database_schema": 3,
+  "packaging_targets": [
+    "windows-x64",
+    "macos-arm64",
+    "macos-x86_64",
+    "linux-x64"
+  ],
+  "macos_ci_minimum": "15.0",
+  "linux_ci_baseline": "Ubuntu 22.04",
+  "documentation": [
+    "README.md",
+    "QUICK_START.md",
+    "FAQ.md",
+    "RELEASE_NOTES.md",
+    "docs/README.md",
+    "docs/validation.md",
+    "docs/release_maintenance_zh.md",
+    "docs/third_party.md",
+    "docs/reference/scientific_evidence.json"
+  ],
+  "archived_validation": {
+    "date": "2026-11-04",
+    "record": "docs/validation.json",
+    "baseline": {
+      "file": "Aster_1.1.0.zip",
+      "sha256": "2c8284edb86b86716fe630a1d75db4ed5b958035a4ed08940f2077ba2167a19a"
+    },
+    "regression": {
+      "passed": 979,
+      "failed": 0,
+      "skipped": 0
+    },
+    "scope": "Historical batch only; release acceptance requires records tied to the packaged source commit and artifacts."
+  },
+  "release_checks": [
+    "Native build and regression tests for each published platform and architecture",
+    "Clean-host startup, fonts, database read/write, numerical workflow and export",
+    "macOS deployment target, architecture, signing and Gatekeeper behavior",
+    "Linux X11/XWayland startup and runtime dependency closure",
+    "Public GitHub release check and checksum verification"
+  ],
+  "release_checks_scope": "Required checks, not completed or pending status declarations."
+}

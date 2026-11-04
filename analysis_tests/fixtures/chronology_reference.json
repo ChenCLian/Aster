@@ -1,0 +1,452 @@
+{
+  "reference": "Python Decimal 70 digits; scipy.integrate.quad cross-check on ordinary linear-rate cases",
+  "scipy": "1.17.0",
+  "cases": [
+    {
+      "kind": "rate",
+      "name": "constant_left",
+      "x": [
+        12,
+        12.5,
+        13,
+        15
+      ],
+      "rate": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "factor": 100,
+      "first_age": 7,
+      "rule": "left",
+      "age": [
+        7.0,
+        32.0,
+        57.0,
+        157.0
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "constant_linear_rate",
+      "x": [
+        12,
+        12.5,
+        13,
+        15
+      ],
+      "rate": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "factor": 100,
+      "first_age": 7,
+      "rule": "linear_rate",
+      "age": [
+        7.0,
+        32.0,
+        57.0,
+        157.0
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "nonuniform_left",
+      "x": [
+        -3,
+        -1,
+        0,
+        4,
+        6
+      ],
+      "rate": [
+        0.25,
+        2,
+        0.5,
+        8,
+        3
+      ],
+      "factor": 1,
+      "first_age": -20,
+      "rule": "left",
+      "age": [
+        -20.0,
+        -12.0,
+        -11.5,
+        -3.5,
+        -3.25
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "nonuniform_linear_rate",
+      "x": [
+        -3,
+        -1,
+        0,
+        4,
+        6
+      ],
+      "rate": [
+        0.25,
+        2,
+        0.5,
+        8,
+        3
+      ],
+      "factor": 1,
+      "first_age": -20,
+      "rule": "linear_rate",
+      "age": [
+        -20.0,
+        -17.62349538093733,
+        -16.699299140190735,
+        -15.220585154996186,
+        -14.828253453791497
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "unit_Ma_left",
+      "x": [
+        0,
+        1,
+        3,
+        6
+      ],
+      "rate": [
+        1,
+        4,
+        2,
+        0.5
+      ],
+      "factor": 0.001,
+      "first_age": 2,
+      "rule": "left",
+      "age": [
+        2.0,
+        2.001,
+        2.0015,
+        2.003
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "unit_Ma_linear_rate",
+      "x": [
+        0,
+        1,
+        3,
+        6
+      ],
+      "rate": [
+        1,
+        4,
+        2,
+        0.5
+      ],
+      "factor": 0.001,
+      "first_age": 2,
+      "rule": "linear_rate",
+      "age": [
+        2.0,
+        2.0004620981203733,
+        2.001155245300933,
+        2.003927834023173
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "near_equal_left",
+      "x": [
+        0,
+        1,
+        2
+      ],
+      "rate": [
+        1,
+        1.000000000001,
+        0.999999999999
+      ],
+      "factor": 1,
+      "first_age": 0,
+      "rule": "left",
+      "age": [
+        0.0,
+        1.0,
+        1.999999999999
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "near_equal_linear_rate",
+      "x": [
+        0,
+        1,
+        2
+      ],
+      "rate": [
+        1,
+        1.000000000001,
+        0.999999999999
+      ],
+      "factor": 1,
+      "first_age": 0,
+      "rule": "linear_rate",
+      "age": [
+        0.0,
+        0.9999999999995,
+        1.9999999999995
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "large_rate_ratio_left",
+      "x": [
+        0,
+        1,
+        3
+      ],
+      "rate": [
+        1e-06,
+        1000000.0,
+        2000000.0
+      ],
+      "factor": 1,
+      "first_age": 0,
+      "rule": "left",
+      "age": [
+        0.0,
+        1000000.0,
+        1000000.000002
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "large_rate_ratio_linear_rate",
+      "x": [
+        0,
+        1,
+        3
+      ],
+      "rate": [
+        1e-06,
+        1000000.0,
+        2000000.0
+      ],
+      "factor": 1,
+      "first_age": 0,
+      "rule": "linear_rate",
+      "age": [
+        0.0,
+        2.763102111595618e-05,
+        2.901731547707607e-05
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "decreasing_left",
+      "x": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "rate": [
+        20,
+        10,
+        1,
+        0.25
+      ],
+      "factor": 1,
+      "first_age": 10,
+      "rule": "left",
+      "age": [
+        10.0,
+        10.05,
+        10.15,
+        12.15
+      ]
+    },
+    {
+      "kind": "rate",
+      "name": "decreasing_linear_rate",
+      "x": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "rate": [
+        20,
+        10,
+        1,
+        0.25
+      ],
+      "factor": 1,
+      "first_age": 10,
+      "rule": "linear_rate",
+      "age": [
+        10.0,
+        10.069314718055994,
+        10.325157506166445,
+        14.021942469152819
+      ]
+    },
+    {
+      "kind": "map",
+      "name": "knots",
+      "x": [
+        0,
+        1,
+        2,
+        4,
+        8
+      ],
+      "depth": [
+        0,
+        1,
+        2,
+        4,
+        8
+      ],
+      "controls_age": [
+        0,
+        2,
+        5,
+        8,
+        12
+      ],
+      "age": [
+        0.0,
+        2.0,
+        5.0,
+        8.0,
+        12.0
+      ],
+      "interval_rate": [
+        0.5,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0
+      ],
+      "extrapolated": 0
+    },
+    {
+      "kind": "map",
+      "name": "piecewise",
+      "x": [
+        0,
+        0.25,
+        0.5,
+        1.5,
+        3,
+        7,
+        8
+      ],
+      "depth": [
+        0,
+        1,
+        2,
+        4,
+        8
+      ],
+      "controls_age": [
+        -10,
+        0,
+        2,
+        3,
+        10
+      ],
+      "age": [
+        -10.0,
+        -7.5,
+        -5.0,
+        1.0,
+        2.5,
+        8.25,
+        10.0
+      ],
+      "interval_rate": [
+        0.1,
+        0.5,
+        2.0,
+        0.5714285714285714
+      ],
+      "extrapolated": 0
+    },
+    {
+      "kind": "map",
+      "name": "extrapolate",
+      "x": [
+        -3,
+        -1,
+        0,
+        0.5,
+        2,
+        4,
+        6
+      ],
+      "depth": [
+        0,
+        1,
+        4
+      ],
+      "controls_age": [
+        10,
+        11,
+        20
+      ],
+      "age": [
+        7.0,
+        9.0,
+        10.0,
+        10.5,
+        14.0,
+        20.0,
+        26.0
+      ],
+      "interval_rate": [
+        1.0,
+        0.3333333333333333
+      ],
+      "extrapolated": 3
+    },
+    {
+      "kind": "map",
+      "name": "nonzero_origin",
+      "x": [
+        100,
+        103,
+        111,
+        117,
+        120
+      ],
+      "depth": [
+        100,
+        110,
+        120
+      ],
+      "controls_age": [
+        400,
+        430,
+        450
+      ],
+      "age": [
+        400.0,
+        409.0,
+        432.0,
+        444.0,
+        450.0
+      ],
+      "interval_rate": [
+        0.3333333333333333,
+        0.5
+      ],
+      "extrapolated": 0
+    }
+  ]
+}

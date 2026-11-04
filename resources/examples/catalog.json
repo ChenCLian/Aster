@@ -1,0 +1,135 @@
+{
+  "format_version": 1,
+  "datasets": {
+    "60254": {
+      "citation": "Mix, A. C.; Le, J.; Shackleton, N. J. (1995). Interpolated stable carbon and oxygen isotope ratios of ODP Site 138-846. PANGAEA.",
+      "publication": "https://doi.org/10.2973/odp.proc.sr.138.160.1995",
+      "site": "ODP 846",
+      "age_column": 0,
+      "depth_column": 1,
+      "age_name": "Age",
+      "age_unit": "ka BP",
+      "depth_name": "Revised composite depth",
+      "depth_unit": "rmcd",
+      "chronology": "Published age model of Mix et al. (1995); the archive explicitly contains author-interpolated isotope data. Age spacing is not exactly uniform. Not a raw-measurement table.",
+      "sampling_note": "Author-interpolated values retained, without further resampling.",
+      "id": "60254",
+      "resource": ":/examples/60254.tsv",
+      "doi": "https://doi.org/10.1594/PANGAEA.60254",
+      "download_url": "https://doi.pangaea.de/10.1594/PANGAEA.60254?format=textfile",
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-11-04",
+      "sha256": "33bea96ace97274bb1b9682a6c90e4c3faf92279296db32348e224db13186a3a",
+      "columns": [
+        "Age [ka BP]",
+        "Depth comp r [rmcd]",
+        "δ18O [‰]",
+        "δ13C [‰ PDB]"
+      ]
+    },
+    "132801": {
+      "citation": "Tian, J.; Wang, P.; Cheng, X.; Li, Q. (2002). Stable oxygen isotope ratios of Cibicidoides wuellerstorfi from ODP Site 184-1143. PANGAEA.",
+      "publication": "https://doi.org/10.1016/S0012-821X(02)00923-8",
+      "site": "ODP 1143",
+      "age_column": 0,
+      "depth_column": 1,
+      "age_name": "Age",
+      "age_unit": "ka BP",
+      "depth_name": "Composite depth",
+      "depth_unit": "mcd",
+      "chronology": "Astronomically tuned chronology of Tian et al. (2002). Archive values are on the C. wuellerstorfi scale: the authors subtracted 0.64 per mille from U. peregrina measurements. No additional correction in Aster.",
+      "sampling_note": "Irregular published sample spacing retained.",
+      "id": "132801",
+      "resource": ":/examples/132801.tsv",
+      "doi": "https://doi.org/10.1594/PANGAEA.132801",
+      "download_url": "https://doi.pangaea.de/10.1594/PANGAEA.132801?format=textfile",
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-11-04",
+      "sha256": "be8c715674c854179422cefd78874ad5184bd55a5d80d77b1db682486d578f87",
+      "columns": [
+        "Age [ka BP]",
+        "Depth comp [mcd]",
+        "C. wuellerstorfi δ18O [‰ PDB]",
+        "SR [cm/ka]"
+      ]
+    },
+    "743431": {
+      "citation": "Pälike, H.; Frazier, J.; Zachos, J. C. (2006). Age models, stable isotope record, and physical properties of ODP Hole 154-926B. PANGAEA.",
+      "publication": "https://doi.org/10.1016/j.quascirev.2006.02.011",
+      "site": "ODP 926B",
+      "age_column": 3,
+      "depth_column": 1,
+      "age_name": "Age (La2004-tuned model)",
+      "age_unit": "ka",
+      "depth_name": "Composite depth",
+      "depth_unit": "mcd",
+      "chronology": "Uses the published optional age-model column re-adjusted to La2004, not the older La1993 column. No conversion of age epoch is applied. Astronomically tuned ages are not independent evidence for orbital forcing.",
+      "sampling_note": "Published samples retained; only rows with a missing chosen X or Y are omitted and counted in the report.",
+      "id": "743431",
+      "resource": ":/examples/743431.tsv",
+      "doi": "https://doi.org/10.1594/PANGAEA.743431",
+      "download_url": "https://doi.pangaea.de/10.1594/PANGAEA.743431?format=textfile",
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "retrieved": "2026-11-04",
+      "sha256": "8f5b29eab01e3afb2de55a63d83f55c6bfbbc58718660648472b3eaff9fff9ac",
+      "columns": [
+        "Depth sed [m]",
+        "Depth comp [mcd]",
+        "Age model [ka]",
+        "Age model opt [ka]",
+        "Cibicidoides spp. δ13C [‰ PDB]",
+        "Cibicidoides spp. δ18O [‰ PDB]",
+        "δ18O [‰]",
+        ">65 µm [%]",
+        "-",
+        "kappa [10**-6 SI]",
+        "L*"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "id": "odp846_d18o",
+      "dataset": "60254",
+      "label": "ODP 846 · oxygen isotopes",
+      "y_column": 2,
+      "y_name": "Benthic δ18O",
+      "y_unit": "‰"
+    },
+    {
+      "id": "odp846_d13c",
+      "dataset": "60254",
+      "label": "ODP 846 · carbon isotopes",
+      "y_column": 3,
+      "y_name": "Benthic δ13C",
+      "y_unit": "‰ PDB"
+    },
+    {
+      "id": "odp1143_d18o",
+      "dataset": "132801",
+      "label": "ODP 1143 · oxygen isotopes",
+      "y_column": 2,
+      "y_name": "C. wuellerstorfi δ18O",
+      "y_unit": "‰ PDB"
+    },
+    {
+      "id": "odp926_d13c",
+      "dataset": "743431",
+      "label": "ODP 926B · carbon isotopes",
+      "y_column": 4,
+      "y_name": "Cibicidoides spp. δ13C",
+      "y_unit": "‰ PDB"
+    },
+    {
+      "id": "odp926_lightness",
+      "dataset": "743431",
+      "label": "ODP 926B · lightness L*",
+      "y_column": 10,
+      "y_name": "Lightness L*",
+      "y_unit": "1"
+    }
+  ]
+}

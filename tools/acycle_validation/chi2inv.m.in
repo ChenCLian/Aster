@@ -1,0 +1,17 @@
+function x = chi2inv(p,nu)
+% Validation-only fallback, using base MATLAB's inverse incomplete gamma.
+% Installed in a temporary directory ONLY when chi2inv cannot be called.
+% This is not a replacement for the complete Statistics Toolbox.
+if ~isnumeric(p) || ~isnumeric(nu) || ~isreal(p) || ~isreal(nu)
+    error('Aster:ChiSquareInput','Expected real numeric probability and degrees of freedom');
+end
+p=double(p); nu=double(nu);
+if ~isscalar(p) && ~isscalar(nu) && ~isequal(size(p),size(nu))
+    error('Aster:ChiSquareSize','Inputs must have equal sizes or be scalars');
+end
+if isscalar(p), p=repmat(p,size(nu)); end
+if isscalar(nu), nu=repmat(nu,size(p)); end
+x=nan(size(p));
+valid=isfinite(p) & p>=0 & p<=1 & isfinite(nu) & nu>0;
+x(valid)=2*gammaincinv(p(valid),nu(valid)/2);
+end

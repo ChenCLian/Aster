@@ -1,0 +1,1064 @@
+{
+  "scope": "Archived scientific evidence. Each section retains its original tested version, references and scope. Build/regression batches are recorded separately in docs/validation.json.",
+  "acycle_sources": {
+    "reference_archive": "Acycle_3.1.1.zip",
+    "sha256": "7c34258597734fdee61e6c183177ce8573f0a3312809c7203cb382939a63e6fd",
+    "baseline_archive": "Aster_1.0.0-beta.11.zip",
+    "baseline_sha256": "22e80566b733ac95326b9940bae2fbf46253bfa0bba44e8855de86e63803d9a4",
+    "matlab_execution_performed": false,
+    "reference_files": {
+      "code/guicode/spectrum.m": "ce863bb4dd8fa62d88e6091e46290f603a59f0f7dca1a0775ff438aba4887a9f",
+      "code/guicode/detrending.m": "79faf4aac9bb627452f02c813f8759a3947d8f05323142efae1b7ff75a4bc146",
+      "code/misc/datapreproc.m": "79e3893d8ff118d215da42ee626b6508418d1bf1562483fc019ef50a0677e763",
+      "code/seriesanalysis/acycleInterpolateSeries.m": "2c36a6604c047b01d2f61c18628cacff6246364486969bfdff3ece8b68a1399a",
+      "code/seriesanalysis/redconfML.m": "fc0b9fb572208733ad096960efdb55558ceb6dc0a5a25b4a46cd6aca8df6e46d",
+      "code/seriesanalysis/moveMedian.m": "273e894ecdc63ceabaea780f53d8a0e2ddf58ee2ab26709206bbc7c9ad46612f",
+      "code/seriesanalysis/acycleMtmTaperCount.m": "03a993f38d252313930046b9fd9b7e0502991a53fc35bdaa6e69cdcf7d8785fe",
+      "code/package/swa/spectralswafdr.m": "c5c531c80450a12f81a5e1c68e48ddb489b839b978686168f77d9abc34b00880",
+      "code/package/swa/specswa.m": "b5ec40bc53903f285f233dc168093129828f5d69ad6fbf02bbae1b04c9121629",
+      "code/guicode/waveletGUI.m": "66931f3bbbcec6bfcfcfe59b5e3472f1b4538e352b858e2a18cc7ba036f7e401",
+      "code/package/wavelet/wave_readGUI.m": "1f99c207e58d2972bbcff4d13495ca71a90d2a23e4b33c5736a036255fa5b9f5",
+      "code/package/wavelet/wave_update_wavelet.m": "b2184db728d3f7922bbb0cf02d0e0250fa4cdae886d4fb8d14484e921f97a1b5",
+      "code/package/wavelet/wavelet.m": "9e243e714cd4bde5fffd95b6ff4bd45c0ffe8f0910519d5a94ebd0ea30e19ffd",
+      "code/package/wavelet/wave_bases.m": "6f335bafd58a2211550724f8444b0cab3dbe2a048ff35316b507d30815303eb6",
+      "code/package/wavelet/wave_signif.m": "995618a237ab7c34573dffb6cb546162936d7c54a51cb0bfe3901b8e3aefdf06",
+      "code/package/wavelet/ar1nv.m": "017287c51e4baddf26b2034d30c3cff0af880a1436db85fa2018eb7c7e833a79",
+      "code/seriesanalysis/rhoAR1ML.m": "45784cfd151e64d5de27a6420debe0cab110cebb5577b4face96a9246bb114a8",
+      "code/guicode/linegenerator.m": "958796d946c81dfe806d4db6fd4f628146950c715409c901b60b11fd20a4772d",
+      "code/package/wavelet/chisquare_inv.m": "dd84523cdbddfb7db7ffd4e1848255cd17c0c7f81a20eb2c75ababdd62a37c75",
+      "code/package/wavelet/chisquare_solve.m": "a266f98ce299a08f9e46b1407c8c9dd0a6c584dcfb6837b6dbb54652acaacfeb"
+    },
+    "comparison_report_version": "beta.12 / MATLAB bridge v2 / R2026b",
+    "matlab_execution_performed_scope": "Source-provenance audit did not execute MATLAB; separate MATLAB execution is recorded in matlab_acceptance.",
+    "separate_matlab_execution_performed": true,
+    "retained_report": "matlab_acceptance section of this file",
+    "scope": "Historical source provenance and MATLAB bridge v2 comparison; see matlab_acceptance for the execution date and tested version."
+  },
+  "matlab_acceptance": {
+    "date": "2026-11-02",
+    "version": "1.0.0-beta.12",
+    "matlab_version": "26.2.0.3386108 (R2026b)",
+    "cases": 19,
+    "summary": {
+      "cases": 19,
+      "matched": 7,
+      "matched_with_quantile_approximation": 12,
+      "incomplete": 0,
+      "discrepancy": 0
+    },
+    "array_comparisons_recomputed": 133,
+    "reported_metrics_reproduced": true,
+    "maximum_relative_errors": {
+      "frequency": 1.9583100573249288e-16,
+      "spectrum": 1.0815258663935483e-14,
+      "swa_background": 4.567886340413818e-15,
+      "swa_95": 4.850791623081062e-15,
+      "ar1_smoothed": 2.2008514610314948e-14,
+      "ar1_background": 2.0438792912703577e-05,
+      "ar1_95": 2.0438792912685444e-05,
+      "raw_power": 1.3278674545336608e-15,
+      "scale_corrected_power": 1.3627212227579664e-15,
+      "power": 1.4086329263447602e-15,
+      "period": 1.935843753645236e-16,
+      "coi_interior": 1.8644708011473113e-16,
+      "significance_ratio": 5.917233047750512e-06,
+      "significance_ratio_exact_quantile": 1.494009153832608e-15
+    },
+    "chi2inv_fallback_used": true,
+    "full_spectrum_reconstruction_all_passed": true,
+    "original_cwt_approximate_quantile_comparisons_passed": false,
+    "unexplained_discrepancies": 0,
+    "scope": "Direct MTM/AR1/SWA and CWT comparisons for the 19 specified fixtures; does not directly test Acycle FDR lookup tables, all algorithms, all inputs, or empirical false-positive calibration.",
+    "source_report": "docs/matlab_followup/received_report_beta12.json",
+    "source_report_status": "Historical source report is not bundled; this section retains its summary and SHA-256.",
+    "source_report_sha256": "694f2ed6f65d38b8badb66ee5b51e25cda0608ac44c29d9ad92ce19c4d1f612d",
+    "original_tolerance_comparisons_passed": 121,
+    "documented_approximate_quantile_comparisons": 12,
+    "tolerances_relaxed": false,
+    "error_metric": "max(abs(actual-reference))/max(abs(reference)); not maximum pointwise relative error",
+    "source_audit_matlab_execution": false,
+    "production_code_changed_for_receipt": false
+  },
+  "nominal_mtm_statistical_summary": {
+    "scope": "Actual Aster beta.12 MTM v4 with full-spectrum convergence; not MATLAB statistical simulation results",
+    "records": 6000,
+    "null_model": "Stationary Gaussian AR1, marginal variance 1, known generating rho; task estimates its own spectral background",
+    "comparison": "Pointwise rates are not the probability of any rejection; under the complete null FDR equals P(any rejection)",
+    "cases": [
+      {
+        "n": 128,
+        "rho": 0,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.06561538461538537,
+        "swa_pointwise_rate": 0.08296923076923163,
+        "fdr_any_rejection_count": 76,
+        "fdr_all_null_rate": 0.076,
+        "fdr_wilson95": [
+          0.06114944807170235,
+          0.0940956431240484
+        ],
+        "failures": {}
+      },
+      {
+        "n": 128,
+        "rho": 0.9,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.11309230769230842,
+        "swa_pointwise_rate": 0.08887692307692378,
+        "fdr_any_rejection_count": 246,
+        "fdr_all_null_rate": 0.246,
+        "fdr_wilson95": [
+          0.22031215328683612,
+          0.2736318400238259
+        ],
+        "failures": {}
+      },
+      {
+        "n": 128,
+        "rho": 0.98,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.1615384615384627,
+        "swa_pointwise_rate": 0.11173846153846233,
+        "fdr_any_rejection_count": 497,
+        "fdr_all_null_rate": 0.497,
+        "fdr_wilson95": [
+          0.4660816352651897,
+          0.5279413252857236
+        ],
+        "failures": {}
+      },
+      {
+        "n": 512,
+        "rho": 0,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.07744747081712137,
+        "swa_pointwise_rate": 0.0974902723735416,
+        "fdr_any_rejection_count": 144,
+        "fdr_all_null_rate": 0.144,
+        "fdr_wilson95": [
+          0.1236009499120135,
+          0.16712370212970176
+        ],
+        "failures": {}
+      },
+      {
+        "n": 512,
+        "rho": 0.9,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.09545525291828885,
+        "swa_pointwise_rate": 0.10428015564202424,
+        "fdr_any_rejection_count": 335,
+        "fdr_all_null_rate": 0.335,
+        "fdr_wilson95": [
+          0.30642688114062866,
+          0.3648359491596046
+        ],
+        "failures": {}
+      },
+      {
+        "n": 512,
+        "rho": 0.98,
+        "records": 1000,
+        "ar1_pointwise_rate": 0.1524785992217908,
+        "swa_pointwise_rate": 0.13735797665369745,
+        "fdr_any_rejection_count": 850,
+        "fdr_all_null_rate": 0.85,
+        "fdr_wilson95": [
+          0.8265313415731996,
+          0.8707899274869118
+        ],
+        "failures": {}
+      }
+    ],
+    "gamma3_explanation": {
+      "geometric_mean_to_arithmetic_mean": 0.8387622769797879,
+      "median_to_mean": 0.891353437907853,
+      "tail_at_nominal95_with_geometric_background": 0.10291702946311514,
+      "caveat": "Idealized fixed-K gamma approximation only; not an empirical correction installed in production"
+    }
+  },
+  "ar1_global": {
+    "historical_version": "beta.18",
+    "summary": {
+      "configurations": [
+        "standard128_a",
+        "standard128_b",
+        "fine128_a",
+        "standard512_a",
+        "lowess128_a"
+      ],
+      "observation_evaluations": 11000,
+      "failed_evaluations": 0,
+      "empty_sets_in_denominators": 7,
+      "null_rate_range": [
+        0,
+        0.04
+      ],
+      "scope": "Conditional-on-bank proportions; paired observations across settings, not 11000 independent records. Gaussian stationary AR1 only."
+    },
+    "configurations": {
+      "standard128_a": {
+        "bank_cache_hit": false,
+        "bank_key": "53b8ec18d2705b781ee7a0d2d35c87db4c1cc3d4a83a8b4fe0b5db11016c0ca1",
+        "bank_milliseconds": 44300,
+        "bank_seed": "202611021",
+        "cases": [
+          {
+            "conditional_bank_wilson95": [
+              4.336808689942018e-19,
+              0.007624340461552241
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 0,
+            "mean_p": 0.8168200427915924,
+            "milliseconds": 3750,
+            "name": "null_0.9",
+            "rate": 0,
+            "rho": 0.9,
+            "seed": "202611030180",
+            "trials": 500
+          },
+          {
+            "conditional_bank_wilson95": [
+              0.00679778979084349,
+              0.02861306913778529
+            ],
+            "empty_sets": 2,
+            "failures": 0,
+            "hits": 7,
+            "mean_p": 0.5883926623188237,
+            "milliseconds": 4025,
+            "name": "null_0.995",
+            "rate": 0.014,
+            "rho": 0.995,
+            "seed": "202611030181",
+            "trials": 500
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9042130012276914,
+              0.9690146582965411
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 189,
+            "mean_p": 0.04279179669236287,
+            "milliseconds": 1810,
+            "name": "signal_a0.4_p8",
+            "period": 8,
+            "rate": 0.945,
+            "rho": 0.98,
+            "seed": "202611030200",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.0078044264163494685,
+              0.050287086905826436
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 4,
+            "mean_p": 0.17084179669236277,
+            "milliseconds": 1460,
+            "name": "signal_a0.4_p16",
+            "period": 16,
+            "rate": 0.02,
+            "rho": 0.98,
+            "seed": "202611030201",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.0008831687156009814,
+              0.02777370439789293
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 1,
+            "mean_p": 0.517229837708901,
+            "milliseconds": 1595,
+            "name": "signal_a0.4_p32",
+            "period": 32,
+            "rate": 0.005,
+            "rho": 0.98,
+            "seed": "202611030202",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.031641796692362854,
+            "milliseconds": 1641,
+            "name": "signal_a0.6_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030203",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.4907167533465867,
+              0.6270218074881414
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 112,
+            "mean_p": 0.059166796692362855,
+            "milliseconds": 1359,
+            "name": "signal_a0.6_p16",
+            "period": 16,
+            "rate": 0.56,
+            "rho": 0.98,
+            "seed": "202611030204",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.00511423779325831,
+              0.04316572879269026
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 3,
+            "mean_p": 0.25111679669236275,
+            "milliseconds": 1422,
+            "name": "signal_a0.6_p32",
+            "period": 32,
+            "rate": 0.015,
+            "rho": 0.98,
+            "seed": "202611030205",
+            "trials": 200
+          }
+        ],
+        "lowess": false,
+        "n": 128,
+        "replicates": 199,
+        "scope": "Production AR1 global v1; paired observations across banks. Wilson intervals conditional on realised bank; empty sets retained."
+      },
+      "standard128_b": {
+        "bank_cache_hit": false,
+        "bank_key": "6bc022a0d04f2f1d06343419208fc34ce43de8d6c311e3f6d6c4dd6fc3e99df3",
+        "bank_milliseconds": 44900,
+        "bank_seed": "202611022",
+        "cases": [
+          {
+            "conditional_bank_wilson95": [
+              4.336808689942018e-19,
+              0.007624340461552241
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 0,
+            "mean_p": 0.7793013412312828,
+            "milliseconds": 3943,
+            "name": "null_0.9",
+            "rate": 0,
+            "rho": 0.9,
+            "seed": "202611030180",
+            "trials": 500
+          },
+          {
+            "conditional_bank_wilson95": [
+              0.012328008269927582,
+              0.03896086121131637
+            ],
+            "empty_sets": 1,
+            "failures": 0,
+            "hits": 11,
+            "mean_p": 0.550058311538669,
+            "milliseconds": 4591,
+            "name": "null_0.995",
+            "rate": 0.022,
+            "rho": 0.995,
+            "seed": "202611030181",
+            "trials": 500
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9568342712073097,
+              0.9948857622067417
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 197,
+            "mean_p": 0.03931679669236292,
+            "milliseconds": 1403,
+            "name": "signal_a0.4_p8",
+            "period": 8,
+            "rate": 0.985,
+            "rho": 0.98,
+            "seed": "202611030200",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.017055542008567192,
+              0.07047061152229073
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 7,
+            "mean_p": 0.1771167966923629,
+            "milliseconds": 1399,
+            "name": "signal_a0.4_p16",
+            "period": 16,
+            "rate": 0.035,
+            "rho": 0.98,
+            "seed": "202611030201",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.0008831687156009814,
+              0.02777370439789293
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 1,
+            "mean_p": 0.47980483770890087,
+            "milliseconds": 1572,
+            "name": "signal_a0.4_p32",
+            "period": 32,
+            "rate": 0.005,
+            "rho": 0.98,
+            "seed": "202611030202",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.027291796692362816,
+            "milliseconds": 1433,
+            "name": "signal_a0.6_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030203",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.6593166064233035,
+              0.7822029967069265
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 145,
+            "mean_p": 0.051216796692362794,
+            "milliseconds": 1404,
+            "name": "signal_a0.6_p16",
+            "period": 16,
+            "rate": 0.725,
+            "rho": 0.98,
+            "seed": "202611030204",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.0078044264163494685,
+              0.050287086905826436
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 4,
+            "mean_p": 0.24706679669236273,
+            "milliseconds": 1435,
+            "name": "signal_a0.6_p32",
+            "period": 32,
+            "rate": 0.02,
+            "rho": 0.98,
+            "seed": "202611030205",
+            "trials": 200
+          }
+        ],
+        "lowess": false,
+        "n": 128,
+        "replicates": 199,
+        "scope": "Production AR1 global v1; paired observations across banks. Wilson intervals conditional on realised bank; empty sets retained."
+      },
+      "fine128_a": {
+        "bank_cache_hit": false,
+        "bank_key": "1c885966412d0b05dd4c034db5e567d1dadd38fa4f675c14f045f0a1c8a71282",
+        "bank_milliseconds": 208604,
+        "bank_seed": "202611021",
+        "cases": [
+          {
+            "conditional_bank_wilson95": [
+              4.336808689942018e-19,
+              0.007624340461552241
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 0,
+            "mean_p": 0.7638000427915912,
+            "milliseconds": 5546,
+            "name": "null_0.9",
+            "rate": 0,
+            "rho": 0.9,
+            "seed": "202611030180",
+            "trials": 500
+          },
+          {
+            "conditional_bank_wilson95": [
+              0.008129253033388314,
+              0.03125110853339426
+            ],
+            "empty_sets": 2,
+            "failures": 0,
+            "hits": 8,
+            "mean_p": 0.5284086623188234,
+            "milliseconds": 5824,
+            "name": "null_0.995",
+            "rate": 0.016,
+            "rho": 0.995,
+            "seed": "202611030181",
+            "trials": 500
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.923067931799067,
+              0.9795943679338476
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 192,
+            "mean_p": 0.033581796692362866,
+            "milliseconds": 3465,
+            "name": "signal_a0.4_p8",
+            "period": 8,
+            "rate": 0.96,
+            "rho": 0.98,
+            "seed": "202611030200",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.0078044264163494685,
+              0.050287086905826436
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 4,
+            "mean_p": 0.15034179669236278,
+            "milliseconds": 3425,
+            "name": "signal_a0.4_p16",
+            "period": 16,
+            "rate": 0.02,
+            "rho": 0.98,
+            "seed": "202611030201",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.0008831687156009814,
+              0.02777370439789293
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 1,
+            "mean_p": 0.4513898377089011,
+            "milliseconds": 2728,
+            "name": "signal_a0.4_p32",
+            "period": 32,
+            "rate": 0.005,
+            "rho": 0.98,
+            "seed": "202611030202",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.018761796692362824,
+            "milliseconds": 2761,
+            "name": "signal_a0.6_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030203",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.5207645903369208,
+              0.6558432509151711
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 118,
+            "mean_p": 0.04882179669236281,
+            "milliseconds": 2692,
+            "name": "signal_a0.6_p16",
+            "period": 16,
+            "rate": 0.59,
+            "rho": 0.98,
+            "seed": "202611030204",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.00511423779325831,
+              0.04316572879269026
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 3,
+            "mean_p": 0.21977179669236285,
+            "milliseconds": 3084,
+            "name": "signal_a0.6_p32",
+            "period": 32,
+            "rate": 0.015,
+            "rho": 0.98,
+            "seed": "202611030205",
+            "trials": 200
+          }
+        ],
+        "lowess": false,
+        "n": 128,
+        "replicates": 999,
+        "scope": "Production AR1 global v1; paired observations across banks. Wilson intervals conditional on realised bank; empty sets retained."
+      },
+      "standard512_a": {
+        "bank_cache_hit": false,
+        "bank_key": "02dbef4476ffe450a9e80fa74b7f73f27fad31acaf071c57efb245142168b033",
+        "bank_milliseconds": 217411,
+        "bank_seed": "202611021",
+        "cases": [
+          {
+            "conditional_bank_wilson95": [
+              0.02289106098029272,
+              0.056184326968027755
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 18,
+            "mean_p": 0.5811256017340736,
+            "milliseconds": 9860,
+            "name": "null_0.9",
+            "rate": 0.036,
+            "rho": 0.9,
+            "seed": "202611030180",
+            "trials": 500
+          },
+          {
+            "conditional_bank_wilson95": [
+              4.336808689942018e-19,
+              0.007624340461552241
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 0,
+            "mean_p": 0.6033245511332537,
+            "milliseconds": 9696,
+            "name": "null_0.995",
+            "rate": 0,
+            "rho": 0.995,
+            "seed": "202611030181",
+            "trials": 500
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.017412449931611725,
+            "milliseconds": 3184,
+            "name": "signal_a0.4_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030200",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.017987449931611717,
+            "milliseconds": 3743,
+            "name": "signal_a0.4_p16",
+            "period": 16,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030201",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.04597491718438201,
+              0.12004361023629456
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 15,
+            "mean_p": 0.1311874499316116,
+            "milliseconds": 3840,
+            "name": "signal_a0.4_p32",
+            "period": 32,
+            "rate": 0.075,
+            "rho": 0.98,
+            "seed": "202611030202",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.017412449931611725,
+            "milliseconds": 3561,
+            "name": "signal_a0.6_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030203",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.017412449931611725,
+            "milliseconds": 3492,
+            "name": "signal_a0.6_p16",
+            "period": 16,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030204",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.8919809207009312,
+              0.961623645350847
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 187,
+            "mean_p": 0.02723744993161172,
+            "milliseconds": 3817,
+            "name": "signal_a0.6_p32",
+            "period": 32,
+            "rate": 0.935,
+            "rho": 0.98,
+            "seed": "202611030205",
+            "trials": 200
+          }
+        ],
+        "lowess": false,
+        "n": 512,
+        "replicates": 199,
+        "scope": "Production AR1 global v1; paired observations across banks. Wilson intervals conditional on realised bank; empty sets retained."
+      },
+      "lowess128_a": {
+        "bank_cache_hit": false,
+        "bank_key": "3bd1e44d74e1eb007eec14600eb12f7bcf8d1108513dfb593d220a0dd8b8cb6d",
+        "bank_milliseconds": 77614,
+        "bank_seed": "202611021",
+        "cases": [
+          {
+            "conditional_bank_wilson95": [
+              0.02133451980853219,
+              0.053771365501634506
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 17,
+            "mean_p": 0.5012991771651303,
+            "milliseconds": 3986,
+            "name": "null_0.9",
+            "rate": 0.034,
+            "rho": 0.9,
+            "seed": "202611030180",
+            "trials": 500
+          },
+          {
+            "conditional_bank_wilson95": [
+              0.026040797389777257,
+              0.060973595834850805
+            ],
+            "empty_sets": 2,
+            "failures": 0,
+            "hits": 20,
+            "mean_p": 0.5176887443519002,
+            "milliseconds": 3580,
+            "name": "null_0.995",
+            "rate": 0.04,
+            "rho": 0.995,
+            "seed": "202611030181",
+            "trials": 500
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.01739179669236278,
+            "milliseconds": 1456,
+            "name": "signal_a0.4_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030200",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.9642782382838231,
+              0.9972533418664555
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 198,
+            "mean_p": 0.018766796692362774,
+            "milliseconds": 1483,
+            "name": "signal_a0.4_p16",
+            "period": 16,
+            "rate": 0.99,
+            "rho": 0.98,
+            "seed": "202611030201",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.4,
+            "conditional_bank_wilson95": [
+              0.10289350642004402,
+              0.20048667530781522
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 29,
+            "mean_p": 0.31530483770890116,
+            "milliseconds": 1427,
+            "name": "signal_a0.4_p32",
+            "period": 32,
+            "rate": 0.145,
+            "rho": 0.98,
+            "seed": "202611030202",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.01739179669236278,
+            "milliseconds": 1520,
+            "name": "signal_a0.6_p8",
+            "period": 8,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030203",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.9811546736227335,
+              1
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 200,
+            "mean_p": 0.01739179669236278,
+            "milliseconds": 1571,
+            "name": "signal_a0.6_p16",
+            "period": 16,
+            "rate": 1,
+            "rho": 0.98,
+            "seed": "202611030204",
+            "trials": 200
+          },
+          {
+            "amplitude": 0.6,
+            "conditional_bank_wilson95": [
+              0.53083672039262,
+              0.6653942143319266
+            ],
+            "empty_sets": 0,
+            "failures": 0,
+            "hits": 120,
+            "mean_p": 0.10881679669236281,
+            "milliseconds": 1641,
+            "name": "signal_a0.6_p32",
+            "period": 32,
+            "rate": 0.6,
+            "rho": 0.98,
+            "seed": "202611030205",
+            "trials": 200
+          }
+        ],
+        "lowess": true,
+        "n": 128,
+        "replicates": 199,
+        "scope": "Production AR1 global v1; paired observations across banks. Wilson intervals conditional on realised bank; empty sets retained."
+      }
+    }
+  },
+  "filter_reference": {
+    "origin": "User-supplied Acycle_3.1.1.zip; corrected-bandpass-v2, not assumed unmodified upstream Acycle",
+    "files": {
+      "acycleBandpassFilter.m": "0fd4683086d4f884685d3bb5a9c18336cb276c43d187c75aa8990485c209b292",
+      "gaussfilter.m": "2288d52696fcc2327f6dfd3e66408af51165d6f8846ad88dd0ebab2fbadfae99",
+      "tanerhilbertML.m": "f24b2db5dfd0b4af7cdabf23ad8f6b5783f7c6dfbd465043ca7e20c60cc5638b"
+    },
+    "matlab_run_this_recovery": false,
+    "review": "Actual reference formula/normalization/endpoints inspected; 12 independent DFT fixture cases and analytical properties tested in C++"
+  },
+  "coco_calibration_debug": {
+    "cases": [
+      {
+        "alpha": 0.05,
+        "rate": 0.04,
+        "rejections": 8,
+        "rho": 0,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.020405632066152306,
+          0.07693206820093293
+        ]
+      },
+      {
+        "alpha": 0.05,
+        "rate": 0.075,
+        "rejections": 15,
+        "rho": 0.7,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.04597491718438201,
+          0.12004361023629456
+        ]
+      },
+      {
+        "alpha": 0.05,
+        "rate": 0.07,
+        "rejections": 14,
+        "rho": 0.95,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.042152171828342806,
+          0.11405480885610647
+        ]
+      }
+    ],
+    "scope": "fixed Gaussian AR1; one predeclared grid; not upstream filtered data or arbitrary red noise"
+  },
+  "coco_calibration_release": {
+    "cases": [
+      {
+        "alpha": 0.05,
+        "rate": 0.04,
+        "rejections": 8,
+        "rho": 0,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.020405632066152306,
+          0.07693206820093293
+        ]
+      },
+      {
+        "alpha": 0.05,
+        "rate": 0.075,
+        "rejections": 15,
+        "rho": 0.7,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.04597491718438201,
+          0.12004361023629456
+        ]
+      },
+      {
+        "alpha": 0.05,
+        "rate": 0.07,
+        "rejections": 14,
+        "rho": 0.95,
+        "simulations": 99,
+        "trials": 200,
+        "wilson95": [
+          0.042152171828342806,
+          0.11405480885610647
+        ]
+      }
+    ],
+    "scope": "fixed Gaussian AR1; one predeclared grid; not upstream filtered data or arbitrary red noise"
+  },
+  "peak_reference_beta34": {
+    "reference": "scipy.signal.find_peaks / peak_prominences / peak_widths",
+    "scipy": "1.17.0",
+    "cases": 900,
+    "all_passed": true,
+    "seed": 3403,
+    "coverage": "random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (Aster suppression order intentionally differs)",
+    "prominence_rtol": 2e-13,
+    "width_rtol": 2e-12
+  }
+}

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "odp846_d18o",
+    "axis": "age",
+    "count": 697,
+    "omitted": 0,
+    "first": [
+      3.09,
+      3.38
+    ],
+    "last": [
+      1834.9,
+      3.64
+    ],
+    "pairs_sha256": "75d3723a2ec94578149649faca2c52d104d665276ee95091525a7594e419bd6e",
+    "source_sha256": "33bea96ace97274bb1b9682a6c90e4c3faf92279296db32348e224db13186a3a"
+  },
+  {
+    "id": "odp846_d18o",
+    "axis": "depth",
+    "count": 697,
+    "omitted": 0,
+    "first": [
+      0.12,
+      3.38
+    ],
+    "last": [
+      66.6,
+      3.64
+    ],
+    "pairs_sha256": "6199637c217fdef7ee08f5482d94a6ee47ccd080a9abf7207553b31addecb57c",
+    "source_sha256": "33bea96ace97274bb1b9682a6c90e4c3faf92279296db32348e224db13186a3a"
+  },
+  {
+    "id": "odp846_d13c",
+    "axis": "age",
+    "count": 697,
+    "omitted": 0,
+    "first": [
+      3.09,
+      0.14
+    ],
+    "last": [
+      1834.9,
+      -0.48
+    ],
+    "pairs_sha256": "d831cc0c565b74fc3c1554bfac1c843914f2d504c29e0d3b3059d17cb2cbdfd6",
+    "source_sha256": "33bea96ace97274bb1b9682a6c90e4c3faf92279296db32348e224db13186a3a"
+  },
+  {
+    "id": "odp846_d13c",
+    "axis": "depth",
+    "count": 697,
+    "omitted": 0,
+    "first": [
+      0.12,
+      0.14
+    ],
+    "last": [
+      66.6,
+      -0.48
+    ],
+    "pairs_sha256": "228e4d72fb2b173e48c3713e70d16e4ab7242443d2adceb139cb5d30a9abb1f0",
+    "source_sha256": "33bea96ace97274bb1b9682a6c90e4c3faf92279296db32348e224db13186a3a"
+  },
+  {
+    "id": "odp1143_d18o",
+    "axis": "age",
+    "count": 1710,
+    "omitted": 0,
+    "first": [
+      0.0,
+      2.34
+    ],
+    "last": [
+      5020.61,
+      2.31
+    ],
+    "pairs_sha256": "b92129c2ce051fc84ea151dd807fe3f0ec5642533030d9a91c406f60d9692e92",
+    "source_sha256": "be8c715674c854179422cefd78874ad5184bd55a5d80d77b1db682486d578f87"
+  },
+  {
+    "id": "odp1143_d18o",
+    "axis": "depth",
+    "count": 1710,
+    "omitted": 0,
+    "first": [
+      0.0,
+      2.34
+    ],
+    "last": [
+      190.77,
+      2.31
+    ],
+    "pairs_sha256": "8a360b0e0bd05cbf8401f1e12ed3df1f7df49920f2084b62621b05243b1079c9",
+    "source_sha256": "be8c715674c854179422cefd78874ad5184bd55a5d80d77b1db682486d578f87"
+  },
+  {
+    "id": "odp926_d13c",
+    "axis": "age",
+    "count": 2080,
+    "omitted": 2,
+    "first": [
+      17862.0,
+      0.796
+    ],
+    "last": [
+      26517.0,
+      0.398
+    ],
+    "pairs_sha256": "8588e21628a1c673faa9f0ab43deddc9963e4f6e45b66b94a205cb1735e26bfc",
+    "source_sha256": "8f5b29eab01e3afb2de55a63d83f55c6bfbbc58718660648472b3eaff9fff9ac"
+  },
+  {
+    "id": "odp926_d13c",
+    "axis": "depth",
+    "count": 2080,
+    "omitted": 2,
+    "first": [
+      350.13,
+      0.796
+    ],
+    "last": [
+      587.71,
+      0.398
+    ],
+    "pairs_sha256": "11fabd4f8b3c8626d98e0c9d331c01104d91b1995f63208188011a78d3f1d77f",
+    "source_sha256": "8f5b29eab01e3afb2de55a63d83f55c6bfbbc58718660648472b3eaff9fff9ac"
+  },
+  {
+    "id": "odp926_lightness",
+    "axis": "age",
+    "count": 1981,
+    "omitted": 101,
+    "first": [
+      17862.0,
+      40.65
+    ],
+    "last": [
+      26501.0,
+      31.42
+    ],
+    "pairs_sha256": "adff99bb0cddffc6577e77a5c641e26dc1df3b72fdba56f37a02e40827543d2f",
+    "source_sha256": "8f5b29eab01e3afb2de55a63d83f55c6bfbbc58718660648472b3eaff9fff9ac"
+  },
+  {
+    "id": "odp926_lightness",
+    "axis": "depth",
+    "count": 1981,
+    "omitted": 101,
+    "first": [
+      350.13,
+      40.65
+    ],
+    "last": [
+      587.31,
+      31.42
+    ],
+    "pairs_sha256": "df0f2516cfffee7920de2a7424ebe1df0f9672f174f0686e8597aac3ab31b7ac",
+    "source_sha256": "8f5b29eab01e3afb2de55a63d83f55c6bfbbc58718660648472b3eaff9fff9ac"
+  }
+]

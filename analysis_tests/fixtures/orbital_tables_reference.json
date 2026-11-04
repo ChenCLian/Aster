@@ -1,0 +1,2647 @@
+{
+  "origin": "Official original ASCII files, independent Python NumPy parser; numpy.interp and unwrap for angle reference. Seed 20261102. Native knots are exact parsed doubles.",
+  "solutions": [
+    {
+      "id": "la2010a",
+      "source_sha256": "e96e8b5c006913afcb0efada16ef17f286bb8544f41b14623e02c9fbc05df26d",
+      "rows": 250000,
+      "maximum_age": 249999.0,
+      "knots": [
+        {
+          "age": -0.0,
+          "values": {
+            "eccentricity": 0.016702362
+          }
+        },
+        {
+          "age": 1.0,
+          "values": {
+            "eccentricity": 0.017161382
+          }
+        },
+        {
+          "age": 812.0,
+          "values": {
+            "eccentricity": 0.012061401
+          }
+        },
+        {
+          "age": 8173.0,
+          "values": {
+            "eccentricity": 0.041936516
+          }
+        },
+        {
+          "age": 46106.0,
+          "values": {
+            "eccentricity": 0.033565736
+          }
+        },
+        {
+          "age": 53819.0,
+          "values": {
+            "eccentricity": 0.017189175
+          }
+        },
+        {
+          "age": 53959.0,
+          "values": {
+            "eccentricity": 0.036959818
+          }
+        },
+        {
+          "age": 99520.0,
+          "values": {
+            "eccentricity": 0.025286371
+          }
+        },
+        {
+          "age": 107304.0,
+          "values": {
+            "eccentricity": 0.03593134
+          }
+        },
+        {
+          "age": 109867.0,
+          "values": {
+            "eccentricity": 0.060665878
+          }
+        },
+        {
+          "age": 125000.0,
+          "values": {
+            "eccentricity": 0.003654581
+          }
+        },
+        {
+          "age": 131610.0,
+          "values": {
+            "eccentricity": 0.028182913
+          }
+        },
+        {
+          "age": 169748.0,
+          "values": {
+            "eccentricity": 0.05371966
+          }
+        },
+        {
+          "age": 180315.0,
+          "values": {
+            "eccentricity": 0.037526323
+          }
+        },
+        {
+          "age": 185393.0,
+          "values": {
+            "eccentricity": 0.018271481
+          }
+        },
+        {
+          "age": 204765.0,
+          "values": {
+            "eccentricity": 0.005041614
+          }
+        },
+        {
+          "age": 207214.0,
+          "values": {
+            "eccentricity": 0.028338546
+          }
+        },
+        {
+          "age": 207614.0,
+          "values": {
+            "eccentricity": 0.011534897
+          }
+        },
+        {
+          "age": 236178.0,
+          "values": {
+            "eccentricity": 0.021135814
+          }
+        },
+        {
+          "age": 249998.0,
+          "values": {
+            "eccentricity": 0.04074941
+          }
+        },
+        {
+          "age": 249999.0,
+          "values": {
+            "eccentricity": 0.040576204
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.37,
+          "values": {
+            "eccentricity": 0.0168721994
+          }
+        },
+        {
+          "age": 1.37,
+          "values": {
+            "eccentricity": 0.01728549184
+          }
+        },
+        {
+          "age": 812.37,
+          "values": {
+            "eccentricity": 0.01201877034
+          }
+        },
+        {
+          "age": 8173.37,
+          "values": {
+            "eccentricity": 0.041956404979999994
+          }
+        },
+        {
+          "age": 46106.37,
+          "values": {
+            "eccentricity": 0.03339959304999882
+          }
+        },
+        {
+          "age": 53819.37,
+          "values": {
+            "eccentricity": 0.017284798540000677
+          }
+        },
+        {
+          "age": 53959.37,
+          "values": {
+            "eccentricity": 0.036990296010000215
+          }
+        },
+        {
+          "age": 99520.37,
+          "values": {
+            "eccentricity": 0.02545622208999786
+          }
+        },
+        {
+          "age": 107304.37,
+          "values": {
+            "eccentricity": 0.03598861525999928
+          }
+        },
+        {
+          "age": 109867.37,
+          "values": {
+            "eccentricity": 0.06052130975000182
+          }
+        },
+        {
+          "age": 125000.37,
+          "values": {
+            "eccentricity": 0.003977064489995941
+          }
+        },
+        {
+          "age": 131610.37,
+          "values": {
+            "eccentricity": 0.028231667159999387
+          }
+        },
+        {
+          "age": 169748.37,
+          "values": {
+            "eccentricity": 0.05375303177999958
+          }
+        },
+        {
+          "age": 180315.37,
+          "values": {
+            "eccentricity": 0.03786313658999576
+          }
+        },
+        {
+          "age": 185393.37,
+          "values": {
+            "eccentricity": 0.018148819340001544
+          }
+        },
+        {
+          "age": 204765.37,
+          "values": {
+            "eccentricity": 0.004752470470003638
+          }
+        },
+        {
+          "age": 207214.37,
+          "values": {
+            "eccentricity": 0.028452571119998563
+          }
+        },
+        {
+          "age": 207614.37,
+          "values": {
+            "eccentricity": 0.011932452749994996
+          }
+        },
+        {
+          "age": 236178.37,
+          "values": {
+            "eccentricity": 0.021375584359996983
+          }
+        },
+        {
+          "age": 249998.37,
+          "values": {
+            "eccentricity": 0.0406853237800008
+          }
+        }
+      ]
+    },
+    {
+      "id": "la2010b",
+      "source_sha256": "6097410442b71f1966ea1f0e7afba2b4a2b37942eef1d053ca1e00ac4e79d13f",
+      "rows": 250000,
+      "maximum_age": 249999.0,
+      "knots": [
+        {
+          "age": -0.0,
+          "values": {
+            "eccentricity": 0.016702362
+          }
+        },
+        {
+          "age": 1.0,
+          "values": {
+            "eccentricity": 0.017161382
+          }
+        },
+        {
+          "age": 812.0,
+          "values": {
+            "eccentricity": 0.012061008
+          }
+        },
+        {
+          "age": 8173.0,
+          "values": {
+            "eccentricity": 0.041939409
+          }
+        },
+        {
+          "age": 46106.0,
+          "values": {
+            "eccentricity": 0.03283891
+          }
+        },
+        {
+          "age": 53819.0,
+          "values": {
+            "eccentricity": 0.019203168
+          }
+        },
+        {
+          "age": 53959.0,
+          "values": {
+            "eccentricity": 0.047501063
+          }
+        },
+        {
+          "age": 99520.0,
+          "values": {
+            "eccentricity": 0.004393064
+          }
+        },
+        {
+          "age": 107304.0,
+          "values": {
+            "eccentricity": 0.027351022
+          }
+        },
+        {
+          "age": 109867.0,
+          "values": {
+            "eccentricity": 0.0307982
+          }
+        },
+        {
+          "age": 125000.0,
+          "values": {
+            "eccentricity": 0.020675676
+          }
+        },
+        {
+          "age": 131610.0,
+          "values": {
+            "eccentricity": 0.014034904
+          }
+        },
+        {
+          "age": 169748.0,
+          "values": {
+            "eccentricity": 0.014019568
+          }
+        },
+        {
+          "age": 180315.0,
+          "values": {
+            "eccentricity": 0.02280087
+          }
+        },
+        {
+          "age": 185393.0,
+          "values": {
+            "eccentricity": 0.021776676
+          }
+        },
+        {
+          "age": 204765.0,
+          "values": {
+            "eccentricity": 0.040585317
+          }
+        },
+        {
+          "age": 207214.0,
+          "values": {
+            "eccentricity": 0.037712602
+          }
+        },
+        {
+          "age": 207614.0,
+          "values": {
+            "eccentricity": 0.029750069
+          }
+        },
+        {
+          "age": 236178.0,
+          "values": {
+            "eccentricity": 0.028873015
+          }
+        },
+        {
+          "age": 249998.0,
+          "values": {
+            "eccentricity": 0.029521808
+          }
+        },
+        {
+          "age": 249999.0,
+          "values": {
+            "eccentricity": 0.029153167
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.37,
+          "values": {
+            "eccentricity": 0.0168721994
+          }
+        },
+        {
+          "age": 1.37,
+          "values": {
+            "eccentricity": 0.01728549221
+          }
+        },
+        {
+          "age": 812.37,
+          "values": {
+            "eccentricity": 0.01201847576
+          }
+        },
+        {
+          "age": 8173.37,
+          "values": {
+            "eccentricity": 0.04196153388999999
+          }
+        },
+        {
+          "age": 46106.37,
+          "values": {
+            "eccentricity": 0.03271620208999913
+          }
+        },
+        {
+          "age": 53819.37,
+          "values": {
+            "eccentricity": 0.01941920989000153
+          }
+        },
+        {
+          "age": 53959.37,
+          "values": {
+            "eccentricity": 0.0473740401499991
+          }
+        },
+        {
+          "age": 99520.37,
+          "values": {
+            "eccentricity": 0.004632491739996987
+          }
+        },
+        {
+          "age": 107304.37,
+          "values": {
+            "eccentricity": 0.02712609382000283
+          }
+        },
+        {
+          "age": 109867.37,
+          "values": {
+            "eccentricity": 0.030572252470002843
+          }
+        },
+        {
+          "age": 125000.37,
+          "values": {
+            "eccentricity": 0.021116400389994454
+          }
+        },
+        {
+          "age": 131610.37,
+          "values": {
+            "eccentricity": 0.01372100340000395
+          }
+        },
+        {
+          "age": 169748.37,
+          "values": {
+            "eccentricity": 0.01399335017000033
+          }
+        },
+        {
+          "age": 180315.37,
+          "values": {
+            "eccentricity": 0.022976957809997783
+          }
+        },
+        {
+          "age": 185393.37,
+          "values": {
+            "eccentricity": 0.021972442999997534
+          }
+        },
+        {
+          "age": 204765.37,
+          "values": {
+            "eccentricity": 0.04028144414000383
+          }
+        },
+        {
+          "age": 207214.37,
+          "values": {
+            "eccentricity": 0.03776904253999929
+          }
+        },
+        {
+          "age": 207614.37,
+          "values": {
+            "eccentricity": 0.02946255754000362
+          }
+        },
+        {
+          "age": 236178.37,
+          "values": {
+            "eccentricity": 0.029144288639996584
+          }
+        },
+        {
+          "age": 249998.37,
+          "values": {
+            "eccentricity": 0.029385410830001717
+          }
+        }
+      ]
+    },
+    {
+      "id": "la2010c",
+      "source_sha256": "ab937f054252cf92f8c9e80dee903729aad2721e086c6896182deb392d433a2e",
+      "rows": 250000,
+      "maximum_age": 249999.0,
+      "knots": [
+        {
+          "age": -0.0,
+          "values": {
+            "eccentricity": 0.016702362
+          }
+        },
+        {
+          "age": 1.0,
+          "values": {
+            "eccentricity": 0.017161386
+          }
+        },
+        {
+          "age": 812.0,
+          "values": {
+            "eccentricity": 0.012060793
+          }
+        },
+        {
+          "age": 8173.0,
+          "values": {
+            "eccentricity": 0.041941749
+          }
+        },
+        {
+          "age": 46106.0,
+          "values": {
+            "eccentricity": 0.032883948
+          }
+        },
+        {
+          "age": 53819.0,
+          "values": {
+            "eccentricity": 0.021049966
+          }
+        },
+        {
+          "age": 53959.0,
+          "values": {
+            "eccentricity": 0.046464983
+          }
+        },
+        {
+          "age": 99520.0,
+          "values": {
+            "eccentricity": 0.014194322
+          }
+        },
+        {
+          "age": 107304.0,
+          "values": {
+            "eccentricity": 0.036877409
+          }
+        },
+        {
+          "age": 109867.0,
+          "values": {
+            "eccentricity": 0.056894334
+          }
+        },
+        {
+          "age": 125000.0,
+          "values": {
+            "eccentricity": 0.038957804
+          }
+        },
+        {
+          "age": 131610.0,
+          "values": {
+            "eccentricity": 0.026838633
+          }
+        },
+        {
+          "age": 169748.0,
+          "values": {
+            "eccentricity": 0.03545293
+          }
+        },
+        {
+          "age": 180315.0,
+          "values": {
+            "eccentricity": 0.034152982
+          }
+        },
+        {
+          "age": 185393.0,
+          "values": {
+            "eccentricity": 0.020724884
+          }
+        },
+        {
+          "age": 204765.0,
+          "values": {
+            "eccentricity": 0.026217114
+          }
+        },
+        {
+          "age": 207214.0,
+          "values": {
+            "eccentricity": 0.034079856
+          }
+        },
+        {
+          "age": 207614.0,
+          "values": {
+            "eccentricity": 0.04224856
+          }
+        },
+        {
+          "age": 236178.0,
+          "values": {
+            "eccentricity": 0.028172312
+          }
+        },
+        {
+          "age": 249998.0,
+          "values": {
+            "eccentricity": 0.041231551
+          }
+        },
+        {
+          "age": 249999.0,
+          "values": {
+            "eccentricity": 0.041351538
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.37,
+          "values": {
+            "eccentricity": 0.01687220088
+          }
+        },
+        {
+          "age": 1.37,
+          "values": {
+            "eccentricity": 0.01728549806
+          }
+        },
+        {
+          "age": 812.37,
+          "values": {
+            "eccentricity": 0.01201815272
+          }
+        },
+        {
+          "age": 8173.37,
+          "values": {
+            "eccentricity": 0.041963837629999994
+          }
+        },
+        {
+          "age": 46106.37,
+          "values": {
+            "eccentricity": 0.03275942523999912
+          }
+        },
+        {
+          "age": 53819.37,
+          "values": {
+            "eccentricity": 0.02127880212000162
+          }
+        },
+        {
+          "age": 53959.37,
+          "values": {
+            "eccentricity": 0.046294867729998794
+          }
+        },
+        {
+          "age": 99520.37,
+          "values": {
+            "eccentricity": 0.013910366610003574
+          }
+        },
+        {
+          "age": 107304.37,
+          "values": {
+            "eccentricity": 0.03686425402000017
+          }
+        },
+        {
+          "age": 109867.37,
+          "values": {
+            "eccentricity": 0.05677745840000147
+          }
+        },
+        {
+          "age": 125000.37,
+          "values": {
+            "eccentricity": 0.03885262225000132
+          }
+        },
+        {
+          "age": 131610.37,
+          "values": {
+            "eccentricity": 0.027051541359997322
+          }
+        },
+        {
+          "age": 169748.37,
+          "values": {
+            "eccentricity": 0.03520144433000316
+          }
+        },
+        {
+          "age": 180315.37,
+          "values": {
+            "eccentricity": 0.03414707643000007
+          }
+        },
+        {
+          "age": 185393.37,
+          "values": {
+            "eccentricity": 0.020390015870004215
+          }
+        },
+        {
+          "age": 204765.37,
+          "values": {
+            "eccentricity": 0.026307135739998867
+          }
+        },
+        {
+          "age": 207214.37,
+          "values": {
+            "eccentricity": 0.03391400313000209
+          }
+        },
+        {
+          "age": 207614.37,
+          "values": {
+            "eccentricity": 0.04211758148000165
+          }
+        },
+        {
+          "age": 236178.37,
+          "values": {
+            "eccentricity": 0.028117902390000685
+          }
+        },
+        {
+          "age": 249998.37,
+          "values": {
+            "eccentricity": 0.04127594618999944
+          }
+        }
+      ]
+    },
+    {
+      "id": "la2010d",
+      "source_sha256": "640cded34140465ab30acc6b49f814e553ab94a4ae24f9cda4b8de0d9852759b",
+      "rows": 250000,
+      "maximum_age": 249999.0,
+      "knots": [
+        {
+          "age": -0.0,
+          "values": {
+            "eccentricity": 0.016702362
+          }
+        },
+        {
+          "age": 1.0,
+          "values": {
+            "eccentricity": 0.017161383
+          }
+        },
+        {
+          "age": 812.0,
+          "values": {
+            "eccentricity": 0.012060418
+          }
+        },
+        {
+          "age": 8173.0,
+          "values": {
+            "eccentricity": 0.041949542
+          }
+        },
+        {
+          "age": 46106.0,
+          "values": {
+            "eccentricity": 0.034156978
+          }
+        },
+        {
+          "age": 53819.0,
+          "values": {
+            "eccentricity": 0.020614031
+          }
+        },
+        {
+          "age": 53959.0,
+          "values": {
+            "eccentricity": 0.025952451
+          }
+        },
+        {
+          "age": 99520.0,
+          "values": {
+            "eccentricity": 0.007874085
+          }
+        },
+        {
+          "age": 107304.0,
+          "values": {
+            "eccentricity": 0.02597089
+          }
+        },
+        {
+          "age": 109867.0,
+          "values": {
+            "eccentricity": 0.032308447
+          }
+        },
+        {
+          "age": 125000.0,
+          "values": {
+            "eccentricity": 0.043558478
+          }
+        },
+        {
+          "age": 131610.0,
+          "values": {
+            "eccentricity": 0.044985696
+          }
+        },
+        {
+          "age": 169748.0,
+          "values": {
+            "eccentricity": 0.035569936
+          }
+        },
+        {
+          "age": 180315.0,
+          "values": {
+            "eccentricity": 0.044470983
+          }
+        },
+        {
+          "age": 185393.0,
+          "values": {
+            "eccentricity": 0.005656303
+          }
+        },
+        {
+          "age": 204765.0,
+          "values": {
+            "eccentricity": 0.012628205
+          }
+        },
+        {
+          "age": 207214.0,
+          "values": {
+            "eccentricity": 0.028045217
+          }
+        },
+        {
+          "age": 207614.0,
+          "values": {
+            "eccentricity": 0.033432198
+          }
+        },
+        {
+          "age": 236178.0,
+          "values": {
+            "eccentricity": 0.030734115
+          }
+        },
+        {
+          "age": 249998.0,
+          "values": {
+            "eccentricity": 0.032289976
+          }
+        },
+        {
+          "age": 249999.0,
+          "values": {
+            "eccentricity": 0.031427869
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.37,
+          "values": {
+            "eccentricity": 0.01687219977
+          }
+        },
+        {
+          "age": 1.37,
+          "values": {
+            "eccentricity": 0.01728549284
+          }
+        },
+        {
+          "age": 812.37,
+          "values": {
+            "eccentricity": 0.01201767005
+          }
+        },
+        {
+          "age": 8173.37,
+          "values": {
+            "eccentricity": 0.041972822769999994
+          }
+        },
+        {
+          "age": 46106.37,
+          "values": {
+            "eccentricity": 0.03406763409999936
+          }
+        },
+        {
+          "age": 53819.37,
+          "values": {
+            "eccentricity": 0.020640917790000192
+          }
+        },
+        {
+          "age": 53959.37,
+          "values": {
+            "eccentricity": 0.026002096120000352
+          }
+        },
+        {
+          "age": 99520.37,
+          "values": {
+            "eccentricity": 0.008273893679994967
+          }
+        },
+        {
+          "age": 107304.37,
+          "values": {
+            "eccentricity": 0.026283568859996064
+          }
+        },
+        {
+          "age": 109867.37,
+          "values": {
+            "eccentricity": 0.03261060342999619
+          }
+        },
+        {
+          "age": 125000.37,
+          "values": {
+            "eccentricity": 0.04346577931000117
+          }
+        },
+        {
+          "age": 131610.37,
+          "values": {
+            "eccentricity": 0.04518321124999752
+          }
+        },
+        {
+          "age": 169748.37,
+          "values": {
+            "eccentricity": 0.03531485171000321
+          }
+        },
+        {
+          "age": 180315.37,
+          "values": {
+            "eccentricity": 0.04479145072999596
+          }
+        },
+        {
+          "age": 185393.37,
+          "values": {
+            "eccentricity": 0.005582764390000925
+          }
+        },
+        {
+          "age": 204765.37,
+          "values": {
+            "eccentricity": 0.012575193250000668
+          }
+        },
+        {
+          "age": 207214.37,
+          "values": {
+            "eccentricity": 0.028071124399999675
+          }
+        },
+        {
+          "age": 207614.37,
+          "values": {
+            "eccentricity": 0.033282316920001886
+          }
+        },
+        {
+          "age": 236178.37,
+          "values": {
+            "eccentricity": 0.030378275270004477
+          }
+        },
+        {
+          "age": 249998.37,
+          "values": {
+            "eccentricity": 0.03197099641000401
+          }
+        }
+      ]
+    },
+    {
+      "id": "zb18a",
+      "source_sha256": "914688a526b37ab73ec58e6c31a7d8d1151abbbfaf486afed244cc0f6732f712",
+      "rows": 187501,
+      "maximum_age": 300000.0,
+      "knots": [
+        {
+          "age": 0.0,
+          "values": {
+            "eccentricity": 0.016705
+          }
+        },
+        {
+          "age": 1.6,
+          "values": {
+            "eccentricity": 0.01734
+          }
+        },
+        {
+          "age": 974.4,
+          "values": {
+            "eccentricity": 0.057386
+          }
+        },
+        {
+          "age": 9808.0,
+          "values": {
+            "eccentricity": 0.031644
+          }
+        },
+        {
+          "age": 55328.0,
+          "values": {
+            "eccentricity": 0.025192
+          }
+        },
+        {
+          "age": 64584.0,
+          "values": {
+            "eccentricity": 0.0262
+          }
+        },
+        {
+          "age": 64750.4,
+          "values": {
+            "eccentricity": 0.015405
+          }
+        },
+        {
+          "age": 119424.0,
+          "values": {
+            "eccentricity": 0.040832
+          }
+        },
+        {
+          "age": 128764.8,
+          "values": {
+            "eccentricity": 0.018939
+          }
+        },
+        {
+          "age": 131841.6,
+          "values": {
+            "eccentricity": 0.04832
+          }
+        },
+        {
+          "age": 150000.0,
+          "values": {
+            "eccentricity": 0.045487
+          }
+        },
+        {
+          "age": 157932.8,
+          "values": {
+            "eccentricity": 0.004112
+          }
+        },
+        {
+          "age": 203699.2,
+          "values": {
+            "eccentricity": 0.058964
+          }
+        },
+        {
+          "age": 216379.2,
+          "values": {
+            "eccentricity": 0.03219
+          }
+        },
+        {
+          "age": 222473.6,
+          "values": {
+            "eccentricity": 0.018253
+          }
+        },
+        {
+          "age": 245718.4,
+          "values": {
+            "eccentricity": 0.03937
+          }
+        },
+        {
+          "age": 248657.6,
+          "values": {
+            "eccentricity": 0.018777
+          }
+        },
+        {
+          "age": 249137.6,
+          "values": {
+            "eccentricity": 0.020629
+          }
+        },
+        {
+          "age": 283414.4,
+          "values": {
+            "eccentricity": 0.022403
+          }
+        },
+        {
+          "age": 299998.4,
+          "values": {
+            "eccentricity": 0.0129
+          }
+        },
+        {
+          "age": 300000.0,
+          "values": {
+            "eccentricity": 0.01377
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.592,
+          "values": {
+            "eccentricity": 0.016939950000000002
+          }
+        },
+        {
+          "age": 2.192,
+          "values": {
+            "eccentricity": 0.01754905
+          }
+        },
+        {
+          "age": 974.992,
+          "values": {
+            "eccentricity": 0.0572676
+          }
+        },
+        {
+          "age": 9808.592,
+          "values": {
+            "eccentricity": 0.031257719999999725
+          }
+        },
+        {
+          "age": 55328.592,
+          "values": {
+            "eccentricity": 0.025873909999997065
+          }
+        },
+        {
+          "age": 64584.592,
+          "values": {
+            "eccentricity": 0.025752300000001924
+          }
+        },
+        {
+          "age": 64750.992,
+          "values": {
+            "eccentricity": 0.014965070000001893
+          }
+        },
+        {
+          "age": 119424.592,
+          "values": {
+            "eccentricity": 0.040586319999999156
+          }
+        },
+        {
+          "age": 128765.39199999999,
+          "values": {
+            "eccentricity": 0.0182833600000079
+          }
+        },
+        {
+          "age": 131842.192,
+          "values": {
+            "eccentricity": 0.048722560000001386
+          }
+        },
+        {
+          "age": 150000.592,
+          "values": {
+            "eccentricity": 0.045653870000000575
+          }
+        },
+        {
+          "age": 157933.392,
+          "values": {
+            "eccentricity": 0.004372110000000895
+          }
+        },
+        {
+          "age": 203699.79200000002,
+          "values": {
+            "eccentricity": 0.0590010000000008
+          }
+        },
+        {
+          "age": 216379.79200000002,
+          "values": {
+            "eccentricity": 0.03279458000001308
+          }
+        },
+        {
+          "age": 222474.192,
+          "values": {
+            "eccentricity": 0.01776570999999832
+          }
+        },
+        {
+          "age": 245718.992,
+          "values": {
+            "eccentricity": 0.04016661000000274
+          }
+        },
+        {
+          "age": 248658.192,
+          "values": {
+            "eccentricity": 0.019292780000001775
+          }
+        },
+        {
+          "age": 249138.192,
+          "values": {
+            "eccentricity": 0.020722980000000325
+          }
+        },
+        {
+          "age": 283414.992,
+          "values": {
+            "eccentricity": 0.02234157999999867
+          }
+        },
+        {
+          "age": 299998.992,
+          "values": {
+            "eccentricity": 0.013221900000006963
+          }
+        }
+      ]
+    },
+    {
+      "id": "zb20a",
+      "source_sha256": "58286586072931ef25d3455aeceab9baf1085c78e7590b4875c3b7c0a9978cc8",
+      "rows": 187501,
+      "maximum_age": 300000.0,
+      "knots": [
+        {
+          "age": 0.0,
+          "values": {
+            "eccentricity": 0.016705
+          }
+        },
+        {
+          "age": 1.6,
+          "values": {
+            "eccentricity": 0.01734
+          }
+        },
+        {
+          "age": 974.4,
+          "values": {
+            "eccentricity": 0.057386
+          }
+        },
+        {
+          "age": 9808.0,
+          "values": {
+            "eccentricity": 0.031637
+          }
+        },
+        {
+          "age": 55328.0,
+          "values": {
+            "eccentricity": 0.02517
+          }
+        },
+        {
+          "age": 64584.0,
+          "values": {
+            "eccentricity": 0.031779
+          }
+        },
+        {
+          "age": 64750.4,
+          "values": {
+            "eccentricity": 0.021016
+          }
+        },
+        {
+          "age": 119424.0,
+          "values": {
+            "eccentricity": 0.030718
+          }
+        },
+        {
+          "age": 128764.8,
+          "values": {
+            "eccentricity": 0.028118
+          }
+        },
+        {
+          "age": 131841.6,
+          "values": {
+            "eccentricity": 0.047943
+          }
+        },
+        {
+          "age": 150000.0,
+          "values": {
+            "eccentricity": 0.015625
+          }
+        },
+        {
+          "age": 157932.8,
+          "values": {
+            "eccentricity": 0.031488
+          }
+        },
+        {
+          "age": 203699.2,
+          "values": {
+            "eccentricity": 0.034433
+          }
+        },
+        {
+          "age": 216379.2,
+          "values": {
+            "eccentricity": 0.021016
+          }
+        },
+        {
+          "age": 222473.6,
+          "values": {
+            "eccentricity": 0.024355
+          }
+        },
+        {
+          "age": 245718.4,
+          "values": {
+            "eccentricity": 0.023631
+          }
+        },
+        {
+          "age": 248657.6,
+          "values": {
+            "eccentricity": 0.040924
+          }
+        },
+        {
+          "age": 249137.6,
+          "values": {
+            "eccentricity": 0.034532
+          }
+        },
+        {
+          "age": 283414.4,
+          "values": {
+            "eccentricity": 0.028015
+          }
+        },
+        {
+          "age": 299998.4,
+          "values": {
+            "eccentricity": 0.017515
+          }
+        },
+        {
+          "age": 300000.0,
+          "values": {
+            "eccentricity": 0.01681
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.592,
+          "values": {
+            "eccentricity": 0.016939950000000002
+          }
+        },
+        {
+          "age": 2.192,
+          "values": {
+            "eccentricity": 0.01754905
+          }
+        },
+        {
+          "age": 974.992,
+          "values": {
+            "eccentricity": 0.05726723
+          }
+        },
+        {
+          "age": 9808.592,
+          "values": {
+            "eccentricity": 0.031250719999999725
+          }
+        },
+        {
+          "age": 55328.592,
+          "values": {
+            "eccentricity": 0.025900749999996857
+          }
+        },
+        {
+          "age": 64584.592,
+          "values": {
+            "eccentricity": 0.03167688000000044
+          }
+        },
+        {
+          "age": 64750.992,
+          "values": {
+            "eccentricity": 0.0209690100000002
+          }
+        },
+        {
+          "age": 119424.592,
+          "values": {
+            "eccentricity": 0.030954060000000814
+          }
+        },
+        {
+          "age": 128765.39199999999,
+          "values": {
+            "eccentricity": 0.027837170000003384
+          }
+        },
+        {
+          "age": 131842.192,
+          "values": {
+            "eccentricity": 0.04824270000000103
+          }
+        },
+        {
+          "age": 150000.592,
+          "values": {
+            "eccentricity": 0.01616853000000187
+          }
+        },
+        {
+          "age": 157933.392,
+          "values": {
+            "eccentricity": 0.03129041999999932
+          }
+        },
+        {
+          "age": 203699.79200000002,
+          "values": {
+            "eccentricity": 0.03467424000000521
+          }
+        },
+        {
+          "age": 216379.79200000002,
+          "values": {
+            "eccentricity": 0.021185090000003657
+          }
+        },
+        {
+          "age": 222474.192,
+          "values": {
+            "eccentricity": 0.02418849999999943
+          }
+        },
+        {
+          "age": 245718.992,
+          "values": {
+            "eccentricity": 0.02433400000000242
+          }
+        },
+        {
+          "age": 248658.192,
+          "values": {
+            "eccentricity": 0.040743069999999375
+          }
+        },
+        {
+          "age": 249138.192,
+          "values": {
+            "eccentricity": 0.03413091999999862
+          }
+        },
+        {
+          "age": 283414.992,
+          "values": {
+            "eccentricity": 0.02817447000000345
+          }
+        },
+        {
+          "age": 299998.992,
+          "values": {
+            "eccentricity": 0.017254149999994358
+          }
+        }
+      ]
+    },
+    {
+      "id": "zb20b",
+      "source_sha256": "b09ba83fc596888ada0a1b6981e94f8d8e113e4c85e6c1ee8d17a4e3213d8278",
+      "rows": 187501,
+      "maximum_age": 300000.0,
+      "knots": [
+        {
+          "age": 0.0,
+          "values": {
+            "eccentricity": 0.016705
+          }
+        },
+        {
+          "age": 1.6,
+          "values": {
+            "eccentricity": 0.01734
+          }
+        },
+        {
+          "age": 974.4,
+          "values": {
+            "eccentricity": 0.057386
+          }
+        },
+        {
+          "age": 9808.0,
+          "values": {
+            "eccentricity": 0.03164
+          }
+        },
+        {
+          "age": 55328.0,
+          "values": {
+            "eccentricity": 0.02585
+          }
+        },
+        {
+          "age": 64584.0,
+          "values": {
+            "eccentricity": 0.025934
+          }
+        },
+        {
+          "age": 64750.4,
+          "values": {
+            "eccentricity": 0.024374
+          }
+        },
+        {
+          "age": 119424.0,
+          "values": {
+            "eccentricity": 0.040837
+          }
+        },
+        {
+          "age": 128764.8,
+          "values": {
+            "eccentricity": 0.011534
+          }
+        },
+        {
+          "age": 131841.6,
+          "values": {
+            "eccentricity": 0.047815
+          }
+        },
+        {
+          "age": 150000.0,
+          "values": {
+            "eccentricity": 0.051404
+          }
+        },
+        {
+          "age": 157932.8,
+          "values": {
+            "eccentricity": 0.010847
+          }
+        },
+        {
+          "age": 203699.2,
+          "values": {
+            "eccentricity": 0.018353
+          }
+        },
+        {
+          "age": 216379.2,
+          "values": {
+            "eccentricity": 0.04904
+          }
+        },
+        {
+          "age": 222473.6,
+          "values": {
+            "eccentricity": 0.018827
+          }
+        },
+        {
+          "age": 245718.4,
+          "values": {
+            "eccentricity": 0.010582
+          }
+        },
+        {
+          "age": 248657.6,
+          "values": {
+            "eccentricity": 0.02936
+          }
+        },
+        {
+          "age": 249137.6,
+          "values": {
+            "eccentricity": 0.024492
+          }
+        },
+        {
+          "age": 283414.4,
+          "values": {
+            "eccentricity": 0.053193
+          }
+        },
+        {
+          "age": 299998.4,
+          "values": {
+            "eccentricity": 0.046734
+          }
+        },
+        {
+          "age": 300000.0,
+          "values": {
+            "eccentricity": 0.047782
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.592,
+          "values": {
+            "eccentricity": 0.016939950000000002
+          }
+        },
+        {
+          "age": 2.192,
+          "values": {
+            "eccentricity": 0.01754905
+          }
+        },
+        {
+          "age": 974.992,
+          "values": {
+            "eccentricity": 0.0572676
+          }
+        },
+        {
+          "age": 9808.592,
+          "values": {
+            "eccentricity": 0.03125260999999973
+          }
+        },
+        {
+          "age": 55328.592,
+          "values": {
+            "eccentricity": 0.026571869999996896
+          }
+        },
+        {
+          "age": 64584.592,
+          "values": {
+            "eccentricity": 0.025842240000000394
+          }
+        },
+        {
+          "age": 64750.992,
+          "values": {
+            "eccentricity": 0.024321460000000225
+          }
+        },
+        {
+          "age": 119424.592,
+          "values": {
+            "eccentricity": 0.04129062000000156
+          }
+        },
+        {
+          "age": 128765.39199999999,
+          "values": {
+            "eccentricity": 0.011956539999994912
+          }
+        },
+        {
+          "age": 131842.192,
+          "values": {
+            "eccentricity": 0.04825900000000153
+          }
+        },
+        {
+          "age": 150000.592,
+          "values": {
+            "eccentricity": 0.05174403000000117
+          }
+        },
+        {
+          "age": 157933.392,
+          "values": {
+            "eccentricity": 0.010737109999999623
+          }
+        },
+        {
+          "age": 203699.79200000002,
+          "values": {
+            "eccentricity": 0.018811430000009916
+          }
+        },
+        {
+          "age": 216379.79200000002,
+          "values": {
+            "eccentricity": 0.04942887000000841
+          }
+        },
+        {
+          "age": 222474.192,
+          "values": {
+            "eccentricity": 0.01912855000000104
+          }
+        },
+        {
+          "age": 245718.992,
+          "values": {
+            "eccentricity": 0.010670060000000302
+          }
+        },
+        {
+          "age": 248658.192,
+          "values": {
+            "eccentricity": 0.02938109000000007
+          }
+        },
+        {
+          "age": 249138.192,
+          "values": {
+            "eccentricity": 0.02396585999999819
+          }
+        },
+        {
+          "age": 283414.992,
+          "values": {
+            "eccentricity": 0.05364847000000985
+          }
+        },
+        {
+          "age": 299998.992,
+          "values": {
+            "eccentricity": 0.04712176000000839
+          }
+        }
+      ]
+    },
+    {
+      "id": "zb20c",
+      "source_sha256": "541f8a733e7de7673850cbfd7093cd20c37419ddd403e2d23a02d3d2166c645c",
+      "rows": 187501,
+      "maximum_age": 300000.0,
+      "knots": [
+        {
+          "age": 0.0,
+          "values": {
+            "eccentricity": 0.016705
+          }
+        },
+        {
+          "age": 1.6,
+          "values": {
+            "eccentricity": 0.01734
+          }
+        },
+        {
+          "age": 974.4,
+          "values": {
+            "eccentricity": 0.057386
+          }
+        },
+        {
+          "age": 9808.0,
+          "values": {
+            "eccentricity": 0.031633
+          }
+        },
+        {
+          "age": 55328.0,
+          "values": {
+            "eccentricity": 0.019473
+          }
+        },
+        {
+          "age": 64584.0,
+          "values": {
+            "eccentricity": 0.019165
+          }
+        },
+        {
+          "age": 64750.4,
+          "values": {
+            "eccentricity": 0.009562
+          }
+        },
+        {
+          "age": 119424.0,
+          "values": {
+            "eccentricity": 0.015897
+          }
+        },
+        {
+          "age": 128764.8,
+          "values": {
+            "eccentricity": 0.034472
+          }
+        },
+        {
+          "age": 131841.6,
+          "values": {
+            "eccentricity": 0.029346
+          }
+        },
+        {
+          "age": 150000.0,
+          "values": {
+            "eccentricity": 0.029364
+          }
+        },
+        {
+          "age": 157932.8,
+          "values": {
+            "eccentricity": 0.02733
+          }
+        },
+        {
+          "age": 203699.2,
+          "values": {
+            "eccentricity": 0.013921
+          }
+        },
+        {
+          "age": 216379.2,
+          "values": {
+            "eccentricity": 0.036343
+          }
+        },
+        {
+          "age": 222473.6,
+          "values": {
+            "eccentricity": 0.016104
+          }
+        },
+        {
+          "age": 245718.4,
+          "values": {
+            "eccentricity": 0.007588
+          }
+        },
+        {
+          "age": 248657.6,
+          "values": {
+            "eccentricity": 0.006556
+          }
+        },
+        {
+          "age": 249137.6,
+          "values": {
+            "eccentricity": 0.027856
+          }
+        },
+        {
+          "age": 283414.4,
+          "values": {
+            "eccentricity": 0.01313
+          }
+        },
+        {
+          "age": 299998.4,
+          "values": {
+            "eccentricity": 0.03488
+          }
+        },
+        {
+          "age": 300000.0,
+          "values": {
+            "eccentricity": 0.036128
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.592,
+          "values": {
+            "eccentricity": 0.016939950000000002
+          }
+        },
+        {
+          "age": 2.192,
+          "values": {
+            "eccentricity": 0.01754905
+          }
+        },
+        {
+          "age": 974.992,
+          "values": {
+            "eccentricity": 0.0572676
+          }
+        },
+        {
+          "age": 9808.592,
+          "values": {
+            "eccentricity": 0.03124819999999973
+          }
+        },
+        {
+          "age": 55328.592,
+          "values": {
+            "eccentricity": 0.020184139999996943
+          }
+        },
+        {
+          "age": 64584.592,
+          "values": {
+            "eccentricity": 0.018661800000002168
+          }
+        },
+        {
+          "age": 64750.992,
+          "values": {
+            "eccentricity": 0.00909469000000201
+          }
+        },
+        {
+          "age": 119424.592,
+          "values": {
+            "eccentricity": 0.016104570000000717
+          }
+        },
+        {
+          "age": 128765.39199999999,
+          "values": {
+            "eccentricity": 0.034358780000001365
+          }
+        },
+        {
+          "age": 131842.192,
+          "values": {
+            "eccentricity": 0.029550240000000703
+          }
+        },
+        {
+          "age": 150000.592,
+          "values": {
+            "eccentricity": 0.029609680000000846
+          }
+        },
+        {
+          "age": 157933.392,
+          "values": {
+            "eccentricity": 0.027720720000001347
+          }
+        },
+        {
+          "age": 203699.79200000002,
+          "values": {
+            "eccentricity": 0.014181480000005634
+          }
+        },
+        {
+          "age": 216379.79200000002,
+          "values": {
+            "eccentricity": 0.035872729999989826
+          }
+        },
+        {
+          "age": 222474.192,
+          "values": {
+            "eccentricity": 0.015738809999998743
+          }
+        },
+        {
+          "age": 245718.992,
+          "values": {
+            "eccentricity": 0.006850219999997461
+          }
+        },
+        {
+          "age": 248658.192,
+          "values": {
+            "eccentricity": 0.006439079999999597
+          }
+        },
+        {
+          "age": 249138.192,
+          "values": {
+            "eccentricity": 0.02833293000000164
+          }
+        },
+        {
+          "age": 283414.992,
+          "values": {
+            "eccentricity": 0.01264270999998946
+          }
+        },
+        {
+          "age": 299998.992,
+          "values": {
+            "eccentricity": 0.03534176000000999
+          }
+        }
+      ]
+    },
+    {
+      "id": "zb20d",
+      "source_sha256": "b20f0d648f88a2ec28b973ef9b45cff3d6ec69f7813cffae7016153140e6d7d3",
+      "rows": 187501,
+      "maximum_age": 300000.0,
+      "knots": [
+        {
+          "age": 0.0,
+          "values": {
+            "eccentricity": 0.016705
+          }
+        },
+        {
+          "age": 1.6,
+          "values": {
+            "eccentricity": 0.01734
+          }
+        },
+        {
+          "age": 974.4,
+          "values": {
+            "eccentricity": 0.057385
+          }
+        },
+        {
+          "age": 9808.0,
+          "values": {
+            "eccentricity": 0.031632
+          }
+        },
+        {
+          "age": 55328.0,
+          "values": {
+            "eccentricity": 0.016536
+          }
+        },
+        {
+          "age": 64584.0,
+          "values": {
+            "eccentricity": 0.019738
+          }
+        },
+        {
+          "age": 64750.4,
+          "values": {
+            "eccentricity": 0.008085
+          }
+        },
+        {
+          "age": 119424.0,
+          "values": {
+            "eccentricity": 0.045243
+          }
+        },
+        {
+          "age": 128764.8,
+          "values": {
+            "eccentricity": 0.039483
+          }
+        },
+        {
+          "age": 131841.6,
+          "values": {
+            "eccentricity": 0.029857
+          }
+        },
+        {
+          "age": 150000.0,
+          "values": {
+            "eccentricity": 0.045247
+          }
+        },
+        {
+          "age": 157932.8,
+          "values": {
+            "eccentricity": 0.01505
+          }
+        },
+        {
+          "age": 203699.2,
+          "values": {
+            "eccentricity": 0.024447
+          }
+        },
+        {
+          "age": 216379.2,
+          "values": {
+            "eccentricity": 0.052498
+          }
+        },
+        {
+          "age": 222473.6,
+          "values": {
+            "eccentricity": 0.035411
+          }
+        },
+        {
+          "age": 245718.4,
+          "values": {
+            "eccentricity": 0.055042
+          }
+        },
+        {
+          "age": 248657.6,
+          "values": {
+            "eccentricity": 0.033399
+          }
+        },
+        {
+          "age": 249137.6,
+          "values": {
+            "eccentricity": 0.028855
+          }
+        },
+        {
+          "age": 283414.4,
+          "values": {
+            "eccentricity": 0.013837
+          }
+        },
+        {
+          "age": 299998.4,
+          "values": {
+            "eccentricity": 0.037544
+          }
+        },
+        {
+          "age": 300000.0,
+          "values": {
+            "eccentricity": 0.037534
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.592,
+          "values": {
+            "eccentricity": 0.016939950000000002
+          }
+        },
+        {
+          "age": 2.192,
+          "values": {
+            "eccentricity": 0.01754905
+          }
+        },
+        {
+          "age": 974.992,
+          "values": {
+            "eccentricity": 0.0572666
+          }
+        },
+        {
+          "age": 9808.592,
+          "values": {
+            "eccentricity": 0.031247569999999728
+          }
+        },
+        {
+          "age": 55328.592,
+          "values": {
+            "eccentricity": 0.01724491999999695
+          }
+        },
+        {
+          "age": 64584.592,
+          "values": {
+            "eccentricity": 0.019951119999999083
+          }
+        },
+        {
+          "age": 64750.992,
+          "values": {
+            "eccentricity": 0.00810386999999992
+          }
+        },
+        {
+          "age": 119424.592,
+          "values": {
+            "eccentricity": 0.04527778000000012
+          }
+        },
+        {
+          "age": 128765.39199999999,
+          "values": {
+            "eccentricity": 0.03960102999999857
+          }
+        },
+        {
+          "age": 131842.192,
+          "values": {
+            "eccentricity": 0.02959207999999909
+          }
+        },
+        {
+          "age": 150000.592,
+          "values": {
+            "eccentricity": 0.04470346999999813
+          }
+        },
+        {
+          "age": 157933.392,
+          "values": {
+            "eccentricity": 0.014825779999999228
+          }
+        },
+        {
+          "age": 203699.79200000002,
+          "values": {
+            "eccentricity": 0.024267919999996126
+          }
+        },
+        {
+          "age": 216379.79200000002,
+          "values": {
+            "eccentricity": 0.05317880000001473
+          }
+        },
+        {
+          "age": 222474.192,
+          "values": {
+            "eccentricity": 0.03603297000000214
+          }
+        },
+        {
+          "age": 245718.992,
+          "values": {
+            "eccentricity": 0.05519888000000054
+          }
+        },
+        {
+          "age": 248658.192,
+          "values": {
+            "eccentricity": 0.03329539999999964
+          }
+        },
+        {
+          "age": 249138.192,
+          "values": {
+            "eccentricity": 0.028635589999999243
+          }
+        },
+        {
+          "age": 283414.992,
+          "values": {
+            "eccentricity": 0.01464508000001748
+          }
+        },
+        {
+          "age": 299998.992,
+          "values": {
+            "eccentricity": 0.03754029999999992
+          }
+        }
+      ]
+    },
+    {
+      "id": "pt_zb18a",
+      "source_sha256": "042fa0bf53ee6737251e2420aaebac1a1f97468febe82f1bceca13e8b727b40c",
+      "rows": 249480,
+      "maximum_age": 100000.0,
+      "knots": [
+        {
+          "age": -0.0,
+          "values": {
+            "obliquity": 0.4090928042223287,
+            "axial_precession": 0.0,
+            "precession": 0.01628268726247491
+          }
+        },
+        {
+          "age": 0.3790200229671599,
+          "values": {
+            "obliquity": 0.4099543318984059,
+            "axial_precession": 0.09237764660974426,
+            "precession": 0.01673870340191202
+          }
+        },
+        {
+          "age": 319.4186353851907,
+          "values": {
+            "obliquity": 0.3994004316607777,
+            "axial_precession": 2.723187798091579,
+            "precession": 0.01040333525490245
+          }
+        },
+        {
+          "age": 3243.460923442269,
+          "values": {
+            "obliquity": 0.4113175767001697,
+            "axial_precession": 2.19831819577718,
+            "precession": 0.007777526255788076
+          }
+        },
+        {
+          "age": 18333.19136239019,
+          "values": {
+            "obliquity": 0.4121734831683033,
+            "axial_precession": -0.1916667178617152,
+            "precession": 0.004097974462838049
+          }
+        },
+        {
+          "age": 21399.29264911806,
+          "values": {
+            "obliquity": 0.4144487368175606,
+            "axial_precession": 3.027571857316302,
+            "precession": 0.0105811933963829
+          }
+        },
+        {
+          "age": 21454.2081177609,
+          "values": {
+            "obliquity": 0.3876266204048724,
+            "axial_precession": -2.220057322837524,
+            "precession": -3.961432976163695e-05
+          }
+        },
+        {
+          "age": 39554.07199024293,
+          "values": {
+            "obliquity": 0.3996697401000341,
+            "axial_precession": -2.078574864007932,
+            "precession": 0.02661283407955447
+          }
+        },
+        {
+          "age": 42643.6476018606,
+          "values": {
+            "obliquity": 0.4187496030693589,
+            "axial_precession": 2.08480325000287,
+            "precession": -0.03420796410767554
+          }
+        },
+        {
+          "age": 43662.42469093993,
+          "values": {
+            "obliquity": 0.4022522690944291,
+            "axial_precession": -1.165371723792638,
+            "precession": -0.0007285992617993035
+          }
+        },
+        {
+          "age": 49696.32272027345,
+          "values": {
+            "obliquity": 0.4060613573381198,
+            "axial_precession": 0.02820473174275887,
+            "precession": -0.010119491981404
+          }
+        },
+        {
+          "age": 52347.08567904901,
+          "values": {
+            "obliquity": 0.4012035533059133,
+            "axial_precession": -1.687532522454608,
+            "precession": 0.01136276148075397
+          }
+        },
+        {
+          "age": 67729.8767858645,
+          "values": {
+            "obliquity": 0.404441584699076,
+            "axial_precession": -0.8743189368579021,
+            "precession": -0.04933702619020287
+          }
+        },
+        {
+          "age": 71987.31990074777,
+          "values": {
+            "obliquity": 0.4082352604438484,
+            "axial_precession": 1.040205192931331,
+            "precession": -0.01538343337639182
+          }
+        },
+        {
+          "age": 74046.20676722347,
+          "values": {
+            "obliquity": 0.4007983388055502,
+            "axial_precession": 0.7566243795730353,
+            "precession": -0.01846637148771518
+          }
+        },
+        {
+          "age": 81865.82421606798,
+          "values": {
+            "obliquity": 0.4107563683280856,
+            "axial_precession": -0.4466919305028269,
+            "precession": 0.03405718993512184
+          }
+        },
+        {
+          "age": 82842.03460580077,
+          "values": {
+            "obliquity": 0.4031589024227513,
+            "axial_precession": 2.7380388740994,
+            "precession": 0.0005995642118540082
+          }
+        },
+        {
+          "age": 83005.4297261856,
+          "values": {
+            "obliquity": 0.4057467665761726,
+            "axial_precession": 0.3319138372329293,
+            "precession": 0.05201606860609653
+          }
+        },
+        {
+          "age": 94471.83404914958,
+          "values": {
+            "obliquity": 0.4091456453374715,
+            "axial_precession": 2.859750841676951,
+            "precession": 0.01025522680278404
+          }
+        },
+        {
+          "age": 99999.97811204524,
+          "values": {
+            "obliquity": 0.4141884283483909,
+            "axial_precession": -1.730411622514251,
+            "precession": -0.007734790991666138
+          }
+        },
+        {
+          "age": 100000.0,
+          "values": {
+            "obliquity": 0.414233425091859,
+            "axial_precession": -1.724895167382451,
+            "precession": -0.007761410537526263
+          }
+        }
+      ],
+      "interpolated": [
+        {
+          "age": 0.14023740849784916,
+          "values": {
+            "obliquity": 0.40941156946247725,
+            "precession": 0.016451413234066643,
+            "axial_precession": 0.03417972924560537
+          }
+        },
+        {
+          "age": 0.5201139708284359,
+          "values": {
+            "obliquity": 0.4102728319401022,
+            "precession": 0.016852256581482407,
+            "axial_precession": 0.12671208610740484
+          }
+        },
+        {
+          "age": 319.561406787408,
+          "values": {
+            "obliquity": 0.3996857454767777,
+            "precession": 0.011805778850549613,
+            "axial_precession": 2.758658413796351
+          }
+        },
+        {
+          "age": 3243.6022258552794,
+          "values": {
+            "obliquity": 0.4114003198723651,
+            "precession": 0.0069225481396195864,
+            "axial_precession": 2.2324986545400067
+          }
+        },
+        {
+          "age": 18333.348021854035,
+          "values": {
+            "obliquity": 0.41199765352916434,
+            "precession": 0.002190407909536815,
+            "axial_precession": -0.15349413418448218
+          }
+        },
+        {
+          "age": 21399.44132454804,
+          "values": {
+            "obliquity": 0.41416549966696903,
+            "precession": 0.009900834341710109,
+            "axial_precession": 3.063723798437338
+          }
+        },
+        {
+          "age": 21454.35561201647,
+          "values": {
+            "obliquity": 0.3876340943149866,
+            "precession": -0.0008453982641606887,
+            "axial_precession": -2.1822972116496326
+          }
+        },
+        {
+          "age": 39554.214593520956,
+          "values": {
+            "obliquity": 0.39963197612408685,
+            "precession": 0.027636989744539993,
+            "axial_precession": -2.0425666229590336
+          }
+        },
+        {
+          "age": 42643.794369506926,
+          "values": {
+            "obliquity": 0.4189593410500221,
+            "precession": -0.03450584400765886,
+            "axial_precession": 2.120491591336753
+          }
+        },
+        {
+          "age": 43662.58036606805,
+          "values": {
+            "obliquity": 0.4023697952244851,
+            "precession": -0.00041236133606643865,
+            "axial_precession": -1.126303700071938
+          }
+        },
+        {
+          "age": 49696.49085446059,
+          "values": {
+            "obliquity": 0.4060793488742211,
+            "precession": -0.009196588238823456,
+            "axial_precession": 0.07027681638108522
+          }
+        },
+        {
+          "age": 52347.22623363431,
+          "values": {
+            "obliquity": 0.40120572399175064,
+            "precession": 0.013394465364162977,
+            "axial_precession": -1.651981231062501
+          }
+        },
+        {
+          "age": 67730.02790163997,
+          "values": {
+            "obliquity": 0.4044960244869759,
+            "precession": -0.04869267834788158,
+            "axial_precession": -0.836015682887168
+          }
+        },
+        {
+          "age": 71987.47616116545,
+          "values": {
+            "obliquity": 0.4084851894290146,
+            "precession": -0.014195738897826706,
+            "axial_precession": 1.0795514273728821
+          }
+        },
+        {
+          "age": 74046.36905190509,
+          "values": {
+            "obliquity": 0.4008525351705332,
+            "precession": -0.01856495167062442,
+            "axial_precession": 0.7981041447155296
+          }
+        },
+        {
+          "age": 81865.97983801948,
+          "values": {
+            "obliquity": 0.4107552206705877,
+            "precession": 0.033295214561195705,
+            "axial_precession": -0.40754467710898745
+          }
+        },
+        {
+          "age": 82842.1950470583,
+          "values": {
+            "obliquity": 0.40328570430624405,
+            "precession": -0.0001840202026028822,
+            "axial_precession": 2.7789430681484903
+          }
+        },
+        {
+          "age": 83005.58909813015,
+          "values": {
+            "obliquity": 0.40587538064844203,
+            "precession": 0.05246928689583164,
+            "axial_precession": 0.3724847456959309
+          }
+        },
+        {
+          "age": 94471.97924527158,
+          "values": {
+            "obliquity": 0.40895918728616004,
+            "precession": 0.00874755792166734,
+            "axial_precession": 2.8966601750394956
+          }
+        },
+        {
+          "age": 99999.9862105885,
+          "values": {
+            "obliquity": 0.4142050771434663,
+            "precession": -0.007744640223629783,
+            "axial_precession": -1.728370532444632
+          }
+        }
+      ]
+    }
+  ]
+}

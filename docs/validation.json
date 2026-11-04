@@ -1,0 +1,242 @@
+{
+  "project": "Aster",
+  "version": "1.1.0",
+  "date": "2026-11-04",
+  "baseline": {
+    "file": "Aster_1.1.0.zip",
+    "sha256": "2c8284edb86b86716fe630a1d75db4ed5b958035a4ed08940f2077ba2167a19a"
+  },
+  "environment": {
+    "os": "Linux x86_64 / Debian 13",
+    "compiler": "GCC 14.2",
+    "qt": "6.8.2",
+    "configuration": "Release (fresh build directory)",
+    "linear_algebra": "OpenBLAS 0.3.29 / LP64 LAPACK",
+    "fft": "PocketFFT",
+    "gsl": "2.8"
+  },
+  "regression": {
+    "passed": 979,
+    "failed": 0,
+    "skipped": 0,
+    "targets": [
+      {
+        "target": "aster_core_tests",
+        "exit_code": 0,
+        "passed": 54,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1
+      },
+      {
+        "target": "aster_analysis_tests",
+        "exit_code": 0,
+        "passed": 674,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 21
+      },
+      {
+        "target": "aster_ui_tests",
+        "exit_code": 0,
+        "passed": 68,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1
+      },
+      {
+        "target": "aster_style_export_tests",
+        "exit_code": 0,
+        "passed": 32,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1
+      },
+      {
+        "target": "aster_workspace_tests",
+        "exit_code": 0,
+        "passed": 23,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1
+      },
+      {
+        "target": "aster_integration_tests",
+        "exit_code": 0,
+        "passed": 83,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 4
+      },
+      {
+        "target": "aster_update_tests",
+        "exit_code": 0,
+        "passed": 45,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1
+      }
+    ]
+  },
+  "additional_checks": {
+    "peak_scipy": {
+      "reference": "scipy.signal.find_peaks / peak_prominences / peak_widths",
+      "scipy": "1.17.0",
+      "cases": 900,
+      "all_passed": true,
+      "seed": 3403,
+      "coverage": "random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (Aster suppression order intentionally differs)",
+      "prominence_rtol": 2e-13,
+      "width_rtol": 2e-12
+    },
+    "qmake_windows_conditions": {
+      "count": 19,
+      "native_msvc": false,
+      "cases": [
+        {
+          "case": "reproduce-old-root-env-conflict",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "reproduce-user-missing-local",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "local-root-over-bad-env-prefix",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "local-root-over-valid-env-prefix",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "local-root-over-env-root",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "local-prefix-over-both-env",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "project-root-over-env-prefix",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "local-prefix-wins-local-root",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "environment-prefix-fallback",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "environment-root-fallback",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "empty-local-file-fallback",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "missing-configuration",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "visual-studio-without-installed-libs",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "invalid-local-no-silent-fallback",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "debug-libraries",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "profile-libraries",
+          "passed": true,
+          "expected_failure": false
+        },
+        {
+          "case": "missing-openblas",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "missing-lapack",
+          "passed": true,
+          "expected_failure": true
+        },
+        {
+          "case": "missing-gsl",
+          "passed": true,
+          "expected_failure": true
+        }
+      ]
+    },
+    "ui_regressions": {
+      "baseline_expected_failures": 4,
+      "fixed_failures": 0,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "scale_factors": [
+        1,
+        1.25,
+        2
+      ],
+      "coverage": [
+        "numeric text insets with default and zero-padding styles",
+        "fixed method header / numeric / checkbox help alignment with and without a scrollbar",
+        "settings frozen during asynchronous database validation",
+        "late validation ignored after closing settings",
+        "existing concurrency setting 2 retained; missing setting uses common default"
+      ]
+    },
+    "static": {
+      "json": 38,
+      "python": 29,
+      "resource_entries": 13,
+      "translated_ui_literals": 470,
+      "test_runner_exe_lookup_utf8_multiple_totals_failure_propagation": "passed (Linux fixture; not a native Windows execution)"
+    },
+    "orbital_data_tool_tests": 4
+  },
+  "unchanged": [
+    "scientific algorithms and numerical fixtures",
+    "scientific datasets",
+    "task IDs and parameter defaults",
+    "database schema 3",
+    "project-local config/local.pri (explicit Windows dependency configuration)",
+    "version 1.1.0"
+  ],
+  "not_run": [
+    "Native Windows Qt 6.12 / MSVC compilation and display",
+    "Native macOS compilation and display",
+    "New deployment archive or clean-host installation",
+    "New MATLAB execution or statistical false-positive calibration"
+  ],
+  "record_type": "archived_validation",
+  "scope": "Validation batch dated 2026-11-04 for the recorded baseline and environment; not a certification of later checkouts or all platform packages."
+}

@@ -1,0 +1,68 @@
+{
+  "n": 128,
+  "bank_seed": "202611022",
+  "replicates": 199,
+  "lowess": false,
+  "cases": [
+    {
+      "name": "null_0.9",
+      "rho": 0.9,
+      "trials": 500,
+      "seed": "202611030180"
+    },
+    {
+      "name": "null_0.995",
+      "rho": 0.995,
+      "trials": 500,
+      "seed": "202611030181"
+    },
+    {
+      "name": "signal_a0.4_p8",
+      "rho": 0.98,
+      "amplitude": 0.4,
+      "period": 8,
+      "trials": 200,
+      "seed": "202611030200"
+    },
+    {
+      "name": "signal_a0.4_p16",
+      "rho": 0.98,
+      "amplitude": 0.4,
+      "period": 16,
+      "trials": 200,
+      "seed": "202611030201"
+    },
+    {
+      "name": "signal_a0.4_p32",
+      "rho": 0.98,
+      "amplitude": 0.4,
+      "period": 32,
+      "trials": 200,
+      "seed": "202611030202"
+    },
+    {
+      "name": "signal_a0.6_p8",
+      "rho": 0.98,
+      "amplitude": 0.6,
+      "period": 8,
+      "trials": 200,
+      "seed": "202611030203"
+    },
+    {
+      "name": "signal_a0.6_p16",
+      "rho": 0.98,
+      "amplitude": 0.6,
+      "period": 16,
+      "trials": 200,
+      "seed": "202611030204"
+    },
+    {
+      "name": "signal_a0.6_p32",
+      "rho": 0.98,
+      "amplitude": 0.6,
+      "period": 32,
+      "trials": 200,
+      "seed": "202611030205"
+    }
+  ]
+}

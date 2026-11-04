@@ -1,0 +1,9 @@
+ODP example data are provided under Creative Commons Attribution 3.0 Unported (CC BY 3.0).
+License: https://creativecommons.org/licenses/by/3.0/
+Credit the original authors and dataset DOI when using or redistributing these data.
+The complete source citations and metadata remain in each original TSV and catalog.json.
+Aster selects columns, omits only missing X/Y pairs, and preserves all other values and row order.
+No new interpolation, age tuning, species correction or smoothing is applied.
+ODP 846 values were already interpolated by the original authors; ODP 1143 values already include the authors' species corrections.
+ODP 926B age outputs use the published optional La2004-adjusted chronology.
+These older published age models should not be treated as independent evidence of orbital forcing.

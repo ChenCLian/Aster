@@ -1,0 +1,38 @@
+{
+  "model_version": 1,
+  "frequency_mean_arcsec_yr": [
+    51.544155,
+    5.75942,
+    7.44772,
+    17.26914,
+    17.89635
+  ],
+  "frequency_sd_arcsec_yr": [
+    1.0,
+    0.09195,
+    0.00805,
+    0.04597,
+    0.04809
+  ],
+  "g5": 4.257564,
+  "smooth_logit": {
+    "intercept_sd": 1.1,
+    "slope_sd": 0.8,
+    "residual_sd": 0.7,
+    "length_scale": 0.3
+  },
+  "template_sha256": "2ea25a9243b4ee3f147393ea204e37fb24672084516e57cb01712fc994db283a",
+  "template_samples": 2679,
+  "defaults": {
+    "synthetic_grid": "odp1260",
+    "synthetic_start_m": 80.02,
+    "synthetic_span_m": 55.46,
+    "synthetic_count": 2679,
+    "synthetic_seed": 20261104,
+    "synthetic_realization": 0,
+    "synthetic_rate_min": 1,
+    "synthetic_rate_max": 5,
+    "synthetic_snr": 2,
+    "synthetic_rho": 0.5
+  }
+}

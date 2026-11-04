@@ -1,0 +1,6 @@
+<RCC>
+ <qresource prefix="/astronomy">
+  <file alias="INSOLN.LA2004.BTL.ASC">la2004/INSOLN.LA2004.BTL.ASC</file>
+  <file alias="manifest.json">la2004/manifest.json</file>
+ </qresource>
+</RCC>

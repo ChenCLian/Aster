@@ -1,0 +1,6 @@
+<RCC><qresource prefix="/examples">
+  <file>catalog.json</file>
+  <file>60254.tsv</file>
+  <file>132801.tsv</file>
+  <file>743431.tsv</file>
+</qresource></RCC>

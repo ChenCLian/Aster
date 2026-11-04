@@ -1,0 +1,17 @@
+/* DATA DESCRIPTION:
+Citation:	Westerhold, Thomas; Röhl, Ursula (2013): (Table S3) Fe intensities of the measured split core sediment surface area of ODP Site 207-1260 [dataset]. PANGAEA, https://doi.org/10.1594/PANGAEA.817206, 
+	In supplement to: Westerhold, T; Röhl, U (2013): Orbital pacing of Eocene climate during the Middle Eocene Climate Optimum and the chron C19r event: Missing link found in the tropical western Atlantic. Geochemistry, Geophysics, Geosystems, 14(11), 4811-4825, https://doi.org/10.1002/ggge.20293
+Project(s):	Ocean Drilling Program (ODP) (URI: https://www-odp.tamu.edu:443/)
+Coverage:	LATITUDE: 9.265667 * LONGITUDE: -54.544033
+	DATE/TIME START: 2003-02-07T00:00:00 * DATE/TIME END: 2003-02-12T00:00:00
+	MINIMUM DEPTH, sediment/rock: 38.22 m * MAXIMUM DEPTH, sediment/rock: 135.58 m
+Event(s):	207-1260 * LATITUDE: 9.265667 * LONGITUDE: -54.544033 * DATE/TIME START: 2003-02-07T00:00:00 * DATE/TIME END: 2003-02-12T00:00:00 * ELEVATION: -2548.8 m * PENETRATION: 1000.9 m * RECOVERY: 718.1 m * LOCATION: North Atlantic Ocean * CAMPAIGN: Leg207 * BASIS: Joides Resolution (URI: https://www-odp.tamu.edu:443/resolutn.html) * METHOD/DEVICE: Composite Core (COMPCORE) * COMMENT: 100 cores; 862.2 m cored; 138.7 m drilled; 83.3 % recovery
+Comment:	DEPTH, sediment/rock [m] is given in mbsf. AGE [ka BP] ist the absolute age based on orbital tuning.
+Parameter(s):	Sample code/label (Sample label) * PI: Westerhold, Thomas (https://orcid.org/0000-0001-8151-4684, twesterhold@marum.de, http://www.marum.de/Thomas_Westerhold.html) * METHOD/DEVICE: DSDP/ODP/IODP sample designation (URI: hdl:10013/epic.27914.d001)
+	DEPTH, sediment/rock [m] (Depth sed) * GEOCODE
+	Depth, composite revised [rmcd] (Depth comp r) * PI: Westerhold, Thomas (https://orcid.org/0000-0001-8151-4684, twesterhold@marum.de, http://www.marum.de/Thomas_Westerhold.html) * METHOD/DEVICE: Intercore correlation
+	Iron, area, total counts [#] (Fe count) * PI: Westerhold, Thomas (https://orcid.org/0000-0001-8151-4684, twesterhold@marum.de, http://www.marum.de/Thomas_Westerhold.html) * COMMENT: Fe_Area Splice, intensity of the spliced composite section in total counts for the element iron
+	AGE [ka BP] (Age) * GEOCODE
+License:	Creative Commons Attribution 3.0 Unported (CC-BY-3.0) (URI: https://creativecommons.org/licenses/by/3.0/)
+Size:	13992 data points
+*/

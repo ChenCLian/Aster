@@ -1,0 +1,12 @@
+<RCC><qresource prefix="/">
+<file>themes/light.json</file><file>themes/dark.json</file><file>themes/base.qss</file>
+<file>i18n/zh.json</file><file>i18n/en.json</file>
+<file>updates/github.json</file>
+<file>app/aster.png</file>
+<file>icons/light/down.png</file>
+<file>icons/light/up.png</file>
+<file>icons/light/check.png</file>
+<file>icons/dark/down.png</file>
+<file>icons/dark/up.png</file>
+<file>icons/dark/check.png</file>
+</qresource></RCC>

@@ -1,0 +1,46 @@
+TEMPLATE = subdirs
+CONFIG += ordered
+CONFIG -= debug_and_release debug_and_release_target
+
+SUBDIRS += core tests
+tests.depends = core
+!contains(CONFIG, core_only) {
+    SUBDIRS += io science application analysis_tests
+    io.depends = core
+    science.depends = core io
+    application.depends = core io
+    analysis_tests.depends = core io science application
+}
+!contains(CONFIG, core_only):!contains(CONFIG, no_gui) {
+    SUBDIRS += desktop_ui desktop ui_tests style_export_tests workspace_tests integration_tests update_tests
+    desktop_ui.depends = core io application
+    desktop.depends = desktop_ui application science io core
+    ui_tests.depends = desktop_ui application science io core
+    style_export_tests.depends = desktop_ui application science io core
+    workspace_tests.depends = desktop_ui application science io core
+    integration_tests.depends = desktop_ui application science io core
+    update_tests.depends = desktop_ui application science io core
+}
+# Optional validation of the current registered AR1 global test.
+contains(CONFIG, calibration):!contains(CONFIG, core_only) {
+    SUBDIRS += ar1_global_validation
+    ar1_global_validation.file = tools/ar1_global_validation/validation.pro
+    ar1_global_validation.depends = core io science
+}
+
+DISTFILES += README.md AUTHORS.md RELEASE_NOTES.md PACKAGE_STATUS.json PACKAGE_MANIFEST.json .clang-format VERSION .gitignore
+DISTFILES += config/version.pri
+DISTFILES += config/local.pri.example config/scientific_dependencies.pri config/link_modules.pri
+DISTFILES += config/numeric_backend.pri science/numeric_backend_sources.pri
+DISTFILES += $$files($$PWD/docs/*.md, true) $$files($$PWD/docs/*.json, true)
+DISTFILES += $$files($$PWD/tools/*.md, true) $$files($$PWD/tools/*.py, true)
+DISTFILES += $$files($$PWD/tools/*.m, true) $$files($$PWD/tools/*.m.in, true)
+DISTFILES += $$files($$PWD/tools/*.json, true)
+DISTFILES += tools/peak_validation/reference_bridge.cpp
+DISTFILES += tools/ar1_global_validation/validation.pro tools/ar1_global_validation/main.cpp
+DISTFILES += tools/ar1_global_validation/portable_random.h
+DISTFILES += resources/astronomy/solutions/La2010_README.TXT resources/astronomy/solutions/PT_README.txt
+
+DISTFILES += tools/release/package_windows.ps1 $$files($$PWD/tools/release/*.sh)
+DISTFILES += .github/workflows/build-desktop.yml
+DISTFILES += resources/app/aster-256.png

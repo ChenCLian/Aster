@@ -1,0 +1,122 @@
+name: Build desktop packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  package:
+    name: ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            os: ubuntu-22.04
+            qt-host: linux
+            qt-arch: linux_gcc_64
+            arch: x86_64
+          - target: macos-arm64
+            os: macos-15
+            qt-host: mac
+            qt-arch: clang_64
+            arch: arm64
+          - target: macos-x86_64
+            os: macos-15-intel
+            qt-host: mac
+            qt-arch: clang_64
+            arch: x86_64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      QT_QPA_PLATFORM: offscreen
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev \
+            libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
+            libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-xfixes0 \
+            libssl3 libfontconfig1 libdbus-1-3 libfreetype6 libegl1 patchelf file curl xvfb xauth
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          brew install gsl openblas
+          printf 'GSL_PREFIX = %s\nOPENBLAS_ROOT = %s\n' "$(brew --prefix gsl)" "$(brew --prefix openblas)" > config/local.pri
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: ${{ matrix.qt-host }}
+          target: desktop
+          arch: ${{ matrix.qt-arch }}
+          setup-python: false
+          cache: true
+      - name: Show build environment
+        run: |
+          mkdir -p build-release/ci-logs
+          {
+            uname -sm
+            python3 --version
+            qmake -v
+            qmake -query QT_INSTALL_PREFIX
+            c++ --version
+          } 2>&1 | tee build-release/ci-logs/environment.log
+      - name: Configure
+        run: |
+          cd build-release
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
+          else
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug 2>&1 | tee ci-logs/configure.log
+          fi
+      - name: Build
+        run: |
+          cd build-release
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            make -j3 2>&1 | tee ci-logs/build.log
+          else
+            make -j2 2>&1 | tee ci-logs/build.log
+          fi
+      - name: Run regression tests
+        run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        run: bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist 2>&1 | tee build-release/ci-logs/package.log
+      - name: Package macOS
+        if: runner.os == 'macOS'
+        run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
+      - name: Upload package
+        uses: actions/upload-artifact@v6
+        with:
+          name: Aster-${{ matrix.target }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload build and test logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: logs-${{ matrix.target }}
+          path: |
+            build-release/ci-logs/
+            build-release/test-results/
+          if-no-files-found: ignore
+          retention-days: 30

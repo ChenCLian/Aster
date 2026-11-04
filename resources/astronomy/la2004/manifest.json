@@ -1,0 +1,18 @@
+{
+  "id": "La2004_IMCCE_nominal_past",
+  "revision": "2014-11-17",
+  "filename": "INSOLN.LA2004.BTL.ASC",
+  "sha256": "3f13b9f8e69085baf40bc67a2669e6f6af4148fef9218ed2158772aa91e35f8c",
+  "rows": 51001,
+  "native_step_ka": 1,
+  "table_age_max_ka": 51000,
+  "supported_age_max_ka": 50000,
+  "epoch": "J2000",
+  "time_column": "negative time from J2000 in ka; Aster age = -time",
+  "angle_units": "radians",
+  "perihelion": "heliocentric longitude from moving equinox",
+  "url": "https://ssp.imcce.fr/insola/earth/online/earth/La2004/INSOLN.LA2004.BTL.ASC",
+  "reference": "Laskar et al. (2004), A&A 428, 261–285, doi:10.1051/0004-6361:20041335",
+  "retrieved": "2026-11-02",
+  "transformation": "None; original ASCII bytes preserved"
+}

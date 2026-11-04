@@ -1,0 +1,139 @@
+{
+  "oracle": "SciPy quadrature of instantaneous top-of-atmosphere flux over a complete rotation",
+  "knots": [
+    {
+      "age_ka": 0,
+      "eccentricity": 0.01670236225492288,
+      "obliquity": 0.4090928042223415,
+      "perihelion": 1.796256991128036
+    },
+    {
+      "age_ka": 1,
+      "eccentricity": 0.01716138713254424,
+      "obliquity": 0.4113529838787881,
+      "perihelion": 1.497928479545051
+    },
+    {
+      "age_ka": 2,
+      "eccentricity": 0.01749682471015021,
+      "obliquity": 0.4135547681918493,
+      "perihelion": 1.200023931298518
+    },
+    {
+      "age_ka": 100,
+      "eccentricity": 0.04006000253845324,
+      "obliquity": 0.4130265591582125,
+      "perihelion": 6.266956305655064
+    },
+    {
+      "age_ka": 1000,
+      "eccentricity": 0.03575988082961842,
+      "obliquity": 0.4123891471500025,
+      "perihelion": 5.048366619406308
+    },
+    {
+      "age_ka": 2000,
+      "eccentricity": 0.01373706942140139,
+      "obliquity": 0.3946228147069096,
+      "perihelion": 5.600731541153012
+    },
+    {
+      "age_ka": 50000,
+      "eccentricity": 0.05505034513722919,
+      "obliquity": 0.4136984849576056,
+      "perihelion": 2.857351146470244
+    },
+    {
+      "age_ka": 51000,
+      "eccentricity": 0.009676241473059092,
+      "obliquity": 0.4013041649492096,
+      "perihelion": 1.000032842610906
+    }
+  ],
+  "insolation": [
+    {
+      "age_ka": 0,
+      "latitude_deg": 65,
+      "solar_longitude_deg": 90,
+      "solar_constant": 1365,
+      "expected": 479.3414105730951
+    },
+    {
+      "age_ka": 0,
+      "latitude_deg": 65,
+      "solar_longitude_deg": 270,
+      "solar_constant": 1365,
+      "expected": 3.0666259476994036
+    },
+    {
+      "age_ka": 100,
+      "latitude_deg": 65,
+      "solar_longitude_deg": 90,
+      "solar_constant": 1365,
+      "expected": 501.16079165685386
+    },
+    {
+      "age_ka": 1000,
+      "latitude_deg": -45,
+      "solar_longitude_deg": 180,
+      "solar_constant": 1365,
+      "expected": 315.3259942027963
+    },
+    {
+      "age_ka": 2000,
+      "latitude_deg": 0,
+      "solar_longitude_deg": 0,
+      "solar_constant": 1365,
+      "expected": 425.4392344423562
+    },
+    {
+      "age_ka": 50000,
+      "latitude_deg": 65,
+      "solar_longitude_deg": 90,
+      "solar_constant": 1365,
+      "expected": 487.20845977192516
+    },
+    {
+      "age_ka": 50,
+      "latitude_deg": 90,
+      "solar_longitude_deg": 90,
+      "solar_constant": 1365,
+      "expected": 552.2030775313423
+    },
+    {
+      "age_ka": 50,
+      "latitude_deg": 90,
+      "solar_longitude_deg": 270,
+      "solar_constant": 1365,
+      "expected": 0.0
+    },
+    {
+      "age_ka": 10,
+      "latitude_deg": -90,
+      "solar_longitude_deg": 270,
+      "solar_constant": 1365,
+      "expected": 541.1118355365493
+    },
+    {
+      "age_ka": 10,
+      "latitude_deg": -90,
+      "solar_longitude_deg": 0,
+      "solar_constant": 1365,
+      "expected": 2.618544405491656e-14
+    },
+    {
+      "age_ka": 150,
+      "latitude_deg": 80,
+      "solar_longitude_deg": 30,
+      "solar_constant": 1365,
+      "expected": 261.8532343313457
+    },
+    {
+      "age_ka": 150,
+      "latitude_deg": -80,
+      "solar_longitude_deg": 30,
+      "solar_constant": 1365,
+      "expected": 0.0
+    }
+  ]
+}
