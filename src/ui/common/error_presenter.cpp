@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/error_presenter.h"
 #include "ui/common/presentation.h"
 #include <QRegularExpression>
@@ -68,7 +70,7 @@ ErrorPresentation presentError(const ErrorInfo &raw, const QString &fallback)
     if (error.code == errorCodeName(ErrorCode::Unknown)) summary.clear();
     if (summary.isEmpty()) summary = fallback.isEmpty() ? errorFallback(error) : fallback;
     else summary = expand(summary, error.context);
-    const auto suggestion = optionalLabel(prefix + ".suggestion");
+    const auto suggestion = expand(optionalLabel(prefix + ".suggestion"), error.context);
     QStringList lines{summary, text("diagnostic.code") + ": " + error.code};
     QStringList trace;
     auto fields = error.context.keys();

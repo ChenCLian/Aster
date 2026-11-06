@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/presentation.h"
 #include "ui/exports/figure_export.h"
 #include "ui/results/plot_view.h"

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "math/spectrum/mtm_spectrum.h"
 #include "math/numeric_utils.h"
 #include "math/backend/numeric_backend.h"

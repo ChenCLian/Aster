@@ -68,6 +68,15 @@ if command -v brew >/dev/null 2>&1; then
 fi
 python3 "$script_dir/macos_dependencies.py" "$app" --arch "$arch" "${library_args[@]}"
 python3 "$script_dir/stage_notices.py" "$stage" --qt-prefix "$qt_prefix" "${notice_args[@]}"
+material_args=(--platform "macos-$arch" --package-dir "$stage" --qmake "$qmake"
+  --output "$output/dependency-materials/macos-$arch")
+[[ -z "${ASTER_DEPENDENCY_CACHE:-}" ]] || material_args+=(--cache "$ASTER_DEPENDENCY_CACHE")
+[[ -z "${ASTER_DEPENDENCY_SUPPLEMENT:-}" ]] || material_args+=(--supplement "$ASTER_DEPENDENCY_SUPPLEMENT")
+python3 "$script_dir/collect_dependency_materials.py" "${material_args[@]}"
+for document in LICENSE COPYRIGHT.md SOURCE_CODE.md SOURCE_DEPENDENCIES.md AUTHORS.md; do
+  cp "$stage/$document" "$app/Contents/Resources/$document"
+done
+cp -R "$stage/licenses" "$app/Contents/Resources/licenses"
 # Ad-hoc signing permits local acceptance testing. Public trusted distribution
 # uses a Developer ID identity and optional preconfigured notarization profile.
 identity="${ASTER_SIGN_IDENTITY:--}"
@@ -105,10 +114,11 @@ Move Aster.app to Applications, then open it. No separate Qt installation is nee
 The provided CI build targets macOS 15 or newer. Choose the package for your Mac.
 The default build is ad-hoc signed, without Developer ID signing or notarization.
 Check the release notes for this package's signing status.
+Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
+Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Gatekeeper and startup help: FAQ.md.
 Updates: Settings > Check for updates opens the public release page.
 Close Aster before replacing the app. Keep your database and settings separately.
 EOF
 ditto -c -k --sequesterRsrc --keepParent "$stage" "$output/$name.zip"
-(cd "$output" && shasum -a 256 "$name.zip" > "$name.zip.sha256")
 echo "Created $output/$name.zip"

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_IO_DATABASE_RESULT_REPOSITORY_H
 #define ASTER_IO_DATABASE_RESULT_REPOSITORY_H
 #include "core/workflow_executor.h"

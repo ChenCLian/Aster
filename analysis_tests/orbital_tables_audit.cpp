@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "orbital_tables_audit.h"
 #include "io/astronomy/orbital_table.h"
 #include "math/astronomy/orbital_elements.h"

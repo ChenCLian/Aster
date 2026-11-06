@@ -1,8 +1,11 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "processing/coco_task.h"
 #include "processing/coco_task_support.h"
 #include "processing/chronology_helpers.h"
 #include "processing/task_categories.h"
 #include "math/chronology/coco_scan.h"
+#include "math/chronology/coco_analysis.h"
 #include "math/astronomy/milankovitch_periods.h"
 #include <QJsonArray>
 #include <QRegularExpression>
@@ -247,6 +250,17 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
     catch (const std::bad_alloc &)
     {
         return NodeResult::failure(makeError(ErrorCode::AllocationFailure));
+    }
+    catch (const chronology::CocoWorkBudgetError &e)
+    {
+        return NodeResult::failure(ErrorInfo{
+            e.kind == chronology::CocoWorkBudgetError::Kind::Simulations
+                ? "COCO_MC_WORK_BUDGET" : "COCO_WINDOW_WORK_BUDGET",
+            {{"estimated_work", double(std::ceil(e.estimatedWork))},
+             {"maximum_work", double(chronology::CocoAnalysisLimits::maxEvaluationWork)},
+             {"requested_iterations", double(e.requestedIterations)},
+             {"maximum_iterations", double(e.maximumIterations)}},
+            QString::fromUtf8(e.what())});
     }
     catch (const std::length_error &e)
     {

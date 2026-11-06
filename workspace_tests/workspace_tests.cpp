@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "../tests/support/workspace_fixture.h"
 #include "ui/panels/source_panel.h"
 #include <QtTest>

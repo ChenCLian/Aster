@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_MTM_TASK_H
 #define ASTER_PROCESSING_MTM_TASK_H
 #include "core/task_registry.h"
@@ -9,7 +11,7 @@ public:
     NodeResult execute(const TaskInput&, const ExecutionContext&) override;
 private:
     int m_peakDistance, m_nfft, m_peakRadius;
-    double m_nw, m_fmaxRatio, m_smoothWindow, m_prominence, m_peakWidth, m_peakHeight, m_relativeProminence;
+    double m_nw, m_fmaxRatio, m_frequencyMax, m_smoothWindow, m_prominence, m_peakWidth, m_peakHeight, m_relativeProminence;
     bool m_ar1, m_swa, m_logfit;
 };
 }

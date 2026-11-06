@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "cycle_tuning_audit.h"
 #include "math/astronomy/milankovitch_periods.h"
 #include "math/chronology/cycle_age.h"

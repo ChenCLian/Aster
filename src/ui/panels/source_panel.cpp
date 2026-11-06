@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/panels/source_panel.h"
 #include "ui/common/presentation.h"
@@ -19,11 +22,35 @@
 #include <QMimeData>
 #include <QDropEvent>
 #include <QDragEnterEvent>
-#include <QSplitter>
+#include "ui/common/section_splitter.h"
+#include <algorithm>
 namespace aster::ui
 {
 namespace
 {
+QString stateText(SourceFileState state)
+{
+    switch (state)
+    {
+    case SourceFileState::Running: return text("ui.running");
+    case SourceFileState::Saved: return text("ui.complete_saved");
+    case SourceFileState::Unsaved: return text("ui.complete_unsaved");
+    case SourceFileState::Cancelled: return text("ui.cancelled");
+    case SourceFileState::Failed: return text("ui.failed_partial");
+    default: return text("ui.ready");
+    }
+}
+void updateFileState(QListWidgetItem *item, SourceFileState state)
+{
+    const auto label = stateText(state);
+    item->setData(Qt::UserRole + 1, label);
+    item->setData(Qt::UserRole + 2, int(state));
+    const auto details = item->data(Qt::UserRole + 3).toString();
+    item->setToolTip("<p>" + details.toHtmlEscaped().replace("\n", "<br>") +
+                     "<br>" + label.toHtmlEscaped() + "</p>");
+    item->setData(Qt::AccessibleTextRole, item->text());
+    item->setData(Qt::AccessibleDescriptionRole, details + "\n" + label);
+}
 class SourceFileDelegate : public QStyledItemDelegate
 {
   public:
@@ -39,22 +66,29 @@ class SourceFileDelegate : public QStyledItemDelegate
         style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
         painter->save();
         painter->setFont(opt.font);
-        const auto rect = opt.rect.adjusted(8, 5, -8, -4);
-        const int height = opt.fontMetrics.height();
-        painter->setPen(themeColor("text"));
-        painter->drawText(QRect(rect.x(), rect.y(), rect.width(), height),
-                          Qt::AlignLeft | Qt::AlignVCenter,
+        painter->setClipRect(opt.rect);
+        painter->setRenderHint(QPainter::Antialiasing);
+        const auto state = SourceFileState(index.data(Qt::UserRole + 2).toInt());
+        const char *role = state == SourceFileState::Running ? "running" :
+                           state == SourceFileState::Saved ? "success" :
+                           state == SourceFileState::Failed ? "error" :
+                           state == SourceFileState::Unsaved ? "warning" : "muted";
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(themeColor(role));
+        const QPointF center(opt.rect.left() + 11, opt.rect.center().y());
+        // Hollow marks distinguish pending/cancelled inputs without relying on color.
+        if (state == SourceFileState::Pending || state == SourceFileState::Cancelled)
+        { painter->setBrush(Qt::NoBrush); painter->setPen(QPen(themeColor(role), 1.4)); }
+        painter->drawEllipse(center, 3.5, 3.5);
+        const auto rect = opt.rect.adjusted(23, 3, -7, -3);
+        painter->setPen(themeColor((opt.state & QStyle::State_Selected) ? "selectionText" : "text"));
+        painter->drawText(rect, Qt::AlignLeft | Qt::AlignVCenter,
                           opt.fontMetrics.elidedText(name, Qt::ElideMiddle, rect.width()));
-        painter->setPen(themeColor("muted"));
-        painter->drawText(QRect(rect.x(), rect.y() + height + 2, rect.width(), height),
-                          Qt::AlignLeft | Qt::AlignVCenter,
-                          opt.fontMetrics.elidedText(index.data(Qt::UserRole + 1).toString(),
-                                                     Qt::ElideRight, rect.width()));
         painter->restore();
     }
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &) const override
     {
-        return {100, option.fontMetrics.height() * 2 + 12};
+        return {100, std::max(32, option.fontMetrics.height() + 14)};
     }
 };
 } // namespace
@@ -76,7 +110,7 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     add->setObjectName("importFiles");
     header->addWidget(add);
     layout->addLayout(header);
-    m_roots = new QComboBox;
+    m_roots = new ChoiceEditor;
     m_roots->setObjectName("sourceRoot");
     m_roots->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_roots->setMinimumContentsLength(6);
@@ -84,7 +118,7 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     layout->addWidget(m_roots);
     connect(add, &QPushButton::clicked, this, &SourcePanel::importRequested);
     // Keep the file list and its options independently resizable.
-    auto *splitter = new QSplitter(Qt::Vertical);
+    auto *splitter = new SectionSplitter(Qt::Vertical);
     splitter->setObjectName("sourceOptionsSplitter");
     splitter->setChildrenCollapsible(false);
     auto *filesPanel = new QWidget;
@@ -194,9 +228,10 @@ void SourcePanel::refresh()
             auto *item = new QListWidgetItem(source.label, m_files);
             item->setData(Qt::UserRole, source.label);
             if (source.label == currentPath) m_files->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
-            item->setData(Qt::UserRole + 1, m_states.value(root().toString() + "|" + source.label,
-                                                           text("ui.ready")));
-            item->setToolTip(ref.databasePath + "\n" + ref.nodeId.toString() + " / " + ref.port);
+            item->setData(Qt::UserRole + 3, source.label + "\n" + ref.databasePath +
+                          "\n" + ref.nodeId.toString() + " / " + ref.port);
+            updateFileState(item, m_states.value(root().toString() + "|" + source.label,
+                                                 SourceFileState::Pending));
         }
         m_files->setToolTip(text("ui.read_only_reference_a_run_saves_an_independent_input_snapsho"));
         m_count->setText(text("ui.bound_inputs_count").arg(m_files->count()));
@@ -218,11 +253,11 @@ void SourcePanel::refresh()
     };
     for (const auto &path : m_document->files(root()))
     {
-        const auto state = m_states.value(root().toString() + "|" + path, text("ui.ready"));
+        const auto state = m_states.value(root().toString() + "|" + path, SourceFileState::Pending);
         auto *item = new QListWidgetItem(QFileInfo(path).fileName(), m_files);
         item->setData(Qt::UserRole, path);
-        item->setToolTip(path);
-        item->setData(Qt::UserRole + 1, state);
+        item->setData(Qt::UserRole + 3, path);
+        updateFileState(item, state);
         if (path == currentPath)
             m_files->setCurrentItem(item, QItemSelectionModel::NoUpdate);
         const int row = m_files->count() - 1;
@@ -259,7 +294,12 @@ void SourcePanel::selectRoot(NodeId id)
 {
     const auto idx = m_roots->findData(id);
     if (idx >= 0)
-        m_roots->setCurrentIndex(idx);
+    {
+        if (idx == m_roots->currentIndex())
+            syncPreviewInput();
+        else
+            m_roots->setCurrentIndex(idx);
+    }
 }
 void SourcePanel::addFiles(const QStringList &paths)
 {
@@ -289,6 +329,14 @@ bool SourcePanel::applyCurrentOptions()
         return m_document->setFileOptions(root(), {path}, options);
     return true;
 }
+void SourcePanel::syncPreviewInput()
+{
+    const auto *n = m_document->node(root());
+    if (n && n->method == "file_source")
+        m_options->notifyPreviewInput(); // Also publishes the workflow source.
+    else
+        notifyPreviewSource();
+}
 void SourcePanel::notifyPreviewSource()
 {
     const auto items = m_document->sources().value(root());
@@ -313,7 +361,7 @@ void SourcePanel::clearFileStates()
     m_states.clear();
     refresh();
 }
-void SourcePanel::setFileState(NodeId id, const QString &path, const QString &state)
+void SourcePanel::setFileState(NodeId id, const QString &path, SourceFileState state)
 {
     m_states[id.toString() + "|" + path] = state;
     if (root() != id)
@@ -322,7 +370,7 @@ void SourcePanel::setFileState(NodeId id, const QString &path, const QString &st
     {
         auto *item = m_files->item(i);
         if (item->data(Qt::UserRole).toString() == path)
-            item->setData(Qt::UserRole + 1, state);
+            updateFileState(item, state);
     }
 }
 void SourcePanel::dragEnterEvent(QDragEnterEvent *e)

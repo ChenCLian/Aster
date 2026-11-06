@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_TESTS_WORKSPACE_FIXTURE_H
 #define ASTER_TESTS_WORKSPACE_FIXTURE_H
 // Synthetic data belongs to tests, not to the desktop application.

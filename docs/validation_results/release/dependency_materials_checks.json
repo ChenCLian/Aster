@@ -1,0 +1,48 @@
+{
+  "release_tool_tests": {
+    "passed": 27,
+    "failed": 0,
+    "log": "docs/validation_results/release/dependency_materials_tests.txt"
+  },
+  "python_syntax": "passed",
+  "bash_syntax": "passed",
+  "workflow_yaml": "parsed",
+  "unchanged_implementation_resource_files": 426,
+  "changed_document_links_checked": 49,
+  "qt_source_smoke": [
+    {
+      "module": "qtbase",
+      "version": "6.8.3",
+      "bytes": 48426536,
+      "sha256": "56001b905601bb9023d399f3ba780d7fa940f3e4861e496a7c490331f49e0b80",
+      "notice_entries": 178
+    },
+    {
+      "module": "qtimageformats",
+      "version": "6.8.3",
+      "bytes": 2035140,
+      "sha256": "049bfb99845e4801672aca07c3c4fc4c140f932a3a33faa899419579e33ef1c8",
+      "notice_entries": 15
+    },
+    {
+      "module": "qtsvg",
+      "version": "6.8.3",
+      "bytes": 2009072,
+      "sha256": "35eb516460f00f264eb504baa253432384351cf23fb9980a5857190e8deef438",
+      "notice_entries": 11
+    },
+    {
+      "module": "qttranslations",
+      "version": "6.8.3",
+      "bytes": 1577680,
+      "sha256": "c3c61d79c3d8fe316a20b3617c64673ce5b5519b2e45535f49bee313152fa531",
+      "notice_entries": 5
+    }
+  ],
+  "limits": [
+    "Native Windows/MSVC and macOS packaging were not executed here.",
+    "Debian/Ubuntu and Homebrew adapter end-to-end cases use controlled fixtures; actual release builds must run the collector.",
+    "Final dependency versions and source availability remain to be confirmed on the release build hosts.",
+    "La2004/La2010 redistribution review is deferred, not cleared."
+  ]
+}

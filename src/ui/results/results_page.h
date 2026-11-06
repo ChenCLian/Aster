@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_RESULTS_PAGE_H
 #define ASTER_UI_RESULTS_PAGE_H
 #include "ui/services/result_loader.h"
@@ -18,6 +20,7 @@ namespace aster::ui
 {
 class RecordDirectoryPanel;
 class ResultExportPanel;
+class PlotStyleEditor;
 class ResultsPage : public QWidget
 {
     Q_OBJECT
@@ -90,6 +93,7 @@ class ResultsPage : public QWidget
     OutputReference m_focusReference;
     OutputReference reference(NodeId node, const QString &port) const;
     PlotWorkspace *m_workspace;
+    PlotStyleEditor *m_styleEditor;
     QString m_path;
     TaskRegistry m_registry;
     ResultLoader *m_loader;

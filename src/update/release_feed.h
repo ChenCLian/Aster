@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_RELEASE_FEED_H
 #define ASTER_RELEASE_FEED_H
 #include "update/release_version.h"

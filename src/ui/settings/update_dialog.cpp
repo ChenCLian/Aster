@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/settings/update_dialog.h"
 #include "ui/common/presentation.h"
 #include <QComboBox>
@@ -50,7 +53,7 @@ UpdateDialog::UpdateDialog(QWidget *parent) : QDialog(parent) {
     repo->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
     repo->setWordWrap(true);
     form->addRow(text("update.repository"), repo);
-    auto *channel = new QComboBox;
+    auto *channel = new ChoiceEditor;
     channel->setObjectName("updateChannel");
     channel->addItem(text("update.stable"), false);
     channel->addItem(text("update.preview"), true);

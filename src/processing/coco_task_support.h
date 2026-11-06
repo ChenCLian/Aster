@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_COCO_TASK_SUPPORT_H
 #define ASTER_PROCESSING_COCO_TASK_SUPPORT_H
 #include "core/task.h"

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "io/database/sqlite_snapshot.h"
 #include "io/database/peak_index.h"
 #include <QSqlQuery>

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/plot_axis_hints.h"
 #include <QImageReader>
 #include "ui/settings/theme_manager.h"
 #include "io/exports/export_path.h"
@@ -197,6 +200,7 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
     m_empty->setObjectName("Muted");
     m_stack->addWidget(m_empty);
     m_plot = new QCustomPlot;
+    new PlotAxisHints(m_plot);
     m_plot->setObjectName("resultPlot");
     m_plot->installEventFilter(this);
     m_stack->addWidget(m_plot);

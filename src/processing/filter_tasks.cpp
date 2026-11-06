@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "processing/task_categories.h"
 #include "processing/filter_tasks.h"
 #include "processing/task_helpers.h"
@@ -59,7 +61,7 @@ NodeResult executeFilter(const TaskInput& input,const ExecutionContext& c,const 
             report["edge_amplitude_gain"]=1/std::sqrt(2.);
             report["filter_shape"]=shape==filtering::Shape::Gaussian?"gaussian":"taner_acycle_corrected_v2";
             report["boundary"]=shape==filtering::Shape::Gaussian?"zero_padded_10_next_power_two_crop_first_N":"periodic_N_point";
-            report["reference"]= "provided_Acycle_3.1.1_acycleBandpassFilter_corrected-bandpass-v2";
+            report["reference"]= "Acycle_3.1.1_validation_snapshot_acycleBandpassFilter_corrected-bandpass-v2";
             if(shape==filtering::Shape::Taner)report["rolloff_exponent"]=p["rolloff_exponent"];
             removedMean=f.removedMean;values=std::move(f.filtered);
             outputs.insert("filtered",series(values,"Filtered value"));

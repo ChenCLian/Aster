@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "math/backend/backend_detail.h"
 #include <cmath>
 #include <limits>

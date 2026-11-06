@@ -1,0 +1,1 @@
+Homebrew Ruby query fixture: passed (local, embedded, external and resource patches)

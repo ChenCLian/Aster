@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "integration_suites.h"
 #include <QtTest>
 #include <QClipboard>
@@ -478,16 +480,16 @@ void InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate()
     auto *files = panel.findChild<QListWidget *>("sourceFiles");
     QVERIFY(editor && files);
     panel.selectRoot(a); QTRY_VERIFY(editor->ready());
-    panel.setFileState(a, path, "first-root-failed");
-    panel.setFileState(b, path, "second-root-complete");
+    panel.setFileState(a, path, SourceFileState::Failed);
+    panel.setFileState(b, path, SourceFileState::Saved);
     QCOMPARE(editor->options()["y_column"].toInt(), 1);
-    QCOMPARE(files->item(0)->data(Qt::UserRole + 1).toString(), QString("first-root-failed"));
+    QCOMPARE(files->item(0)->data(Qt::UserRole + 2).toInt(), int(SourceFileState::Failed));
     panel.selectRoot(b); QTRY_VERIFY(editor->ready());
     QCOMPARE(editor->options()["y_column"].toInt(), 2);
-    QCOMPARE(files->item(0)->data(Qt::UserRole + 1).toString(), QString("second-root-complete"));
+    QCOMPARE(files->item(0)->data(Qt::UserRole + 2).toInt(), int(SourceFileState::Saved));
     panel.selectRoot(a); QTRY_VERIFY(editor->ready());
     QCOMPARE(editor->options()["y_column"].toInt(), 1);
-    QCOMPARE(files->item(0)->data(Qt::UserRole + 1).toString(), QString("first-root-failed"));
+    QCOMPARE(files->item(0)->data(Qt::UserRole + 2).toInt(), int(SourceFileState::Failed));
     QCOMPARE(doc.plan().requests.size(), 2);
 }
 void InteractionSafetyTests::bulkSourceRefreshKeepsSelectionsAndOptions()

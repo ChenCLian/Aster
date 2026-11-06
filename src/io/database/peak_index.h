@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PEAK_INDEX_H
 #define ASTER_PEAK_INDEX_H
 #include "core/task.h"

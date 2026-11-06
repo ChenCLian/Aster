@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "update/update_checker.h"
 #include "ui/settings/settings_dialog.h"
 #include "ui/settings/update_dialog.h"

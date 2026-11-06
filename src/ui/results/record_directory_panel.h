@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_RECORD_DIRECTORY_PANEL_H
 #define ASTER_RECORD_DIRECTORY_PANEL_H
 #include "io/database/result_repository.h"
@@ -59,9 +61,9 @@ class RecordDirectoryPanel final : public QWidget
     RecordFilterPanel *m_filters;
     QListWidget *m_list;
     QLabel *m_count, *m_selection;
-    QToolButton *m_select, *m_database;
+    QToolButton *m_database;
     QProgressDialog *m_transferProgress = nullptr;
-    QPushButton *m_delete, *m_clear;
+    QPushButton *m_delete, *m_clear, *m_select, *m_unselect;
     QString m_path;
     RecordIdentities m_checked;
     qint64 m_current = 0, m_cursor = 0, m_matching = 0, m_pressedCheck = 0;

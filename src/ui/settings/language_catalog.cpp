@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/settings/language_catalog.h"
 #include "ui/settings/theme_manager.h"
 #include <QCoreApplication>
@@ -47,6 +49,13 @@ QString LanguageCatalog::label(const QString &key, const QString &fallback) cons
     if (m_current.contains(key))
         return m_current[key].toString();
     return m_english.value(key).toString(fallback.isEmpty() ? key : fallback);
+}
+QString LanguageCatalog::optionalLabel(const QString &key, const QString &fallback) const
+{
+    const auto current = m_current.value(key).toString();
+    if (!current.isEmpty()) return current;
+    const auto english = m_english.value(key).toString();
+    return english.isEmpty() ? fallback : english;
 }
 QString LanguageCatalog::translate(const char *context, const char *source, const char *, int) const
 {

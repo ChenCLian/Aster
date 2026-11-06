@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/results/record_directory_panel.h"
 #include "ui/results/record_item_delegate.h"
 #include "ui/panels/record_filter_panel.h"
@@ -33,6 +35,7 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
 {
     setObjectName("Panel");
     setProperty("panelRole", "navigation");
+    setAttribute(Qt::WA_StyledBackground);
     setMinimumWidth(200);
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(12, 14, 12, 12);
@@ -90,19 +93,22 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     m_selection->setObjectName("recordSelectionCount");
     layout->addWidget(m_selection);
     auto *selectionBar = new QHBoxLayout;
-    m_select = new QToolButton;
-    m_select->setText(text("ui.check_matches"));
+    selectionBar->setSpacing(5);
+    m_select = new QPushButton(text("ui.check_matches_short"));
     m_select->setObjectName("checkMatchingRecords");
-    m_select->setPopupMode(QToolButton::MenuButtonPopup);
-    m_select->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    auto *menu = new QMenu(m_select);
-    menu->addAction(text("ui.check_matches"), this, [this] { selectMatching(true); });
-    menu->addAction(text("ui.uncheck_matches"), this, [this] { selectMatching(false); });
-    m_select->setMenu(menu);
-    m_clear = new QPushButton(text("ui.clear_checks"));
+    m_select->setToolTip(text("ui.check_matches"));
+    m_unselect = new QPushButton(text("ui.uncheck_matches_short"));
+    m_unselect->setObjectName("uncheckMatchingRecords");
+    m_unselect->setToolTip(text("ui.uncheck_matches"));
+    m_clear = new QPushButton(text("ui.clear_checks_short"));
     m_clear->setObjectName("clearRecordChecks");
-    selectionBar->addWidget(m_select, 1);
-    selectionBar->addWidget(m_clear, 1);
+    m_clear->setToolTip(text("ui.clear_all_checks_hint"));
+    for (auto *button : {m_select, m_unselect, m_clear})
+    {
+        button->setProperty("selectionAction", true);
+        button->setAccessibleName(button->toolTip());
+        selectionBar->addWidget(button, 1);
+    }
     layout->addLayout(selectionBar);
     m_delete = new QPushButton(text("ui.delete_checked"));
     m_delete->setObjectName("deleteCheckedRecords");
@@ -250,7 +256,8 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                     emit metadataEdited(id);
                 refresh();
             });
-    connect(m_select, &QToolButton::clicked, this, [this] { selectMatching(true); });
+    connect(m_select, &QPushButton::clicked, this, [this] { selectMatching(true); });
+    connect(m_unselect, &QPushButton::clicked, this, [this] { selectMatching(false); });
     connect(m_clear, &QPushButton::clicked, this, &RecordDirectoryPanel::clearChecks);
     connect(m_delete, &QPushButton::clicked, this, [this] { deleteRecords(m_checked); });
     connect(m_list, &QListWidget::itemChanged, this,
@@ -421,6 +428,7 @@ void RecordDirectoryPanel::updateActions()
     const bool ready = !m_busy && !m_filterPending && !m_path.isEmpty();
     m_database->setEnabled(!m_busy && m_mutationsEnabled && !m_path.isEmpty());
     m_select->setEnabled(ready && m_filterValid);
+    m_unselect->setEnabled(ready && m_filterValid && m_matching > 0);
     m_clear->setEnabled(ready && !m_checked.isEmpty());
     m_delete->setEnabled(ready && m_filterValid && m_mutationsEnabled && !m_checked.isEmpty());
     m_count->setText(

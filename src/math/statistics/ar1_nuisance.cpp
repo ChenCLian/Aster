@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "math/statistics/ar1_nuisance.h"
 #include "math/statistics/monte_carlo_test.h"
 #include <algorithm>

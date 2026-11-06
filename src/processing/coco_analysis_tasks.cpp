@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "processing/coco_analysis_tasks.h"
 #include "processing/coco_task.h"
 #include "processing/coco_task_support.h"

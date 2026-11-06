@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/panels/result_export_panel.h"
 #include "ui/common/presentation.h"
 #include <QComboBox>
@@ -35,7 +38,7 @@ ResultExportPanel::ResultExportPanel(QWidget *parent) : QWidget(parent)
     label(text("ui.export_data_heading"), true);
     m_dataTarget = label({});
     m_dataTarget->setObjectName("exportDataTarget");
-    m_ports = new QComboBox;
+    m_ports = new ChoiceEditor;
     m_ports->setObjectName("outputPort");
     m_ports->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_ports->setMinimumContentsLength(6);

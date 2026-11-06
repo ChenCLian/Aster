@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_RECORD_QUERY_H
 #define ASTER_RECORD_QUERY_H
 #include "io/database/record_filter.h"

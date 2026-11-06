@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/services/workflow_preview_controller.h"
 #include "ui/results/preview_data.h"
 #include "ui/common/presentation.h"

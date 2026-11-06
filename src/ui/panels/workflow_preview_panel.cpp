@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/panels/workflow_preview_panel.h"
 #include "ui/panels/file_preview_panel.h"
 #include "ui/panels/style_section.h"
@@ -6,7 +9,7 @@
 #include "ui/common/error_presenter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSplitter>
+#include "ui/common/section_splitter.h"
 #include <QLabel>
 #include <QComboBox>
 #include <QProgressBar>
@@ -23,8 +26,8 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     setObjectName("workflowPreview");
     setMinimumWidth(0);
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(6, 0, 6, 6); layout->setSpacing(6);
-    auto *split = new QSplitter(Qt::Vertical);
+    layout->setContentsMargins(8, 6, 8, 8); layout->setSpacing(8);
+    auto *split = new SectionSplitter(Qt::Vertical);
     split->setObjectName("previewPlotsSplitter"); split->setChildrenCollapsible(false);
     auto *top = new QWidget;
     top->setMinimumHeight(160);
@@ -41,7 +44,7 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     auto *bottom = new QWidget; bottom->setMinimumHeight(230);
     auto *bl = new QVBoxLayout(bottom); bl->setContentsMargins(0, 0, 0, 0); bl->setSpacing(6);
     auto *bar = new QFrame; bar->setObjectName("PreviewIdentity");
-    auto *info = new QVBoxLayout(bar); info->setContentsMargins(10, 9, 10, 9); info->setSpacing(4);
+    auto *info = new QVBoxLayout(bar); info->setContentsMargins(8, 10, 8, 10); info->setSpacing(4);
     auto *caption = new QLabel(text("ui.preview_result")); caption->setObjectName("Muted");
     info->addWidget(caption);
     m_method = new QLabel; m_method->setObjectName("PreviewMethod");
@@ -53,7 +56,7 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     m_file->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); info->addWidget(m_file);
     bl->addWidget(bar);
     auto *tools = new QHBoxLayout;
-    m_outputs = new QComboBox; m_outputs->setObjectName("previewOutput");
+    m_outputs = new ChoiceEditor; m_outputs->setObjectName("previewOutput");
     m_outputs->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_outputs->setMinimumContentsLength(6); m_outputs->setMinimumWidth(0);
     m_outputs->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
@@ -92,6 +95,9 @@ void WorkflowPreviewPanel::hideEvent(QHideEvent *event)
 { m_controller->setActive(false); QWidget::hideEvent(event); }
 void WorkflowPreviewPanel::updateState()
 {
+    for (auto it = m_outputSelections.begin(); it != m_outputSelections.end();)
+        if (!m_document->node(it.key())) it = m_outputSelections.erase(it);
+        else ++it;
     using State = WorkflowPreviewController::State;
     const auto state = m_controller->state();
     const auto *node = m_document->node(m_controller->node());
@@ -141,11 +147,11 @@ void WorkflowPreviewPanel::updateState()
         }
         m_status->setText(message); m_status->setToolTip(details);
         m_resultPlot->clear(text("ui.preview_no_result"));
-        if (!file) m_generated->clear(text("ui.preview_independent_source"));
+        showSourceOutput();
         return;
     }
     if (m_displayed == current) return;
-    const auto previous = m_outputs->currentData().toString();
+    const auto previous = m_outputSelections.value(m_controller->node());
     m_displayed = current;
     QSignalBlocker block(m_outputs); m_outputs->clear();
     if (entry)
@@ -156,11 +162,6 @@ void WorkflowPreviewPanel::updateState()
     if (index < 0 && entry) index = m_outputs->findData(entry->descriptor.defaultOutput);
     m_outputs->setCurrentIndex(index >= 0 ? index : 0);
     m_outputs->setEnabled(m_outputs->count() > 1);
-    if (!file && root)
-    {
-        const auto &d = m_document->model().registry().find(root->method)->descriptor;
-        m_generated->showOutput(current->original, d.defaultOutput);
-    }
     QStringList notes;
     for (const auto &warning : current->output.warnings)
         notes << translatedLabel(warning, warning);
@@ -175,11 +176,49 @@ void WorkflowPreviewPanel::updateState()
 void WorkflowPreviewPanel::showOutput()
 {
     if (!m_displayed || m_outputs->currentIndex() < 0) return;
+    m_outputSelections.insert(m_controller->node(), m_outputs->currentData().toString());
     m_resultPlot->showOutput(m_displayed->output, m_outputs->currentData().toString());
     auto style = m_resultPlot->style();
     style.axisFontSize = 8; style.legendFontSize = 7.5; style.x.tickCount = style.y.tickCount = 4;
     style.legend = m_legend->isChecked();
     m_resultPlot->applyStyle(style);
     m_fit->setEnabled(m_resultPlot->hasPlot()); m_legend->setEnabled(m_resultPlot->hasPlot());
+    showSourceOutput();
+}
+void WorkflowPreviewPanel::showSourceOutput()
+{
+    const auto *root = m_document->node(m_controller->node());
+    QString port = m_outputs->currentData().toString();
+    // Follow the selected branch back to its first edge. A grandchild's own
+    // input port belongs to its immediate parent, not necessarily the source.
+    while (root && root->input)
+    {
+        port = root->input->output;
+        root = m_document->node(root->input->parent);
+    }
+    if (!root || root->method == "file_source")
+    {
+        m_generated->clear(text("ui.preview_independent_source"));
+        return;
+    }
+    const auto *entry = m_document->model().registry().find(root->method);
+    if (!entry) return;
+    auto heading = text("ui.preview_source_data") + " · " + methodLabel(entry->descriptor);
+    if (entry->descriptor.outputs.size() > 1 && !port.isEmpty())
+        heading += "\n" + portLabel(entry->descriptor, port);
+    m_sourceHeading->setText(heading);
+    const auto current = m_controller->result();
+    if (!current || current->original.state != NodeState::Succeeded ||
+        !current->original.outputs.contains(port))
+    {
+        m_generated->clear(text("ui.preview_independent_source"));
+        return;
+    }
+    // Keep a successful source visible when only a downstream node fails.
+    // Reusing the same data/port also preserves source-axis zoom while the
+    // user switches the selected analysis node's output for display.
+    if (m_generated->currentData() != current->original.outputs.value(port) ||
+        m_generated->currentPort() != port)
+        m_generated->showOutput(current->original, port);
 }
 }

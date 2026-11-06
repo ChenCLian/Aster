@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/exports/figure_export_dialog.h"
 #include "ui/common/presentation.h"
@@ -16,12 +19,12 @@ FigureExportDialog::FigureExportDialog(bool multiple, QWidget *parent) : QDialog
     resize(480, 430);
     auto *f = new QFormLayout(this);
     f->setRowWrapPolicy(QFormLayout::WrapAllRows);
-    m_scope = new QComboBox;
+    m_scope = new ChoiceEditor;
     m_scope->addItem(text("ui.selected_subplot"));
     if (multiple)
         m_scope->addItem(text("ui.whole_current_page"));
     f->addRow(text("ui.export_scope"), m_scope);
-    m_format = new QComboBox;
+    m_format = new ChoiceEditor;
     m_format->addItems({"PNG", "PDF"});
     f->addRow(text("ui.format"), m_format);
     m_width = new IntegerEditor;

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ar1_global_audit.h"
 #include "math/statistics/ar1_global.h"
 #include "processing/services/ar1_reference_cache.h"

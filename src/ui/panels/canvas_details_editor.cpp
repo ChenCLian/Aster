@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/panels/canvas_details_editor.h"
 #include "ui/panels/style_section.h"
@@ -57,7 +60,7 @@ CanvasDetailsEditor::CanvasDetailsEditor(QWidget *parent) : QWidget(parent)
     m_legend = new QCheckBox(text("ui.show_legend"));
     m_legend->setObjectName("plotLegend");
     legend->addRow(m_legend);
-    m_position = new QComboBox;
+    m_position = new ChoiceEditor;
     m_position->setObjectName("legendPosition");
     m_position->addItems({text("ui.top_right"), text("ui.top_left"), text("ui.bottom_right"), text("ui.bottom_left")});
     legend->addRow(text("ui.legend_position"), m_position);

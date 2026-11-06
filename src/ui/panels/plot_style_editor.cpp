@@ -1,4 +1,8 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/common/numeric_editor.h"
+#include "ui/common/segmented_selector.h"
 #include "ui/panels/color_button.h"
 #include "ui/panels/canvas_details_editor.h"
 #include "ui/panels/heatmap_style_editor.h"
@@ -40,7 +44,7 @@ QScrollArea *verticalScroller(QWidget *widget)
 }
 QComboBox *combo(const QString &name)
 {
-    auto *c = new QComboBox;
+    auto *c = new ChoiceEditor;
     c->setObjectName(name);
     c->setMinimumWidth(0);
     c->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
@@ -81,15 +85,30 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     m_tabs = new QTabWidget;
     auto *tabs = m_tabs;
     tabs->setObjectName("plotStyleSections");
+    tabs->setDocumentMode(true);
+    tabs->tabBar()->setObjectName("inspectorSectionNav");
+    tabs->tabBar()->setExpanding(true);
+    tabs->tabBar()->setUsesScrollButtons(false);
     m_canvasDetails = new CanvasDetailsEditor;
     tabs->addTab(verticalScroller(m_canvasDetails), text("ui.canvas"));
     auto *axes = new QWidget;
     auto *al = styleSections(axes);
+    auto *axesPage = new QWidget;
+    auto *axesPageLayout = new QVBoxLayout(axesPage);
+    axesPageLayout->setContentsMargins(0, 8, 0, 0);
+    axesPageLayout->setSpacing(6);
+    m_axis = new SegmentedSelector;
+    m_axis->setObjectName("styleAxis");
+    m_axis->setAccessibleName(text("ui.axis_65a010"));
+    m_axis->addTab(text("ui.x_axis"));
+    m_axis->addTab(text("ui.y_axis"));
+    auto *axisHeader = new QWidget;
+    auto *axisHeaderLayout = new QHBoxLayout(axisHeader);
+    axisHeaderLayout->setContentsMargins(8, 0, 8, 0);
+    axisHeaderLayout->addWidget(m_axis);
+    axesPageLayout->addWidget(axisHeader);
     auto *af = new StyleSection(text("ui.style_axis_range"));
     al->addWidget(af);
-    m_axis = combo("styleAxis");
-    m_axis->addItems({"X", "Y"});
-    af->addRow(text("ui.axis_65a010"), m_axis);
     m_axisLabel = new QLineEdit;
     m_axisLabel->setObjectName("axisLabel");
     af->addRow(text("ui.axis_title"), m_axisLabel);
@@ -118,8 +137,11 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     logNote->setObjectName("Muted");
     af->addRow(logNote);
     m_axisDetails = new AxisDetailsEditor;
+    // The enclosing axes page already supplies the section gutters.
+    m_axisDetails->layout()->setContentsMargins(0, 0, 0, 0);
     al->addWidget(m_axisDetails);
-    tabs->addTab(verticalScroller(axes), text("ui.axes"));
+    axesPageLayout->addWidget(verticalScroller(axes), 1);
+    tabs->addTab(axesPage, text("ui.axes"));
     auto *curves = new QWidget;
     auto *cr = new QVBoxLayout(curves);
     cr->setContentsMargins(0, 0, 0, 0);
@@ -229,7 +251,7 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
                 if (m_view)
                     m_view->resetStyle();
             });
-    connect(m_axis, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(m_axis, &QTabBar::currentChanged, this,
             [this](int index)
             {
                 if (m_loading)
@@ -285,7 +307,7 @@ void PlotStyleEditor::connectLiveControls()
     for (auto *control : findChildren<QCheckBox *>())
         connect(control, &QCheckBox::toggled, this, [this] { scheduleApply(); });
     for (auto *control : findChildren<QComboBox *>())
-        if (control != m_axis && control != m_curve)
+        if (control != m_curve)
             connect(control, qOverload<int>(&QComboBox::currentIndexChanged), this,
                     [this] { scheduleApply(); });
     for (auto *control : findChildren<QDoubleSpinBox *>())

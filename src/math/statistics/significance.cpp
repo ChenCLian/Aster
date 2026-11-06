@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "math/statistics/significance.h"
 #include "math/wavelet/cwt_support.h"
 #include <cmath>

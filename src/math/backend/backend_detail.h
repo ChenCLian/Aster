@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_MATH_BACKEND_DETAIL_H
 #define ASTER_MATH_BACKEND_DETAIL_H
 #include "math/backend/numeric_backend.h"

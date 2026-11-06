@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_DATA_FORMAT_H
 #define ASTER_DATA_FORMAT_H
 #include <QtGlobal>

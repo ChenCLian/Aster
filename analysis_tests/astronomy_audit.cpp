@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "astronomy_audit.h"
 #include "math/astronomy/astronomical_curves.h"
 #include "io/astronomy/la2004_reader.h"

@@ -1,0 +1,38 @@
+test_archive_traversal_and_symlink_are_not_extracted (test_dependency_materials.DependencyMaterialTests.test_archive_traversal_and_symlink_are_not_extracted) ... ok
+test_checksum_mismatch_does_not_publish_partial_download (test_dependency_materials.DependencyMaterialTests.test_checksum_mismatch_does_not_publish_partial_download) ... ok
+test_corrupt_cache_is_replaced_only_with_verified_bytes (test_dependency_materials.DependencyMaterialTests.test_corrupt_cache_is_replaced_only_with_verified_bytes) ... ok
+test_current_spdx_binary_files_are_not_treated_as_port_sources (test_dependency_materials.DependencyMaterialTests.test_current_spdx_binary_files_are_not_treated_as_port_sources) ... ok
+test_deb_src_conversion_preserves_restrictions (test_dependency_materials.DependencyMaterialTests.test_deb_src_conversion_preserves_restrictions) ... ok
+test_debian_collection_includes_distribution_patch_archive (test_dependency_materials.DependencyMaterialTests.test_debian_collection_includes_distribution_patch_archive) ... ok
+test_debian_control_preserves_source_revision (test_dependency_materials.DependencyMaterialTests.test_debian_control_preserves_source_revision) ... ok
+test_failed_inventory_does_not_install_notices (test_dependency_materials.DependencyMaterialTests.test_failed_inventory_does_not_install_notices) ... INCOMPLETE [unknown.so]: Runtime binary has no verified source owner; use the matching build environment or a supplement
+ok
+test_homebrew_uses_keg_formula_and_exact_revision (test_dependency_materials.DependencyMaterialTests.test_homebrew_uses_keg_formula_and_exact_revision) ... Collecting brew-fixture 1.0_2: fixture-ee51c7b9e490e83f.tar.gz
+ok
+test_insecure_or_unresolved_source_urls_rejected (test_dependency_materials.DependencyMaterialTests.test_insecure_or_unresolved_source_urls_rejected) ... ok
+test_missing_attribution_license_is_not_claimed_complete (test_dependency_materials.DependencyMaterialTests.test_missing_attribution_license_is_not_claimed_complete) ... ok
+test_qt_attribution_referenced_license_keeps_bytes (test_dependency_materials.DependencyMaterialTests.test_qt_attribution_referenced_license_keeps_bytes) ... ok
+test_qt_official_multiline_attribution_text (test_dependency_materials.DependencyMaterialTests.test_qt_official_multiline_attribution_text) ... ok
+test_qt_sdk_other_libraries_are_not_claimed_as_qt (test_dependency_materials.DependencyMaterialTests.test_qt_sdk_other_libraries_are_not_claimed_as_qt) ... ok
+test_recipe_copy_preserves_exact_patches (test_dependency_materials.DependencyMaterialTests.test_recipe_copy_preserves_exact_patches) ... ok
+test_recipe_hash_rejects_same_version_different_patch (test_dependency_materials.DependencyMaterialTests.test_recipe_hash_rejects_same_version_different_patch) ... ok
+test_same_asset_name_different_contents_rejected (test_dependency_materials.DependencyMaterialTests.test_same_asset_name_different_contents_rejected) ... Collecting fixture 1: same.tar.gz
+ok
+test_source_packager_excludes_downloads_but_keeps_scripts (test_dependency_materials.DependencyMaterialTests.test_source_packager_excludes_downloads_but_keeps_scripts) ... ok
+test_spdx_git_conversion_preserves_pinned_revision (test_dependency_materials.DependencyMaterialTests.test_spdx_git_conversion_preserves_pinned_revision) ... ok
+test_success_records_sources_separately_and_installs_notices (test_dependency_materials.DependencyMaterialTests.test_success_records_sources_separately_and_installs_notices) ... Collecting fixture 1.0: fixture.tar.gz
+ok
+test_supplement_cannot_silently_change_installed_version (test_dependency_materials.DependencyMaterialTests.test_supplement_cannot_silently_change_installed_version) ... ok
+test_unknown_qt_library_requires_mapping (test_dependency_materials.DependencyMaterialTests.test_unknown_qt_library_requires_mapping) ... ok
+test_vcpkg_end_to_end_uses_installed_sources_and_notice (test_dependency_materials.DependencyMaterialTests.test_vcpkg_end_to_end_uses_installed_sources_and_notice) ... Collecting vcpkg-gsl 1.0: gsl-f5baf2d2e24c96a2.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-f5baf2d2e24c96a2.tar.gz
+ok
+test_verified_cache_reused_without_network (test_dependency_materials.DependencyMaterialTests.test_verified_cache_reused_without_network) ... ok
+test_windows_qt_path_patching_keeps_binary_identity (test_dependency_materials.DependencyMaterialTests.test_windows_qt_path_patching_keeps_binary_identity) ... ok
+test_embedded_license_resources (test_license_packaging.LicensePackagingTests.test_embedded_license_resources) ... ok
+test_notice_collection_preserves_bytes_and_paths (test_license_packaging.LicensePackagingTests.test_notice_collection_preserves_bytes_and_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.047s
+
+OK

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PLOT_DATA_LOADER_H
 #define ASTER_PLOT_DATA_LOADER_H
 #include "io/database/plot_request.h"

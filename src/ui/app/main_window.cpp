@@ -1,7 +1,10 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/settings/settings_dialog.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/settings/language_catalog.h"
 #include "ui/app/main_window.h"
+#include "ui/help/help_dialog.h"
 #include "ui/services/record_directory_service.h"
 #include "ui/common/presentation.h"
 #include "ui/workflow/workflow_document.h"
@@ -165,7 +168,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_parameterPanel->setResizeTarget(canvasPanel);
     m_catalogPanel->setResizeTarget(canvasPanel);
     m_taskSplitter->setStretchFactor(2, 1);
-    m_taskSplitter->setSizes({250, 400, 600, 280, 260});
+    m_taskSplitter->setSizes({270, 400, 600, 280, 260});
     m_pages->addWidget(taskPage);
     m_results = new ResultsPage(m_document->model().registry());
     m_pages->addWidget(m_results);
@@ -271,7 +274,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
             [this](const RunEvent &e)
             {
                 if (e.state == NodeState::Running && e.progressPercent < 0)
-                    m_sources->setFileState(e.root, e.sourceLabel, text("ui.running"));
+                    m_sources->setFileState(e.root, e.sourceLabel, SourceFileState::Running);
                 if (e.state == NodeState::Running && e.progressPercent >= 0)
                     m_status->setText(text("ui.task_progress").arg(e.sourceLabel)
                                           .arg(translatedLabel(e.message, e.message)).arg(e.progressPercent));
@@ -290,11 +293,11 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                 m_sources->setFileState(item.root, item.sourceLabel,
                                         item.computation == RunState::Succeeded
                                             ? (item.persistence.saved()
-                                                   ? text("ui.complete_saved")
-                                                   : text("ui.complete_unsaved"))
+                                                   ? SourceFileState::Saved
+                                                   : SourceFileState::Unsaved)
                                         : item.computation == RunState::Cancelled
-                                            ? text("ui.cancelled")
-                                            : text("ui.failed_partial"));
+                                            ? SourceFileState::Cancelled
+                                            : SourceFileState::Failed);
                 if (item.persistence.saved())
                     m_results->refresh();
             });
@@ -303,9 +306,11 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
             [this](bool busy)
             {
                 m_results->setDatabaseMutationsEnabled(!busy);
-                m_preview->setSuspended(busy || m_closeWhenIdle);
                 m_canvas->setEditable(!busy);
                 m_sources->setEnabled(!busy);
+                if (!busy && !m_closeWhenIdle)
+                    m_sources->syncPreviewInput();
+                m_preview->setSuspended(busy || m_closeWhenIdle);
                 m_editor->setEnabled(!busy);
                 m_catalog->setEnabled(!busy);
                 m_cancel->setVisible(busy);
@@ -329,6 +334,22 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                 if (!busy && !m_runner->busy() && !m_results->databaseBusy() && m_closeWhenIdle)
                     QTimer::singleShot(0, this, &QWidget::close);
             });
+    auto *helpShortcut = new QShortcut(QKeySequence(Qt::Key_F1), this);
+    auto helpKeys = QKeySequence::keyBindings(QKeySequence::HelpContents);
+    if (!helpKeys.contains(QKeySequence(Qt::Key_F1))) helpKeys.append(QKeySequence(Qt::Key_F1));
+    helpShortcut->setKeys(helpKeys);
+    connect(helpShortcut, &QShortcut::activated, this, [this] { openHelp(this, userGuideTopic()); });
+    const auto bind = [](QPushButton *button, const QKeySequence &key) {
+        button->setShortcut(key);
+        button->setToolTip(shortcutLabel(button->text(), key));
+        button->setAccessibleDescription(button->toolTip());
+    };
+    bind(m_taskTab, QKeySequence("Ctrl+1"));
+    bind(m_resultTab, QKeySequence("Ctrl+2"));
+    bind(m_settingsButton, QKeySequence("Ctrl+,"));
+    m_previewPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+1"));
+    m_parameterPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+2"));
+    m_catalogPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+3"));
     auto *undoShortcut = new QShortcut(QKeySequence::Undo, this);
     connect(undoShortcut, &QShortcut::activated, m_undo, &QPushButton::click);
     auto *redoShortcut = new QShortcut(QKeySequence::Redo, this);
@@ -341,7 +362,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
         m_parameterPanel->setCollapsed(width() < 1250);
         const int side = (m_parameterPanel->isCollapsed() ? 28 : 280) +
                          (m_catalogPanel->isCollapsed() ? 28 : 260);
-        m_taskSplitter->setSizes({250, 380, std::max(300, width() - 660 - side),
+        m_taskSplitter->setSizes({270, 380, std::max(300, width() - 680 - side),
                                   m_parameterPanel->isCollapsed() ? 28 : 280,
                                   m_catalogPanel->isCollapsed() ? 28 : 260});
         m_canvas->fitWorkflow();
@@ -359,6 +380,8 @@ void MainWindow::showMessage(const QString &message)
 }
 void MainWindow::setPage(int page)
 {
+    if (page == 0)
+        m_sources->syncPreviewInput();
     m_pages->setCurrentIndex(page);
     m_taskTab->setChecked(page == 0);
     m_resultTab->setChecked(page == 1);

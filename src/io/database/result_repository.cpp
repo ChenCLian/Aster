@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "io/database/result_repository.h"
 #include "io/database/plot_reader.h"
 #include "io/database/data_codec.h"

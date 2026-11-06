@@ -22,23 +22,33 @@ jobs:
             qt-host: linux
             qt-arch: linux_gcc_64
             arch: x86_64
+            archive-ext: tar.gz
           - target: macos-arm64
             os: macos-15
             qt-host: mac
             qt-arch: clang_64
             arch: arm64
+            archive-ext: zip
           - target: macos-x86_64
             os: macos-15-intel
             qt-host: mac
             qt-arch: clang_64
             arch: x86_64
+            archive-ext: zip
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       QT_QPA_PLATFORM: offscreen
       OPENBLAS_NUM_THREADS: '1'
     steps:
       - uses: actions/checkout@v5
+      - name: Initialize build logs
+        run: |
+          mkdir -p build-release/ci-logs
+          {
+            printf 'Commit: %s\nRef: %s\n' "$GITHUB_SHA" "$GITHUB_REF"
+            uname -sm
+          } > build-release/ci-logs/context.log
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -46,6 +56,10 @@ jobs:
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
+          exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
+          python3 tools/release/enable_deb_src.py --output-dir build-release/ci-logs/apt-sources
+          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
+          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.sources /etc/apt/sources.list.d/aster-deb-src.sources
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev \
             libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
@@ -54,6 +68,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
+          exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
           test "$(uname -m)" = '${{ matrix.arch }}'
           brew install gsl openblas
           printf 'GSL_PREFIX = %s\nOPENBLAS_ROOT = %s\n' "$(brew --prefix gsl)" "$(brew --prefix openblas)" > config/local.pri
@@ -76,13 +91,15 @@ jobs:
             qmake -query QT_INSTALL_PREFIX
             c++ --version
           } 2>&1 | tee build-release/ci-logs/environment.log
+      - name: Check license packaging
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/license-tests.log
       - name: Configure
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
           else
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | tee ci-logs/configure.log
           fi
       - name: Build
         run: |
@@ -92,6 +109,10 @@ jobs:
           else
             make -j2 2>&1 | tee ci-logs/build.log
           fi
+      - name: Check generated parameter references
+        run: |
+          python3 -m unittest discover -s tools/help_reference -p 'test_*.py' 2>&1 | tee build-release/ci-logs/help-generator-tests.log
+          python3 tools/help_reference/generate.py --build build-release --check 2>&1 | tee build-release/ci-logs/help-reference.log
       - name: Run regression tests
         run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
       - name: Package Linux
@@ -100,15 +121,27 @@ jobs:
       - name: Package macOS
         if: runner.os == 'macOS'
         run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
+      - name: Resolve package path
+        id: package-path
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          package="dist/Aster-$version-${{ matrix.target }}.${{ matrix.archive-ext }}"
+          test -f "$package"
+          printf 'path=%s\n' "$package" >> "$GITHUB_OUTPUT"
       - name: Upload package
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ steps.package-path.outputs.path }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload dependency sources and notices
         uses: actions/upload-artifact@v6
         with:
-          name: Aster-${{ matrix.target }}
-          path: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.sha256
+          name: dependency-materials-${{ matrix.target }}
+          path: dist/dependency-materials/*/release-assets/*
           if-no-files-found: error
+          compression-level: 0
           retention-days: 30
       - name: Upload build and test logs
         if: always()
@@ -118,5 +151,6 @@ jobs:
           path: |
             build-release/ci-logs/
             build-release/test-results/
+            dist/dependency-materials/*/report.json
           if-no-files-found: ignore
           retention-days: 30

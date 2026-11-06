@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/services/plot_data_loader.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/results/plot_workspace.h"

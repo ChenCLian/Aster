@@ -80,11 +80,18 @@ for plugin in "$stage"/usr/plugins/*/*.so; do
   done <<< "$deps"
 done
 python3 "$script_dir/stage_notices.py" "$stage" --qt-prefix "$qt_prefix"
+material_args=(--platform linux-x64 --package-dir "$stage" --qmake "$qmake"
+  --output "$output/dependency-materials/linux-x64")
+[[ -z "${ASTER_DEPENDENCY_CACHE:-}" ]] || material_args+=(--cache "$ASTER_DEPENDENCY_CACHE")
+[[ -z "${ASTER_DEPENDENCY_SUPPLEMENT:-}" ]] || material_args+=(--supplement "$ASTER_DEPENDENCY_SUPPLEMENT")
+python3 "$script_dir/collect_dependency_materials.py" "${material_args[@]}"
 build_system="$(. /etc/os-release; printf '%s' "$PRETTY_NAME")"
 cat > "$stage/START_HERE.txt" <<EOF
 Aster $version — Linux x64
 Build system: $build_system
 Extract the complete directory, then run ./AppRun. No Qt installation is needed.
+Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
+Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Troubleshooting: FAQ.md.
 Chinese text shown as boxes usually requires CJK fonts; see FAQ.md (Linux fonts).
 Keep usr/ beside AppRun. This package requires a compatible Linux system and an
@@ -98,5 +105,4 @@ env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRu
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=xcb \
   xvfb-run -a "$stage/AppRun" --version
 tar -C "$output" -czf "$output/$name.tar.gz" "$name"
-(cd "$output" && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")
 echo "Created $output/$name.tar.gz"

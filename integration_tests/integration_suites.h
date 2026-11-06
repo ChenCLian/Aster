@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_INTEGRATION_SUITES_H
 #define ASTER_INTEGRATION_SUITES_H
 int runWorkspaceServicesTests(int argc, char **argv);

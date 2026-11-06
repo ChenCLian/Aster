@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/results/record_item_delegate.h"
 #include "ui/settings/theme_manager.h"
 #include <QPainter>
@@ -18,10 +20,10 @@ void RecordItemDelegate::paint(QPainter *p, const QStyleOptionViewItem &o, const
     if (selected || (o.state & QStyle::State_MouseOver))
     {
         p->setBrush(themeColor(selected ? "selection" : "hover"));
-        p->drawRoundedRect(box,4,4);
+        p->drawRoundedRect(box,3,3);
     }
     if (selected)
-    { p->setBrush(themeColor("accent")); p->drawRoundedRect(QRect(box.left(),box.top()+10,3,box.height()-20),1.5,1.5); }
+    { p->setPen(QPen(themeColor("controlBorder"), 1)); p->setBrush(Qt::NoBrush); p->drawRoundedRect(box,3,3); p->setPen(Qt::NoPen); p->setBrush(themeColor("accent")); p->drawRoundedRect(QRect(box.left(),box.top()+10,3,box.height()-20),1.5,1.5); }
     const bool checkable = i.flags() & Qt::ItemIsUserCheckable;
     if (checkable)
     {

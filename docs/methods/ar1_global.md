@@ -24,7 +24,7 @@
 
 这是单条记录、预先固定频率集合的全局检验。显著表示数据与所设噪声模型不相容，**不是逐峰概率、FDR、确定周期或天文成因的证明**。未显著也不等于没有信号。多条记录、多种参数或多种方法挑选结果产生的选择问题不在本任务的控制范围内。
 
-原有 Acycle 兼容的 MTM/AR1/SWA/FDR、小波局部显著性保持原值；新任务不修改其阈值或假装完成小波全图检验。旧隐藏实验任务保留身份但不重新显示到目录。
+本任务与 MTM 的 AR1/SWA/FDR 及 CWT 局部显著性分别计算，不提供小波全图检验。
 ## 数学约定
 
 使用保守参数集合方法。原假设为未知常数均值、正尺度、rho 预先限定在 [-.999,.999] 的平稳 Gaussian AR1。统计量为整组指定频率上的最大 MTM 功率 / 时间域重拟合 AR1 背景。每条模拟都重新执行内部处理、MTM 与背景拟合，不使用观测数据构建参考模拟。
@@ -45,7 +45,7 @@ p_{\mathrm{comp}}=\min\{1,\max_{j\in C}a_j+\beta+\epsilon\}.
 
 空集合明确返回无法形成候选集合的标志，并保守返回 p=1，不将它当作发现。
 
-这里 epsilon 不是拟合出的倍率。对同均值、同边际方差、长度 N 的平稳 Gaussian AR1 分布，有：
+epsilon 来自分布距离的上界。对同均值、同边际方差、长度 N 的平稳 Gaussian AR1 分布，有：
 
 \[
 D_{KL}(P_\rho\Vert P_s)=\frac{N-1}{2}\left[\log\frac{1-s^2}{1-\rho^2}+\frac{2s(s-\rho)}{1-s^2}\right],
@@ -76,11 +76,9 @@ D_{KL}(P_\rho\Vert P_s)=\frac{N-1}{2}\left[\log\frac{1-s^2}{1-\rho^2}+\frac{2s(s
 
 历史五种配置共有 11,000 次观测检验执行，失败 0，受测纯噪声条件的拒绝比例为 0%–4%。配置间配对复用观测，不能称为 11,000 条独立样本，也不能据此证明任意噪声或每个固定缓存均满足名义水平。原配置、种子、结果和区间汇总保留在 [科学验证证据](../reference/scientific_evidence.json)。这些历史实验不代表其他版本、参数或噪声模型已经完成校准。
 
-缓存位于用户缓存目录而非源码包，退出程序后可删除 `ar1_global/v1/`，下次按需重建。源码 `src/math/statistics/ar1_global.*`、任务封装、缓存服务以及本说明不能视为同一种可删除文件。
-
 ## 方法来源
 
 - Berger & Boos (1994), *P Values Maximized Over a Confidence Set for the Nuisance Parameter*, JASA 89, 1012–1016：<https://doi.org/10.1080/01621459.1994.10476836>。
 - Dufour (2006), *Monte Carlo tests with nuisance parameters: A general approach to finite-sample inference and nonstandard asymptotics*, Journal of Econometrics 133, 443–477：<https://doi.org/10.1016/j.jeconom.2005.06.007>。
 
-这些文献提供方法思想；具体 AR1 距离推导、网格误差合并和实现边界由本项目明确说明，不宣称复制了论文的全部应用算法。
+方法依据上述文献；AR1 距离推导、网格误差合并及本实现的适用范围见本页数学约定。

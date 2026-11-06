@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "update_mode": "public_github_release_check_and_browser_download",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -27,28 +27,64 @@
     "docs/validation.md",
     "docs/release_maintenance_zh.md",
     "docs/third_party.md",
-    "docs/reference/scientific_evidence.json"
+    "docs/reference/scientific_evidence.json",
+    "docs/USER_GUIDE.md",
+    "docs/USER_GUIDE_EN.md",
+    "docs/reference/task_parameters.md",
+    "docs/reference/task_parameters_en.md",
+    "LICENSE",
+    "COPYRIGHT.md",
+    "SOURCE_CODE.md",
+    "docs/LICENSE_GUIDE_ZH.md",
+    "docs/dependency_materials_zh.md"
   ],
-  "archived_validation": {
-    "date": "2026-11-04",
-    "record": "docs/validation.json",
-    "baseline": {
-      "file": "Aster_1.1.0.zip",
-      "sha256": "2c8284edb86b86716fe630a1d75db4ed5b958035a4ed08940f2077ba2167a19a"
-    },
-    "regression": {
-      "passed": 979,
-      "failed": 0,
-      "skipped": 0
-    },
-    "scope": "Historical batch only; release acceptance requires records tied to the packaged source commit and artifacts."
-  },
   "release_checks": [
     "Native build and regression tests for each published platform and architecture",
     "Clean-host startup, fonts, database read/write, numerical workflow and export",
     "macOS deployment target, architecture, signing and Gatekeeper behavior",
     "Linux X11/XWayland startup and runtime dependency closure",
-    "Public GitHub release check and checksum verification"
+    "Public GitHub release check and checksum verification",
+    "Matching project and dependency sources, license texts and copyright notices",
+    "Redistribution basis for bundled scientific datasets, including La2004/La2010 orbital tables"
   ],
-  "release_checks_scope": "Required checks, not completed or pending status declarations."
+  "release_checks_scope": "Required checks, not completed or pending status declarations.",
+  "validation": {
+    "record": "docs/validation.json",
+    "summary": "docs/validation.md",
+    "logs": "docs/validation_results/release",
+    "source_manifest": "PACKAGE_MANIFEST.json",
+    "scope": "Current documentation checks, latest algorithm/UI regression and historical packaging/platform evidence have separate scopes and logs. Final native packages and remote downloads require release-specific acceptance."
+  },
+  "help": {
+    "local": "compiled Qt resources",
+    "offline": true,
+    "fallback": "GitHub main branch, matching document path and anchor",
+    "entry_points": [
+      "F1",
+      "Settings/User guide",
+      "method help",
+      "parameter help",
+      "Settings/License"
+    ],
+    "reference_languages": [
+      "zh",
+      "en"
+    ],
+    "missing_translation": "English, then task descriptor"
+  },
+  "license": {
+    "project": "GPL-3.0-only",
+    "copyright": "Copyright (C) 2026 ZiJie Chen",
+    "text": "LICENSE",
+    "scope": "COPYRIGHT.md",
+    "corresponding_source": "SOURCE_CODE.md",
+    "third_party": "docs/third_party.md",
+    "readiness": {
+      "project_notice": "prepared",
+      "third_party_notice_collection": "automated with dependency/source provenance checks; native package runs still required",
+      "corresponding_source_publication": "required alongside binaries; remote artifacts not verified",
+      "data_redistribution": "La2004/La2010 basis requires confirmation; see docs/third_party.md"
+    },
+    "dependency_collector": "tools/release/collect_dependency_materials.py"
+  }
 }

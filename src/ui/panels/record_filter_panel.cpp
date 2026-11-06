@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/panels/record_filter_panel.h"
 #include "ui/common/presentation.h"
 #include <QLineEdit>
@@ -29,7 +32,7 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
     auto *form = new QFormLayout(panel);
     form->setContentsMargins(0, 0, 0, 0);
     form->setRowWrapPolicy(QFormLayout::WrapLongRows);
-    m_date = new QComboBox;
+    m_date = new ChoiceEditor;
     m_date->addItems(
         {text("ui.all_time"), text("ui.today"), text("ui.last_7_days")});
     m_min = new QLineEdit;
@@ -38,7 +41,7 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
     m_max = new QLineEdit;
     m_max->setObjectName("maximumFrequency");
     m_max->setPlaceholderText(text("ui.no_limit"));
-    m_unit = new QComboBox;
+    m_unit = new ChoiceEditor;
     m_unit->setObjectName("frequencyUnit");
     setUnits({});
     for (auto *combo : {m_date, m_unit})

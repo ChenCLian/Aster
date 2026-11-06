@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_APPLICATION_BATCH_RUNNER_H
 #define ASTER_APPLICATION_BATCH_RUNNER_H
 #include "io/database/result_repository.h"

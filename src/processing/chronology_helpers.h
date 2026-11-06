@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_CHRONOLOGY_HELPERS_H
 #define ASTER_PROCESSING_CHRONOLOGY_HELPERS_H
 #include "processing/task_helpers.h"
@@ -10,6 +12,10 @@ namespace aster::chronology_detail
 inline QString canonicalLength(QString s)
 {
     s = s.trimmed().toLower();
+    // Composite and revised composite depth are metre-valued coordinates.
+    // Normalize only the length scale; keep their reference in axis metadata.
+    if (s == "mcd" || s == "rmcd")
+        return "m";
     return QStringList{"m", "dm", "cm", "mm", "km", "ft"}.contains(s) ? s : QString();
 }
 inline QString canonicalTime(QString s)

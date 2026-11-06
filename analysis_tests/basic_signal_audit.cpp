@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "basic_signal_audit.h"
 #include "math/smoothing/smoothing.h"
 #include "math/spectrum/evolutionary_spectrum.h"

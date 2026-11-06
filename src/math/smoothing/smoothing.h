@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_MATH_SMOOTHING_H
 #define ASTER_MATH_SMOOTHING_H
 #include <cstddef>

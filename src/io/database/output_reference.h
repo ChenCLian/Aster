@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_IO_OUTPUT_REFERENCE_H
 #define ASTER_IO_OUTPUT_REFERENCE_H
 #include "model/data_types.h"

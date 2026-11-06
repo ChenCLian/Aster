@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/presentation.h"
 #include "ui/common/error_presenter.h"
 #include "ui/settings/language_catalog.h"
@@ -17,6 +19,10 @@ QString text(const char *key)
 {
     return LanguageCatalog::instance().label(QString::fromUtf8(key));
 }
+QString shortcutLabel(const QString &label, const QKeySequence &shortcut)
+{
+    return text("ui.shortcut_label").arg(label, shortcut.toString(QKeySequence::NativeText));
+}
 QString translatedLabel(const QString &key, const QString &fallback)
 {
     return LanguageCatalog::instance().label(key, fallback);
@@ -31,7 +37,23 @@ QString categoryLabel(const QString &category)
 }
 QString parameterLabel(const ParameterSpec &p)
 {
-    return translatedLabel("parameter." + p.key, p.label);
+    return LanguageCatalog::instance().optionalLabel("parameter." + p.key,
+                                                     p.label.isEmpty() ? p.key : p.label);
+}
+QString parameterLabel(const ParameterSpec &p, const QString &method)
+{
+    return LanguageCatalog::instance().optionalLabel("parameter." + method + "." + p.key,
+                                                     parameterLabel(p));
+}
+QString parameterHelp(const ParameterSpec &p, const QString &method)
+{
+    auto &catalog = LanguageCatalog::instance();
+    return catalog.optionalLabel("parameterhelp." + method + "." + p.key,
+                                 catalog.optionalLabel("parameterhelp." + p.key, p.help));
+}
+QString methodHelp(const QString &method)
+{
+    return LanguageCatalog::instance().optionalLabel("methodhelp." + method);
 }
 QString portLabel(const QString &p)
 {

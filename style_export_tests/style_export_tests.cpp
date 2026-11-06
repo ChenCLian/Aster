@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include <QTabBar>
 #include "../tests/support/workspace_fixture.h"
 #include "ui/panels/source_panel.h"
 #include <QtTest>
@@ -230,9 +233,12 @@ void StyleExportTests::themeSurfaceRoles()
     const auto captures=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
     for(const auto& name:QStringList{"light","dark"}) {
         QVERIFY(ThemeManager::instance().apply(*qApp,name).isEmpty());
-        QVERIFY(themeColor("header")!=themeColor("plot"));
-        QVERIFY(themeColor("window")!=themeColor("inspector"));
-        QVERIFY(themeColor("field")!=themeColor("inspector"));
+        // Nested content shares one surface; grouping uses dividers and spacing.
+        for (const char *role : {"header", "plot", "navigation", "inspector", "activity", "field"})
+            QCOMPARE(themeColor(role), themeColor("surface"));
+        QVERIFY(themeColor("window")!=themeColor("surface"));
+        QVERIFY(themeColor("divider")!=themeColor("surface"));
+        QVERIFY(themeColor("controlBorder")!=themeColor("divider"));
         for (const auto &role:QStringList{"navigation","inspector","plot","activity"}) {
             QWidget panel; panel.setObjectName("Panel"); panel.setProperty("panelRole",role);
             panel.ensurePolished(); QCOMPARE(panel.palette().color(QPalette::Window),themeColor(role.toLatin1().constData()));
@@ -461,7 +467,7 @@ void StyleExportTests::parameterEditorAppliesBothAxesAndCurves()
     editor.findChild<QLineEdit *>("plotTitle")->setText("Edited from controls");
     auto *label = editor.findChild<QLineEdit *>("axisLabel");
     label->setText("Frequency");
-    auto *axis = editor.findChild<QComboBox *>("styleAxis");
+    auto *axis = editor.findChild<QTabBar *>("styleAxis");
     axis->setCurrentIndex(1);
     label->setText("Power density");
     auto *combo = editor.findChild<QComboBox *>("styleCurve");
@@ -523,6 +529,17 @@ void StyleExportTests::resultsPageStyleIntegration()
     MainWindow window(settings, false);
     window.resize(1600, 900);
     window.show();
+    window.showResults();
+    auto *inspector = window.findChild<QTabWidget *>("resultInspectorTabs");
+    auto *emptyEditor = window.findChild<PlotStyleEditor *>();
+    QVERIFY(inspector && emptyEditor);
+    QVERIFY(emptyEditor->isHidden());
+    QVERIFY(window.findChild<QLabel *>("activeStyleTarget")->text().contains(text("ui.no_active_figure")));
+    QTRY_VERIFY(inspector->tabBar()->width() >= inspector->width() - 4);
+    QVERIFY(!inspector->tabBar()->usesScrollButtons());
+    auto *target = window.findChild<QLabel *>("activeStyleTarget");
+    QVERIFY(target->mapTo(inspector, QPoint()).y() < 150);
+    window.setPage(0);
     auto fixture = aster::testsupport::installWorkspaceFixture(window);
     QVERIFY(fixture);
     QSignalSpy loaded(window.results(), &ResultsPage::recordLoaded);
@@ -533,10 +550,17 @@ void StyleExportTests::resultsPageStyleIntegration()
     QPointer<PlotView> view = window.results()->plotView();
     auto *editor = window.findChild<PlotStyleEditor *>();
     QVERIFY(editor);
+    QVERIFY(editor->isVisible());
+    QVERIFY(editor->height() > inspector->height() / 2);
+    auto *sections = editor->findChild<QTabWidget *>("plotStyleSections");
+    QVERIFY(inspector->tabBar()->height() > sections->tabBar()->height());
+    QTRY_VERIFY(sections->tabBar()->width() >= sections->width() - 4);
+    QVERIFY(!window.findChild<QLabel *>("activeStyleTarget")->text().contains(text("ui.no_active_figure")));
+
     const auto id = window.results()->recordId();
     QVERIFY(id > 0);
     editor->findChild<QLineEdit *>("plotTitle")->setText("MTM · Sample analysis");
-    auto *axis = editor->findChild<QComboBox *>("styleAxis");
+    auto *axis = editor->findChild<QTabBar *>("styleAxis");
     axis->setCurrentIndex(0);
     editor->findChild<QLineEdit *>("axisLabel")->setText("Frequency");
     editor->findChild<QCheckBox *>("axisManual")->setChecked(true);

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_PREVIEW_DATA_H
 #define ASTER_UI_PREVIEW_DATA_H
 #include "core/task.h"

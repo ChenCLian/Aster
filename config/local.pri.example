@@ -1,0 +1,22 @@
+# Copy this file to config/local.pri and uncomment the settings for this machine.
+# config/local.pri is ignored by Git. Paths below are examples, not defaults.
+
+win32 {
+    # Prefer the installed dependency directory when several vcpkg roots exist.
+    # VCPKG_PREFIX = C:/vcpkg/installed/x64-windows
+    # Alternatively specify the root; installed/x64-windows is appended.
+    # VCPKG_ROOT = C:/vcpkg
+
+    # Optional library-name overrides (without .lib), only if auto-detection fails.
+    # OPENBLAS_LINK_NAME = openblas
+    # LAPACK_LINK_NAME = lapack
+}
+
+unix {
+    # pkg-config is used when these prefixes are unset.
+    # GSL_PREFIX = /opt/dependencies/gsl
+    # GSL_LIB_DIR = /opt/dependencies/gsl/lib
+    # OPENBLAS_ROOT = /opt/dependencies/openblas
+    # Set only when LAPACK is separate from OpenBLAS.
+    # ASTER_LAPACK_LIBS = -llapack
+}

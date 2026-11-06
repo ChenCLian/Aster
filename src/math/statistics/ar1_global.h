@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_MATH_STATISTICS_AR1_GLOBAL_H
 #define ASTER_MATH_STATISTICS_AR1_GLOBAL_H
 #include "math/statistics/ar1_nuisance.h"

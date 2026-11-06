@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_DATABASE_SOURCE_TASK_H
 #define ASTER_DATABASE_SOURCE_TASK_H
 #include "processing/task_categories.h"

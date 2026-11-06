@@ -1,0 +1,34 @@
+PASS Python interpreter resolution
+PASS Missing interpreter rejected before staging
+collector stderr: 文
+collector stdout: 中
+PASS success
+collector stdout: 中
+collector stderr: 文
+Traceback (most recent call last):
+  File "<test-temp>/collector fixture.py", line 9, in <module>
+    raise RuntimeError('simulated failure before report')
+RuntimeError: simulated failure before report
+PASS crash
+collector stdout: 中
+collector stderr: 文
+PASS no-report
+collector stdout: 中
+collector stderr: 文
+PASS invalid-json
+collector stdout: 中
+collector stderr: 文
+PASS invalid-status
+collector stdout: 中
+collector stderr: 文
+PASS incomplete
+collector stdout: 中
+collector stderr: 文
+PASS late-failure
+collector stdout: 中
+collector stderr: 文
+PASS Stale report cannot mask failure
+PASS Process launch failure
+PASS Unrelated directory preserved
+Windows packaging process tests: 12 passed, 0 failed
+Environment: PowerShell 7.4.6; Python 3.12.14; Unix

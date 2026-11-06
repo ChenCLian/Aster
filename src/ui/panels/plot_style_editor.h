@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_PLOT_STYLE_EDITOR_H
 #define ASTER_UI_PLOT_STYLE_EDITOR_H
 #include "ui/results/plot_style.h"
@@ -10,6 +12,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QTabWidget;
+class QTabBar;
 class QPushButton;
 namespace aster::ui
 {
@@ -44,7 +47,8 @@ class PlotStyleEditor : public QWidget
     QString m_curveKey;
     QLineEdit *m_axisLabel, *m_lower, *m_upper, *m_curveName;
     QCheckBox *m_log, *m_reverse, *m_grid, *m_manual, *m_visible, *m_line;
-    QComboBox *m_axis, *m_curve, *m_pen, *m_marker;
+    QTabBar *m_axis;
+    QComboBox *m_curve, *m_pen, *m_marker;
     QDoubleSpinBox *m_width, *m_markerSize;
     ColorButton *m_color;
     QLabel *m_error;

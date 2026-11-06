@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_MODEL_WORKFLOW_CODEC_H
 #define ASTER_MODEL_WORKFLOW_CODEC_H
 

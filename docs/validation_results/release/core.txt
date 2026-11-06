@@ -54,5 +54,5 @@ PASS   : CoreTests::optionalMissingPortFailsItsConsumer()
 PASS   : CoreTests::concurrentRunsAreIsolated()
 PASS   : CoreTests::invalidRunRequest()
 PASS   : CoreTests::cleanupTestCase()
-Totals: 54 passed, 0 failed, 0 skipped, 0 blacklisted, 16ms
+Totals: 54 passed, 0 failed, 0 skipped, 0 blacklisted, 14ms
 ********* Finished testing of CoreTests *********

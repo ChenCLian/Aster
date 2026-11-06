@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "synthetic_audit.h"
 #include "math/synthetic/orbital_proxy.h"
 #include "processing/synthetic_orbital_task.h"

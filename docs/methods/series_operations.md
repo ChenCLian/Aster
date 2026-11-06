@@ -7,7 +7,7 @@
 - 六项任务：演化 FFT、演化 MTM、区间保留／删除、去均值、Z-score 标准化、采样与间隔检查。
 - 任务目录见 [任务分类](../task_catalogue.md)。
 - 参数与默认值由任务描述提供，中英文名称、分组、帮助和诊断由语言资源提供。
-- 沿用 OpenBLAS/LAPACK + PocketFFT；不引入 MKL、R 或新的运行时依赖。NumPy/SciPy 仅用于生成测试参考数据。
+- 数值后端为 OpenBLAS/LAPACK + PocketFFT。NumPy/SciPy 仅用于生成测试参考数据。
 ## 数值与数据契约
 
 | 任务 | 输入／输出 | 约定 |
@@ -23,7 +23,7 @@
 
 窗口物理跨度为 `(L−1)×dt`，傅里叶时长为 `L×dt`。补零改变频率网格密度，不提高实际分辨率。输出 PSD 的单位为 `Y² × X单位`；不逐列归一化，也不自动取对数。对数显示应由热图样式完成，不改变数据库里的物理量。
 
-`mean_spectrum` 是各窗口 PSD 的算术平均，不能当作整段 MTM 的同义输出。热图及其平均谱只用于描述，该模块不附带逐点或整图显著性结论，也不新增演化谱峰值数据库索引；原 MTM 的找峰和频率筛选保持原样。
+`mean_spectrum` 是各窗口 PSD 的算术平均，不能当作整段 MTM 的同义输出。热图及其平均谱只用于描述，该模块不附带逐点或整图显著性结论；演化谱不建立峰值频率索引。
 
 采样检查的较大间隔阈值为“相邻正间隔中位数 × 用户倍数”，默认 3。重复 X 统计覆盖全部序列；明细最多 4096 行，并明确标记截断。间隔提示不能独立证明地层间断。NaN／空值仍遵循已有导入策略和 DataRef 有限值契约，不通过此节点自动丢弃。
 ## 有限资源与失败处理
@@ -37,4 +37,4 @@
 - SciPy spectrogram：https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
 - Acycle 演化谱功能说明：https://github.com/mingsongli/acycle/wiki/4.7.4-Evolutionary-Spectral-Analysis
 
-该模块采用 Aster 已核对的 MTM 核心和明确的物理 PSD 约定，不声称窗口默认值、图形归一化等界面习惯逐项复制 Acycle。
+演化 MTM 使用 Aster 的 MTM 核心，输出采用物理 PSD 单位。与 Acycle 比较时，须统一窗口、采样间隔和功率归一化。

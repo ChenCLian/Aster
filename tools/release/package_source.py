@@ -1,4 +1,4 @@
-"""Create a clean source ZIP, excluding builds, host settings and user data.
+"""Export a clean source directory, excluding builds, host settings and user data.
 
 python tools/release/package_source.py --output ../release-source
 Uses the single VERSION file; never changes or uploads a GitHub release.
@@ -7,11 +7,12 @@ import argparse
 import hashlib
 import json
 import re
-import zipfile
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXCLUDED_DIRS = {'.git', '.qtcreator', '__pycache__', 'dist', '.pytest_cache'}
+EXCLUDED_DIRS = {'.git', '.qtcreator', '__pycache__', 'dist', '.pytest_cache',
+                 'dependency-materials', 'dependency-cache', 'release-assets'}
 EXCLUDED_SUFFIXES = {'.exe', '.dll', '.lib', '.a', '.o', '.obj', '.pdb', '.ilk', '.pyc', '.sqlite', '.db'}
 
 def included(path):
@@ -32,15 +33,19 @@ def main():
     if not re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?', version):
         raise SystemExit('Invalid VERSION')
     output = args.output.resolve()
-    if output == ROOT or ROOT in output.parents:
+    source_root = ROOT.resolve()
+    if output == source_root or source_root in output.parents:
         raise SystemExit('Use an output directory outside the source tree.')
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / f'Aster_{version}_source.zip'
-    if archive.exists():
-        raise SystemExit(f'Refusing to overwrite {archive}')
+    destination = output / f'Aster-source-export-{version}'
+    if destination.exists():
+        raise SystemExit(f'Refusing to overwrite {destination}')
     template = ROOT / 'config/local.pri.example'
     if not template.is_file() or not included(template):
         raise SystemExit('Missing distributable config/local.pri.example; restore the dependency setup template before packaging.')
+    for name in ('LICENSE', 'COPYRIGHT.md', 'SOURCE_CODE.md'):
+        if not (ROOT / name).is_file():
+            raise SystemExit(f'Missing required project notice: {name}')
     files = sorted(p for p in ROOT.rglob('*') if p.is_file() and included(p))
     payload = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in files}
     status = json.loads(payload['PACKAGE_STATUS.json'])
@@ -49,16 +54,22 @@ def main():
     manifest = {'project': 'Aster', 'version': version, 'files': [
         {'path': name, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
         for name, data in payload.items()]}
-    payload['PACKAGE_MANIFEST.json'] = (json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode()
-    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as out:
+    destination.mkdir()
+    try:
         for name, data in payload.items():
-            out.writestr('Aster/'+name, data)
-    with zipfile.ZipFile(archive) as out:
-        if out.testzip() is not None:
-            raise SystemExit('ZIP integrity check failed')
-    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-    archive.with_suffix('.zip.sha256').write_text(f'{digest}  {archive.name}\n')
-    print(f'{archive}\n{len(payload)} files\nSHA256: {digest}')
+            target = destination / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            shutil.copymode(ROOT / name, target)
+        (destination / 'PACKAGE_MANIFEST.json').write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+        for item in manifest['files']:
+            if hashlib.sha256((destination / item['path']).read_bytes()).hexdigest() != item['sha256']:
+                raise RuntimeError('Source export verification failed: ' + item['path'])
+    except Exception:
+        shutil.rmtree(destination)
+        raise
+    print(f'{destination}\n{len(payload) + 1} files; contents verified')
 
 if __name__ == '__main__':
     main()

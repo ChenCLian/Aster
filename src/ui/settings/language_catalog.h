@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_LANGUAGE_CATALOG_H
 #define ASTER_LANGUAGE_CATALOG_H
 #include <QTranslator>
@@ -11,6 +13,7 @@ class LanguageCatalog : public QTranslator
     static LanguageCatalog &instance();
     bool load(const QString &language);
     QString label(const QString &key, const QString &fallback = {}) const;
+    QString optionalLabel(const QString &key, const QString &fallback = {}) const;
     QString translate(const char *context, const char *source, const char *disambiguation = nullptr,
                       int n = -1) const override;
     bool isEmpty() const override

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_SETTINGS_DIALOG_H
 #define ASTER_SETTINGS_DIALOG_H
 #include "ui/common/app_settings.h"
