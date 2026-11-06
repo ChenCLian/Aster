@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-only
 import argparse
 from pathlib import Path
 import re
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 
 def convert(text):
@@ -18,23 +18,46 @@ def convert(text):
     return lines
 
 
-def official_uri(uri):
+def official_http_uri(uri):
     parsed = urlsplit(uri)
     host = (parsed.hostname or '').lower()
-    return parsed.scheme in ('http', 'https') and any(
+    return parsed.scheme in ('http', 'https') and not parsed.username and not parsed.password and any(
         host == domain or host.endswith('.' + domain)
         for domain in ('ubuntu.com', 'debian.org'))
 
 
-def legacy_entries(text):
+def official_uri(uri, apt_root=Path('/etc/apt')):
+    if official_http_uri(uri):
+        return True
+    parsed = urlsplit(uri)
+    if parsed.scheme != 'mirror+file' or parsed.netloc or parsed.query or parsed.fragment:
+        return False
+    path = Path(unquote(parsed.path))
+    if not path.is_absolute() or '..' in path.parts:
+        return False
+    # --apt-root also supports inspecting a copy of /etc/apt in tests or diagnostics.
+    if apt_root != Path('/etc/apt') and Path('/etc/apt') in path.parents:
+        path = apt_root / path.relative_to('/etc/apt')
+    if apt_root.resolve() not in path.resolve().parents:
+        return False
+    try:
+        lines = path.read_text(encoding='utf-8-sig').splitlines()
+    except OSError:
+        return False
+    # Leave priorities and other metadata to APT; keep its native mirror failover.
+    mirrors = [line.split()[0] for line in lines if line.strip() and not line.lstrip().startswith('#')]
+    return bool(mirrors) and all(official_http_uri(mirror) for mirror in mirrors)
+
+
+def legacy_entries(text, apt_root=Path('/etc/apt')):
     for line in text.splitlines():
         line = line.split('#', 1)[0].strip()
         match = re.match(r'^(deb|deb-src)\s+(?:\[[^\]]+\]\s+)?(\S+)', line)
-        if match and official_uri(match[2]):
+        if match and official_uri(match[2], apt_root):
             yield match[1], line
 
 
-def deb822_entries(text):
+def deb822_entries(text, apt_root=Path('/etc/apt')):
     """Retain complete fields, including embedded signing keys and restrictions."""
     for block in re.split(r'\n\s*\n', text.strip()):
         fields = []
@@ -54,7 +77,7 @@ def deb822_entries(text):
         if values.get('enabled', 'yes').strip().lower() in ('no', 'false', '0'):
             continue
         types = values.get('types', '').split()
-        uris = [uri for uri in values.get('uris', '').split() if official_uri(uri)]
+        uris = [uri for uri in values.get('uris', '').split() if official_uri(uri, apt_root)]
         if not uris or not set(types).intersection(('deb', 'deb-src')):
             continue
         if not values.get('suites', '').strip():
@@ -70,7 +93,7 @@ def collect(apt_root):
     for path in paths:
         if not path.is_file() or path.name == 'aster-deb-src.list':
             continue
-        for kind, line in legacy_entries(path.read_text(encoding='utf-8-sig')):
+        for kind, line in legacy_entries(path.read_text(encoding='utf-8-sig'), apt_root):
             found = True
             if kind == 'deb-src':
                 existing.add(line)
@@ -79,7 +102,7 @@ def collect(apt_root):
     for path in sorted((apt_root / 'sources.list.d').glob('*.sources')):
         if path.name == 'aster-deb-src.sources':
             continue
-        for fields, types, uris in deb822_entries(path.read_text(encoding='utf-8-sig')):
+        for fields, types, uris in deb822_entries(path.read_text(encoding='utf-8-sig'), apt_root):
             found = True
             if 'deb-src' in types:
                 continue
@@ -88,7 +111,11 @@ def collect(apt_root):
                                ' '.join(uris) if name.lower() == 'uris' else value)
                 for name, value in fields))
     if not found:
-        raise ValueError('No enabled Ubuntu/Debian repositories found in .list or .sources files')
+        checked = ', '.join(str(p) for p in paths if p.is_file())
+        checked += ', ' + ', '.join(str(p) for p in sorted((apt_root / 'sources.list.d').glob('*.sources')))
+        raise ValueError('No enabled Ubuntu/Debian repositories found. Checked: ' + checked.strip(', ') +
+                         '. Supported: official HTTP(S) repositories and mirror+file lists under the APT directory. '
+                         'For mirror+file, check that the list is readable, nonempty and contains only official HTTP(S) mirrors.')
     return ([line for line in dict.fromkeys(legacy) if line not in existing],
             list(dict.fromkeys(modern)))
 

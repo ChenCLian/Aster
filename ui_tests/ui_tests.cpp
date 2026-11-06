@@ -50,6 +50,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QAbstractButton>
+#include <QKeySequence>
 #include <QToolButton>
 #include <QFileDialog>
 #include <QLineEdit>
@@ -607,7 +608,10 @@ void UiTests::settingsLinksAndKeyboardNavigation()
         auto *panel = window.findChild<CollapsiblePanel *>(entry.first); QVERIFY(panel);
         const bool initial = panel->isCollapsed();
         const auto *grip = panel->findChild<QAbstractButton *>("sidePanelGrip"); QVERIFY(grip);
-        QVERIFY(grip->toolTip().contains("Ctrl+Shift+"));
+        const QKeySequence expectedShortcut(
+            QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, entry.second));
+        QCOMPARE(grip->shortcut(), expectedShortcut);
+        QVERIFY(grip->toolTip().contains(expectedShortcut.toString(QKeySequence::NativeText)));
         QTest::keyClick(&window, entry.second, Qt::ControlModifier | Qt::ShiftModifier);
         QTRY_COMPARE(panel->isCollapsed(), !initial);
         QTest::keyClick(&window, entry.second, Qt::ControlModifier | Qt::ShiftModifier);
@@ -2436,7 +2440,11 @@ void UiTests::visibleSelectionActionsPreserveFilterScope()
     QTRY_COMPARE(panel.checkedRecords().size(), 1);
     QVERIFY(panel.checkedRecords().contains(remove));
     QVERIFY(!panel.checkedRecords().contains(keep));
+    QTRY_VERIFY(select->isEnabled());
     select->click(); QTRY_COMPARE(panel.checkedRecords().size(), 2);
+    // Selection changes are followed by an asynchronous directory refresh.
+    // The new count alone does not mean that another action can run yet.
+    QTRY_VERIFY(clear->isEnabled());
     clear->click(); QCOMPARE(panel.checkedRecords().size(), 0);
     search->clear(); QTRY_COMPARE(panel.recordCount(), 2);
     auto *list = panel.findChild<QListWidget *>("resultRecords"); list->setCurrentRow(0);

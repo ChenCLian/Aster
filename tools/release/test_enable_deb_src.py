@@ -97,6 +97,82 @@ class SourceRepositoryTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'No enabled'):
                     enable_deb_src.collect(self.apt)
 
+    def write_runner_mirror_list(self):
+        path = self.apt / 'apt-mirrors.txt'
+        path.write_text('# GitHub runner mirror priorities\n\n'
+                        'http://azure.archive.ubuntu.com/ubuntu/\tpriority:1\n'
+                        'https://archive.ubuntu.com/ubuntu/\tpriority:2\n'
+                        'https://security.ubuntu.com/ubuntu/\tpriority:3\n')
+        return path
+
+    def test_github_ubuntu22_legacy_mirror_transport(self):
+        self.write_runner_mirror_list()
+        entries = [f'deb mirror+file:/etc/apt/apt-mirrors.txt {suite} main restricted universe multiverse'
+                   for suite in ('jammy', 'jammy-updates', 'jammy-backports', 'jammy-security')]
+        (self.apt / 'sources.list').write_text('\n'.join(entries) + '\n')
+        legacy, modern = enable_deb_src.collect(self.apt)
+        self.assertEqual(legacy, ['deb-src' + line[3:] for line in entries])
+        self.assertEqual(modern, [])
+
+    def test_github_deb822_mirror_keeps_signature_and_uri(self):
+        self.write_runner_mirror_list()
+        stanza = self.stanza.replace('http://azure.archive.ubuntu.com/ubuntu',
+                                    'mirror+file:/etc/apt/apt-mirrors.txt')
+        self.source.write_text(stanza)
+        legacy, modern = enable_deb_src.collect(self.apt)
+        self.assertEqual(legacy, [])
+        self.assertEqual(modern, [stanza.replace('Types: deb\n', 'Types: deb-src\n').strip()])
+
+    def test_missing_empty_and_nonofficial_mirror_lists_are_rejected(self):
+        uri = 'mirror+file:/etc/apt/apt-mirrors.txt'
+        self.assertFalse(enable_deb_src.official_uri(uri, self.apt))
+        path = self.apt / 'apt-mirrors.txt'
+        for content in ['', '# no mirrors\n', 'https://ubuntu.com.example.org/ubuntu\n',
+                        'https://archive.ubuntu.com/ubuntu\nhttps://vendor.example/repo\n',
+                        'mirror+file:/etc/apt/apt-mirrors.txt\n']:
+            with self.subTest(content=content):
+                path.write_text(content)
+                self.assertFalse(enable_deb_src.official_uri(uri, self.apt))
+
+    def test_mirror_path_must_stay_inside_apt_directory(self):
+        outside = self.root / 'outside.txt'
+        outside.write_text('https://archive.ubuntu.com/ubuntu\n')
+        self.assertFalse(enable_deb_src.official_uri('mirror+file:' + str(outside), self.apt))
+        self.assertFalse(enable_deb_src.official_uri('mirror+file:/etc/apt/../outside.txt', self.apt))
+        self.assertFalse(enable_deb_src.official_uri('mirror+file://remote/etc/apt/apt-mirrors.txt', self.apt))
+
+    def test_mirror_with_architecture_options_keeps_original_options(self):
+        self.write_runner_mirror_list()
+        line = ('deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] '
+                'mirror+file:/etc/apt/apt-mirrors.txt jammy main')
+        (self.apt / 'sources.list').write_text(line)
+        self.assertEqual(enable_deb_src.collect(self.apt), (['deb-src' + line[3:]], []))
+
+    def test_existing_mirror_source_entries_are_not_duplicated(self):
+        self.write_runner_mirror_list()
+        line = 'deb mirror+file:/etc/apt/apt-mirrors.txt jammy main'
+        (self.apt / 'sources.list').write_text(line + '\n' + 'deb-src' + line[3:])
+        self.assertEqual(enable_deb_src.collect(self.apt), ([], []))
+
+    @unittest.skipUnless(shutil.which('apt-get'), 'APT parser is unavailable on this host')
+    def test_generated_mirror_source_is_accepted_by_apt(self):
+        mirrors = self.write_runner_mirror_list()
+        uri = 'mirror+file:' + str(mirrors)
+        (self.apt / 'sources.list').write_text('deb ' + uri + ' jammy main\n')
+        legacy, modern = enable_deb_src.collect(self.apt)
+        stage = self.root / 'generated'
+        stage.mkdir()
+        (stage / 'aster-deb-src.list').write_text('\n'.join(legacy) + '\n')
+        lists = self.root / 'lists'
+        (lists / 'partial').mkdir(parents=True)
+        result = subprocess.run(['apt-get', '-o', 'Dir::Etc::sourcelist=/dev/null',
+            '-o', f'Dir::Etc::sourceparts={stage}', '-o', f'Dir::State::lists={lists}',
+            '-o', 'Debug::NoLocking=true', '--print-uris', 'update'],
+            capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Sources', result.stdout)
+        self.assertIn('mirror+file:', result.stdout)
+
     def test_cli_writes_staging_files_without_changing_input(self):
         self.source.write_text(self.stanza)
         output = self.root / 'generated'

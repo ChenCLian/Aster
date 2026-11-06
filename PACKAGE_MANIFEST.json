@@ -539,8 +539,8 @@
     },
     {
       "path": "docs/dependency_materials_zh.md",
-      "bytes": 13329,
-      "sha256": "438c95f75769974eb5db4f6148ebe5174d689cdd2413398eec2088f29a8b9db6"
+      "bytes": 13591,
+      "sha256": "b15667d2a3f4c8cca5df969d132f92abfb5a2327a88ffa3388d4703488e6ae12"
     },
     {
       "path": "docs/error_diagnostics.md",
@@ -2839,8 +2839,8 @@
     },
     {
       "path": "tools/release/enable_deb_src.py",
-      "bytes": 5063,
-      "sha256": "08713f2ae53603a673016da9b03682c5521a353d86e8188bd7441020292e019b"
+      "bytes": 6682,
+      "sha256": "2c448c4fcc20a4ee3aaa7ceb9277d353ad90be6daba768cb98913355be441ea2"
     },
     {
       "path": "tools/release/linux_app_run.sh",
@@ -2894,8 +2894,8 @@
     },
     {
       "path": "tools/release/test_enable_deb_src.py",
-      "bytes": 6676,
-      "sha256": "27607723f2ff8a57268b3d675aff38edf0c9244e8c18f6f5a12129b8352b1755"
+      "bytes": 11080,
+      "sha256": "17a5e3a177817136cf4b638b0c97cd8ee59f186cf98bd154cbe36d204e31a9ee"
     },
     {
       "path": "tools/release/test_license_packaging.py",
@@ -2909,8 +2909,8 @@
     },
     {
       "path": "ui_tests/ui_tests.cpp",
-      "bytes": 144813,
-      "sha256": "93e37da38c9def6f1a8d1b03e3d319fc116233d632d117bcc555215b308f1a1b"
+      "bytes": 145284,
+      "sha256": "7b3a44ad54c759041e8ddf22b2ab6d97f784a978c495bd0a8a08af8fc2010998"
     },
     {
       "path": "ui_tests/ui_tests.pro",
