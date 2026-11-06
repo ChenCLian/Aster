@@ -39,6 +39,13 @@ jobs:
       OPENBLAS_NUM_THREADS: '1'
     steps:
       - uses: actions/checkout@v5
+      - name: Initialize build logs
+        run: |
+          mkdir -p build-release/ci-logs
+          {
+            printf 'Commit: %s\nRef: %s\n' "$GITHUB_SHA" "$GITHUB_REF"
+            uname -sm
+          } > build-release/ci-logs/context.log
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -46,9 +53,10 @@ jobs:
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
-          # Exact distribution source packages include Ubuntu patches/recipes.
-          python3 tools/release/enable_deb_src.py > /tmp/aster-deb-src.list
-          sudo install -m 644 /tmp/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
+          exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
+          python3 tools/release/enable_deb_src.py --output-dir build-release/ci-logs/apt-sources
+          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
+          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.sources /etc/apt/sources.list.d/aster-deb-src.sources
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev \
             libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
@@ -57,6 +65,7 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
+          exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
           test "$(uname -m)" = '${{ matrix.arch }}'
           brew install gsl openblas
           printf 'GSL_PREFIX = %s\nOPENBLAS_ROOT = %s\n' "$(brew --prefix gsl)" "$(brew --prefix openblas)" > config/local.pri
@@ -80,7 +89,7 @@ jobs:
             c++ --version
           } 2>&1 | tee build-release/ci-logs/environment.log
       - name: Check license packaging
-        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/license-tests.log
       - name: Configure
         run: |
           cd build-release

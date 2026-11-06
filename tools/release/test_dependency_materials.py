@@ -235,7 +235,7 @@ class DependencyMaterialTests(unittest.TestCase):
         def native_run(args,cwd=None):
             if args==['brew','--cellar']:return str(cellar)
             if args[:2]==['brew','ruby']:
-                self.assertEqual(args[-1],recipe)
+                self.assertEqual(Path(args[-1]).resolve(),recipe.resolve())
                 return json.dumps(metadata)
             raise AssertionError(args)
         with patch.object(providers,'run',side_effect=native_run),patch.object(providers,'same_binary',return_value=True),patch.object(common,'download',return_value=source):
@@ -243,6 +243,17 @@ class DependencyMaterialTests(unittest.TestCase):
         self.assertEqual(self.collection.errors,[])
         self.assertEqual(self.collection.components[0]['version'],'1.0_2')
         self.assertEqual(owners[library],'brew-fixture')
+
+    def test_homebrew_formula_through_symlinked_temp_directory(self):
+        real = self.base / 'real'
+        real.mkdir()
+        alias = self.base / 'alias'
+        try:
+            alias.symlink_to(real, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest('Directory symlinks are unavailable on this host')
+        self.base = alias
+        self.test_homebrew_uses_keg_formula_and_exact_revision()
 
     def test_unknown_qt_library_requires_mapping(self):
         self.assertEqual(providers.qt_module('Pdf'), 'qtwebengine')

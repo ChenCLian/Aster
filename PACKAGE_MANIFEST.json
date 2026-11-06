@@ -14,8 +14,8 @@
     },
     {
       "path": ".github/workflows/build-desktop.yml",
-      "bytes": 5251,
-      "sha256": "9e736eb66bb3dbd56b825927cda9a9a3d5ce020be1092b8476d99f0a495835ea"
+      "bytes": 5802,
+      "sha256": "884e6cef427caada10d327bbf7a7b2bbc32a9860895d2b9e8fa1d23fea5cccd9"
     },
     {
       "path": ".gitignore",
@@ -539,8 +539,8 @@
     },
     {
       "path": "docs/dependency_materials_zh.md",
-      "bytes": 12974,
-      "sha256": "cfe929f145accec871782527356553dc5d30d410f004e38063d23a7164e6c7ca"
+      "bytes": 13329,
+      "sha256": "438c95f75769974eb5db4f6148ebe5174d689cdd2413398eec2088f29a8b9db6"
     },
     {
       "path": "docs/error_diagnostics.md",
@@ -2839,8 +2839,8 @@
     },
     {
       "path": "tools/release/enable_deb_src.py",
-      "bytes": 1084,
-      "sha256": "faa51c6d5c164fccebba17b0337bbf958e4325f3ce77db403357b2e36985841e"
+      "bytes": 5063,
+      "sha256": "08713f2ae53603a673016da9b03682c5521a353d86e8188bd7441020292e019b"
     },
     {
       "path": "tools/release/linux_app_run.sh",
@@ -2884,13 +2884,18 @@
     },
     {
       "path": "tools/release/test_dependency_materials.py",
-      "bytes": 18849,
-      "sha256": "e529fd4ce077e549d0643bb84b1dbb3011197432689fce04f3ff64a9b4276747"
+      "bytes": 19326,
+      "sha256": "e98069a04683441c70c620c235a5671895c1cc8cfbebc5807818394a95183449"
     },
     {
       "path": "tools/release/test_dependency_mirrors.py",
       "bytes": 12048,
       "sha256": "f7f80c5ab3e070e26c54521f47bc922f4d370d59d79966065e029d5a6fdf53f1"
+    },
+    {
+      "path": "tools/release/test_enable_deb_src.py",
+      "bytes": 6676,
+      "sha256": "27607723f2ff8a57268b3d675aff38edf0c9244e8c18f6f5a12129b8352b1755"
     },
     {
       "path": "tools/release/test_license_packaging.py",

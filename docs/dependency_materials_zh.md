@@ -68,7 +68,7 @@ bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist
 bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 dist
 ```
 
-Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb-src` 索引。当前 Ubuntu 22.04 工作流自动添加匹配条目并更新索引。手动准备时，`enable_deb_src.py` 只输出传统 `.list` 格式条目；deb822 系统在相应 `.sources` 中设置 `Types: deb deb-src`，然后执行 `sudo apt-get update`。脚本不会自动修改个人电脑的软件源。
+Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb-src` 索引。当前工作流同时识别传统 `.list` 和 deb822 `.sources` 配置，保留发行版、组件和签名验证设置，再安装匹配的源码条目并更新索引。手动准备时，运行 `python3 tools/release/enable_deb_src.py --output-dir ./apt-source-config` 生成配置，检查后将生成的两个文件安装到 `/etc/apt/sources.list.d/`，再执行 `sudo apt-get update`。生成脚本仅处理已启用的 Ubuntu/Debian 官方仓库，不会自动修改系统软件源或启用第三方仓库。依赖安装和许可检查日志分别保存在 Actions 日志附件中的 `ci-logs/install-dependencies.log` 与 `ci-logs/license-tests.log`。
 
 不能用 Windows 本机安装的库替代 GitHub Actions 中 Linux/macOS 实际使用的依赖材料。工作流在各平台打包时完成收集，并分别上传 `dependency-materials-<平台>` 构件。
 
