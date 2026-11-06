@@ -33,7 +33,8 @@ def main():
     if not re.fullmatch(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?', version):
         raise SystemExit('Invalid VERSION')
     output = args.output.resolve()
-    if output == ROOT or ROOT in output.parents:
+    source_root = ROOT.resolve()
+    if output == source_root or source_root in output.parents:
         raise SystemExit('Use an output directory outside the source tree.')
     output.mkdir(parents=True, exist_ok=True)
     destination = output / f'Aster-source-export-{version}'

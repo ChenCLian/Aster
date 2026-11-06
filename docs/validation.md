@@ -10,12 +10,12 @@
 
 | 检查 | 结果与记录 |
 | --- | --- |
-| 发布工具回归 | 72 通过、0 失败；[日志](validation_results/release/packaging_layout_tests.txt) |
+| 发布工具回归 | 74 通过、0 失败；[日志](validation_results/release/packaging_layout_tests.txt) |
 | Windows 打包进程诊断 | 12 通过、0 失败；PowerShell 7.4.6 / Linux；[日志](validation_results/release/windows_packaging_layout_process_tests.txt) |
 | Homebrew Ruby 查询 | 本地、内嵌、外部及资源补丁元数据夹具通过；[日志](validation_results/release/brew_patch_query_tests.txt) |
 | 工作流与 Shell | YAML 与单文件直接上传配置检查、Linux/macOS 脚本语法检查通过 |
 | 发布文档 | 4 份变更文档中的 28 个本地文件链接有效，无个人路径 |
-| 源码导出 | 目录内容、逐文件摘要及本机配置排除结果见 `current_checks.source_export` |
+| 源码导出 | 目录内容、逐文件摘要、本机配置排除及符号链接路径保护通过，见 `current_checks.source_export` |
 
 Windows 进程测试使用受控子进程，不代表已在 Windows PowerShell 5.1、实际 Qt/vcpkg 环境完成打包。macOS 依赖识别使用受控 UUID、配方与补丁数据，完整原生打包和 GitHub 上传仍需 CI 验证。C++ 实现、科学数据和数据库 schema 未改变；源码入口说明 `SOURCE_CODE.md` 属于内置资源，发布程序须重新构建。
 

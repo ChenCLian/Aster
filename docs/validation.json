@@ -7,11 +7,11 @@
     "manifest": "PACKAGE_MANIFEST.json",
     "review_baseline_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d"
   },
-  "scope": "Directory-only Windows deployment and source export, direct Actions program artifacts, dependency checksum metadata, macOS target-slice matching and exact Homebrew patch recovery. Release documents updated; C++ application implementation unchanged. SOURCE_CODE.md is an embedded help resource and requires rebuilding.",
+  "scope": "Directory-only Windows deployment and source export, direct Actions program artifacts, dependency checksum metadata, macOS target-slice matching and exact Homebrew patch recovery. Release documents updated; C++ application implementation unchanged. SOURCE_CODE.md is an embedded help resource and requires rebuilding. Source export containment now normalizes both paths; alias-path regression added.",
   "counting": "Current checks and retained evidence are separate. Counts from different runs must not be summed as a new full regression result; QtTest totals include initialization and cleanup.",
   "current_checks": {
     "release_tool_tests": {
-      "passed": 72,
+      "passed": 74,
       "failed": 0,
       "log": "docs/validation_results/release/packaging_layout_tests.txt"
     },
@@ -44,12 +44,17 @@
     },
     "source_export": {
       "status": "passed",
-      "scope": "Clean project directory export, per-file digest verification and exclusion of local settings/builds; no output ZIP or sidecar digest.",
+      "scope": "Clean directory export and per-file digests, including a symlinked project root; project root and child output aliases are rejected before writing. Local configuration excluded; no ZIP or checksum sidecar.",
       "files": 593,
       "manifest_verified": true,
       "local_pri_excluded": true,
       "zip_created": false,
       "checksum_sidecar_created": false
+    },
+    "source_path_normalization": {
+      "status": "passed",
+      "reproduced_before_fix": true,
+      "scope": "Controlled symlink reproduces the macOS /var versus /private/var mismatch on Linux. Root and output are both resolved before containment checks. Native macOS CI rerun required."
     }
   },
   "retained_evidence": [

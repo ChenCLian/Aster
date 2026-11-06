@@ -689,13 +689,13 @@
     },
     {
       "path": "docs/validation.json",
-      "bytes": 14695,
-      "sha256": "2b9aa4024d710f7c8e19a7a6ecc618562b93c633cfc4507482a297acc2e01f43"
+      "bytes": 15148,
+      "sha256": "8d43cb76ddf5146d707835c7e71f1dc3d31e5916aaddae171dc1fb349ef54e38"
     },
     {
       "path": "docs/validation.md",
-      "bytes": 3750,
-      "sha256": "6041a2e7ec7239a65eea67811de3414f6dc3efb53f6b413b44a9907cd8695794"
+      "bytes": 3780,
+      "sha256": "3bcf28dcdf28191fb3f7329b860aa4d4594ad03e2a9f990059576f728094ccc8"
     },
     {
       "path": "docs/validation_results/release/analysis.txt",
@@ -754,8 +754,8 @@
     },
     {
       "path": "docs/validation_results/release/packaging_layout_tests.txt",
-      "bytes": 4237,
-      "sha256": "bfba03d22a9b9762fc026f3ddbc47042d77ac57bca118afab81bb644e18343f7"
+      "bytes": 4312,
+      "sha256": "ef5be9888e355739e0b4ce470bc9cfd8336e2f4d511d3ee23f604ec99b6877a4"
     },
     {
       "path": "docs/validation_results/release/settings_150.txt",
@@ -2879,8 +2879,8 @@
     },
     {
       "path": "tools/release/package_source.py",
-      "bytes": 3819,
-      "sha256": "a354e06b42f04a4963320a9a750e0e5a9ea0c4b56983310dcb1435558455b985"
+      "bytes": 3867,
+      "sha256": "8140b60204f3ac16e107d4493facdf4158bb3ce5f7879e13d384c7e015b987ee"
     },
     {
       "path": "tools/release/package_windows.ps1",
@@ -2919,8 +2919,8 @@
     },
     {
       "path": "tools/release/test_packaging_layout.py",
-      "bytes": 9255,
-      "sha256": "28103f224f225608eaa0b05ee10dbd53fb545aab4ea241bd43bef242a27f3a25"
+      "bytes": 11008,
+      "sha256": "964e792126716cbd252f5daf93ae2ad9108be6c5e2a56081b61e6f2c4e9b311d"
     },
     {
       "path": "tools/release/test_windows_packaging.ps1",

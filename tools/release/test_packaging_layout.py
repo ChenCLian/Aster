@@ -70,6 +70,39 @@ class PackagingLayoutTests(unittest.TestCase):
                 package_source.main()
         self.assertFalse((root / 'copy').exists())
 
+    def project_alias(self, root):
+        alias = self.base / 'project-link'
+        try:
+            alias.symlink_to(root.resolve(), target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest('Directory symlinks are unavailable on this host')
+        return alias
+
+    def test_source_export_rejects_project_aliases(self):
+        root = self.source_tree()
+        alias = self.project_alias(root)
+        # macOS temporary paths can be /var/... aliases of /private/var/... .
+        for source in [root.resolve(), alias]:
+            for output in [root, alias, root / 'copy', alias / 'copy']:
+                with self.subTest(source=source.name, output=str(output)):
+                    with patch.object(package_source, 'ROOT', source), patch.object(
+                            sys, 'argv', ['export', '--output', str(output)]):
+                        with self.assertRaisesRegex(SystemExit, 'outside the source tree'):
+                            package_source.main()
+                    self.assertFalse((root / 'copy').exists())
+                    self.assertFalse((root / 'Aster-source-export-1.1.1').exists())
+
+    def test_source_export_accepts_external_directory_through_project_alias(self):
+        root = self.source_tree()
+        alias = self.project_alias(root)
+        output = self.base / 'export'
+        with patch.object(package_source, 'ROOT', alias), patch.object(
+                sys, 'argv', ['export', '--output', str(output)]):
+            package_source.main()
+        dest = output / 'Aster-source-export-1.1.1'
+        self.assertEqual((dest / 'src/main.cpp').read_bytes(), (root / 'src/main.cpp').read_bytes())
+        self.assertFalse((dest / 'config/local.pri').exists())
+
     def test_qt_framework_header_is_not_sent_to_dwarfdump(self):
         prefix = self.base / 'Qt'
         header = prefix / 'lib/QtCore.framework/Versions/A/Headers/QtCore'
