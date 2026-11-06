@@ -15,7 +15,8 @@ def main():
     dest.mkdir(parents=True, exist_ok=True)
     notices = dest / 'licenses'
     notices.mkdir(exist_ok=True)
-    for name in ['README.md', 'AUTHORS.md', 'QUICK_START.md', 'FAQ.md']:
+    for name in ['README.md', 'AUTHORS.md', 'QUICK_START.md', 'FAQ.md',
+                 'LICENSE', 'COPYRIGHT.md', 'SOURCE_CODE.md']:
         shutil.copy2(ROOT / name, dest / name)
     icon = dest / 'resources/app/aster.png'
     icon.parent.mkdir(parents=True, exist_ok=True)
@@ -30,7 +31,8 @@ def main():
         for p in (ROOT / folder).rglob('*'):
             if p.is_file() and (p.suffix.lower() in {'.md', '.txt'} or
                                p.name.startswith(('COPYING', 'COPYRIGHT', 'LICENSE'))):
-                target = notices / p.relative_to(ROOT)
+                relative = p.relative_to(ROOT / 'licenses') if folder == 'licenses' else p.relative_to(ROOT)
+                target = notices / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(p, target)
     for prefix in [args.qt_prefix, *args.dependency_prefix]:

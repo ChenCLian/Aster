@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_SCIENCE_HELPERS_H
 #define ASTER_PROCESSING_SCIENCE_HELPERS_H
 #include "core/task_registry.h"

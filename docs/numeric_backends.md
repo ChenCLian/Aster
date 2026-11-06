@@ -1,29 +1,31 @@
 # Aster 数值接口与跨平台构建
 
-适用版本：1.1.0。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**，没有其他后端选项、组件管理、自检辅助程序或硬件品牌分支。
+适用版本：1.1.1。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
 
 ## Windows / Qt Creator
 
-使用 Qt 6 / MSVC x64，依赖与此前已经验收的通用版本相同：
+使用 Qt 6 / MSVC x64，在 vcpkg 目录安装以下依赖：
 
 ```powershell
 .\vcpkg.exe install gsl:x64-windows openblas:x64-windows lapack-reference:x64-windows
 ```
 
-本工程的 vcpkg 配置分别链接 LAPACK 与 OpenBLAS；不能漏装 lapack-reference。复制 `config/local.pri.example` 为 `config/local.pri`，填写 VCPKG_ROOT 或 VCPKG_PREFIX。只迁移当前模板中的依赖路径，不直接复制旧的库选择和自定义 LIBS 参数。
+本工程的 vcpkg 配置分别链接 LAPACK 与 OpenBLAS；不能漏装 lapack-reference。复制 `config/local.pri.example` 为 `config/local.pri`，填写 VCPKG_ROOT 或 VCPKG_PREFIX。依赖路径和链接项以当前配置模板为准。
 
 打开根 **Aster.pro**，在新构建目录重新运行 qmake，构建全部，运行 **desktop / Aster**，输出位于 `bin/Aster.exe`。不单独构建 desktop.pro，不运行测试程序作为桌面入口。
 
-Debug 使用依赖的 `debug/bin`，Release 使用 `bin`；GSL 调试库名称带 d 的处理保留。运行时仍需 Qt/QSQLITE、GSL、OpenBLAS/LAPACK 及其运行依赖，具体 DLL 由实际依赖包决定。PocketFFT 随源码编译，无独立 DLL。Qt Creator 中保留你已有的通用依赖 PATH 配置。
+Debug 使用依赖的 `debug/bin`，Release 使用 `bin`；GSL 调试库名称带 d 后缀。运行时仍需 Qt/QSQLITE、GSL、OpenBLAS/LAPACK 及其运行依赖，具体 DLL 由实际依赖包决定。PocketFFT 随源码编译，无独立 DLL。Qt Creator 的运行环境需包含当前依赖目录的 PATH 配置。
 
 ## Linux
+
+从包含 `Aster.pro` 的源码根目录执行以下命令。
 
 准备 Qt 6、SQLite 驱动、GSL、LP64 OpenBLAS（含 LAPACK）。默认通过系统路径/pkg-config 查找；如 LAPACK 单独提供，在 `local.pri` 设置 `ASTER_LAPACK_LIBS = -llapack`，链接顺序在 BLAS 前。
 
 ```sh
 mkdir build-release
 cd build-release
-qmake ../Aster/Aster.pro CONFIG+=release CONFIG-=debug
+qmake ../Aster.pro CONFIG+=release CONFIG-=debug
 make -j4
 ./bin/Aster --numeric-backend
 ./bin/Aster
@@ -40,7 +42,7 @@ OPENBLAS_ROOT = /your/openblas/prefix
 GSL_PREFIX = /your/gsl/prefix
 ```
 
-不要混用 x86_64 和 ARM64 依赖。本工程保留 `.app` 构建，输出 `bin/Aster.app`。各 Mac 架构须分别完成原生构建、依赖部署和桌面验收；签名及公证状态应在发布说明中注明。
+不要混用 x86_64 和 ARM64 依赖。macOS 构建生成 `.app`，输出 `bin/Aster.app`。各 Mac 架构须分别完成原生构建、依赖部署和桌面验收；签名及公证状态应在发布说明中注明。
 
 ## 模块和数值契约
 
@@ -62,8 +64,8 @@ GSL_PREFIX = /your/gsl/prefix
 - LAPACK 依赖必须满足 LP64 Netlib/gfortran 调用约定。不要混入 ILP64 或其他整数/字符参数 ABI。
 - 一次原生计算内部1线程，外层仍并行处理不同数据。OpenBLAS 全局线程数初始化一次；SINGLE_THREADED 发行包的原生 LAPACK 调用保守串行化，其他处理不被整体串行化。
 
-GSL 统计/插值与 wavelib 的内部计算继续使用既有实现；统一数值接口覆盖线性代数和通用 FFT 调用。MTM 报告保留实际库版本与线程策略元信息，通过原有 report JSON 存储。
+GSL 提供统计和插值功能，wavelib 提供小波计算；统一数值接口覆盖线性代数和通用 FFT 调用。MTM 报告保留实际库版本与线程策略元信息，通过任务 report JSON 存储。
 
 新增科学算法继续继承 Task、实现 descriptor/execute、宏注册。需要线性代数或 FFT 时调用 numeric_backend.h，不直接引入原生库类型。无需重写工作流、数据库或 UI。
 
-`Aster --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。当前验收见 validation.md。
+`Aster --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。验证范围见 [验证记录](validation.md)。

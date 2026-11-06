@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_CANVAS_DETAILS_EDITOR_H
 #define ASTER_CANVAS_DETAILS_EDITOR_H
 #include "ui/results/plot_style.h"

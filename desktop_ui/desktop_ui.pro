@@ -7,6 +7,9 @@ INCLUDEPATH += ../src
 DESTDIR = $$OUT_PWD/../lib
 win32-msvc:QMAKE_CXXFLAGS += /utf-8 /bigobj
 
+SOURCES += ../src/ui/help/help_dialog.cpp
+HEADERS += ../src/ui/help/help_dialog.h
+
 SOURCES += \
     ../src/third_party/qcustomplot/qcustomplot.cpp \
     ../src/ui/app/main_window.cpp \
@@ -59,7 +62,7 @@ HEADERS += ../src/ui/results/plot_workspace.h
 SOURCES += ../src/ui/panels/axis_details_editor.cpp
 HEADERS += ../src/ui/panels/axis_details_editor.h
 
-RESOURCES += ../resources/aster.qrc
+RESOURCES += ../resources/aster.qrc ../resources/help.qrc
 SOURCES += ../src/ui/results/plot_probe.cpp
 HEADERS += ../src/ui/results/plot_probe.h
 SOURCES += ../src/ui/settings/theme_manager.cpp \
@@ -127,4 +130,6 @@ SOURCES += ../src/update/release_version.cpp ../src/update/release_feed.cpp ../s
 HEADERS += ../src/update/release_version.h ../src/update/release_feed.h ../src/update/update_checker.h \
            ../src/ui/settings/update_dialog.h
 
-HEADERS += ../src/ui/common/numeric_editor.h
+HEADERS += ../src/ui/common/numeric_editor.h ../src/ui/common/section_splitter.h
+HEADERS += ../src/ui/common/choice_editor.h ../src/ui/common/segmented_selector.h \
+    ../src/ui/common/plot_axis_hints.h

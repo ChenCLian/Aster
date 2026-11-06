@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "spectral_extension_audit.h"
 #include "math/spectrum/lomb_scargle.h"
 #include "math/filtering/butterworth.h"

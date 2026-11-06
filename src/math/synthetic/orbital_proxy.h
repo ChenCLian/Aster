@@ -1,3 +1,5 @@
+// Aster integration and modifications: Copyright (C) 2026 ZiJie Chen.
+// C++ port distributed with Aster 1.1.1, 2026-11-06; see resources/synthetic/NOTICE.md.
 // SPDX-License-Identifier: GPL-3.0-or-later
 // AstroGeoFit: Copyright (C) 2025 CNRS, lead author J. Laskar.
 #ifndef ASTER_MATH_SYNTHETIC_ORBITAL_PROXY_H

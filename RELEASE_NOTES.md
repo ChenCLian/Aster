@@ -1,14 +1,33 @@
-# Aster 1.1.0
+# Aster 1.1.1
 
-Aster 首个公开发行版本，面向地学与天文时间序列分析。支持中文和英文界面，以及 Windows、macOS 和 Linux。
+本版修复任务预览恢复和参数滚轮误操作，改进文件状态、批量勾选及绘图交互。
 
-## 主要功能
+## 更新内容
 
-- **数据与工作流：**分隔文本、数据库输出、内置 ODP 数据及生成信号；可视化任务树、单记录后台预览和多输入批处理。
-- **序列处理：**整理与重采样、标准化、去趋势、平滑、Gaussian/Taner 带通、Butterworth 滤波和 Hilbert 振幅包络。
-- **频谱与时频：**FFT、Welch、MTM、Lomb–Scargle、CWT、演化 FFT/MTM，以及峰值检测和相关背景输出。
-- **天文与年代：**多套轨道解、日照曲线与多纬度图、年龄模型、逐周期赋龄和 COCO 分析。
-- **结果与绘图：**SQLite 结果库、筛选、批量删除、兼容数据库合并与备份；曲线、热图、读点及 CSV/PNG/PDF 导出。
+### 工作流与数据
+
+- 修复运行流程后返回任务页时，文件与节点输出预览可能无法恢复的问题。下方“节点输出预览”显示当前选中节点的输出。
+- 输入列表使用单行文件名与状态灯，悬停显示完整路径及状态。
+- 批量勾选提供“全选”“取消勾选”“清空全部”，筛选和分页保留已有勾选。
+- MTM 支持直接填写频率上限，控制保存及下游使用的输出范围；频谱估计、背景拟合和峰检测使用完整频谱。原有比例参数的兼容行为见 [FAQ](https://github.com/ChenCLian/Aster/blob/main/FAQ.md)。
+
+### 界面与绘图
+
+- 浅色主题采用白色面板、深色文字与细线分区，精简多层灰色底块；深色主题采用相同层级，统一字号、间距和对齐。
+- 输入区增宽，绘图设置减少重复内缩；分隔线保留完整拖拽范围，帮助按钮与选中项具有清晰边界。
+- 数值框仅在主动点击或 Tab 聚焦后接受滚轮调节；未展开的下拉框不因滚轮而改变选项。
+- 坐标轴设置采用固定的 X/Y 选择器；预览和结果图支持轴悬停提示、单轴缩放与平移。
+- 设置窗口布局更紧凑，数据库路径独立成行，增加“联系我们”。结果侧栏区分“绘图 / 导出 / 来源”和当前编辑对象，未选择子图时不显示不可用参数。
+- 增加页面、设置及任务侧栏快捷键，悬停按钮可查看按键提示。
+
+### 帮助与文档
+
+- F1 和“使用手册”提供总入口；点击参数或方法问号可定位对应章节，悬停显示简短说明。
+- 操作指南和参数参考按界面语言显示；缺少中文的条目使用英文。
+- 补全任务与参数参考，说明参数单位、默认值、范围和适用条件。
+- 修复内部翻译键显示、连续定位或主题切换后部分段落排版不完整，以及目录链接错误跳转的问题。
+- 统一操作说明中的界面名称与频率上限含义。本地手册缺页或缺章节时打开 GitHub 对应位置。
+- 增加离线许可证入口，随包提供项目 GPL-3.0-only 条款、版权声明、第三方许可和依赖源码索引。
 
 ## 下载
 
@@ -16,16 +35,16 @@ Aster 首个公开发行版本，面向地学与天文时间序列分析。支�
 
 | 平台 | 程序包 | 启动入口 |
 | --- | --- | --- |
-| Windows x64 | `Aster-1.1.0-windows-x64.zip` | `Aster.exe` |
-| macOS 15+，Apple Silicon | `Aster-1.1.0-macos-arm64.zip` | `Aster.app` |
-| macOS 15+，Intel | `Aster-1.1.0-macos-x86_64.zip` | `Aster.app` |
-| Linux x64 | `Aster-1.1.0-linux-x64.tar.gz` | `./AppRun` |
+| Windows x64 | `Aster-1.1.1-windows-x64.zip` | `Aster.exe` |
+| macOS 15+，Apple Silicon | `Aster-1.1.1-macos-arm64.zip` | `Aster.app` |
+| macOS 15+，Intel | `Aster-1.1.1-macos-x86_64.zip` | `Aster.app` |
+| Linux x64 | `Aster-1.1.1-linux-x64.tar.gz` | `./AppRun` |
 
 Linux 包以 Ubuntu 22.04 为构建基线，需兼容的系统库、X11/XWayland 图形环境和字体。其他发行版的兼容性需单独确认。
 
 默认 macOS 包使用 ad-hoc 签名，未经 Apple Developer ID 签名与公证；首次打开可能受到 Gatekeeper 限制。启动与字体问题见 [FAQ](https://github.com/ChenCLian/Aster/blob/main/FAQ.md)。
 
-GitHub 自动生成的 `Source code` 是源码，需要编译，不能直接运行。附件及校验文件以发布页实际提供的内容为准。
+同一 Release 提供 `Aster_1.1.1_source.zip`，包含与程序对应的项目源码和构建脚本；所需依赖的对应源码及构建材料与程序包一起提供下载入口，详见 [SOURCE_CODE.md](https://github.com/ChenCLian/Aster/blob/main/SOURCE_CODE.md)。源码包需要编译后使用。附件及校验文件以发布页实际提供的内容为准。
 
 ## 使用与更新
 
@@ -34,3 +53,4 @@ GitHub 自动生成的 `Source code` 是源码，需要编译，不能直接运�
 “设置 → 检查更新”显示可用版本并打开下载页。本版使用完整程序包手动更新；安装新版前退出软件，保留原数据库和设置。
 
 [项目介绍](https://github.com/ChenCLian/Aster#readme) · [方法文档](https://github.com/ChenCLian/Aster/tree/main/docs/methods) · [反馈问题](https://github.com/ChenCLian/Aster/issues)
+

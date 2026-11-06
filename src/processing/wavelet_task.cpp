@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "processing/task_categories.h"
 #include "processing/wavelet_task.h"
 #include "processing/task_helpers.h"
@@ -159,7 +161,7 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
             result.report["power_normalization"] = "Acycle method 2 display: abs(CWT)^2 / sample_variance / physical_scale";
             result.report["raw_power_normalization"] = "abs(CWT)^2 in original Y units squared";
             result.report["scale_corrected_power_normalization"] = "Acycle method 2 saved power: abs(CWT)^2 / physical_scale";
-            result.report["reference_implementation"] = "Uploaded Acycle 3.1.1 wave_readGUI method 2 / wave_update_wavelet / ar1nv";
+            result.report["reference_implementation"] = "Acycle 3.1.1 validation snapshot wave_readGUI method 2 / wave_update_wavelet / ar1nv";
             result.report["calibration_reference"] = "docs/methods/acycle_compatibility.md";
             result.report["significance_calibration"] = "Acycle pointwise approximation; not globally calibrated";
         }

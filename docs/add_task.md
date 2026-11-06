@@ -81,7 +81,7 @@ return NodeResult::success(
 
 `PlotView` 已支持 Series、Spectrum、Grid、Table。沿用这些类型通常无需新增基础绘图控件；需要特殊曲线组合或领域专用展示时，只在绘图适配层扩展。若增加全新的 DataObject 类型，需要一起更新验证、编码、回读和绘图契约。
 
-无输入的生成型任务自然属于数据源，可以独立成为根节点。需要新的外部数据绑定方式（例如按 ODP 数据库区间选取）时，另增加对应源选择面板与来源元信息；不能仅注册方法就声称已实现专用浏览器。文件源、正弦生成及内置 ODP 数据源均通过任务接口提供。离线示例共用 `io/examples` 和 `ExampleSourceTask`：新增同类数据时在来源 catalog、资源清单、ODP_EXAMPLE_METHODS 与双语目录登记，保留原档案、引用/许可，并补充全量数值摘要测试。远程 ODP 查询并未实现。
+无输入的生成型任务自然属于数据源，可以独立成为根节点。需要新的外部数据绑定方式（例如按 ODP 数据库区间选取）时，另增加对应源选择面板与来源元信息。文件源、正弦生成及内置 ODP 数据源均通过任务接口提供。离线示例共用 `io/examples` 和 `ExampleSourceTask`：新增同类数据时在来源 catalog、资源清单、ODP_EXAMPLE_METHODS 与双语目录登记，保留原档案、引用/许可，并补充全量数值摘要测试。远程 ODP 查询并未实现。
 
 详见 [开发清单](Aster_development_checklist.md) 的文件分工。保持算法不引用 QWidget、QCustomPlot 或 QSettings。
 
@@ -97,24 +97,32 @@ return NodeResult::success(
 - 新来源选择器可调用 `WorkflowDocument::setSources(rootId, QVector<SourceItem>)`。运行计划按 descriptor.requiresSourceBinding 自动收集；boundDataKind 存在时接口会检查内存输入类型。纯生成器不用绑定，不受文件选择影响。
 - 多选文本参数的 `choices` 是稳定程序值，例如 `fixed`。资源中的 `choice.spacing_mode.fixed` 为显示文字；ParameterEditor 始终返回 itemData 中的稳定值。
 - `method.<方法键>`、`parameter.<参数键>`、`category.<分类名>`、`port.<端口键>` 是现有翻译入口；缺失时回退到描述文本或稳定键。原始来源字段和科学数据列名不要为切换语言改名。
-- 输入仍是一份 DataRef。如果将来需要双输入关联或汇合任务，需要另设计输入绑定模型，不能仅在数学类中假装已有第二个输入。
-- 本版不支持放入 DLL／JSON 就自动执行新的 C++ 算法。常规扩展需要新增实现并重新编译；无需修改工作流执行器或主窗口。
+- 输入仍是一份 DataRef。如果将来需要双输入关联或汇合任务，需要另设计输入绑定模型，不能仅在数学类中增加第二个输入参数。
+- C++ 算法通过源码实现、注册和重新编译接入。常规扩展无需修改工作流执行器或主窗口。
 
 
 ## 结构化报错
 
 优先使用 `NodeResult::failure(makeError(ErrorCode::..., context, technical))`，在发现问题的位置填写具体索引、数量、参数或底层返回码。不要把整段数值数组装入 context。
 
-错误通过 `report.diagnostic` 自动转发和保存，`NodeResult::diagnostic()` 可回读；现有 `failure(QString)` 仍兼容。执行器补充 method/node_id/run_id/input_port，算法不需要依赖 UI 或数据库。跨行／合并后的序列索引用“输入点”表述，不冒充文件物理行号。
+错误通过 `report.diagnostic` 自动转发和保存，`NodeResult::diagnostic()` 可回读；现有 `failure(QString)` 仍兼容。执行器补充 method/node_id/run_id/input_port，算法不需要依赖 UI 或数据库。跨行／合并后的序列索引用“输入点”表述，与文件物理行号区分。
 
 内置错误用宏统一登记；独立新算法也可以使用带命名空间的自定义字符串码。中文和英文摘要／建议集中在语言资源中。完整示例、边界和字段规则见 [统一任务诊断](error_diagnostics.md)。处理建议不能自动添加节点或改写数值。
 
 ## 接入前的边界检查
 
-详细示例与多起点语义见 [数据传输审查](architecture.md)。新Task继续复用统一接口，不添加执行器分支；请验证同一输入并发运行不会共享可写算法状态。
+详细示例与多起点语义见 [数据传输审查](architecture.md)。新 Task 复用统一接口，不添加执行器分支；请验证同一输入并发运行不会共享可写算法状态。
 
 - 输入按 DataKind 匹配，不能因为 Spectrum 也有两条轴就当作 Series 解包。Grid→Series 必须明确切片/归约方式。
 - 输出不满足契约会在生产者处失败；可选输出缺失时其消费者失败，不自动替换端口。
 - 成功结果不要携带 error 或 report.diagnostic；不影响结果的提示放 warnings。
 - 可捕获异常不等于崩溃隔离。检查第三方库返回码、越界条件和容量；使用会 exit/abort 的接口时先处理其前提，不能指望 catch 截住进程退出。
 - 任务中的数据专有校验不可省略。工作流以外直接调用 execute 的代码，需自行完成参数规范化、通用输入和输出校验。
+
+## 帮助与参数命名
+
+新增任务时维护 `methodhelp.<method>`、`parameterhelp.<key>`。中文可以逐步补齐，缺失或空值回退到英文；英文也缺失时采用任务描述。多个任务共用参数键但含义不同的，使用 `parameter.<method>.<key>` 和 `parameterhelp.<method>.<key>` 覆盖，保留计算参数键以兼容已有工作流。
+
+参数参考由任务定义与语言资源生成，不直接编辑 Markdown。中文为 `docs/reference/task_parameters.md`，英文为 `docs/reference/task_parameters_en.md`。两者的方法锚点均为 `m-<method>`，参数锚点为 `m-<method>-p-<parameter>`。生成、重新编译与校验流程见[参数参考工具](../tools/help_reference/README.md)。GitHub Actions 检查文档是否与当前定义一致。
+
+新增内置页面加入 `resources/help.qrc`；界面回归检查注册任务的帮助覆盖与本地定位。不要将内部翻译键用作默认用户提示。

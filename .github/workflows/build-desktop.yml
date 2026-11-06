@@ -33,7 +33,7 @@ jobs:
             qt-arch: clang_64
             arch: x86_64
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       QT_QPA_PLATFORM: offscreen
       OPENBLAS_NUM_THREADS: '1'
@@ -46,6 +46,9 @@ jobs:
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
+          # Exact distribution source packages include Ubuntu patches/recipes.
+          python3 tools/release/enable_deb_src.py > /tmp/aster-deb-src.list
+          sudo install -m 644 /tmp/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev \
             libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
@@ -76,13 +79,15 @@ jobs:
             qmake -query QT_INSTALL_PREFIX
             c++ --version
           } 2>&1 | tee build-release/ci-logs/environment.log
+      - name: Check license packaging
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
       - name: Configure
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
           else
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | tee ci-logs/configure.log
           fi
       - name: Build
         run: |
@@ -92,6 +97,10 @@ jobs:
           else
             make -j2 2>&1 | tee ci-logs/build.log
           fi
+      - name: Check generated parameter references
+        run: |
+          python3 -m unittest discover -s tools/help_reference -p 'test_*.py' 2>&1 | tee build-release/ci-logs/help-generator-tests.log
+          python3 tools/help_reference/generate.py --build build-release --check 2>&1 | tee build-release/ci-logs/help-reference.log
       - name: Run regression tests
         run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
       - name: Package Linux
@@ -110,6 +119,14 @@ jobs:
             dist/*.sha256
           if-no-files-found: error
           retention-days: 30
+      - name: Upload dependency sources and notices
+        uses: actions/upload-artifact@v6
+        with:
+          name: dependency-materials-${{ matrix.target }}
+          path: dist/dependency-materials/*/release-assets/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
       - name: Upload build and test logs
         if: always()
         uses: actions/upload-artifact@v6
@@ -118,5 +135,6 @@ jobs:
           path: |
             build-release/ci-logs/
             build-release/test-results/
+            dist/dependency-materials/*/report.json
           if-no-files-found: ignore
           retention-days: 30

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "processing/task_categories.h"
 #include "processing/mtm_task.h"
 #include "processing/task_helpers.h"
@@ -17,6 +19,7 @@ namespace aster {
 
 TaskDescriptor MtmTask::descriptor()
 {
+    // Version 7 estimator is unchanged; the absolute output limit is an additive option.
     TaskDescriptor d; d.version = 7; d.label = "Multitaper spectrum (MTM)"; d.category = taskCategory(TaskCategory::PowerSpectrum);
     d.inputKind = DataKind::Series; d.defaultOutput = "spectrum";
     d.outputs = {{"spectrum", "Power spectrum", DataKind::Spectrum, true}, {"peaks", "Detected peaks", DataKind::Table, true}};
@@ -25,6 +28,7 @@ TaskDescriptor MtmTask::descriptor()
 #undef OUTPUT_PORT
     d.parameters = {task_detail::number("nw", "Time-bandwidth NW", 2, 1, 32),
         task_detail::number("nfft", "FFT length (0 = input length)", 0, 0, 4000000, ParameterKind::Integer),
+        task_detail::number("frequency_max", "Maximum frequency (0 = automatic)", 0, 0, 1e100),
         task_detail::number("fmax_ratio", "Output frequency / Nyquist (fit uses full spectrum)", 1, 0.001, 1),
         science_detail::boolean("ar1", "Fit AR1 background", true), science_detail::boolean("swa", "SWA background and FDR", true),
         science_detail::boolean("logfit", "Logarithmic AR1 fit", false),
@@ -36,13 +40,14 @@ TaskDescriptor MtmTask::descriptor()
         task_detail::number("peak_height", "Minimum peak power", 0, 0, 1e100),
         task_detail::number("peak_radius", "Prominence radius (0 = full)", 0, 0, 1000000, ParameterKind::Integer)};
     for(auto& p:d.parameters) {
+        p.hideWhenDefault = p.key == "fmax_ratio";
         p.group=p.key.startsWith("peak_") ? "peak_detection" :
             QStringList{"ar1","swa","logfit","smooth_window"}.contains(p.key) ? "background" : "spectrum";
     }
     return d;
 }
 MtmTask::MtmTask(const QJsonObject& p) : m_peakDistance(p["peak_distance"].toInt()), m_nfft(p["nfft"].toInt()), m_peakRadius(p["peak_radius"].toInt()), m_nw(p["nw"].toDouble()),
-    m_fmaxRatio(p["fmax_ratio"].toDouble()), m_smoothWindow(p["smooth_window"].toDouble()),
+    m_fmaxRatio(p["fmax_ratio"].toDouble()), m_frequencyMax(p["frequency_max"].toDouble()), m_smoothWindow(p["smooth_window"].toDouble()),
     m_prominence(p["peak_prominence"].toDouble()), m_peakWidth(p["peak_width"].toDouble()), m_peakHeight(p["peak_height"].toDouble()), m_relativeProminence(p["peak_relative_prominence"].toDouble()/100.0), m_ar1(p["ar1"].toBool()), m_swa(p["swa"].toBool()), m_logfit(p["logfit"].toBool()) {}
 NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& context)
 {
@@ -64,7 +69,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     } catch (const std::exception& e) {
         return context.cancellation.isCancelled() ? NodeResult::cancelled() : NodeResult::failure(makeError(ErrorCode::MtmFailure, {{"nw", m_nw}, {"samples", double(source->y.size())}, {"spacing", dt}}, QString::fromUtf8(e.what())));
     }
-    const double outputMaximum = m_fmaxRatio/(2*dt);
+    const double outputMaximum = m_frequencyMax > 0 ? std::min(m_frequencyMax, 1.0/(2*dt)) : m_fmaxRatio/(2*dt);
     const size_t outputBins = std::upper_bound(spectrum.frequency.begin(), spectrum.frequency.end(),
         outputMaximum + (1.0/dt/fftLength)*1e-10) - spectrum.frequency.begin();
     const QVector<double> frequency(spectrum.frequency.begin(), spectrum.frequency.begin()+outputBins);
@@ -75,7 +80,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     SpectrumInference inference;
     inference.acycle = true;
     inference.degreesOfFreedom.assign(spectrum.power.size(),2*tapers);
-    result.report["reference_implementation"] = "Uploaded Acycle 3.1.1 spectrum.m / redconfML.m / spectralswafdr.m";
+    result.report["reference_implementation"] = "Acycle 3.1.1 validation snapshot spectrum.m / redconfML.m / spectralswafdr.m";
     result.report["adaptive_convergence"] = "sum(abs(delta)) over the full two-sided spectrum < 0.0005*variance; paired real-FFT bins counted twice";
     result.report["significance_calibration"] = "Nominal approximations; no empirical false-positive-rate guarantee";
     result.report["calibration_reference"] = "docs/methods/statistical_limits.md";
@@ -92,8 +97,10 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     result.report["nyquist_frequency"] = 1.0/(2*dt);
     result.report["rayleigh_frequency"] = 1.0/(source->y.size()*dt);
     result.report["half_bandwidth"] = m_nw/(source->y.size()*dt);
-    result.report["background_fit_domain"] = "complete one-sided spectrum; fmax_ratio crops published outputs only";
+    result.report["background_fit_domain"] = "complete one-sided spectrum; frequency limit crops published outputs only";
     result.report["output_frequency_max"] = frequency.back();
+    result.report["requested_frequency_max"] = m_frequencyMax;
+    result.report["frequency_limit_mode"] = m_frequencyMax > 0 ? "absolute" : m_fmaxRatio < 1 ? "legacy_ratio" : "nyquist";
     result.report["peak_semantics"] = "local maxima, not automatically significant periodicities";
     auto add = [&](const QString& key, const std::vector<double>& values) {
         if (values.empty()) return;

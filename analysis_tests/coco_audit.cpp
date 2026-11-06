@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "coco_audit.h"
 #include "math/chronology/coco_scan.h"
 #include "processing/scientific_registry.h"

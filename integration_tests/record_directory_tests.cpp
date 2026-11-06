@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "integration_suites.h"
 #include <QtTest>
 #include <QTemporaryDir>
@@ -164,8 +166,9 @@ class RecordDirectoryTests : public QObject
         panel.resize(280, 760);
         panel.show();
         panel.setDatabase(path);
-        auto *select = panel.findChild<QToolButton *>("checkMatchingRecords");
+        auto *select = panel.findChild<QPushButton *>("checkMatchingRecords");
         auto *list = panel.findChild<QListWidget *>("resultRecords");
+        QVERIFY(select);
         QTRY_VERIFY(select->isEnabled());
         QCOMPARE(panel.recordCount(), 100);
         QSignalSpy plot(&panel, &RecordDirectoryPanel::recordActivated);
@@ -186,7 +189,7 @@ class RecordDirectoryTests : public QObject
         QTRY_VERIFY(select->isEnabled());
         QCOMPARE(panel.checkedRecords().size(), 105);
         QVERIFY(panel.findChild<QLabel *>("recordSelectionCount")->text().contains("53 outside"));
-        select->menu()->actions().last()->trigger();
+        panel.findChild<QPushButton *>("uncheckMatchingRecords")->click();
         QTRY_COMPARE(panel.checkedRecords().size(), 53);
         QTRY_VERIFY(select->isEnabled());
         search->clear();
@@ -259,7 +262,8 @@ class RecordDirectoryTests : public QObject
         QTRY_COMPARE(page.workspace()->pageCount(), 1);
         QTRY_COMPARE(page.recordId(), firstId);
         QCOMPARE(page.workspace()->currentReference().recordId, firstId);
-        auto *select = page.findChild<QToolButton *>("checkMatchingRecords");
+        auto *select = page.findChild<QPushButton *>("checkMatchingRecords");
+        QVERIFY(select);
         select->click();
         QTRY_VERIFY(!page.databaseBusy());
         answer(QMessageBox::Yes);

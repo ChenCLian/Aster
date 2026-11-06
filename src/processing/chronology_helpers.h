@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_CHRONOLOGY_HELPERS_H
 #define ASTER_PROCESSING_CHRONOLOGY_HELPERS_H
 #include "processing/task_helpers.h"

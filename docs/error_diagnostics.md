@@ -9,7 +9,7 @@
 | 核心诊断协议 | src/core/error_info.h/.cpp | ErrorInfo、宏声明的内置错误码、稳定字符串编码、JSON 编解码 |
 | 界面显示适配 | src/ui/common/error_presenter.h/.cpp | 简短原因、可选建议、可复制详情；中文／英文模板读取 |
 
-错误码不会随显示语言或枚举顺序改变。新增普通算法沿用 Task::execute 和 NodeResult。旧的 failure(QString) 入口继续可用；它被标为 UNCLASSIFIED，保留原文。已有 presentation::resultError() 保留调用签名，内部调用适配器，避免要求所有绘图／结果调用方一起改接口。
+错误码不会随显示语言或枚举顺序改变。新增普通算法沿用 Task::execute 和 NodeResult。旧的 failure(QString) 入口继续可用；它被标为 UNCLASSIFIED，保留原文。`presentation::resultError()` 通过适配器获取显示文字。
 
 ## 统一输出和存储
 
@@ -33,9 +33,9 @@ NodeResult.state 仍决定执行状态；NodeResult.error 保留简短兜底字�
 }
 ```
 
-执行器在失败／阻断／取消时补充方法、节点、运行标识和输入来源端口。RunEvent 携带同一 ErrorInfo，经现有 RunController 信号跨线程传递。ResultRepository 已保存 report 和 error，因此不需要新增列或错误表，schema 3、数值编码 v1 不变。旧记录无需迁移；没有结构化内容时仍显示旧字符串，已知旧导入和 X 检查错误有兼容解释。
+执行器在失败／阻断／取消时补充方法、节点、运行标识和输入来源端口。RunEvent 携带同一 ErrorInfo，经现有 RunController 信号跨线程传递。ResultRepository 在 report 和 error 中保存诊断，使用 schema 3 和数值编码 v1。没有结构化内容的记录显示原错误字符串；旧导入和 X 检查错误提供兼容解释。
 
-诊断只承载小型标量元信息：最多 64 个上下文字段，单个字符串最多 1024 字符、底层信息最多 4096 字符；不放数组、嵌套对象和数值数据块。正常计算输出仍使用原有 DataRef 类型，并未改成 JSON。
+诊断只承载小型标量元信息：最多 64 个上下文字段，单个字符串最多 1024 字符、底层信息最多 4096 字符；不放数组、嵌套对象和数值数据块。计算输出通过只读 DataRef 传递。
 
 ## 算法与来源覆盖
 
@@ -53,7 +53,7 @@ NodeResult.state 仍决定执行状态；NodeResult.error 保留简短兜底字�
 
 输入点索引和文件行号都按 1 开始显示，但它们不是同一种位置。算法诊断只声明“输入点”；数据经过筛选、合并或插值后，不虚构它在原文件中的行号。正式文件读取错误使用真实物理行号，包含表头和注释行。
 
-可选 AR1／SWA 失败等已有警告仍保留在 warnings；不将原来可保留主要输出的情况变成整步失败。数学库原始细节和系统返回文字可能仍为英文。
+可选 AR1／SWA 估计失败时，在 warnings 中记录原因并保留主要输出。数学库原始细节和系统返回文字可能仍为英文。
 
 ## 界面行为
 

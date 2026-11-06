@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_SOURCE_PANEL_H
 #define ASTER_UI_SOURCE_PANEL_H
 #include "ui/workflow/workflow_document.h"
@@ -8,6 +10,7 @@ class QLabel;
 namespace aster::ui
 {
 class FileOptionsEditor;
+enum class SourceFileState { Pending, Running, Saved, Unsaved, Cancelled, Failed };
 class SourcePanel : public QWidget
 {
     Q_OBJECT
@@ -17,10 +20,11 @@ class SourcePanel : public QWidget
     void selectRoot(NodeId root);
     NodeId root() const;
     void addFiles(const QStringList &files);
-    void setFileState(NodeId root, const QString &path, const QString &state);
+    void setFileState(NodeId root, const QString &path, SourceFileState state);
     void clearFileStates();
     bool applyCurrentOptions();
     bool readyToRun() const;
+    void syncPreviewInput();
   signals:
     void importRequested();
     void sourceRequested();
@@ -36,7 +40,7 @@ class SourcePanel : public QWidget
     void showFileOptions();
     void notifyPreviewSource();
     FileOptionsEditor *m_options;
-    QHash<QString, QString> m_states;
+    QHash<QString, SourceFileState> m_states;
     WorkflowDocument *m_document;
     QComboBox *m_roots;
     QListWidget *m_files;

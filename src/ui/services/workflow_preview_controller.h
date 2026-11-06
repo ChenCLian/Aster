@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_WORKFLOW_PREVIEW_CONTROLLER_H
 #define ASTER_UI_WORKFLOW_PREVIEW_CONTROLLER_H
 #include "ui/workflow/workflow_document.h"

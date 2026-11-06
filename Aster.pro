@@ -21,6 +21,13 @@ tests.depends = core
     integration_tests.depends = desktop_ui application science io core
     update_tests.depends = desktop_ui application science io core
 }
+# Optional descriptor exporter for generated parameter references.
+contains(CONFIG, help_reference):!contains(CONFIG, core_only) {
+    SUBDIRS += help_reference
+    help_reference.file = tools/help_reference/catalog.pro
+    help_reference.depends = core io science
+}
+
 # Optional validation of the current registered AR1 global test.
 contains(CONFIG, calibration):!contains(CONFIG, core_only) {
     SUBDIRS += ar1_global_validation
@@ -28,6 +35,7 @@ contains(CONFIG, calibration):!contains(CONFIG, core_only) {
     ar1_global_validation.depends = core io science
 }
 
+DISTFILES += LICENSE COPYRIGHT.md SOURCE_CODE.md licenses/GPL-3.0.txt licenses/AstroGeoFit_LICENSE.txt
 DISTFILES += README.md AUTHORS.md RELEASE_NOTES.md PACKAGE_STATUS.json PACKAGE_MANIFEST.json .clang-format VERSION .gitignore
 DISTFILES += config/version.pri
 DISTFILES += config/local.pri.example config/scientific_dependencies.pri config/link_modules.pri
@@ -37,6 +45,7 @@ DISTFILES += $$files($$PWD/tools/*.md, true) $$files($$PWD/tools/*.py, true)
 DISTFILES += $$files($$PWD/tools/*.m, true) $$files($$PWD/tools/*.m.in, true)
 DISTFILES += $$files($$PWD/tools/*.json, true)
 DISTFILES += tools/peak_validation/reference_bridge.cpp
+DISTFILES += tools/help_reference/catalog.pro tools/help_reference/main.cpp
 DISTFILES += tools/ar1_global_validation/validation.pro tools/ar1_global_validation/main.cpp
 DISTFILES += tools/ar1_global_validation/portable_random.h
 DISTFILES += resources/astronomy/solutions/La2010_README.TXT resources/astronomy/solutions/PT_README.txt

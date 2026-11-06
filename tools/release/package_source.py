@@ -11,7 +11,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-EXCLUDED_DIRS = {'.git', '.qtcreator', '__pycache__', 'dist', '.pytest_cache'}
+EXCLUDED_DIRS = {'.git', '.qtcreator', '__pycache__', 'dist', '.pytest_cache',
+                 'dependency-materials', 'dependency-cache', 'release-assets'}
 EXCLUDED_SUFFIXES = {'.exe', '.dll', '.lib', '.a', '.o', '.obj', '.pdb', '.ilk', '.pyc', '.sqlite', '.db'}
 
 def included(path):
@@ -41,6 +42,9 @@ def main():
     template = ROOT / 'config/local.pri.example'
     if not template.is_file() or not included(template):
         raise SystemExit('Missing distributable config/local.pri.example; restore the dependency setup template before packaging.')
+    for name in ('LICENSE', 'COPYRIGHT.md', 'SOURCE_CODE.md'):
+        if not (ROOT / name).is_file():
+            raise SystemExit(f'Missing required project notice: {name}')
     files = sorted(p for p in ROOT.rglob('*') if p.is_file() and included(p))
     payload = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in files}
     status = json.loads(payload['PACKAGE_STATUS.json'])

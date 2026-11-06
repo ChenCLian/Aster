@@ -1,0 +1,23 @@
+{
+  "components": [
+    {
+      "id": "example-library",
+      "version": "REPLACE_WITH_INSTALLED_VERSION",
+      "provenance": "REPLACE_WITH_EXACT_BUILD_SOURCE_AND_PATCH_DESCRIPTION",
+      "replace": false,
+      "licenses": ["material-input/LICENSE"],
+      "recipes": ["material-input/BUILD.md", "material-input/fix.patch"],
+      "sources": [
+        {
+          "url": "https://example.invalid/exact-source-version.tar.gz",
+          "sha256": "REPLACE_WITH_64_HEX_SHA256",
+          "filename": "example-library-exact-source-version.tar.gz",
+          "archive": true
+        }
+      ],
+      "binaries": [
+        {"path": "example-library.dll", "sha256": "REPLACE_WITH_STAGED_BINARY_SHA256"}
+      ]
+    }
+  ]
+}

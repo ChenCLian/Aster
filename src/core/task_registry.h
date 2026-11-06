@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_CORE_TASK_REGISTRY_H
 #define ASTER_CORE_TASK_REGISTRY_H
 
@@ -18,6 +20,7 @@ struct ParameterSpec {
     QString group{}, help{}, icon{};
     QJsonObject visibleWhen{}; // all named parameters must equal these values
     QString fileFilter{}; // optional file chooser for Text parameters; empty = ordinary text
+    bool hideWhenDefault = false; // Compatibility fields stay visible only when configured.
 };
 struct OutputSpec {
     QString key, label;

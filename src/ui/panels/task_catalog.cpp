@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/panels/task_catalog.h"
 #include "ui/common/task_drag_preview.h"
 #include <QMouseEvent>

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/plot_axis_hints.h"
 #include "ui/panels/file_preview_panel.h"
 #include "ui/services/file_preview_loader.h"
 #include "ui/common/presentation.h"
@@ -26,10 +29,10 @@ FilePreviewPanel::FilePreviewPanel(QWidget *parent) : QFrame(parent)
     setObjectName("filePreviewPanel");
     auto *layout = new QVBoxLayout(this);
     layout->setSizeConstraint(QLayout::SetNoConstraint);
-    layout->setContentsMargins(8, 4, 8, 6);
+    layout->setContentsMargins(0, 0, 0, 6);
     layout->setSpacing(2);
     auto *identity = new QFrame; identity->setObjectName("SourcePreviewIdentity");
-    auto *header = new QVBoxLayout(identity); header->setContentsMargins(10, 9, 10, 9);
+    auto *header = new QVBoxLayout(identity); header->setContentsMargins(8, 10, 8, 10);
     header->setSpacing(4);
     m_title = new QLabel;
     m_title->setObjectName("PreviewMethod");
@@ -54,6 +57,7 @@ FilePreviewPanel::FilePreviewPanel(QWidget *parent) : QFrame(parent)
     m_message->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
     body->addWidget(m_message, 1);
     m_plot = new QCustomPlot;
+    new PlotAxisHints(m_plot);
     m_plot->setObjectName("filePreviewPlot");
     m_plot->setMinimumSize(0, 0);
     m_plot->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

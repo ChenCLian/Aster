@@ -1,12 +1,13 @@
-QMainWindow, QDialog { background: @window@; }
+QMainWindow { background: @window@; }
+QDialog { background: @surface@; }
 QWidget { color: @text@; }
-QFrame#Header { background: @header@; border-bottom: 1px solid @border@; }
-QLabel#Brand { font-size: 21px; font-weight: 700; color: @accent@; }
-QLabel#PageTitle { font-size: 19px; font-weight: 600; }
-QLabel#Muted { color: @muted@; }
-QLabel#SectionTitle { font-size: 13px; font-weight: 600; }
+QFrame#Header { background: @header@; border-bottom: 1px solid @divider@; }
+QLabel#Brand { font-size: 16pt; font-weight: 700; color: @accent@; }
+QLabel#PageTitle { font-size: 14pt; font-weight: 600; }
+QLabel#Muted { color: @muted@; font-size: 9pt; }
+QLabel#SectionTitle { font-size: 10.5pt; font-weight: 600; }
 QLabel#Error { color: @error@; }
-QFrame#Panel, QWidget#Panel, QFrame#filePreviewPanel { background: @surface@; border: 1px solid @border@; border-radius: 3px; }
+QFrame#Panel, QWidget#Panel { background: @surface@; border: 1px solid @border@; border-radius: 3px; }
 QPushButton, QToolButton { border: 1px solid @controlBorder@; border-radius: 3px; background: @surface@; padding: 7px 11px; }
 QPushButton:hover, QToolButton:hover { background: @hover@; border-color: @accent@; }
 QPushButton:pressed, QToolButton:pressed { background: @selection@; border-color: @accent@; }
@@ -18,15 +19,15 @@ QPushButton#Primary:hover { background: @accentHover@; border-color: @accentHove
 QPushButton#Primary:pressed { background: @accentPressed@; border-color: @accentPressed@; }
 QPushButton#Primary:focus { border-color: @accentText@; }
 QPushButton#Primary:disabled { background: @disabledSurface@; border-color: @border@; color: @disabled@; }
-QPushButton#Nav { border: 1px solid transparent; background: transparent; padding: 9px 18px; font-size: 14px; font-weight: 600; }
+QPushButton#Nav { border: 1px solid transparent; background: transparent; padding: 9px 18px; font-size: 10.5pt; font-weight: 600; }
 QPushButton#Nav:hover { background: @hover@; }
 QPushButton#Nav:checked { color: @accentText@; background: @accentFill@; border-color: @accentFill@; }
 QPushButton#Nav:checked:hover { background: @accentHover@; }
 QPushButton#Nav:focus { border-color: @accent@; }
 QPushButton#Nav:checked:focus { border-color: @accentText@; }
-QLabel#SidePanelTitle { padding: 11px 12px; border-bottom: 1px solid @border@; font-weight: 600; }
-QPushButton#Primary[role="runWorkflow"] { font-size: 14px; padding: 4px 18px; }
-QToolButton#FoldHeader { border: 0; border-bottom: 1px solid @border@; border-radius: 0; text-align: left; font-weight: 600; padding: 10px; background: @surface@; }
+QLabel#SidePanelTitle { background: @surface@; padding: 12px; border-bottom: 1px solid @divider@; font-size: 10.5pt; font-weight: 600; border-top-left-radius: 2px; border-top-right-radius: 2px; }
+QPushButton#Primary[role="runWorkflow"] { font-size: 10.5pt; padding: 4px 18px; }
+QToolButton#FoldHeader { border: 0; border-bottom: 1px solid @divider@; border-radius: 0; text-align: left; font-weight: 600; padding: 10px; background: @surface@; }
 QToolButton#filePreviewToggle { border: 0; padding: 0; }
 QToolButton#filePreviewFit { padding: 3px 6px; }
 QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QTextEdit, QPlainTextEdit { background: @field@; border: 1px solid @controlBorder@; border-radius: 3px; padding: 5px 7px; min-height: 20px; selection-background-color: @selection@; selection-color: @selectionText@; }
@@ -37,13 +38,22 @@ QTreeView, QListView, QTableView { border: 0; background: @surface@; outline: no
 QTreeView::item, QListView::item { padding: 6px; border: 1px solid transparent; border-radius: 3px; }
 QTreeView::item:hover, QListView::item:hover { background: @hover@; }
 QTreeView::item:selected, QListView::item:selected { background: @selection@; color: @selectionText@; border-color: @accent@; }
-QTableView { gridline-color: @border@; }
-QHeaderView::section { background: @section@; border: 0; border-bottom: 1px solid @border@; padding: 7px; color: @text@; font-weight: 600; }
+QTableView { gridline-color: @divider@; }
+QHeaderView::section { background: @surface@; border: 0; border-bottom: 1px solid @divider@; padding: 7px; color: @text@; font-weight: 600; }
 QTabWidget::pane { border: 0; background: transparent; }
 QTabBar::tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 7px 9px; margin-right: 2px; color: @muted@; }
-QTabBar::tab:selected { color: @selectionText@; background: @selection@; border-bottom: 2px solid @accent@; }
+QTabBar::tab:selected { color: @text@; background: @surface@; border-bottom: 2px solid @accent@; }
 QTabBar::tab:hover { color: @accent@; background: @hover@; }
-QTabBar::tab:selected:hover { color: @selectionText@; background: @selection@; }
+QTabBar::tab:selected:hover { color: @text@; background: @hover@; }
+/* The two axis choices stay visible above the scrolling inspector. */
+QTabBar#styleAxis::tab { background: @field@; color: @text@; border: 1px solid @controlBorder@; border-radius: 0; padding: 7px 12px; margin: 0; font-weight: 600; }
+QTabBar#styleAxis::tab:first { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+QTabBar#styleAxis::tab:last { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+QTabBar#styleAxis::tab:hover { background: @hover@; color: @text@; }
+QTabBar#styleAxis::tab:selected { background: @accentFill@; color: @accentText@; border-color: @accentFill@; }
+QTabBar#styleAxis::tab:selected:hover { background: @accentHover@; color: @accentText@; }
+QTabBar#styleAxis:focus::tab:selected { border: 2px solid @accentText@; padding: 6px 11px; }
+QTabBar#styleAxis::tab:disabled { background: @disabledSurface@; color: @disabled@; border-color: @border@; }
 QScrollArea { border: 0; background: transparent; }
 QScrollBar:vertical { width: 8px; background: transparent; margin: 2px; }
 QScrollBar:horizontal { height: 8px; background: transparent; margin: 2px; }
@@ -60,11 +70,12 @@ QMenu::item:selected { background: @selection@; color: @selectionText@; }
 QMenu::item:disabled { color: @disabled@; }
 QProgressBar { border: 0; background: @selection@; border-radius: 3px; max-height: 6px; }
 QProgressBar::chunk { background: @accentFill@; border-radius: 3px; }
-QStatusBar { background: @surface@; border-top: 1px solid @border@; color: @muted@; }
+QStatusBar { background: @surface@; border-top: 1px solid @divider@; color: @muted@; font-size: 9pt; }
 QToolTip { border: 1px solid @controlBorder@; background: @surface@; color: @text@; padding: 5px; }
 
-QFrame#StyleSection { border: 1px solid @border@; border-radius: 3px; background: @inspector@; }
-QLabel#StyleSectionTitle { font-weight: 600; color: @text@; background: @section@; padding: 6px; border: 0; border-bottom: 1px solid @border@; }
+/* Internal groups share the panel surface; only headings separate sections. */
+QFrame#StyleSection { border: 0; background: transparent; }
+QLabel#StyleSectionTitle, QLabel#ParameterGroup { font-size: 10pt; font-weight: 600; color: @text@; background: transparent; padding: 3px 0 8px 0; border: 0; border-bottom: 1px solid @divider@; }
 QWidget#Surface { background: @surface@; }
 QLabel#Notice { background: @hover@; color: @warning@; padding: 8px 18px; }
 QLabel#StepError { background: @hover@; color: @error@; border: 1px solid @border@; border-radius: 6px; padding: 10px; }
@@ -85,15 +96,15 @@ QCheckBox::indicator:disabled { border-color: @border@; background: @disabledSur
 QCheckBox:focus { color: @accent@; }
 
 QMenu#taskPicker::item { padding: 10px 36px 10px 14px; }
-QLabel#ParameterGroup { color: @text@; font-weight: 600; background: @section@; padding: 6px; border-bottom: 1px solid @border@; }
-QToolButton#ParameterHelp, QToolButton#methodHelp { color: @muted@; background: transparent; border: 0; padding: 0px; min-width: 20px; min-height: 20px; }
-QToolButton#ParameterHelp:hover { color: @accent@; background: @hover@; }
+QToolButton#ParameterHelp, QToolButton#methodHelp { color: @text@; background: @field@; border: 1px solid @controlBorder@; border-radius: 3px; padding: 0; min-width: 20px; min-height: 20px; font-weight: 600; }
+QToolButton#ParameterHelp:hover, QToolButton#methodHelp:hover, QToolButton#ParameterHelp:focus, QToolButton#methodHelp:focus { border-color: @text@; background: @hover@; }
+QPushButton[selectionAction="true"] { padding: 5px 3px; }
 
-QFrame#PreviewIdentity { background: @section@; border: 0; border-left: 3px solid @accent@; border-radius: 3px; }
-QFrame#SourcePreviewIdentity { background: transparent; border: 0; border-bottom: 1px solid @border@; }
+QFrame#PreviewIdentity { background: transparent; border: 0; border-bottom: 1px solid @divider@; }
+QFrame#SourcePreviewIdentity { background: transparent; border: 0; border-bottom: 1px solid @divider@; }
 QFrame#SourcePreviewIdentity QLabel#PreviewMethod { color: @text@; }
 QFrame#filePreviewPanel { background: @plot@; border: 0; }
-QLabel#PreviewMethod { color: @accent@; font-size: 15px; font-weight: 600; }
+QLabel#PreviewMethod { color: @accent@; font-size: 11pt; font-weight: 600; }
 
 /* Functional surfaces: colors are defined once per theme, not per widget. */
 QWidget#Panel[panelRole="navigation"] { background: @navigation@; }
@@ -102,12 +113,10 @@ QWidget#Panel[panelRole="plot"] { background: @plot@; }
 QWidget#Panel[panelRole="activity"] { background: @activity@; }
 QWidget#parameterSidePanel QFrame#Panel, QWidget#catalogSidePanel QFrame#Panel { background: @inspector@; }
 QWidget#previewSidePanel QFrame#Panel { background: @plot@; }
-QLabel#SidePanelTitle { background: @header@; border-top-left-radius: 2px; border-top-right-radius: 2px; }
 QWidget#Panel[panelRole="navigation"] QListView { background: @navigation@; }
 QWidget#catalogSidePanel QTreeView { background: @inspector@; }
 QWidget#parameterSidePanel QWidget#Surface { background: @inspector@; }
 QWidget#Panel[panelRole="activity"] QTableView { background: @activity@; }
-QStatusBar { background: @header@; }
 QFrame#plotProbeBubble { background: @probe@; border: 1px solid @controlBorder@; border-radius: 6px; }
 QFrame#plotProbeBubble QLabel { background: transparent; border: 0; }
 QLabel#plotProbeTitle { font-weight: 600; color: @text@; }
@@ -127,3 +136,15 @@ QPushButton#updateOpen:hover { background: @accentHover@; }
 QPushButton#updateOpen:pressed { background: @accentPressed@; }
 QPushButton#updateOpen:disabled { background: @disabledSurface@; border-color: @border@; color: @disabled@; }
 QDialog#updateDialog QPlainTextEdit { padding: 8px; }
+
+/* Inspector navigation: primary modes, editing target, then plot categories. */
+QTabBar#inspectorPrimaryNav::tab { padding: 10px 8px; margin: 0; border: 1px solid @controlBorder@; background: @surface@; color: @text@; font-size: 11pt; font-weight: 600; }
+QTabBar#inspectorPrimaryNav::tab:selected { background: @accentFill@; color: @accentText@; border-color: @accentFill@; }
+QTabBar#inspectorPrimaryNav::tab:hover { background: @hover@; color: @text@; }
+QTabBar#inspectorPrimaryNav::tab:selected:hover { background: @accentHover@; color: @accentText@; }
+QTabBar#inspectorSectionNav::tab { padding: 6px 5px; margin: 0; border: 0; border-bottom: 2px solid @divider@; background: @surface@; color: @muted@; font-size: 10pt; }
+QTabBar#inspectorSectionNav::tab:selected { color: @text@; font-weight: 600; border-bottom: 2px solid @accent@; }
+QTabBar#inspectorSectionNav::tab:hover { background: @hover@; color: @text@; }
+QFrame#inspectorTarget { border: 1px solid @divider@; border-left: 3px solid @accent@; background: @surface@; }
+QLabel#activeStyleTarget { font-size: 10.5pt; font-weight: 600; color: @text@; }
+QFrame#settingsDivider { background: @divider@; border: 0; }

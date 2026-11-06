@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PLOT_REQUEST_H
 #define ASTER_PLOT_REQUEST_H
 #include "core/task.h"

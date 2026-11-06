@@ -25,6 +25,9 @@ ui_*.h
 settings.ini
 .env*
 dist/
+dependency-materials/
+dependency-cache/
+release-assets/
 __pycache__/
 *.pyc
 .DS_Store

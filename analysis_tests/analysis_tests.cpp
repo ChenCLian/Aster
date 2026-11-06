@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include <QtTest>
 #include <QTemporaryDir>
 #include <QFile>
@@ -121,6 +123,7 @@ class AnalysisTests : public QObject
     void mtmMatchesScipy();
     void mtmPeakAndIntegral();
     void mtmShortConstantAndCutoff();
+    void mtmAbsoluteFrequencyLimit();
     void mtmTinyCutoffAndWorkspace();
     void rejectIrregularAxis();
     void largeOriginDoesNotHideIrregularSampling();
@@ -496,6 +499,53 @@ void AnalysisTests::mtmShortConstantAndCutoff()
     const auto cut = execute("mtm", signal(100), {{"fmax_ratio", .317}, {"swa", false}});
     QCOMPARE(cut.state, NodeState::Succeeded);
     QVERIFY(dataAs<SpectrumData>(cut.outputs["spectrum"])->frequency.back() <= .317 / 2);
+}
+void AnalysisTests::mtmAbsoluteFrequencyLimit()
+{
+    WorkflowModel original(makeScientificRegistry());
+    const auto root = original.addRoot("input_series", {0, 0}).nodeId;
+    const auto child = original.addChild(root, ChildSlot::Down, "mtm", {{"fmax_ratio", .32}}).nodeId;
+    auto oldDefinition = original.definition();
+    for (auto &node : oldDefinition.nodes)
+        if (node.id == child) { node.parameters.remove("frequency_max"); node.methodVersion = 7; }
+    WorkflowModel restored(makeScientificRegistry());
+    const auto restoredEdit = restored.replaceDefinition(oldDefinition);
+    QVERIFY2(restoredEdit.ok(), qPrintable(restoredEdit.error));
+    const auto input = signal(256, 16, 2); // Nyquist = .25 1/ka.
+    const auto full = execute("mtm", input);
+    const auto cut = execute("mtm", input, {{"frequency_max", .08}});
+    const auto legacy = execute("mtm", input, {{"fmax_ratio", .32}});
+    const auto capped = execute("mtm", input, {{"frequency_max", 25}});
+    const auto explicitLimit = execute("mtm", input, {{"frequency_max", .08}, {"fmax_ratio", .1}});
+    for (const auto *run : {&full, &cut, &legacy, &capped, &explicitLimit})
+        QCOMPARE(run->state, NodeState::Succeeded);
+    QCOMPARE(cut.report["frequency_limit_mode"].toString(), QString("absolute"));
+    QCOMPARE(legacy.report["frequency_limit_mode"].toString(), QString("legacy_ratio"));
+    QCOMPARE(cut.report["analysis_frequency_max"], full.report["analysis_frequency_max"]);
+    QCOMPARE(cut.report["ar1_rho"], full.report["ar1_rho"]);
+    for (auto it = cut.outputs.begin(); it != cut.outputs.end(); ++it)
+    {
+        const auto *part = dataAs<SpectrumData>(it.value());
+        if (!part) continue;
+        const auto *all = dataAs<SpectrumData>(full.outputs[it.key()]);
+        const auto *old = dataAs<SpectrumData>(legacy.outputs[it.key()]);
+        const auto *explicitPart = dataAs<SpectrumData>(explicitLimit.outputs[it.key()]);
+        const auto *cappedPart = dataAs<SpectrumData>(capped.outputs[it.key()]);
+        QVERIFY(all && old && explicitPart && cappedPart);
+        QVERIFY(part->frequency.back() <= .08);
+        QCOMPARE(part->frequency, old->frequency);
+        QCOMPARE(part->power, old->power);
+        QCOMPARE(part->power, all->power.mid(0, part->power.size()));
+        QCOMPARE(part->power, explicitPart->power);
+        QCOMPARE(cappedPart->power, all->power);
+    }
+    const auto *peaks = dataAs<TableData>(cut.outputs["peaks"]);
+    QVERIFY(peaks);
+    for (const auto &row : peaks->rows) QVERIFY(row[0] <= .08);
+    QCOMPARE(execute("mtm", input, {{"frequency_max", -1}}).state, NodeState::Failed);
+    const auto tiny = execute("mtm", input, {{"frequency_max", 1e-10}});
+    QCOMPARE(tiny.state, NodeState::Succeeded);
+    QCOMPARE(dataAs<SpectrumData>(tiny.outputs["spectrum"])->frequency.size(), 1);
 }
 void AnalysisTests::rejectIrregularAxis()
 {

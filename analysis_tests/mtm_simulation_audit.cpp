@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "mtm_simulation_audit.h"
 #include "math/statistics/mtm_simulation.h"
 #include "math/statistics/monte_carlo_test.h"

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_CORE_WORKFLOW_EXECUTOR_H
 #define ASTER_CORE_WORKFLOW_EXECUTOR_H
 

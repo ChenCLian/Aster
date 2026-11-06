@@ -1,242 +1,299 @@
 {
   "project": "Aster",
-  "version": "1.1.0",
-  "date": "2026-11-04",
-  "baseline": {
-    "file": "Aster_1.1.0.zip",
-    "sha256": "2c8284edb86b86716fe630a1d75db4ed5b958035a4ed08940f2077ba2167a19a"
+  "version": "1.1.1",
+  "date": "2026-11-06",
+  "record_type": "release_validation_index",
+  "source": {
+    "manifest": "PACKAGE_MANIFEST.json",
+    "review_baseline_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d"
   },
-  "environment": {
-    "os": "Linux x86_64 / Debian 13",
-    "compiler": "GCC 14.2",
-    "qt": "6.8.2",
-    "configuration": "Release (fresh build directory)",
-    "linear_algebra": "OpenBLAS 0.3.29 / LP64 LAPACK",
-    "fft": "PocketFFT",
-    "gsl": "2.8"
-  },
-  "regression": {
-    "passed": 979,
-    "failed": 0,
-    "skipped": 0,
-    "targets": [
-      {
-        "target": "aster_core_tests",
-        "exit_code": 0,
-        "passed": 54,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 1
-      },
-      {
-        "target": "aster_analysis_tests",
-        "exit_code": 0,
-        "passed": 674,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 21
-      },
-      {
-        "target": "aster_ui_tests",
-        "exit_code": 0,
-        "passed": 68,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 1
-      },
-      {
-        "target": "aster_style_export_tests",
-        "exit_code": 0,
-        "passed": 32,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 1
-      },
-      {
-        "target": "aster_workspace_tests",
-        "exit_code": 0,
-        "passed": 23,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 1
-      },
-      {
-        "target": "aster_integration_tests",
-        "exit_code": 0,
-        "passed": 83,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 4
-      },
-      {
-        "target": "aster_update_tests",
-        "exit_code": 0,
-        "passed": 45,
-        "failed": 0,
-        "skipped": 0,
-        "suites": 1
-      }
-    ]
-  },
-  "additional_checks": {
-    "peak_scipy": {
-      "reference": "scipy.signal.find_peaks / peak_prominences / peak_widths",
-      "scipy": "1.17.0",
-      "cases": 900,
-      "all_passed": true,
-      "seed": 3403,
-      "coverage": "random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (Aster suppression order intentionally differs)",
-      "prominence_rtol": 2e-13,
-      "width_rtol": 2e-12
+  "scope": "Windows packaging interpreter preflight and collector-process diagnostics, release-tool regression, documentation and source archive integrity. Desktop implementation and embedded help are unchanged.",
+  "counting": "Current checks and retained evidence are separate. Counts from different runs must not be summed as a new full regression result; QtTest totals include initialization and cleanup.",
+  "current_checks": {
+    "release_tool_tests": {
+      "passed": 27,
+      "failed": 0,
+      "log": "docs/validation_results/release/dependency_materials_tests.txt"
     },
-    "qmake_windows_conditions": {
-      "count": 19,
-      "native_msvc": false,
-      "cases": [
-        {
-          "case": "reproduce-old-root-env-conflict",
-          "passed": true,
-          "expected_failure": true
+    "documentation": {
+      "status": "passed",
+      "documents": 46,
+      "local_links": 307,
+      "repository_path_links": 27,
+      "anchors": 117,
+      "compiled_help_resources": 47,
+      "protected_files_byte_identical": 504,
+      "validation_log_references": 18,
+      "windows_packaging_examples_identical": true,
+      "personal_paths_found": 0,
+      "stale_release_version_text_found": 0,
+      "scope": "Project Markdown links and anchors, repository-path URLs checked against this source tree, QRC entries, packaging parameters, retained log references, version labels and protected-file byte comparison. External website availability is not tested."
+    },
+    "source_packaging": {
+      "status": "passed",
+      "source_package_files": 586,
+      "manifest_verified": true,
+      "zip_integrity": true,
+      "local_pri_excluded": true,
+      "temporary_products_excluded": true,
+      "original_license_bytes_preserved": true,
+      "scope": "Local source archive verification, not a binary deployment or remote publication."
+    },
+    "windows_packaging_process": {
+      "passed": 12,
+      "failed": 0,
+      "environment": {
+        "powershell": "7.4.6",
+        "python": "3.12.14",
+        "os": "Linux x86_64"
+      },
+      "log": "docs/validation_results/release/windows_packaging_process_tests.txt",
+      "scope": "Native process boundary and report handling with controlled Python fixtures. Does not validate Windows PowerShell 5.1, windeployqt or actual vcpkg/Qt material downloads."
+    }
+  },
+  "retained_evidence": [
+    {
+      "id": "documentation_and_help_baseline",
+      "date": "2026-11-06",
+      "source_archive_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d",
+      "scope": "Retained checks of unchanged help generator, parameter references and notice staging. Not rerun for Windows process diagnostics.",
+      "checks": {
+        "help_generator_tests": {
+          "passed": 6,
+          "failed": 0,
+          "log": "docs/validation_results/release/help_generator.txt"
         },
-        {
-          "case": "reproduce-user-missing-local",
-          "passed": true,
-          "expected_failure": true
+        "parameter_reference": {
+          "tasks": 53,
+          "parameters": 228,
+          "languages": [
+            "zh",
+            "en"
+          ],
+          "status": "current",
+          "log": "docs/validation_results/release/help_reference.txt",
+          "catalogue": "Retained executable from the unchanged descriptor sources; current language files and generated documents checked."
         },
-        {
-          "case": "local-root-over-bad-env-prefix",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "local-root-over-valid-env-prefix",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "local-root-over-env-root",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "local-prefix-over-both-env",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "project-root-over-env-prefix",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "local-prefix-wins-local-root",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "environment-prefix-fallback",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "environment-root-fallback",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "empty-local-file-fallback",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "missing-configuration",
-          "passed": true,
-          "expected_failure": true
-        },
-        {
-          "case": "visual-studio-without-installed-libs",
-          "passed": true,
-          "expected_failure": true
-        },
-        {
-          "case": "invalid-local-no-silent-fallback",
-          "passed": true,
-          "expected_failure": true
-        },
-        {
-          "case": "debug-libraries",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "profile-libraries",
-          "passed": true,
-          "expected_failure": false
-        },
-        {
-          "case": "missing-openblas",
-          "passed": true,
-          "expected_failure": true
-        },
-        {
-          "case": "missing-lapack",
-          "passed": true,
-          "expected_failure": true
-        },
-        {
-          "case": "missing-gsl",
-          "passed": true,
-          "expected_failure": true
+        "staged_documents": {
+          "status": "passed",
+          "local_links": 35,
+          "scope": "Project Markdown files staged by stage_notices.py; mocked Qt prefix, no runtime deployment or dependency collection."
         }
+      }
+    },
+    {
+      "id": "dependency_source_collection",
+      "date": "2026-11-06",
+      "environment": {
+        "os": "Debian 13 x86_64",
+        "python": "3.12.14",
+        "configuration": "Release tooling and documentation checks; no native Windows/macOS build or desktop application rebuild."
+      },
+      "scope": "Retained source-download, checksum, attribution and provenance checks. Exact final dependencies still require collection on each native release host.",
+      "record": "docs/validation_results/release/dependency_materials_checks.json",
+      "input_archive_sha256": "3ea089836d9fa1b566d70b949c116e6b42a2a4cf4fac1cf23abecf5646e1dc6d",
+      "evidence_archive_sha256": "e12cbbb5b033f7da2639adbe6546be0f5e6fa08f0edc27e7d727cb3cbc5e6f41"
+    },
+    {
+      "id": "help_catalogue_build",
+      "date": "2026-11-06",
+      "environment": {
+        "os": "Debian 13 x86_64",
+        "compiler": "GCC 14.2.0",
+        "qt": "6.8.2",
+        "python": "3.12.14",
+        "configuration": "Release build of core, io, science and the help catalogue only; no new desktop application or GUI test run.",
+        "numeric_stack": "OpenBLAS 0.3.29 / LP64 LAPACK, PocketFFT, GSL 2.8"
+      },
+      "scope": "Retained Release build of the descriptor-export tool. Its implementation, task definitions, fixtures and version are unchanged; the current freshness check uses this executable with the current language resources.",
+      "log": "docs/validation_results/release/docs_catalog_build.txt",
+      "input_archive_sha256": "2c767f085cc541dcd337b3ae41492f8bae43234a58247bb75d2c78d517f34262",
+      "evidence_archive_sha256": "e12cbbb5b033f7da2639adbe6546be0f5e6fa08f0edc27e7d727cb3cbc5e6f41"
+    },
+    {
+      "id": "help_license_and_settings",
+      "source_archive_sha256": "2c767f085cc541dcd337b3ae41492f8bae43234a58247bb75d2c78d517f34262",
+      "environment": {
+        "os": "Debian 13 x86_64",
+        "compiler": "GCC 14.2.0",
+        "qt": "6.8.2",
+        "configuration": "Release build; focused help, license and Settings tests at scale factors 1 and 1.5.",
+        "numeric_stack": "OpenBLAS 0.3.29 / LP64 LAPACK, PocketFFT, GSL 2.8"
+      },
+      "scope": "Retained focused GUI coverage; URL handling was intercepted locally, not verified against live GitHub.",
+      "regression": {
+        "targets": [
+          {
+            "target": "aster_ui_tests",
+            "functions": [
+              "helpCatalogueCoverageAndContext",
+              "helpLinksAndFallback",
+              "helpLanguageAndChapterReuse",
+              "helpReferenceVisibleLayout",
+              "helpDirectoryLinks",
+              "parameterHelpTracksSelectedNode",
+              "licenseNoticesOffline",
+              "settingsLinksAndKeyboardNavigation"
+            ],
+            "scale": "1",
+            "exit_code": 0,
+            "passed": 10,
+            "failed": 0,
+            "skipped": 0,
+            "suites": 1
+          }
+        ],
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "log": "docs/validation_results/release/license_ui.txt",
+        "counting": "QtTest totals include initialization and cleanup; targeted functions are listed explicitly."
+      },
+      "scale_150": {
+        "target": "aster_ui_tests",
+        "functions": [
+          "helpCatalogueCoverageAndContext",
+          "helpLinksAndFallback",
+          "helpLanguageAndChapterReuse",
+          "helpReferenceVisibleLayout",
+          "helpDirectoryLinks",
+          "parameterHelpTracksSelectedNode",
+          "licenseNoticesOffline",
+          "settingsLinksAndKeyboardNavigation"
+        ],
+        "scale": "1.5",
+        "exit_code": 0,
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "suites": 1,
+        "included_in_regression_total": false,
+        "log": "docs/validation_results/release/license_ui_150.txt"
+      }
+    },
+    {
+      "id": "ui_and_update",
+      "source_archive_sha256": "dabec8058c960c4f93c2b6b6f8330b2696411943133b98b985b6c1da8753c0ea",
+      "scope": "Retained full UI and update runs. Help-directory changes are covered by the later focused help record; no full GUI rerun was performed for documentation changes.",
+      "targets": [
+        {
+          "target": "aster_ui_tests",
+          "scale": "1",
+          "exit_code": 0,
+          "passed": 83,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1
+        },
+        {
+          "target": "aster_update_tests",
+          "scale": "1",
+          "exit_code": 0,
+          "passed": 50,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1
+        }
+      ],
+      "logs": [
+        "docs/validation_results/release/ui.txt",
+        "docs/validation_results/release/update.txt"
       ]
     },
-    "ui_regressions": {
-      "baseline_expected_failures": 4,
-      "fixed_failures": 0,
-      "languages": [
-        "zh",
-        "en"
+    {
+      "id": "plot_export_and_scaled_ui",
+      "source_archive_sha256": "bc50b2f8a91749981e9b426b102ac124abbcb30a8703a213128be29dc0310d72",
+      "scope": "Retained export and selected high-DPI interaction checks; their implementation is unchanged.",
+      "targets": [
+        {
+          "target": "aster_style_export_tests",
+          "scale": "1",
+          "exit_code": 0,
+          "passed": 32,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1
+        }
       ],
-      "themes": [
-        "light",
-        "dark"
+      "log": "docs/validation_results/release/style_export.txt",
+      "scale_150": {
+        "ui_scale_150": {
+          "passed": 7,
+          "failed": 0,
+          "skipped": 0,
+          "included_in_regression_total": false,
+          "log": "docs/validation_results/release/ui_150.txt"
+        },
+        "settings_scale_150": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0,
+          "included_in_regression_total": false,
+          "log": "docs/validation_results/release/settings_150.txt"
+        },
+        "style_scale_150": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0,
+          "included_in_regression_total": false,
+          "log": "docs/validation_results/release/style_150.txt"
+        }
+      }
+    },
+    {
+      "id": "core_science_workspace_integration",
+      "source_archive_sha256": "ab7b342dca88340482971e7708a00191d1fc9e053ce6e19db704eb2556563b98",
+      "scope": "Retained core, numerical, workspace and integration runs; not a new scientific calibration or native-platform acceptance run.",
+      "targets": [
+        {
+          "target": "aster_core_tests",
+          "exit_code": 0,
+          "passed": 54,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1
+        },
+        {
+          "target": "aster_analysis_tests",
+          "exit_code": 0,
+          "passed": 676,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 21
+        },
+        {
+          "target": "aster_workspace_tests",
+          "exit_code": 0,
+          "passed": 23,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1
+        },
+        {
+          "target": "aster_integration_tests",
+          "exit_code": 0,
+          "passed": 83,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 4
+        }
       ],
-      "scale_factors": [
-        1,
-        1.25,
-        2
-      ],
-      "coverage": [
-        "numeric text insets with default and zero-padding styles",
-        "fixed method header / numeric / checkbox help alignment with and without a scrollbar",
-        "settings frozen during asynchronous database validation",
-        "late validation ignored after closing settings",
-        "existing concurrency setting 2 retained; missing setting uses common default"
+      "logs": [
+        "docs/validation_results/release/core.txt",
+        "docs/validation_results/release/analysis.txt",
+        "docs/validation_results/release/workspace.txt",
+        "docs/validation_results/release/integration.txt"
       ]
-    },
-    "static": {
-      "json": 38,
-      "python": 29,
-      "resource_entries": 13,
-      "translated_ui_literals": 470,
-      "test_runner_exe_lookup_utf8_multiple_totals_failure_propagation": "passed (Linux fixture; not a native Windows execution)"
-    },
-    "orbital_data_tool_tests": 4
-  },
-  "unchanged": [
-    "scientific algorithms and numerical fixtures",
-    "scientific datasets",
-    "task IDs and parameter defaults",
-    "database schema 3",
-    "project-local config/local.pri (explicit Windows dependency configuration)",
-    "version 1.1.0"
+    }
   ],
-  "not_run": [
-    "Native Windows Qt 6.12 / MSVC compilation and display",
-    "Native macOS compilation and display",
-    "New deployment archive or clean-host installation",
-    "New MATLAB execution or statistical false-positive calibration"
-  ],
-  "record_type": "archived_validation",
-  "scope": "Validation batch dated 2026-11-04 for the recorded baseline and environment; not a certification of later checkouts or all platform packages."
+  "scientific_evidence": "docs/reference/scientific_evidence.json",
+  "not_verified": [
+    "Windows PowerShell 5.1 execution and actual Windows Qt/vcpkg packaging of the revised script.",
+    "Native Windows/MSVC and macOS build, deployment or desktop acceptance of the final binary packages.",
+    "Native Linux release packaging and actual dependency-source closure on the final CI host.",
+    "A new desktop executable containing the edited embedded documentation.",
+    "Live GitHub release assets, downloadable project/dependency sources and their links.",
+    "New scientific calibration; historical scientific evidence retains its original scope.",
+    "La2004/La2010 redistribution review remains deferred."
+  ]
 }

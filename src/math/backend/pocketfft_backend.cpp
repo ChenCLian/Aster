@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "math/backend/backend_detail.h"
 // No shared mutable FFT plans or internal thread pool. Aster parallelizes data
 // records, and each call owns its buffers and transform plan.

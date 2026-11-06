@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_RESULT_EXPORT_PANEL_H
 #define ASTER_RESULT_EXPORT_PANEL_H
 #include <QWidget>

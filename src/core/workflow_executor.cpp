@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "core/workflow_executor.h"
 #include "model/workflow_codec.h"
 #include <QHash>

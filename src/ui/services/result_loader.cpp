@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/services/result_loader.h"
 #include <QThread>
 namespace aster::ui

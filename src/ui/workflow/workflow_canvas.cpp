@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include <QKeyEvent>
 #include <QSet>
 #include "ui/workflow/workflow_layout.h"
@@ -131,7 +133,7 @@ void WorkflowCanvas::rebuild()
         card->source = !n.input;
         const auto *registration = m_document->model().registry().find(n.method);
         card->title = methodLabel(registration->descriptor);
-        card->detail = n.method;
+        card->detail = portLabel(registration->descriptor, registration->descriptor.defaultOutput);
         if (n.method == "mtm")
             card->detail = QString("NW %1  ·  MTM").arg(n.parameters["nw"].toDouble());
         else if (n.method == "detrend_lowess")

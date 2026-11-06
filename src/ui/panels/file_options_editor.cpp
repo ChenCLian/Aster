@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/panels/file_options_editor.h"
 #include "ui/common/presentation.h"
 #include <QComboBox>
@@ -23,10 +26,12 @@ FileOptionsEditor::FileOptionsEditor(QWidget *parent) : QWidget(parent)
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(8);
     auto *section = new QLabel(text("ui.input_settings"));
     section->setObjectName("SectionTitle");
     layout->addWidget(section);
     auto *content = new QWidget;
+    content->setObjectName("Surface");
     auto *contentLayout = new QVBoxLayout(content);
     contentLayout->setContentsMargins(0, 0, 5, 0);
     auto *scroll = new QScrollArea;
@@ -38,18 +43,21 @@ FileOptionsEditor::FileOptionsEditor(QWidget *parent) : QWidget(parent)
     auto *form = new QFormLayout;
     form->setRowWrapPolicy(QFormLayout::WrapLongRows);
     form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-    m_delimiter = new QComboBox;
+    form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    form->setHorizontalSpacing(10);
+    form->setVerticalSpacing(8);
+    m_delimiter = new ChoiceEditor;
     m_delimiter->setObjectName("fileDelimiter");
     for (auto key : {"auto", "comma", "tab", "whitespace"})
         m_delimiter->addItem(choiceLabel("delimiter", key), key);
-    m_header = new QComboBox;
+    m_header = new ChoiceEditor;
     m_header->setObjectName("fileHeader");
     m_header->addItem(text("ui.detect_header"), -1);
     m_header->addItem(text("ui.header_present"), 1);
     m_header->addItem(text("ui.no_header"), 0);
-    m_x = new QComboBox;
+    m_x = new ChoiceEditor;
     m_x->setObjectName("fileXColumn");
-    m_y = new QComboBox;
+    m_y = new ChoiceEditor;
     m_y->setObjectName("fileYColumn");
     for (auto *box : {m_delimiter, m_header, m_x, m_y})
     {
@@ -152,7 +160,10 @@ FileOptionsEditor::~FileOptionsEditor()
 }
 bool FileOptionsEditor::ready() const
 {
-    return !m_path.isEmpty() && m_apply->isEnabled();
+    // Input validity must survive a disabled parent while a workflow is running.
+    // requestProbe() clears the columns, so pending/stale probes cannot be ready.
+    return !m_path.isEmpty() && m_probe.ok() && !m_probe.columns.isEmpty() &&
+           m_x->currentIndex() >= 0 && m_y->currentIndex() >= 0;
 }
 QJsonObject FileOptionsEditor::options() const
 {

@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "odp_examples_audit.h"
 #include "io/examples/example_catalog.h"
 #include "io/database/result_repository.h"

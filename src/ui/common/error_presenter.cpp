@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/error_presenter.h"
 #include "ui/common/presentation.h"
 #include <QRegularExpression>

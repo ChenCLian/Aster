@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 // Standalone sanitizer harness for new cached COCO/FFT indexing and cancellation.
 // Build instructions are in docs/methods/coco_analysis.md. Not a second algorithm.
 #include "math/chronology/coco_analysis.h"

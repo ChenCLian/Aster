@@ -11,9 +11,9 @@ PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(small_units)
 PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(logarithmic)
 QWARN  : WorkspaceTests::declinedCloseRestoresPreview() This plugin does not support propagateSizeHints()
 PASS   : WorkspaceTests::declinedCloseRestoresPreview()
-QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 16 columns= 2 ok= true
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 13 columns= 2 ok= true
 QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] column_controls_ms= 0
-QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 2 ok= true
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 2 columns= 2 ok= true
 QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] column_controls_ms= 0
 PASS   : WorkspaceTests::reuseButtonBindsSource()
 PASS   : WorkspaceTests::rejectedOverlayKeepsOriginal()
@@ -30,11 +30,11 @@ QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does n
 PASS   : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle()
 PASS   : WorkspaceTests::subplotOverlayAndRemoval()
 PASS   : WorkspaceTests::closeDuringLoadAndOldMenu()
-QINFO  : WorkspaceTests::displayEnvelopeKeepsExtremaAndOriginal() one million points -> 4796 display points in 446 ms
+QINFO  : WorkspaceTests::displayEnvelopeKeepsExtremaAndOriginal() one million points -> 4796 display points in 490 ms
 PASS   : WorkspaceTests::displayEnvelopeKeepsExtremaAndOriginal()
 PASS   : WorkspaceTests::largePlotPreparationAndRawExport()
 PASS   : WorkspaceTests::gridAggregationAndCancellation()
 PASS   : WorkspaceTests::advancedStyleAndDynamicInspector()
 PASS   : WorkspaceTests::cleanupTestCase()
-Totals: 23 passed, 0 failed, 0 skipped, 0 blacklisted, 3430ms
+Totals: 23 passed, 0 failed, 0 skipped, 0 blacklisted, 3570ms
 ********* Finished testing of WorkspaceTests *********

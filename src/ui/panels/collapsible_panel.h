@@ -1,7 +1,10 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_COLLAPSIBLE_PANEL_H
 #define ASTER_UI_COLLAPSIBLE_PANEL_H
 #include <QWidget>
 #include <QPointer>
+#include <QKeySequence>
 class QAbstractButton;
 namespace aster::ui
 {
@@ -14,6 +17,7 @@ class CollapsiblePanel : public QWidget
                      QWidget *parent = nullptr);
     bool isCollapsed() const { return m_collapsed; }
     void setCollapsed(bool collapsed);
+    void setToggleShortcut(const QKeySequence &shortcut);
     // The host chooses which pane yields space; no main-window column indexes here.
     void setResizeTarget(QWidget *target) { m_resizeTarget = target; }
     QSize sizeHint() const override;

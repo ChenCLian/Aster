@@ -1,6 +1,74 @@
 ********* Start testing of UiTests *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
 PASS   : UiTests::initTestCase()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support raise()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support raise()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+PASS   : UiTests::settingsLinksAndKeyboardNavigation()
+PASS   : UiTests::helpCatalogueCoverageAndContext()
+QWARN  : UiTests::helpLinksAndFallback() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpLinksAndFallback()
+QWARN  : UiTests::helpLanguageAndChapterReuse() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpLanguageAndChapterReuse()
+QWARN  : UiTests::helpReferenceVisibleLayout() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::helpReferenceVisibleLayout() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpReferenceVisibleLayout()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+PASS   : UiTests::parameterHelpTracksSelectedNode()
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 1 columns= 3 ok= true
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] column_controls_ms= 0
+PASS   : UiTests::fileReadinessSurvivesDisabledPanel()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QINFO  : UiTests::compactInputStatesAndFrequencyEditor() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 58 columns= 0 ok= false
+PASS   : UiTests::compactInputStatesAndFrequencyEditor()
+QWARN  : UiTests::legacyFrequencyZeroCommit() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit() This plugin does not support propagateSizeHints()
+PASS   : UiTests::legacyFrequencyZeroCommit()
+QINFO  : UiTests::sourceNodePreviewBeforeAddingAnalysis() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 7 columns= 2 ok= true
+QINFO  : UiTests::sourceNodePreviewBeforeAddingAnalysis() [Aster import] column_controls_ms= 0
+PASS   : UiTests::sourceNodePreviewBeforeAddingAnalysis()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+PASS   : UiTests::visibleSelectionActionsPreserveFilterScope()
+QWARN  : UiTests::axisHintsPreserveSingleAxisNavigation() This plugin does not support raise()
+QWARN  : UiTests::axisHintsPreserveSingleAxisNavigation() This plugin does not support raise()
+PASS   : UiTests::axisHintsPreserveSingleAxisNavigation()
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 5 columns= 2 ok= true
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 2 columns= 2 ok= true
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] column_controls_ms= 0
+PASS   : UiTests::previewRecoversAfterRunAndRereadsFile()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support raise()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+PASS   : UiTests::wheelRequiresDeliberateNumericFocus()
+QWARN  : UiTests::axisSegmentsStayVisibleAndKeepBothAxes() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::axisSegmentsStayVisibleAndKeepBothAxes() This plugin does not support propagateSizeHints()
+PASS   : UiTests::axisSegmentsStayVisibleAndKeepBothAxes()
 QWARN  : UiTests::catalogSingleClickAndTaskDoubleClick() This plugin does not support propagateSizeHints()
 PASS   : UiTests::catalogSingleClickAndTaskDoubleClick()
 PASS   : UiTests::dragCardThemeScaleAndSourceDrop()
@@ -191,16 +259,18 @@ QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not su
 QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
 QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
 QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
 PASS   : UiTests::parameterLayoutDefaultsAndVisibility()
 QWARN  : UiTests::menuTouchTargetsAndPeakMarkers() This plugin does not support propagateSizeHints()
 PASS   : UiTests::menuTouchTargetsAndPeakMarkers()
 PASS   : UiTests::frequencyFilterShowsMatchingNode()
 PASS   : UiTests::closeWaitsForDatabaseEdits()
-QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 3 ok= true
-QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
-QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 3 ok= true
-QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
 QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 1 columns= 3 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 3 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 3 ok= true
 QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
 QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 2 ok= true
 QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
@@ -216,6 +286,11 @@ PASS   : UiTests::parameterValuesAreIndependent()
 PASS   : UiTests::verticalLayoutPreservesWorkflow()
 PASS   : UiTests::persistentAddControlsUseTheirOwnParent()
 PASS   : UiTests::exampleSourcePreviewAndLabels()
+QWARN  : UiTests::syntheticSourcePreviewAndParameters() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::syntheticSourcePreviewAndParameters() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::syntheticSourcePreviewAndParameters() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::syntheticSourcePreviewAndParameters() This plugin does not support propagateSizeHints()
+PASS   : UiTests::syntheticSourcePreviewAndParameters()
 PASS   : UiTests::canvasClickAndAtomicDelete()
 PASS   : UiTests::canvasRejectsIllegalDrop()
 PASS   : UiTests::canvasFractionalMtmAndExtremeZoom()
@@ -232,20 +307,20 @@ QWARN  : UiTests::contextMenuAfterClear() This plugin does not support grabbing 
 PASS   : UiTests::contextMenuAfterClear()
 PASS   : UiTests::exportPreservesRawValues()
 PASS   : UiTests::gridCoordinatesAndInvalidInput()
-QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 13 columns= 2 ok= true
+QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 12 columns= 2 ok= true
 QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] column_controls_ms= 0
-QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 11 columns= 2 ok= true
+QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 7 columns= 2 ok= true
 QINFO  : UiTests::fullWindowRunUsesEditedParameters() [Aster import] column_controls_ms= 0
 PASS   : UiTests::fullWindowRunUsesEditedParameters()
-QINFO  : UiTests::smallDesktopLayout() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 13 columns= 2 ok= true
+QINFO  : UiTests::smallDesktopLayout() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 12 columns= 2 ok= true
 QINFO  : UiTests::smallDesktopLayout() [Aster import] column_controls_ms= 0
 PASS   : UiTests::smallDesktopLayout()
-QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 13 columns= 2 ok= true
+QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 11 columns= 2 ok= true
 QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] column_controls_ms= 0
 QWARN  : UiTests::closeDuringRunWaitsForWorker() This plugin does not support propagateSizeHints()
-QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 4 columns= 2 ok= true
+QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 2 ok= true
 QINFO  : UiTests::closeDuringRunWaitsForWorker() [Aster import] column_controls_ms= 0
 PASS   : UiTests::closeDuringRunWaitsForWorker()
 PASS   : UiTests::cleanupTestCase()
-Totals: 67 passed, 0 failed, 0 skipped, 0 blacklisted, 40387ms
+Totals: 83 passed, 0 failed, 0 skipped, 0 blacklisted, 50291ms
 ********* Finished testing of UiTests *********

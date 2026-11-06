@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_UI_PARAMETER_EDITOR_H
 #define ASTER_UI_PARAMETER_EDITOR_H
 #include "core/task_registry.h"
@@ -31,6 +33,7 @@ class ParameterEditor : public QWidget
 
   private:
     NodeId m_id;
+    QString m_method;
     QVBoxLayout *m_form;
     QMap<QString, QWidget *> m_rows;
     QVector<ParameterSpec> m_specs;

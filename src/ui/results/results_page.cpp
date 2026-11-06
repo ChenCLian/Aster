@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include <QScreen>
 #include "ui/common/error_presenter.h"
 #include <QApplication>
@@ -14,10 +16,11 @@
 #include "ui/panels/plot_style_editor.h"
 #include "ui/panels/result_export_panel.h"
 #include <QTabWidget>
+#include <QTabBar>
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSplitter>
+#include "ui/common/section_splitter.h"
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QComboBox>
@@ -51,8 +54,11 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     auto *bar = new QHBoxLayout;
     m_title = new QLabel(text("ui.results_workspace"));
     m_title->setObjectName("PageTitle");
-    bar->addWidget(m_title);
-    bar->addStretch();
+    m_title->setTextFormat(Qt::PlainText);
+    m_title->setMinimumWidth(0);
+    m_title->setWordWrap(true);
+    m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    bar->addWidget(m_title, 1);
     auto *reload = new QPushButton(text("ui.refresh"));
     bar->addWidget(reload);
     connect(reload, &QPushButton::clicked, this, [this] { refresh(m_recordId); });
@@ -87,7 +93,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
             syncPlotSelection(m_workspace->currentReference());
         }
     });
-    auto *center = new QSplitter(Qt::Vertical);
+    auto *center = new SectionSplitter(Qt::Vertical);
     center->setChildrenCollapsible(false);
     center->setObjectName("plotStepsSplitter");
     auto *chart = new QWidget;
@@ -195,23 +201,40 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     right->setProperty("panelRole", "inspector");
     right->setMinimumWidth(275);
     auto *rl = new QVBoxLayout(right);
-    rl->setContentsMargins(14, 14, 14, 14);
+    rl->setContentsMargins(10, 10, 10, 10);
     rl->setSpacing(10);
     auto *detailsTabs = new QTabWidget;
     detailsTabs->setObjectName("resultInspectorTabs");
+    detailsTabs->setDocumentMode(true);
+    detailsTabs->tabBar()->setObjectName("inspectorPrimaryNav");
+    detailsTabs->tabBar()->setExpanding(true);
+    detailsTabs->tabBar()->setUsesScrollButtons(false);
     auto *stylePage = new QWidget;
     auto *styleLayout = new QVBoxLayout(stylePage);
     styleLayout->setContentsMargins(0, 8, 0, 0);
+    auto *target = new QFrame;
+    target->setObjectName("inspectorTarget");
+    target->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    auto *targetLayout = new QVBoxLayout(target);
+    targetLayout->setContentsMargins(10, 8, 10, 8);
+    targetLayout->setSpacing(3);
+    auto *targetTitle = new QLabel(text("ui.editing_target"));
+    targetTitle->setObjectName("Muted");
+    targetLayout->addWidget(targetTitle);
     m_plotTarget = new QLabel;
     m_plotTarget->setObjectName("activeStyleTarget");
     m_plotTarget->setTextFormat(Qt::PlainText);
     m_plotTarget->setWordWrap(true);
     m_plotTarget->setMinimumWidth(0);
     m_plotTarget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    styleLayout->addWidget(m_plotTarget);
-    auto *styleEditor = new PlotStyleEditor(m_plot);
+    targetLayout->addWidget(m_plotTarget);
+    styleLayout->addWidget(target);
+    m_styleEditor = new PlotStyleEditor(m_plot);
+    auto *styleEditor = m_styleEditor;
     styleLayout->addWidget(styleEditor, 1);
-    detailsTabs->addTab(stylePage, text("ui.appearance"));
+    styleLayout->addStretch();
+    detailsTabs->addTab(stylePage, text("ui.inspector_plot"));
+    detailsTabs->setTabToolTip(0, text("ui.appearance"));
     connect(m_workspace, &PlotWorkspace::currentViewChanged, styleEditor,
             &PlotStyleEditor::setView);
     m_exportPanel = new ResultExportPanel;
@@ -310,7 +333,8 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_details->setMinimumWidth(0);
     m_details->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     scroll->setWidget(m_details);
-    detailsTabs->addTab(scroll, text("ui.provenance"));
+    detailsTabs->addTab(scroll, text("ui.inspector_sources"));
+    detailsTabs->setTabToolTip(2, text("ui.provenance"));
     rl->addWidget(detailsTabs, 1);
     updateOutputActions();
     m_splitter->addWidget(right);
@@ -779,7 +803,10 @@ void ResultsPage::updateOutputActions()
     const auto plotLabel = hasFigure
         ? text("ui.active_figure_target").arg(plotted.recordId).arg(portLabel(plotted.port))
         : text("ui.no_active_figure");
-    m_plotTarget->setText(plotLabel);
+    m_plotTarget->setText(hasFigure
+        ? QString("ID %1 · %2").arg(plotted.recordId).arg(portLabel(plotted.port))
+        : text("ui.no_active_figure"));
+    m_styleEditor->setVisible(hasFigure);
     m_exportPanel->setTargets(selectedLabel + (selected.valid() ? QString() :
                                 "\n" + text("ui.no_step_output")), selected.valid(),
                               plotLabel, hasFigure);

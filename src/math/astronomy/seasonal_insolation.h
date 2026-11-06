@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_MATH_ASTRONOMY_SEASONAL_INSOLATION_H
 #define ASTER_MATH_ASTRONOMY_SEASONAL_INSOLATION_H
 #include "math/astronomy/orbital_elements.h"

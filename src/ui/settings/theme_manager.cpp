@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/settings/theme_manager.h"
 #include <QApplication>
 #include <QFile>
@@ -9,6 +11,7 @@
 static void initializeResources()
 {
     Q_INIT_RESOURCE(aster);
+    Q_INIT_RESOURCE(help);
 }
 namespace aster::ui
 {
@@ -58,7 +61,9 @@ QString ThemeManager::apply(QApplication &app, const QString &name)
     m_name = name;
     app.setStyle("Fusion");
     QPalette p;
-    p.setColor(QPalette::Window, color("window"));
+    // Scroll viewports and unstyled children inherit the same panel surface.
+    // The top-level workspace background is styled separately in base.qss.
+    p.setColor(QPalette::Window, color("surface"));
     p.setColor(QPalette::Base, color("surface"));
     p.setColor(QPalette::AlternateBase, color("canvas"));
     p.setColor(QPalette::Button, color("surface"));
@@ -81,7 +86,7 @@ QString ThemeManager::apply(QApplication &app, const QString &name)
             font.setFamily(family);
             break;
         }
-    font.setPointSizeF(9.5);
+    font.setPointSizeF(10.0);
     app.setFont(font);
     app.setStyleSheet(qss);
     emit changed();

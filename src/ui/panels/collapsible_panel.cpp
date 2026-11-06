@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ui/panels/collapsible_panel.h"
 #include "ui/common/presentation.h"
 #include "ui/settings/theme_manager.h"
@@ -115,6 +117,13 @@ CollapsiblePanel::CollapsiblePanel(const QString &title, QWidget *content, int p
     connect(m_grip, &QAbstractButton::clicked, this, [this] { setCollapsed(!m_collapsed); });
     grip->dragged = [this](int delta) { dragEdge(delta); };
     connect(&ThemeManager::instance(), &ThemeManager::changed, m_grip, qOverload<>(&QWidget::update));
+}
+void CollapsiblePanel::setToggleShortcut(const QKeySequence &shortcut)
+{
+    m_grip->setShortcut(shortcut);
+    const auto action = shortcutLabel(text("ui.toggle_panel").arg(m_title), shortcut);
+    m_grip->setToolTip(action + "\n" + text("ui.panel_grip_hint").arg(m_title));
+    m_grip->setAccessibleDescription(action);
 }
 void CollapsiblePanel::setExpandedWidthRange(int minimum, int maximum)
 {

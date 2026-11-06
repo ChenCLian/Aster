@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/panels/workflow_preview_panel.h"
 #include "ui/panels/file_preview_panel.h"
 #include "ui/panels/style_section.h"
@@ -6,7 +9,7 @@
 #include "ui/common/error_presenter.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QSplitter>
+#include "ui/common/section_splitter.h"
 #include <QLabel>
 #include <QComboBox>
 #include <QProgressBar>
@@ -23,8 +26,8 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     setObjectName("workflowPreview");
     setMinimumWidth(0);
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(6, 0, 6, 6); layout->setSpacing(6);
-    auto *split = new QSplitter(Qt::Vertical);
+    layout->setContentsMargins(8, 6, 8, 8); layout->setSpacing(8);
+    auto *split = new SectionSplitter(Qt::Vertical);
     split->setObjectName("previewPlotsSplitter"); split->setChildrenCollapsible(false);
     auto *top = new QWidget;
     top->setMinimumHeight(160);
@@ -41,7 +44,7 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     auto *bottom = new QWidget; bottom->setMinimumHeight(230);
     auto *bl = new QVBoxLayout(bottom); bl->setContentsMargins(0, 0, 0, 0); bl->setSpacing(6);
     auto *bar = new QFrame; bar->setObjectName("PreviewIdentity");
-    auto *info = new QVBoxLayout(bar); info->setContentsMargins(10, 9, 10, 9); info->setSpacing(4);
+    auto *info = new QVBoxLayout(bar); info->setContentsMargins(8, 10, 8, 10); info->setSpacing(4);
     auto *caption = new QLabel(text("ui.preview_result")); caption->setObjectName("Muted");
     info->addWidget(caption);
     m_method = new QLabel; m_method->setObjectName("PreviewMethod");
@@ -53,7 +56,7 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     m_file->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); info->addWidget(m_file);
     bl->addWidget(bar);
     auto *tools = new QHBoxLayout;
-    m_outputs = new QComboBox; m_outputs->setObjectName("previewOutput");
+    m_outputs = new ChoiceEditor; m_outputs->setObjectName("previewOutput");
     m_outputs->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_outputs->setMinimumContentsLength(6); m_outputs->setMinimumWidth(0);
     m_outputs->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);

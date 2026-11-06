@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_STYLE_SECTION_H
 #define ASTER_STYLE_SECTION_H
 #include <QFrame>
@@ -28,8 +30,8 @@ class StyleSection : public QFrame
     {
         setObjectName("StyleSection");
         m_layout = new QVBoxLayout(this);
-        m_layout->setContentsMargins(10, 10, 10, 12);
-        m_layout->setSpacing(7);
+        m_layout->setContentsMargins(0, 0, 0, 2);
+        m_layout->setSpacing(8);
         auto *heading = new QLabel(title);
         heading->setObjectName("StyleSectionTitle");
         heading->setWordWrap(true);
@@ -63,8 +65,8 @@ class StyleSection : public QFrame
 inline QVBoxLayout *styleSections(QWidget *widget)
 {
     auto *layout = new QVBoxLayout(widget);
-    layout->setContentsMargins(6, 8, 6, 8);
-    layout->setSpacing(10);
+    layout->setContentsMargins(8, 12, 8, 12);
+    layout->setSpacing(20);
     layout->setAlignment(Qt::AlignTop);
     return layout;
 }

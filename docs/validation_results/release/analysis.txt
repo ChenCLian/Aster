@@ -112,6 +112,7 @@ PASS   : AnalysisTests::lowessMeanAndRobustness()
 PASS   : AnalysisTests::mtmMatchesScipy()
 PASS   : AnalysisTests::mtmPeakAndIntegral()
 PASS   : AnalysisTests::mtmShortConstantAndCutoff()
+PASS   : AnalysisTests::mtmAbsoluteFrequencyLimit()
 PASS   : AnalysisTests::mtmTinyCutoffAndWorkspace()
 PASS   : AnalysisTests::rejectIrregularAxis()
 PASS   : AnalysisTests::largeOriginDoesNotHideIrregularSampling()
@@ -132,12 +133,13 @@ PASS   : AnalysisTests::lateSaveFailureRollsBackAndRetries()
 PASS   : AnalysisTests::batchCancellationAndObserver()
 PASS   : AnalysisTests::fullScientificRoundTrip()
 PASS   : AnalysisTests::cleanupTestCase()
-Totals: 132 passed, 0 failed, 0 skipped, 0 blacklisted, 226ms
+Totals: 133 passed, 0 failed, 0 skipped, 0 blacklisted, 221ms
 ********* Finished testing of AnalysisTests *********
 ********* Start testing of SpectralAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
 PASS   : SpectralAudit::initTestCase()
 PASS   : SpectralAudit::relativeProminenceAndRoundoff()
+PASS   : SpectralAudit::constantMtmHasNoPeaks()
 PASS   : SpectralAudit::references(mtm_dense_32_1_1)
 PASS   : SpectralAudit::references(mtm_dense_64_2_1)
 PASS   : SpectralAudit::references(mtm_dense_127_3_0.2)
@@ -223,7 +225,7 @@ PASS   : SpectralAudit::distancePrefersProminence()
 PASS   : SpectralAudit::rejectsInvalidInput()
 PASS   : SpectralAudit::workflowMetadataAndDensityUnits()
 PASS   : SpectralAudit::cleanupTestCase()
-Totals: 87 passed, 0 failed, 0 skipped, 0 blacklisted, 107ms
+Totals: 88 passed, 0 failed, 0 skipped, 0 blacklisted, 88ms
 ********* Finished testing of SpectralAudit *********
 ********* Start testing of WaveletAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -283,7 +285,7 @@ PASS   : WaveletAudit::orderAndNominalPeriod()
 PASS   : WaveletAudit::clippedLagAndMetadata()
 PASS   : WaveletAudit::significanceFormulaAndValidation()
 PASS   : WaveletAudit::cleanupTestCase()
-Totals: 56 passed, 0 failed, 0 skipped, 0 blacklisted, 68ms
+Totals: 56 passed, 0 failed, 0 skipped, 0 blacklisted, 66ms
 ********* Finished testing of WaveletAudit *********
 ********* Start testing of TransferAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -307,7 +309,7 @@ PASS   : TransferAudit::corruptTableCountsAndWidthsAreRejected()
 PASS   : TransferAudit::validShapeInvalidDomainIsIsolated()
 PASS   : TransferAudit::cancelWholeForestBeforeStarting()
 PASS   : TransferAudit::cleanupTestCase()
-Totals: 20 passed, 0 failed, 0 skipped, 0 blacklisted, 68ms
+Totals: 20 passed, 0 failed, 0 skipped, 0 blacklisted, 52ms
 ********* Finished testing of TransferAudit *********
 ********* Start testing of MtmSimulationAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -343,7 +345,7 @@ PASS   : MtmSimulationAudit::nuisanceFiniteOrbitControl()
 PASS   : MtmSimulationAudit::reusableTapersParityAndIsolation()
 PASS   : MtmSimulationAudit::ar1BackgroundFormulaAndInvalid()
 PASS   : MtmSimulationAudit::cleanupTestCase()
-Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 503ms
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 438ms
 ********* Finished testing of MtmSimulationAudit *********
 ********* Start testing of AcycleAlignmentAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -375,7 +377,7 @@ PASS   : AcycleAlignmentAudit::waveletUnitsAndInvalidInput()
 PASS   : AcycleAlignmentAudit::waveletStationarityGuard()
 PASS   : AcycleAlignmentAudit::fftValidationAndShortSwa()
 PASS   : AcycleAlignmentAudit::cleanupTestCase()
-Totals: 28 passed, 0 failed, 0 skipped, 0 blacklisted, 80ms
+Totals: 28 passed, 0 failed, 0 skipped, 0 blacklisted, 63ms
 ********* Finished testing of AcycleAlignmentAudit *********
 ********* Start testing of BackendAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -419,7 +421,7 @@ PASS   : Ar1GlobalAudit::cancellationAndWaiting()
 PASS   : Ar1GlobalAudit::immutableConcurrentEvaluation()
 PASS   : Ar1GlobalAudit::workflowPersistenceAndProgress()
 PASS   : Ar1GlobalAudit::cleanupTestCase()
-Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 32160ms
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 29811ms
 ********* Finished testing of Ar1GlobalAudit *********
 ********* Start testing of AstronomyAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -431,12 +433,13 @@ PASS   : AstronomyAudit::physicalLimitsAndInvalidParameters()
 QINFO  : AstronomyAudit::acycleEtpExample() Acycle bundled ETP example maximum absolute difference: 8.15672e-05
 PASS   : AstronomyAudit::acycleEtpExample()
 PASS   : AstronomyAudit::etpNormalizationAndWeights()
+PASS   : AstronomyAudit::etpConstantAndSmallVariation()
 PASS   : AstronomyAudit::sourceContractsAndCancellation()
 PASS   : AstronomyAudit::invalidGridsAndSampling()
 PASS   : AstronomyAudit::concurrentReaders()
 PASS   : AstronomyAudit::workflowPersistence()
 PASS   : AstronomyAudit::cleanupTestCase()
-Totals: 12 passed, 0 failed, 0 skipped, 0 blacklisted, 130ms
+Totals: 13 passed, 0 failed, 0 skipped, 0 blacklisted, 125ms
 ********* Finished testing of AstronomyAudit *********
 ********* Start testing of SeasonalAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -485,10 +488,10 @@ PASS   : FilterAudit::invalidInputsAndBudgets()
 PASS   : FilterAudit::workflowPersistenceAndUnits()
 PASS   : FilterAudit::insolationMapMatchesEveryLatitude()
 PASS   : FilterAudit::mapValidationAndPersistence()
-QINFO  : FilterAudit::concurrentAndLarge() Two concurrent 65536-point Gaussian calls, ms: 45
+QINFO  : FilterAudit::concurrentAndLarge() Two concurrent 65536-point Gaussian calls, ms: 32
 PASS   : FilterAudit::concurrentAndLarge()
 PASS   : FilterAudit::cleanupTestCase()
-Totals: 22 passed, 0 failed, 0 skipped, 0 blacklisted, 59ms
+Totals: 22 passed, 0 failed, 0 skipped, 0 blacklisted, 46ms
 ********* Finished testing of FilterAudit *********
 ********* Start testing of OrbitalTablesAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -524,7 +527,7 @@ PASS   : OrbitalTablesAudit::localPtFileAndProvenance()
 PASS   : OrbitalTablesAudit::cancellationAndConcurrentReads()
 PASS   : OrbitalTablesAudit::workflowPersistence()
 PASS   : OrbitalTablesAudit::cleanupTestCase()
-Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 6610ms
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 4871ms
 ********* Finished testing of OrbitalTablesAudit *********
 ********* Start testing of EvolutionAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -549,7 +552,7 @@ PASS   : EvolutionAudit::workflowDatabaseAndFailure()
 PASS   : EvolutionAudit::concurrentSources()
 PASS   : EvolutionAudit::translationsAndCategories()
 PASS   : EvolutionAudit::cleanupTestCase()
-Totals: 21 passed, 0 failed, 0 skipped, 0 blacklisted, 11ms
+Totals: 21 passed, 0 failed, 0 skipped, 0 blacklisted, 14ms
 ********* Finished testing of EvolutionAudit *********
 ********* Start testing of BasicSignalAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -579,7 +582,7 @@ PASS   : BasicSignalAudit::contractsAndFailures()
 PASS   : BasicSignalAudit::workflowDatabaseCsv()
 PASS   : BasicSignalAudit::defaultsAndTranslations()
 PASS   : BasicSignalAudit::cleanupTestCase()
-Totals: 26 passed, 0 failed, 0 skipped, 0 blacklisted, 368ms
+Totals: 26 passed, 0 failed, 0 skipped, 0 blacklisted, 340ms
 ********* Finished testing of BasicSignalAudit *********
 ********* Start testing of SpectralExtensionAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -615,7 +618,7 @@ PASS   : SpectralExtensionAudit::butterworthValidationAndCancellation()
 PASS   : SpectralExtensionAudit::defaultsTranslationsAndContracts()
 PASS   : SpectralExtensionAudit::workflowDatabaseCsv()
 PASS   : SpectralExtensionAudit::cleanupTestCase()
-Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 99ms
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 89ms
 ********* Finished testing of SpectralExtensionAudit *********
 ********* Start testing of ChronologyAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -655,7 +658,7 @@ PASS   : ChronologyAudit::controlFilesAndSnapshots()
 PASS   : ChronologyAudit::defaultsTranslationsContracts()
 PASS   : ChronologyAudit::workflowDatabaseCsv()
 PASS   : ChronologyAudit::cleanupTestCase()
-Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted, 30ms
+Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted, 23ms
 ********* Finished testing of ChronologyAudit *********
 ********* Start testing of CycleTuningAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -693,7 +696,7 @@ PASS   : CycleTuningAudit::modelUnitConversion(Ma)
 PASS   : CycleTuningAudit::taskContractsAndTranslations()
 PASS   : CycleTuningAudit::workflowPersistenceAndExports()
 PASS   : CycleTuningAudit::cleanupTestCase()
-Totals: 34 passed, 0 failed, 0 skipped, 0 blacklisted, 27ms
+Totals: 34 passed, 0 failed, 0 skipped, 0 blacklisted, 30ms
 ********* Finished testing of CycleTuningAudit *********
 ********* Start testing of CocoAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -711,7 +714,7 @@ PASS   : CocoAudit::budgetsAndCancellation()
 PASS   : CocoAudit::adapterContracts()
 PASS   : CocoAudit::workflowPersistence()
 PASS   : CocoAudit::cleanupTestCase()
-Totals: 14 passed, 0 failed, 0 skipped, 0 blacklisted, 79ms
+Totals: 14 passed, 0 failed, 0 skipped, 0 blacklisted, 86ms
 ********* Finished testing of CocoAudit *********
 ********* Start testing of CocoAnalysisAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -734,7 +737,7 @@ QINFO  : CocoAnalysisAudit::calibration() COCO Gaussian AR1 complete-null rho 0.
 QINFO  : CocoAnalysisAudit::calibration() COCO Gaussian AR1 complete-null rho 0.95 rejections 14 / 200 Wilson95 0.0421522 0.114055
 PASS   : CocoAnalysisAudit::calibration()
 PASS   : CocoAnalysisAudit::cleanupTestCase()
-Totals: 16 passed, 0 failed, 0 skipped, 0 blacklisted, 749ms
+Totals: 16 passed, 0 failed, 0 skipped, 0 blacklisted, 611ms
 ********* Finished testing of CocoAnalysisAudit *********
 ********* Start testing of OdpExamplesAudit *********
 Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
@@ -757,5 +760,20 @@ PASS   : OdpExamplesAudit::workflowAndPersistence(odp926_lightness)
 PASS   : OdpExamplesAudit::invalidAndCancellation()
 PASS   : OdpExamplesAudit::concurrentIndependentReads()
 PASS   : OdpExamplesAudit::cleanupTestCase()
-Totals: 19 passed, 0 failed, 0 skipped, 0 blacklisted, 84ms
+Totals: 19 passed, 0 failed, 0 skipped, 0 blacklisted, 66ms
 ********* Finished testing of OdpExamplesAudit *********
+********* Start testing of SyntheticAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : SyntheticAudit::initTestCase()
+PASS   : SyntheticAudit::upstreamReference(template)
+PASS   : SyntheticAudit::upstreamReference(uniform)
+PASS   : SyntheticAudit::upstreamReference(clipped)
+PASS   : SyntheticAudit::analyticConstantRate()
+PASS   : SyntheticAudit::invalidMath()
+PASS   : SyntheticAudit::taskDefaultsAndDeterminism()
+PASS   : SyntheticAudit::invalidTaskAndCancellation()
+PASS   : SyntheticAudit::concurrentIndependentRuns()
+PASS   : SyntheticAudit::workflowAndDatabase()
+PASS   : SyntheticAudit::cleanupTestCase()
+Totals: 11 passed, 0 failed, 0 skipped, 0 blacklisted, 59ms
+********* Finished testing of SyntheticAudit *********

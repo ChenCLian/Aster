@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_FILE_OPTIONS_EDITOR_H
 #define ASTER_FILE_OPTIONS_EDITOR_H
 #include "io/files/series_file_reader.h"
@@ -20,6 +22,7 @@ class FileOptionsEditor : public QWidget
     void setFile(QString path, QJsonObject options);
     QJsonObject options() const;
     bool ready() const;
+    void notifyPreviewInput();
   signals:
     void applyRequested(QJsonObject options, bool toSelection);
     void readinessChanged(bool ready);
@@ -29,7 +32,6 @@ class FileOptionsEditor : public QWidget
     void requestProbe();
     void startProbe();
     void refreshPreview();
-    void notifyPreviewInput();
     QString m_path;
     QJsonObject m_loadedOptions;
     bool m_initialized = false;

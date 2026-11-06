@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/panels/heatmap_style_editor.h"
 #include "ui/panels/style_section.h"
@@ -18,7 +21,7 @@ HeatmapStyleEditor::HeatmapStyleEditor(QWidget *parent) : QWidget(parent)
     auto *layout = styleSections(this);
     auto *palette = new StyleSection(text("ui.heatmap_palette"));
     layout->addWidget(palette);
-    m_gradient = new QComboBox;
+    m_gradient = new ChoiceEditor;
     m_gradient->setObjectName("heatmapGradient");
     m_gradient->addItems({text("ui.scientific"), text("ui.grayscale"), text("ui.thermal"), text("ui.diverging"), text("ui.spectrum")});
     palette->addRow(text("ui.heat_map_gradient"), m_gradient);
@@ -34,7 +37,7 @@ HeatmapStyleEditor::HeatmapStyleEditor(QWidget *parent) : QWidget(parent)
     palette->addRow(m_bar);
     auto *mapping = new StyleSection(text("ui.heatmap_mapping"));
     layout->addWidget(mapping);
-    m_mapping = new QComboBox;
+    m_mapping = new ChoiceEditor;
     m_mapping->setObjectName("heatmapMapping");
     m_mapping->addItems({text("ui.heatmap_linear"), text("ui.heatmap_log")});
     mapping->addRow(text("ui.heatmap_intensity"), m_mapping);
@@ -61,7 +64,7 @@ HeatmapStyleEditor::HeatmapStyleEditor(QWidget *parent) : QWidget(parent)
     connect(m_manual, &QCheckBox::toggled, m_upper, &QWidget::setEnabled);
     auto *pixels = new StyleSection(text("ui.heatmap_pixels"));
     layout->addWidget(pixels);
-    m_pixels = new QComboBox;
+    m_pixels = new ChoiceEditor;
     m_pixels->setObjectName("heatmapPixels");
     m_pixels->addItems({text("ui.heatmap_nearest"), text("ui.heatmap_smooth")});
     pixels->addRow(text("ui.heatmap_pixel_mode"), m_pixels);

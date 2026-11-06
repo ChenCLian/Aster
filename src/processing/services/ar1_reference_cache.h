@@ -1,3 +1,5 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
 #ifndef ASTER_PROCESSING_AR1_REFERENCE_CACHE_H
 #define ASTER_PROCESSING_AR1_REFERENCE_CACHE_H
 #include "math/statistics/ar1_global.h"

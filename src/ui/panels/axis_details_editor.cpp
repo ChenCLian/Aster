@@ -1,3 +1,6 @@
+// Copyright (C) 2026 ZiJie Chen
+// SPDX-License-Identifier: GPL-3.0-only
+#include "ui/common/choice_editor.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/panels/axis_details_editor.h"
 #include "ui/common/presentation.h"
@@ -34,10 +37,10 @@ AxisDetailsEditor::AxisDetailsEditor(QWidget *p) : QWidget(p)
     m_precision = new IntegerEditor;
     m_precision->setRange(0, 15);
     f->addRow(text("ui.number_precision"), m_precision);
-    m_format = new QComboBox;
+    m_format = new ChoiceEditor;
     m_format->addItems({"g", "f", "e", "eb"});
     f->addRow(text("ui.number_format"), m_format);
-    m_base = new QComboBox;
+    m_base = new ChoiceEditor;
     m_base->addItems({"10", "2"});
     f->addRow(text("ui.log_base_heat_map_periods_use_2"), m_base);
     auto stroke = [&](QString label, QDoubleSpinBox *&width, QComboBox *&pen, ColorButton *&c)
@@ -46,7 +49,7 @@ AxisDetailsEditor::AxisDetailsEditor(QWidget *p) : QWidget(p)
         width->setRange(.25, 6);
         width->setSingleStep(.25);
         f->addRow(label + text("ui.width"), width);
-        pen = new QComboBox;
+        pen = new ChoiceEditor;
         pen->addItems({text("ui.solid"), text("ui.dash"), text("ui.dot"), text("ui.dash_dot"),
                        text("ui.dash_dot_dot")});
         f->addRow(label + text("ui.pattern"), pen);
@@ -71,7 +74,7 @@ AxisDetailsEditor::AxisDetailsEditor(QWidget *p) : QWidget(p)
     m_secondaryCount->setRange(2, 30);
     m_secondaryPrecision = new IntegerEditor;
     m_secondaryPrecision->setRange(0, 15);
-    m_secondaryFormat = new QComboBox;
+    m_secondaryFormat = new ChoiceEditor;
     m_secondaryFormat->addItems({"g", "f", "e", "eb"});
     f->addRow(text("ui.opposite_tick_count"), m_secondaryCount);
     f->addRow(text("ui.opposite_precision"), m_secondaryPrecision);
