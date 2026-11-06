@@ -110,7 +110,7 @@ function Invoke-AsterCollector {
         catch { Write-Warning "Could not write the fallback report: $($_.Exception.Message)" }
     }
     $reportHint = if (Test-Path -LiteralPath $reportPath -PathType Leaf) { "Report: $reportPath." } else { "No report could be written." }
-    throw "Dependency collector failed (exit $exitCode). $reportHint Log: $logPath. The staging folder is preserved; no release archive was created."
+    throw "Dependency collector failed (exit $exitCode). $reportHint Log: $logPath. The staging folder is preserved for diagnosis; release preparation did not complete."
 }
 
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../.."))
@@ -140,8 +140,7 @@ if (!$OutputDir) { $OutputDir = Join-Path $projectRoot "dist" }
 $outputRoot = [IO.Path]::GetFullPath($OutputDir)
 $name = "Aster-$version-windows-x64"
 $stage = Join-Path $outputRoot $name
-$archive = Join-Path $outputRoot "$name.zip"
-if ((Test-Path -LiteralPath $stage) -or (Test-Path -LiteralPath $archive)) { throw "Output already exists. Use a new OutputDir; existing packages are never overwritten." }
+if (Test-Path -LiteralPath $stage) { throw "Output already exists. Use a new OutputDir; existing packages are never overwritten." }
 $python = Get-AsterPython -Explicit $PythonExe
 Write-Host "Dependency collector: Python $($python.Version) ($($python.Path))"
 $deployArgs = @("--release", "--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler")
@@ -264,9 +263,6 @@ Check for updates: Settings -> Check for updates.
 This release checks GitHub releases and opens the browser; it does not auto-install.
 Releases: https://github.com/ChenCLian/Aster/releases
 "@ | Set-Content -LiteralPath (Join-Path $stage "START_HERE.txt") -Encoding UTF8
-Compress-Archive -LiteralPath $stage -DestinationPath $archive -CompressionLevel Optimal
-$hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-"$hash  $name.zip" | Set-Content -LiteralPath "$archive.sha256" -Encoding ASCII
-Write-Host "Created $archive"
-Write-Host "SHA256: $hash"
+Write-Host "Created release folder: $stage"
+Write-Host "For GitHub Release, compress this complete folder into $name.zip."
 Write-Host "Test this folder on a Windows host without Qt/vcpkg before publishing."

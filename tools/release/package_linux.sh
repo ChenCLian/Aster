@@ -105,5 +105,4 @@ env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRu
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=xcb \
   xvfb-run -a "$stage/AppRun" --version
 tar -C "$output" -czf "$output/$name.tar.gz" "$name"
-(cd "$output" && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")
 echo "Created $output/$name.tar.gz"

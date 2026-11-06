@@ -316,6 +316,8 @@ class DependencyMaterialTests(unittest.TestCase):
         self.assertEqual(report['status'],'collected')
         self.assertTrue(report['deferred'])
         self.assertNotIn(str(self.base), json.dumps(report))
+        self.assertFalse(list(self.collection.assets.glob('*.sha256')))
+        self.assertEqual(report['components'][0]['sources'][0]['sha256'], common.digest(source))
 
     def test_same_asset_name_different_contents_rejected(self):
         source = self.base / 'source.tar.gz'

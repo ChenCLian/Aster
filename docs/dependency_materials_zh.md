@@ -18,12 +18,12 @@
 
 ## 自动收集范围
 
-三个原生打包脚本在压缩程序包之前调用 `tools/release/collect_dependency_materials.py`。macOS 在复制许可进入 `.app`、签名和公证之前完成收集。
+三个原生打包脚本在完成发布产物之前调用 `tools/release/collect_dependency_materials.py`。macOS 在复制许可进入 `.app`、签名和公证之前完成收集。
 
 - **Qt**：从匹配的 `qmake` 读取版本，下载官方源码模块及 SHA-256。默认包含 qtbase、qtsvg、qtimageformats、qttranslations；根据实际 Qt 库增加需要的模块。提取许可及 Qt 第三方归属文件指向的许可证。
 - **Windows / vcpkg**：读取指定 triplet 的安装数据库、文件所有权和 SPDX；匹配实际 DLL，收集依赖闭包。使用 SPDX 记录的 URL 和摘要下载源码，按文件摘要恢复相同的 port 配方与补丁，不使用最新版本替代。
 - **Linux / Debian、Ubuntu**：以 ELF build ID 匹配发行包和构建机上的库，由 dpkg 查询实际源包版本。使用已配置的软件源获取该版本的 `.dsc`、原始源码和发行版补丁包，并检查 `.dsc` 中的 SHA-256。OpenSSL 和被打包的 Fortran 等运行库一同检查。Qt 官方套件自带的 ICU 单独收集。
-- **macOS / Homebrew**：以 Mach-O UUID 匹配实际库，读取已安装 keg 的配方和 receipt，收集对应源码、资源及补丁；不使用更新后的在线配方代替旧安装记录。
+- **macOS / Homebrew**：按目标架构的 Mach-O UUID 匹配实际库，读取已安装 keg 的配方和 receipt，收集对应源码、资源及补丁。Qt 框架中的同名头文件不参与二进制匹配。本地补丁从安装目录、匹配配方的源缓存或安装记录中的固定提交恢复；恢复远程补丁前核对配方内容，不使用最新配方代替旧安装记录。
 - **已有第三方代码与数据声明**：继续由现有打包步骤收集。Aster 的匹配源码仍由项目源码包提供。
 
 脚本仅下载、校验、读取归档和复制材料，不编译下载的源码，不安装或更新依赖，不自动发布 GitHub。源归档完整保留；解读归档时不展开可执行程序或符号链接。
@@ -80,7 +80,7 @@ Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb
 | --- | --- |
 | `report.json` | 状态、实际组件、准确版本及未解决项 |
 | `collector.log`（Windows） | 收集器的标准输出、错误输出和退出码；本机诊断使用，不作为 Release 附件 |
-| `release-assets/` | 应上传到 Release 的全部依赖源码、记录 ZIP 与摘要文件 |
+| `release-assets/` | 应上传到 Release 的全部依赖源码与记录 ZIP；不额外生成 `.sha256` 文件 |
 | `records/` | 记录 ZIP 的展开内容；用于本机查看，不必重复上传 |
 | `cache/` 或指定共享缓存 | 已校验下载的缓存，不上传 |
 | `SOURCE_DEPENDENCIES.md` | 该版本依赖源码入口，同时复制到程序包 |
@@ -89,12 +89,14 @@ Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb
 
 在 GitHub 创建对应版本 Release 后：
 
-1. 上传各平台程序压缩包和校验文件。
-2. 上传与程序一致的 Aster 项目源码包及其 `.sha256`。可直接整理匹配源码，也可运行 `python tools/release/package_source.py --output ../release-source`。
-3. 下载并解开 Actions 的 `dependency-materials-*` 外层构件 ZIP，上传其中的依赖源文件、记录 ZIP 和摘要文件；这些内容来自各平台的 `release-assets/`，构件解压后的目录层级可能不同。本机 Windows 从 `release-assets/` 取文件。
+1. 上传各平台程序压缩包。Windows 脚本生成普通目录，由维护者压缩完整目录；Actions 的 Linux/macOS 程序构件已经是可直接上传的单层程序包。
+2. 确认 Release 标签指向实际构建提交，GitHub 自动生成的 Source code 包含完整项目源码和必要资源；发布说明指向该入口。需要独立副本时，运行 `python tools/release/package_source.py --output ../release-source`，得到 `Aster-source-export-<版本>/` 普通目录，再按需压缩上传。
+3. 下载并解开 Actions 的 `dependency-materials-*` 外层构件 ZIP，上传其中的依赖源文件和记录 ZIP；这些内容来自各平台的 `release-assets/`，构件解压后的目录层级可能不同。本机 Windows 从 `release-assets/` 取文件。
 4. 多平台出现同名同摘要的依赖源文件时只上传一次；同名但内容不同的文件不能相互覆盖。保留 Debian `.dsc` 所引用的源文件原名。
-5. 在发布说明中注明项目源码包、各平台 `dependency-records.zip` 及依赖源码附件的位置。源码附件和程序放在同一 Release 最便于维护。
-6. 检查程序包内 `SOURCE_DEPENDENCIES.md` 的链接能下载相应附件。使用其他托管位置时同步该索引；之后重新打包，macOS 必须重新签名。
+5. 在发布说明中注明项目源码入口、各平台 `dependency-records.zip` 及依赖源码附件的位置。源码附件和程序放在同一 Release 最便于维护。
+6. 检查程序包内 `SOURCE_DEPENDENCIES.md` 的链接能下载相应附件。当前链接指向 `v<版本>`，正式 Release 必须使用匹配标签。使用其他托管位置时同步该索引；之后重新打包，macOS 必须重新签名。
+
+GitHub 为上传到 Release 的附件记录 SHA-256 摘要；Actions 程序构件也提供摘要。脚本不再生成独立 `.sha256` 附件，依赖下载、缓存复用、来源匹配和 JSON 清单中的摘要校验继续保留。依赖源包保持上游格式和文件名，不能通过改名或解压替代源码索引中引用的归档。
 
 Actions 构件保存期为 30 天，只用于交接构建结果；不能用临时构件链接替代持续可用的 Release 源码入口。工作流不创建 Release，也不替用户上传 Release 附件。
 
@@ -102,7 +104,7 @@ Actions 构件保存期为 30 天，只用于交接构建结果；不能用临�
 
 ## 缺项与重试
 
-出现未识别库、摘要不一致、源包版本不可用、配方不匹配或许可文件缺失时，脚本返回非零状态，生成 `report.json`，打包停止在压缩/签名前。已经完成并验证的下载保留在缓存中。失败不会被标记为“已收集完成”。
+出现未识别库、摘要不一致、源包版本不可用、配方不匹配或许可文件缺失时，脚本返回非零状态，生成 `report.json`，打包停止在发布产物完成前。已经完成并验证的下载保留在缓存中。失败不会被标记为“已收集完成”。
 
 Windows 打包另有进程诊断：Python 预检失败时，在部署前停止，不生成材料报告。预检通过后，收集器输出写入 `collector.log`；如果进程异常退出或没有生成有效报告，打包脚本在目录可写时补写 `phase: collector-process` 的失败报告。该状态表示收集过程未正常完成，不能据此认定缺少许可证。报告已列出具体材料问题时，保留原始错误内容。
 
@@ -130,7 +132,7 @@ python tools/release/collect_dependency_materials.py `
   --cache ../Aster-dependency-cache
 ```
 
-同一个收集输出目录可重试，过时清单会重新生成，缓存保留。整体打包脚本继续拒绝覆盖既有程序包；确认材料可获取后，用新的 `OutputDir` 重新打包。已签名 macOS 应用应从构建输出重新打包，不能直接修改其内部许可文件。
+同一个收集输出目录可重试，过时清单会重新生成，缓存保留。整体打包脚本继续拒绝覆盖既有程序目录或程序包；确认材料可获取后，用新的 `OutputDir` 重新打包。已签名 macOS 应用应从构建输出重新打包，不能直接修改其内部许可文件。
 
 直接运行 Python 收集器时，不经过 Windows 包装脚本的日志和兜底报告逻辑。如果尚未生成 `report.json`，以终端输出为准。Windows 进程诊断回归可运行 `powershell -ExecutionPolicy Bypass -File tools/release/test_windows_packaging.ps1`，无需 Qt、MSVC 或网络。
 

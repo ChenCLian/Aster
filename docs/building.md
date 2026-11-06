@@ -54,7 +54,7 @@ make -j4
 
 程序版本的统一入口是根目录 [VERSION](../VERSION)。修改版本或图标构建配置后，重新运行 qmake 并构建。
 
-- **源码归档：**`tools/release/package_source.py` 生成干净源码包，排除本机配置、构建产物和用户数据库。
+- **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `Aster-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
 - **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1` 收集 EXE、Qt 插件、第三方 DLL、许可说明及匹配的依赖源码；源码归档单独输出。发布前应在未安装开发环境的 Windows 主机测试。
 - **检查更新：**“设置 → 检查更新”按需读取本项目的 GitHub Releases，比较版本并打开发布页。默认检查正式版；草稿不会作为可用更新。
 - **安装新版：**当前采用完整程序包手动更换；关闭软件后，将新版解压到新目录，再打开原数据库。

@@ -17,7 +17,7 @@
 1. 完成参数参考生成与校验（见下文），提交待发布源码并推送到 GitHub。
 2. 打开 **Actions → Build desktop packages → Run workflow**，选择待构建分支。
 3. 确认 `linux-x64`、`macos-arm64`、`macos-x86_64` 三个任务的构建、文档同步检查、回归和打包步骤通过。
-4. 下载运行页面底部的 Artifacts。`Aster-*` 内是程序包及 `.sha256`，`dependency-materials-*` 包含依赖源码与构建/许可记录，`logs-*` 为诊断日志。GitHub 为 Artifact 添加的外层 ZIP 需先解开，再上传内部程序包到 Release。
+4. 下载运行页面底部的 Artifacts。`Aster-<版本>-<平台>.zip` 或 `.tar.gz` 是可直接上传 Release 的程序包，无外层 ZIP；工作流通过 `actions/upload-artifact@v7` 的 `archive: false` 原样上传。`dependency-materials-*` 仍是多个依赖附件的运输 ZIP，解开后上传其中的源包和记录 ZIP；`logs-*` 为诊断日志。
 5. 保留该次运行链接、源码提交、测试日志和程序包摘要。失败的构建不作为可发布产物。
 
 工作流只上传构件，不自动创建或修改 Release。依赖材料构件的 30 天保存期不能替代 Release 中持续可用的源码附件。当前配置为 Qt 6.8.3、Python 3.12；Linux 使用 Ubuntu 22.04，macOS 使用 `macos-15`（Apple Silicon）和 `macos-15-intel`（Intel）。具体值以工作流文件为准。
@@ -26,7 +26,7 @@
 
 | 平台 | 1.1.1 程序包 | 启动入口 |
 | --- | --- | --- |
-| Windows x64 | `Aster-1.1.1-windows-x64.zip` | `Aster.exe` |
+| Windows x64 | `Aster-1.1.1-windows-x64/`（本地目录；发布时手动压缩为同名 ZIP） | `Aster.exe` |
 | macOS Apple Silicon | `Aster-1.1.1-macos-arm64.zip` | `Aster.app` |
 | macOS Intel | `Aster-1.1.1-macos-x86_64.zip` | `Aster.app` |
 | Linux x64 | `Aster-1.1.1-linux-x64.tar.gz` | `./AppRun` |
@@ -57,6 +57,8 @@ powershell -ExecutionPolicy Bypass -File tools/release/package_windows.ps1 `
   -OutputDir ./dist/1.1.1
 ```
 
+Windows 脚本仅生成 `Aster-<版本>-windows-x64/` 普通目录，不生成程序 ZIP 或 `.sha256`。用于 Release 时，压缩整个目录为 `Aster-<版本>-windows-x64.zip`；保持许可、文档和依赖文件完整。旧的 ZIP、校验文件和目录不会自动删除。
+
 `VcpkgPrefix` 是库安装目录，`VcpkgRoot` 是包含构建配方的 vcpkg 仓库目录。已有同名输出时使用新的 `OutputDir`；下载缓存可以复用。
 
 脚本会在部署前验证 Python 解释器；可用 `-PythonExe` 指定完整路径。依赖收集失败时，查看材料目录中的 `report.json` 和 `collector.log`。解释器预检失败不会生成报告；具体区别见[缺项与重试](dependency_materials_zh.md#缺项与重试)。
@@ -74,6 +76,8 @@ bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 di
 # Linux x64
 bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist
 ```
+
+Linux/macOS 脚本保留单层原生归档，不生成 `.sha256`。归档保存执行权限、符号链接和 macOS 应用结构；不要将展开后的目录交给 Actions 默认 ZIP 上传再当作程序包。
 
 macOS 默认从 Homebrew 查询 GSL/OpenBLAS，可通过 `GSL_PREFIX`、`OPENBLAS_ROOT` 指定依赖位置。Linux 可通过 `ASTER_QT_PLUGINS` 指定与构建版本匹配的 Qt 插件目录。linuxdeploy 下载使用固定 SHA-256 校验；资产变化时应审核新工具并更新摘要。
 
@@ -117,23 +121,23 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 Aster 整体使用 GPL-3.0-only，原创部分版权署名为 ZiJie Chen。`LICENSE` 保留官方完整条款；`COPYRIGHT.md` 界定范围；`SOURCE_CODE.md` 说明源码获取与再分发要求。第三方原有许可、版权和数据归属不得被项目声明覆盖。
 
-每次发布程序包时，同时提供与其对应的完整项目源码，并记录源码提交和版本标签以便追踪。可整理实际构建所用源码，或使用下列脚本生成 `Aster_<version>_source.zip`；项目源码包不包含本机配置与构建缓存。
+每次发布程序包时，同时提供与其对应的完整项目源码，并记录源码提交和版本标签以便追踪。完整源码已提交到对应标签时，可使用 GitHub Release 自动提供的 Source code 下载，无需重复上传项目源码 ZIP。需要独立副本时，使用下列脚本生成 `Aster-source-export-<版本>/` 普通目录；不包含本机配置与构建缓存。
 
 ```sh
 python tools/release/package_source.py --output ../release-source
 ```
 
-输出目录须在源码树外。脚本保留 `config/local.pri.example`，排除个人 `config/local.pri`、构建产物和用户数据库，重新生成 `PACKAGE_MANIFEST.json` 与 ZIP 校验值。
+输出目录须在源码树外。脚本保留 `config/local.pri.example`，排除个人 `config/local.pri`、构建产物和用户数据库，重新生成含逐文件摘要的 `PACKAGE_MANIFEST.json`，并校验导出内容。不生成压缩包或独立 `.sha256` 文件；如需作为 Release 附件上传，可手动压缩导出目录。GitHub Release 不接受直接上传目录。
 
 还需记录实际分发的 Qt、GSL、OpenBLAS/LAPACK 及其他库的版本、构建配置和补丁，为适用许可要求覆盖的依赖提供对应源码。vcpkg 应记录 ports 的固定提交与补丁，Homebrew/发行版包应记录对应配方或源包。可将依赖源包作为单独的 Release 附件，也可在发布页明确列出精确且可持续访问的下载位置。只有上游主页、`copyright` 文件或 DLL 不足以完成这一项。
 
-Windows、macOS、Linux 打包脚本调用自动收集器，获取实际依赖的对应源码、配方/补丁和许可证，生成单独的 `release-assets/`。缺项会停止压缩/签名并保留报告；收集器不发布 GitHub。操作命令、支持范围和异常处理见[依赖源码与许可材料](dependency_materials_zh.md)。发布前仍须核对实际下载入口与内容。
+Windows、macOS、Linux 打包脚本调用自动收集器，获取实际依赖的对应源码、配方/补丁和许可证，生成单独的 `release-assets/`。缺项会停止发布产物生成并保留报告；收集器不发布 GitHub。操作命令、支持范围和异常处理见[依赖源码与许可材料](dependency_materials_zh.md)。发布前仍须核对实际下载入口与内容。
 
 ### 发布材料核对
 
 | 材料 | 必须记录的内容 |
 | --- | --- |
-| 项目源码 | 与各平台程序一致的完整源码包及 SHA-256；建议记录提交和版本标签 |
+| 项目源码 | 与各平台程序一致的完整源码、准确提交和版本标签；可采用标签自动源码包 |
 | 分发依赖 | 各平台实际组件、准确版本、源包链接及摘要、构建配置、配方或 port 修订、补丁 |
 | 许可与归属 | 原始许可、版权、修改说明；数据集的适用条款和引用 |
 | 下载入口 | 与二进制相邻的源码和依赖材料入口，可免费访问并持续维护 |
@@ -147,8 +151,10 @@ Windows、macOS、Linux 打包脚本调用自动收集器，获取实际依赖�
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
 2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.1.1`，标题填写 `Aster 1.1.1`。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
-4. 上传程序包及其 `.sha256`、同版本项目源码包及其 `.sha256`，以及各平台 `release-assets/` 中的全部文件。同名且摘要相同的依赖附件上传一次，文件名应与生成的源码索引一致。Actions 构件先解压，再上传内部文件。
-5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_DEPENDENCIES.md` 的附件链接。GitHub 自动生成的 Source code 不包含外部依赖源码。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。
+4. 上传程序包和各平台 `release-assets/` 中的全部文件，不再上传独立 `.sha256`。Windows 目录由维护者压缩；Actions 的程序归档直接上传，依赖材料构件先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
+5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。
+
+GitHub 为 Release 附件记录 SHA-256 摘要，可通过附件 API 的 `digest` 字段查看；Actions 程序构件有自己的摘要。两者都针对实际上传的文件，不是源文件或可执行文件的单独签名。依赖下载及来源核验仍使用预期摘要，不能以 GitHub 上传后的摘要代替。
 
 数据库不放进发行包。更新程序时保留用户原数据库；软件不自动迁移程序目录内的自建文件。
 

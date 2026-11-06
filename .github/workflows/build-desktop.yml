@@ -22,16 +22,19 @@ jobs:
             qt-host: linux
             qt-arch: linux_gcc_64
             arch: x86_64
+            archive-ext: tar.gz
           - target: macos-arm64
             os: macos-15
             qt-host: mac
             qt-arch: clang_64
             arch: arm64
+            archive-ext: zip
           - target: macos-x86_64
             os: macos-15-intel
             qt-host: mac
             qt-arch: clang_64
             arch: x86_64
+            archive-ext: zip
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     env:
@@ -118,14 +121,18 @@ jobs:
       - name: Package macOS
         if: runner.os == 'macOS'
         run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
+      - name: Resolve package path
+        id: package-path
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          package="dist/Aster-$version-${{ matrix.target }}.${{ matrix.archive-ext }}"
+          test -f "$package"
+          printf 'path=%s\n' "$package" >> "$GITHUB_OUTPUT"
       - name: Upload package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: Aster-${{ matrix.target }}
-          path: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.sha256
+          path: ${{ steps.package-path.outputs.path }}
+          archive: false
           if-no-files-found: error
           retention-days: 30
       - name: Upload dependency sources and notices

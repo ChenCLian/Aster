@@ -3,6 +3,8 @@
 Copyright (C) 2026 ZiJie Chen
 SPDX-License-Identifier: GPL-3.0-only
 """
+import base64
+import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -110,8 +112,11 @@ def binary_id(path, platform):
         return match[1].lower() if match else digest(path)
     if platform.startswith('macos'):
         text = run(['dwarfdump', '--uuid', path])
-        values = sorted(re.findall(r'UUID: ([A-Fa-f0-9-]+)', text))
-        return ','.join(values) if values else digest(path)
+        arch = platform.removeprefix('macos-')
+        values = {uuid.lower() for uuid, cpu in
+                  re.findall(r'UUID: ([A-Fa-f0-9-]+)\s+\(([^)]+)\)', text) if cpu == arch}
+        # Deployment thins universal Qt frameworks; compare the selected slice.
+        return arch + ':' + next(iter(values)) if len(values) == 1 else None
     # windeployqt patches QtCore's installation path in .rdata. Its CodeView
     # identity and executable code section remain stable across that operation.
     data = path.read_bytes()
@@ -148,7 +153,8 @@ def binary_id(path, platform):
 
 
 def same_binary(left, right, platform):
-    return binary_id(left, platform) == binary_id(right, platform)
+    identity = binary_id(left, platform)
+    return bool(identity) and identity == binary_id(right, platform)
 
 
 def qt_owners(binaries, prefix, platform):
@@ -161,7 +167,8 @@ def qt_owners(binaries, prefix, platform):
             is_qt = (re.match(r'(?:lib)?Qt6', candidate.name) or
                      any(p.startswith('Qt') and p.endswith('.framework') for p in relative.parts) or
                      (relative.parts and relative.parts[0] == 'plugins'))
-            if not is_qt:
+            # Frameworks also contain extensionless headers named QtCore, etc.
+            if not is_qt or not is_binary(candidate.resolve()):
                 continue
             if same_binary(binary, candidate, platform):
                 owners[binary] = 'qt'
@@ -521,6 +528,7 @@ def debian_sources(collection, binaries, owners):
 
 BREW_QUERY = r'''
 require "json"
+require "base64"
 require "formula"
 require "formulary"
 f = Formulary.factory(ARGV.fetch(0))
@@ -528,16 +536,96 @@ s = f.stable
 raise "No stable source" unless s
 sources = [{url: s.url, sha256: s.checksum.to_s, kind: "source"}]
 s.resources.each_value { |r| sources << {url: r.url, sha256: r.checksum.to_s, kind: "resource"} }
-s.patches.each do |p|
-  if p.respond_to?(:resource)
-    r = p.resource
-    sources << {url: r.url, sha256: r.checksum.to_s, kind: "patch"}
-  elsif !p.class.name.match?(/DATA|String/)
-    raise "Unsupported patch: #{p.class.name}"
+patches = []
+([s] + s.resources.values).each_with_index do |spec, scope|
+  spec.patches.each_with_index do |p, index|
+    info = {scope: scope, order: index, strip: p.strip.to_s,
+            directory: (p.respond_to?(:directory) ? p.directory&.to_s : nil)}
+    if p.respond_to?(:resource)
+      r = p.resource
+      sources << {url: r.url, sha256: r.checksum.to_s, kind: "patch"}
+      patches << info.merge(kind: "external", url: r.url, sha256: r.checksum.to_s)
+    elsif p.class.name == "LocalPatch"
+      patches << info.merge(kind: "local", path: p.file.to_s)
+    elsif p.respond_to?(:contents)
+      patches << info.merge(kind: "embedded", data: Base64.strict_encode64(p.contents))
+    else
+      raise "Unsupported patch: #{p.class.name}"
+    end
   end
 end
-puts JSON.generate({name: f.name, version: f.pkg_version.to_s, sources: sources})
+puts JSON.generate({name: f.name, version: f.pkg_version.to_s, sources: sources, patches: patches})
 '''
+
+
+def same_brew_recipe(left, right):
+    # Homebrew removes the bottle stanza when saving a built keg's formula.
+    # Only that stanza is ignored; source URLs, checksums and patches must match.
+    pattern = rb'  bottle do.+?end\n\n?'
+    return re.sub(pattern, b'', left, flags=re.S) == re.sub(pattern, b'', right, flags=re.S)
+
+
+def brew_local_patch(recipe, receipt, relative):
+    """Recover a patch from the installed keg or its exact recorded tap revision."""
+    relative = member_path(relative)
+    if not relative.parts or relative.parts[0] != 'Patches':
+        raise MaterialError('Unsupported Homebrew local patch path; expected Patches/')
+    source = receipt.get('source', {})
+    # New bottles can retain local patch files next to the installed formula.
+    local = recipe.parent.joinpath(*relative.parts)
+    if local.is_file() and local.resolve().is_relative_to(recipe.parent.resolve()):
+        return local.read_bytes(), 'installed-keg'
+    original = Path(source.get('path') or recipe)
+    if original.is_file() and same_brew_recipe(original.read_bytes(), recipe.read_bytes()):
+        for parent in original.parents:
+            if parent.name == 'Formula':
+                root = parent.parent.resolve()
+                cached = root.joinpath(*relative.parts)
+                if cached.is_file() and cached.resolve().is_relative_to(root):
+                    return cached.read_bytes(), 'installed-formula-source-cache'
+                break
+    # An API-source cache records owner/repository/commit/Formula/... .
+    revision = source.get('tap_git_head') or ''
+    for i, part in enumerate(original.parts):
+        if part == 'api-source' and len(original.parts) > i + 3:
+            revision = revision or original.parts[i + 3]
+    if source.get('tap') != 'homebrew/core' or not re.fullmatch(r'[0-9a-fA-F]{40}', revision):
+        raise MaterialError('Local Homebrew patch requires the installed patch or an exact recorded homebrew/core revision')
+    base = 'https://raw.githubusercontent.com/Homebrew/homebrew-core/' + revision + '/'
+    # Check the saved recipe itself before using any file from the recorded commit.
+    name = recipe.stem
+    paths = [f'Formula/{name[0]}/{name}.rb', f'Formula/{name}.rb']
+    matched = False
+    for path in paths:
+        try:
+            if same_brew_recipe(read_url(base + path), recipe.read_bytes()):
+                matched = True
+                break
+        except MaterialError:
+            continue
+    if not matched:
+        raise MaterialError('Recorded Homebrew revision does not match the installed formula; cannot recover its local patch')
+    url = base + relative.as_posix()
+    return read_url(url), url
+
+
+def save_brew_patches(collection, component, recipe, receipt, metadata):
+    for index, item in enumerate(metadata.get('patches', [])):
+        if item['kind'] == 'external':
+            continue  # Downloaded and verified as a source asset below.
+        if item['kind'] == 'local':
+            relative = member_path(item['path']).as_posix()
+            data, origin = brew_local_patch(recipe, receipt, relative)
+        elif item['kind'] == 'embedded':
+            relative = f'embedded-patches/{index:03d}.patch'
+            data = base64.b64decode(item.pop('data'), validate=True)
+            origin = 'installed-formula'
+        else:
+            raise MaterialError('Unsupported Homebrew patch kind')
+        if not data:
+            raise MaterialError('Homebrew patch is empty')
+        collection.save_record(component, relative, data)
+        item.update(path=relative, sha256=hashlib.sha256(data).hexdigest(), origin=origin)
 
 
 def brew_sources(collection, binaries, owners):
@@ -579,15 +667,18 @@ def brew_sources(collection, binaries, owners):
             recipe = keg / '.brew' / (name + '.rb')
             if not recipe.is_file():
                 raise MaterialError('Installed Homebrew formula is missing')
-            receipt = json.loads((keg / 'INSTALL_RECEIPT.json').read_text())
+            installed_receipt = json.loads((keg / 'INSTALL_RECEIPT.json').read_text())
             # Omit local source paths; retain versions, bottle identity and build options.
-            receipt = {k:v for k,v in receipt.items() if k in {'used_options','unused_options','built_as_bottle',
+            receipt = {k:v for k,v in installed_receipt.items() if k in {'used_options','unused_options','built_as_bottle',
                        'poured_from_bottle','compiler','stdlib','runtime_dependencies','built_on','time'}}
+            receipt['source'] = {k:v for k,v in installed_receipt.get('source', {}).items()
+                                 if k in {'tap', 'tap_git_head', 'versions'}}
             collection.save_record(component, 'INSTALL_RECEIPT.json', json.dumps(receipt, indent=2).encode())
             collection.save_record(component, name + '.rb', recipe.read_bytes())
             metadata = json.loads(run(['brew', 'ruby', '-e', BREW_QUERY, '--', recipe]))
             if metadata['version'] != keg.name:
                 raise MaterialError('Formula version differs from the installed keg')
+            save_brew_patches(collection, component, recipe, installed_receipt, metadata)
             collection.save_record(component, 'source-metadata.json', json.dumps(metadata, indent=2).encode())
             for source in metadata['sources']:
                 url, expected = source['url'], source['sha256']

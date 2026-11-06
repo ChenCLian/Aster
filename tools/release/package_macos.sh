@@ -121,5 +121,4 @@ Updates: Settings > Check for updates opens the public release page.
 Close Aster before replacing the app. Keep your database and settings separately.
 EOF
 ditto -c -k --sequesterRsrc --keepParent "$stage" "$output/$name.zip"
-(cd "$output" && shasum -a 256 "$name.zip" > "$name.zip.sha256")
 echo "Created $output/$name.zip"

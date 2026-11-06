@@ -7,37 +7,13 @@
     "manifest": "PACKAGE_MANIFEST.json",
     "review_baseline_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d"
   },
-  "scope": "Windows packaging interpreter preflight and collector-process diagnostics, release-tool regression, documentation and source archive integrity. Desktop implementation and embedded help are unchanged.",
+  "scope": "Directory-only Windows deployment and source export, direct Actions program artifacts, dependency checksum metadata, macOS target-slice matching and exact Homebrew patch recovery. Release documents updated; C++ application implementation unchanged. SOURCE_CODE.md is an embedded help resource and requires rebuilding.",
   "counting": "Current checks and retained evidence are separate. Counts from different runs must not be summed as a new full regression result; QtTest totals include initialization and cleanup.",
   "current_checks": {
     "release_tool_tests": {
-      "passed": 27,
+      "passed": 72,
       "failed": 0,
-      "log": "docs/validation_results/release/dependency_materials_tests.txt"
-    },
-    "documentation": {
-      "status": "passed",
-      "documents": 46,
-      "local_links": 307,
-      "repository_path_links": 27,
-      "anchors": 117,
-      "compiled_help_resources": 47,
-      "protected_files_byte_identical": 504,
-      "validation_log_references": 18,
-      "windows_packaging_examples_identical": true,
-      "personal_paths_found": 0,
-      "stale_release_version_text_found": 0,
-      "scope": "Project Markdown links and anchors, repository-path URLs checked against this source tree, QRC entries, packaging parameters, retained log references, version labels and protected-file byte comparison. External website availability is not tested."
-    },
-    "source_packaging": {
-      "status": "passed",
-      "source_package_files": 586,
-      "manifest_verified": true,
-      "zip_integrity": true,
-      "local_pri_excluded": true,
-      "temporary_products_excluded": true,
-      "original_license_bytes_preserved": true,
-      "scope": "Local source archive verification, not a binary deployment or remote publication."
+      "log": "docs/validation_results/release/packaging_layout_tests.txt"
     },
     "windows_packaging_process": {
       "passed": 12,
@@ -47,11 +23,104 @@
         "python": "3.12.14",
         "os": "Linux x86_64"
       },
-      "log": "docs/validation_results/release/windows_packaging_process_tests.txt",
-      "scope": "Native process boundary and report handling with controlled Python fixtures. Does not validate Windows PowerShell 5.1, windeployqt or actual vcpkg/Qt material downloads."
+      "log": "docs/validation_results/release/windows_packaging_layout_process_tests.txt",
+      "scope": "Controlled native-process fixtures; not a Windows deployment test."
+    },
+    "brew_patch_query": {
+      "status": "passed",
+      "log": "docs/validation_results/release/brew_patch_query_tests.txt",
+      "scope": "Ruby 3.3 with controlled Homebrew API fixtures: local, embedded, external and resource patches. Not a native Homebrew collection run."
+    },
+    "workflow_and_shell": {
+      "status": "passed",
+      "scope": "Workflow YAML structure, exact single-file artifact path, archive:false setting; bash syntax for Linux/macOS packaging scripts. GitHub artifact transfer not executed locally."
+    },
+    "documentation": {
+      "status": "passed",
+      "changed_documents": 4,
+      "local_links": 28,
+      "personal_paths_found": 0,
+      "scope": "Changed publication documents: local file links, old export filenames, checksum-sidecar instructions and path disclosure."
+    },
+    "source_export": {
+      "status": "passed",
+      "scope": "Clean project directory export, per-file digest verification and exclusion of local settings/builds; no output ZIP or sidecar digest.",
+      "files": 593,
+      "manifest_verified": true,
+      "local_pri_excluded": true,
+      "zip_created": false,
+      "checksum_sidecar_created": false
     }
   },
   "retained_evidence": [
+    {
+      "id": "macos_r2_native_regression",
+      "date": "2026-11-06",
+      "commit": "7b425c50eb828f4f8d9299dc4cc838ccad8e83e4",
+      "ref": "refs/tags/v1.1.1_r2",
+      "platforms": [
+        "macos-arm64",
+        "macos-x86_64"
+      ],
+      "tests": {
+        "core": 54,
+        "analysis": 676,
+        "ui": 85,
+        "style_export": 32,
+        "workspace": 23,
+        "integration": 83,
+        "update": 50
+      },
+      "failed": 0,
+      "scope": "Supplied CI logs: build and all application test targets passed. Packaging failed during Qt identity and Homebrew LocalPatch collection. This evidence predates the current packaging changes; native packaging remains unverified."
+    },
+    {
+      "id": "windows_process_and_documentation_baseline",
+      "date": "2026-11-06",
+      "scope": "Windows packaging interpreter preflight and collector-process diagnostics, release-tool regression, documentation and source archive integrity. Desktop implementation and embedded help are unchanged.",
+      "checks": {
+        "release_tool_tests": {
+          "passed": 27,
+          "failed": 0,
+          "log": "docs/validation_results/release/dependency_materials_tests.txt"
+        },
+        "documentation": {
+          "status": "passed",
+          "documents": 46,
+          "local_links": 307,
+          "repository_path_links": 27,
+          "anchors": 117,
+          "compiled_help_resources": 47,
+          "protected_files_byte_identical": 504,
+          "validation_log_references": 18,
+          "windows_packaging_examples_identical": true,
+          "personal_paths_found": 0,
+          "stale_release_version_text_found": 0,
+          "scope": "Project Markdown links and anchors, repository-path URLs checked against this source tree, QRC entries, packaging parameters, retained log references, version labels and protected-file byte comparison. External website availability is not tested."
+        },
+        "source_packaging": {
+          "status": "passed",
+          "source_package_files": 586,
+          "manifest_verified": true,
+          "zip_integrity": true,
+          "local_pri_excluded": true,
+          "temporary_products_excluded": true,
+          "original_license_bytes_preserved": true,
+          "scope": "Local source archive verification, not a binary deployment or remote publication."
+        },
+        "windows_packaging_process": {
+          "passed": 12,
+          "failed": 0,
+          "environment": {
+            "powershell": "7.4.6",
+            "python": "3.12.14",
+            "os": "Linux x86_64"
+          },
+          "log": "docs/validation_results/release/windows_packaging_process_tests.txt",
+          "scope": "Native process boundary and report handling with controlled Python fixtures. Does not validate Windows PowerShell 5.1, windeployqt or actual vcpkg/Qt material downloads."
+        }
+      }
+    },
     {
       "id": "documentation_and_help_baseline",
       "date": "2026-11-06",

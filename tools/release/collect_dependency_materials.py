@@ -96,7 +96,7 @@ def finish(collection, package, owners, binaries, install=True):
     if collection.errors:
         lines += ['', '## Unresolved items', ''] + [f'- {e["component"]}: {e["message"]}' for e in collection.errors]
     lines += ['', '## Publication', '',
-              'Upload every file in release-assets/ next to the program download, together with the matching Aster source archive.',
+              'Upload every file in release-assets/ next to the program download; link the matching Aster source from the release tag.',
               'Do not upload cache/ or the local build environment. Sources are not compiled into the application.',
               'Keep the original dependency source filenames, especially the files referenced by Debian .dsc records.',
               'The records ZIP contains licenses, source URLs/checksums, build recipes and the staged binary inventory.',
@@ -122,9 +122,6 @@ def finish(collection, package, owners, binaries, install=True):
                 archive.write(path, path.relative_to(collection.records).as_posix())
     temporary.replace(collection.assets / records_name)
     names.append(records_name)
-    sums = ''.join(digest(collection.assets / name) + '  ' + name + '\n' for name in sorted(names))
-    sums_name = f'Aster-{collection.version}-{collection.platform}-dependencies.sha256'
-    (collection.assets / sums_name).write_text(sums, encoding='utf-8')
     urls = '\n'.join(f'- [{name}](https://github.com/ChenCLian/Aster/releases/download/v{collection.version}/{name})'
                      for name in sorted(names))
     index = (f'# Aster {collection.version} dependency sources ({collection.platform})\n\n'

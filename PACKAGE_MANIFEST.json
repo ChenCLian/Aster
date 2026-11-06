@@ -14,8 +14,8 @@
     },
     {
       "path": ".github/workflows/build-desktop.yml",
-      "bytes": 5802,
-      "sha256": "884e6cef427caada10d327bbf7a7b2bbc32a9860895d2b9e8fa1d23fea5cccd9"
+      "bytes": 6133,
+      "sha256": "c864bf2eb84208177ec1547f11b02a9e62dcc54c7075c8941de3c39d693c2b72"
     },
     {
       "path": ".gitignore",
@@ -534,13 +534,13 @@
     },
     {
       "path": "docs/building.md",
-      "bytes": 5268,
-      "sha256": "c3a5a7010040226b7a1a4e7daef02d3aa1895a86d8ad3651f4def310190e3ea0"
+      "bytes": 5363,
+      "sha256": "cc71c514e562e65c584569f27921f1874b60606431414f1c23452717cfb11c1c"
     },
     {
       "path": "docs/dependency_materials_zh.md",
-      "bytes": 13591,
-      "sha256": "b15667d2a3f4c8cca5df969d132f92abfb5a2327a88ffa3388d4703488e6ae12"
+      "bytes": 14529,
+      "sha256": "6e04459f4810904d789e2b5ff1948b88e669f59804bdce11078a9c0d872be31e"
     },
     {
       "path": "docs/error_diagnostics.md",
@@ -654,8 +654,8 @@
     },
     {
       "path": "docs/release_maintenance_zh.md",
-      "bytes": 16227,
-      "sha256": "47a08dcb9d6f4bc23743ba94d6391bf772a17c6f644558455a4ce240c2ae8dc1"
+      "bytes": 17658,
+      "sha256": "73e3dde602baabafa2b4f02be58483acfce1c8e3ee7bccd54f1f2eb354c14e6e"
     },
     {
       "path": "docs/task_catalogue.md",
@@ -689,18 +689,23 @@
     },
     {
       "path": "docs/validation.json",
-      "bytes": 11657,
-      "sha256": "61b5bda53dfe92f91c0caac5c28689d8cb4253afe30b75b3d4cdc325ce773120"
+      "bytes": 14695,
+      "sha256": "2b9aa4024d710f7c8e19a7a6ecc618562b93c633cfc4507482a297acc2e01f43"
     },
     {
       "path": "docs/validation.md",
-      "bytes": 3349,
-      "sha256": "0de87175feb23708c5b6499872f1296367daec03cb5bc0d1ef90e795e2e31442"
+      "bytes": 3750,
+      "sha256": "6041a2e7ec7239a65eea67811de3414f6dc3efb53f6b413b44a9907cd8695794"
     },
     {
       "path": "docs/validation_results/release/analysis.txt",
       "bytes": 47117,
       "sha256": "62ec749a52a0da3fb7ef1080792fad7c4d425b768b2d4aeb68cd85228aed1dcc"
+    },
+    {
+      "path": "docs/validation_results/release/brew_patch_query_tests.txt",
+      "bytes": 85,
+      "sha256": "4bc796d23284962e6cd21be977b2efe6e065fe5932e8aa2e5264de513795c585"
     },
     {
       "path": "docs/validation_results/release/core.txt",
@@ -748,6 +753,11 @@
       "sha256": "87493287be9708af270a4af639c9e37a8bfdff1ff1830a52707292e6c42f2b34"
     },
     {
+      "path": "docs/validation_results/release/packaging_layout_tests.txt",
+      "bytes": 4237,
+      "sha256": "bfba03d22a9b9762fc026f3ddbc47042d77ac57bca118afab81bb644e18343f7"
+    },
+    {
       "path": "docs/validation_results/release/settings_150.txt",
       "bytes": 2118,
       "sha256": "04ab419e2997440190fca387c40bc9d9bd50f1f407d5a07ae175b781916f7377"
@@ -776,6 +786,11 @@
       "path": "docs/validation_results/release/update.txt",
       "bytes": 6007,
       "sha256": "a26204b74b2ea1fdbbe85282e8ad4da03482e070a2afbb9be75f0452977515a1"
+    },
+    {
+      "path": "docs/validation_results/release/windows_packaging_layout_process_tests.txt",
+      "bytes": 955,
+      "sha256": "390e1f1cfff1869bd2d02801e7315af462fb484f7c1f24600cc206e451b35c31"
     },
     {
       "path": "docs/validation_results/release/windows_packaging_process_tests.txt",
@@ -1114,8 +1129,8 @@
     },
     {
       "path": "SOURCE_CODE.md",
-      "bytes": 3108,
-      "sha256": "7ca3ba7acff63020b4e67ea4d1b320b2e80c9458fe333388e94d4470a81d1fd3"
+      "bytes": 3470,
+      "sha256": "7064ed59a9c96112878a47ab866ba998af2c9dbe70bb2c4de11c2bf3c876a09c"
     },
     {
       "path": "src/application/batch_runner.cpp",
@@ -2814,8 +2829,8 @@
     },
     {
       "path": "tools/release/collect_dependency_materials.py",
-      "bytes": 14160,
-      "sha256": "5ede7f1a5e948405daf3a86c4a9a7ce3719a745d9f2e789c37b10cca44c4e43e"
+      "bytes": 13905,
+      "sha256": "c9a7bda322935f0c033734ae761ef9c3fa9d784cc02364e234e37cae082d3f6d"
     },
     {
       "path": "tools/release/dependency_common.py",
@@ -2829,8 +2844,8 @@
     },
     {
       "path": "tools/release/dependency_providers.py",
-      "bytes": 32706,
-      "sha256": "6ba2945460d24d6ac16dced4dc38f50d7e6d593d12afe5ed624d44a7f7c4d1bb"
+      "bytes": 37571,
+      "sha256": "a66373a1181f7460e6722228d7cc612bd928772a1c568de30021b84d23dacaeb"
     },
     {
       "path": "tools/release/dependency_supplement.example.json",
@@ -2854,23 +2869,23 @@
     },
     {
       "path": "tools/release/package_linux.sh",
-      "bytes": 6210,
-      "sha256": "f82f88618059cb85f8582b0c2dcdead7707b26fcb8a3c81869428ceb44555448"
+      "bytes": 6143,
+      "sha256": "71d525952a576ef170ea3f3df0fe40f9c2792fd9131cd507a8f67d6342d9d536"
     },
     {
       "path": "tools/release/package_macos.sh",
-      "bytes": 6639,
-      "sha256": "3907e142c7ab912bf4e489a2e569be9df0f11b835262cbcadc791db2478953e9"
+      "bytes": 6574,
+      "sha256": "248b1760023cd16c24c1e9f4d41f99b0676aa0cb2dc57d2401459cdf125c8dee"
     },
     {
       "path": "tools/release/package_source.py",
-      "bytes": 3646,
-      "sha256": "20132accbf9832f69151eff76d05c37dec07026abf83085b1cdd450600c29437"
+      "bytes": 3819,
+      "sha256": "a354e06b42f04a4963320a9a750e0e5a9ea0c4b56983310dcb1435558455b985"
     },
     {
       "path": "tools/release/package_windows.ps1",
-      "bytes": 17221,
-      "sha256": "eeaf4d0d0641aeaf27a836098a250464e60ae6bdc6864c8c960b039cd10e04ff"
+      "bytes": 16694,
+      "sha256": "1c3c4f78df566d8dfb60b67fb2a5926e3cac3086eb487ea5ea02bc22af723286"
     },
     {
       "path": "tools/release/run_tests.py",
@@ -2884,8 +2899,8 @@
     },
     {
       "path": "tools/release/test_dependency_materials.py",
-      "bytes": 19326,
-      "sha256": "e98069a04683441c70c620c235a5671895c1cc8cfbebc5807818394a95183449"
+      "bytes": 19495,
+      "sha256": "a4829fa4d569cd4819ed78ecdca65acb5d614c95c5bf0f80fb3447a3585accf9"
     },
     {
       "path": "tools/release/test_dependency_mirrors.py",
@@ -2901,6 +2916,11 @@
       "path": "tools/release/test_license_packaging.py",
       "bytes": 2887,
       "sha256": "3205db3ac903cd3634c347d5b03049e3dfff42206728251850b0e311e9cdf37d"
+    },
+    {
+      "path": "tools/release/test_packaging_layout.py",
+      "bytes": 9255,
+      "sha256": "28103f224f225608eaa0b05ee10dbd53fb545aab4ea241bd43bef242a27f3a25"
     },
     {
       "path": "tools/release/test_windows_packaging.ps1",
