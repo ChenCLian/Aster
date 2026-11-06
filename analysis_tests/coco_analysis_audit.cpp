@@ -105,6 +105,9 @@ class CocoAnalysisAudit : public QObject
     void evolutionReference();
     void invariantsAndConcurrentRuns();
     void invalidInputsAndBudgets();
+    void odpLargeMonteCarlo_data();
+    void odpLargeMonteCarlo();
+    void workBudgetDiagnostic();
     void cancellationAndProgress();
     void adapterContracts_data();
     void adapterContracts();
@@ -208,7 +211,7 @@ void CocoAnalysisAudit::invariantsAndConcurrentRuns()
     auto y = values(reference["mc"].toArray()[0].toObject()["y"]);
     auto o = options();
     CocoMonteCarloOptions mc;
-    mc.simulations = 39;
+    mc.simulations = 20000;
     const auto a = cocoMonteCarlo(y, .5, o, mc);
     const auto b = cocoMonteCarlo(y, .5, o, mc);
     QCOMPARE(a.maximum.nullMaxima, b.maximum.nullMaxima);
@@ -231,6 +234,81 @@ void CocoAnalysisAudit::invariantsAndConcurrentRuns()
     mc.peakCount = automatic.peaks;
     QCOMPARE(cocoMonteCarlo(y, .5, o, mc).maximum.nullMaxima, automatic.maximum.nullMaxima);
 }
+void CocoAnalysisAudit::odpLargeMonteCarlo_data()
+{
+    QTest::addColumn<double>("rateMaximum");
+    QTest::newRow("narrow-scan") << 3.;
+    QTest::newRow("default-scan") << 20.;
+}
+void CocoAnalysisAudit::odpLargeMonteCarlo()
+{
+    QFETCH(double, rateMaximum);
+    WorkflowModel model(makeScientificRegistry());
+    const auto root = model.addRoot("odp1143_d18o", {}, {{"example_axis", "depth"}}).nodeId;
+    const auto prep = model.addChild(root, ChildSlot::Down, "preprocess").nodeId;
+    const auto node = model.addChild(prep, ChildSlot::Down, "coco_monte_carlo",
+                                    {{"coco_rate_max", rateMaximum}, {"coco_simulations", 20000},
+                                     {"coco_rho", .1}, {"chrono_depth_unit", "m"}}).nodeId;
+    const auto run = WorkflowExecutor().run({model.freeze().snapshot, root, {}});
+    const auto result = run.nodes.value(node);
+    QVERIFY2(result.state == NodeState::Succeeded, qPrintable(result.error));
+    const auto *nulls = dataAs<SeriesData>(result.outputs.value("null_maxima"));
+    QVERIFY(nulls); QCOMPARE(nulls->y.size(), 20000);
+    const auto *p = dataAs<SeriesData>(result.outputs.value("scan_adjusted_p"));
+    QVERIFY(p); QVERIFY(!p->y.isEmpty());
+    for (const auto v : p->y) QVERIFY(v > 0 && v <= 1);
+    QJsonObject params;
+    for (const auto &definition : model.definition().nodes)
+        if (definition.id == node) params = definition.parameters;
+    params["coco_simulations"] = 500;
+    const auto shortRun = makeScientificRegistry().create("coco_monte_carlo", params)->execute(
+        {run.nodes.value(prep).outputs.value("series")}, {});
+    QVERIFY2(shortRun.state == NodeState::Succeeded, qPrintable(shortRun.error));
+    const auto *shortNulls = dataAs<SeriesData>(shortRun.outputs.value("null_maxima"));
+    QVERIFY(shortNulls); QCOMPARE(nulls->y.mid(0, 500), shortNulls->y);
+}
+void CocoAnalysisAudit::workBudgetDiagnostic()
+{
+    // Reject a large workload before detecting its constant values or building targets.
+    SeriesData large;
+    for (int i = 0; i < 16384; ++i) { large.x << i * .5; large.y << 1.; }
+    large.xAxis.unit = "m";
+    auto params = paramsFor("coco_monte_carlo");
+    params["coco_simulations"] = 20000;
+    const auto result = task("coco_monte_carlo", large, params);
+    QCOMPARE(result.state, NodeState::Failed);
+    const auto error = result.diagnostic();
+    QCOMPARE(error.code, QString("COCO_MC_WORK_BUDGET"));
+    QCOMPARE(error.context["requested_iterations"].toInt(), 20000);
+    QCOMPARE(error.context["maximum_work"].toDouble(), 10000000000.);
+    const auto maximum = error.context["maximum_iterations"].toInt();
+    QVERIFY(maximum > 0 && maximum < 20000);
+    const double workPerIteration = error.context["estimated_work"].toDouble() / 20000.;
+    QVERIFY(maximum * workPerIteration <= error.context["maximum_work"].toDouble());
+    QVERIFY((maximum + 1) * workPerIteration > error.context["maximum_work"].toDouble());
+    params["coco_simulations"] = maximum + 1;
+    QCOMPARE(task("coco_monte_carlo", large, params).diagnostic().code,
+             QString("COCO_MC_WORK_BUDGET"));
+    params["coco_simulations"] = maximum;
+    // The budget now accepts the exact boundary; the constant input still fails validation.
+    QCOMPARE(task("coco_monte_carlo", large, params).diagnostic().code,
+             QString("COCO_NO_SCORE"));
+
+    large.x.clear(); large.y.clear();
+    for (int i = 0; i < 32736; ++i) { large.x << i * .5; large.y << 1.; }
+    params = paramsFor("evolution_coco");
+    params["ecoco_window"] = 16384;
+    params["ecoco_step"] = 32;
+    params["coco_rate_step"] = .005;
+    params["coco_periods"] = "405,125";
+    params["coco_powers"] = "1,1";
+    const auto windowError = task("evolution_coco", large, params).diagnostic();
+    QCOMPARE(windowError.code, QString("COCO_WINDOW_WORK_BUDGET"));
+    QCOMPARE(windowError.context["requested_iterations"].toInt(), 512);
+    QVERIFY(windowError.context["maximum_iterations"].toInt() < 512);
+    QVERIFY(windowError.context["estimated_work"].toDouble() > 10000000000.);
+}
+
 void CocoAnalysisAudit::invalidInputsAndBudgets()
 {
     auto y = values(reference["mc"].toArray()[0].toObject()["y"]);
@@ -250,7 +328,7 @@ void CocoAnalysisAudit::invalidInputsAndBudgets()
     b.nullModel = static_cast<CocoMonteCarloOptions::Null>(99);
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, cocoMonteCarlo(y, .5, o, b));
     b = mc;
-    b.simulations = 10000;
+    b.simulations = 20001;
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, cocoMonteCarlo(y, .5, o, b));
     auto bad = y;
     bad[0] = qQNaN();
@@ -259,7 +337,7 @@ void CocoAnalysisAudit::invalidInputsAndBudgets()
     QVERIFY_THROWS_EXCEPTION(std::domain_error, cocoMonteCarlo(bad, .5, o, mc));
     bad.assign(16384, 1);
     b = mc;
-    b.simulations = 9999;
+    b.simulations = 20000;
     QVERIFY_THROWS_EXCEPTION(std::length_error, cocoMonteCarlo(bad, .5, o, b));
     CocoEvolutionOptions e;
     e.windowSamples = 128;
@@ -320,7 +398,7 @@ void CocoAnalysisAudit::cancellationAndProgress()
     auto yy = values(reference["evolution"].toObject()["y"]);
     auto o = options();
     CocoMonteCarloOptions mc;
-    mc.simulations = 39;
+    mc.simulations = 20000;
     QVERIFY_THROWS_EXCEPTION(CocoCancelled, cocoMonteCarlo(yy, .5, o, mc, [] { return true; }));
     bool stop = false;
     int last = -1;

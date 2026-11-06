@@ -6,14 +6,24 @@
 #include "math/statistics/monte_carlo_test.h"
 #include <cstdint>
 #include <random>
+#include <stdexcept>
 namespace aster::chronology
 {
 namespace CocoAnalysisLimits
 {
 inline constexpr std::size_t maxCacheCells = 8000000, maxInputSamples = 1000000, maxWindows = 512,
-                             maxMapCells = 2000000, maxPeaks = 8192, maxSimulations = 9999;
-inline constexpr long double maxEvaluationWork = 500000000.L;
+                             maxMapCells = 2000000, maxPeaks = 8192, maxSimulations = 20000;
+// Fixed per-task work units, not a hardware benchmark or memory allowance.
+inline constexpr long double maxEvaluationWork = 10000000000.L;
 } // namespace CocoAnalysisLimits
+struct CocoWorkBudgetError : std::length_error
+{
+    enum class Kind { Simulations, Windows };
+    Kind kind;
+    std::size_t requestedIterations, maximumIterations;
+    long double estimatedWork;
+    CocoWorkBudgetError(Kind kind, std::size_t iterations, long double workPerIteration);
+};
 struct CocoMonteCarloOptions
 {
     enum class Null

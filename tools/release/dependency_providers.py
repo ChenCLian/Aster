@@ -528,7 +528,6 @@ def debian_sources(collection, binaries, owners):
 
 BREW_QUERY = r'''
 require "json"
-require "base64"
 require "formula"
 require "formulary"
 f = Formulary.factory(ARGV.fetch(0))
@@ -548,7 +547,9 @@ patches = []
     elsif p.class.name == "LocalPatch"
       patches << info.merge(kind: "local", path: p.file.to_s)
     elsif p.respond_to?(:contents)
-      patches << info.merge(kind: "embedded", data: Base64.strict_encode64(p.contents))
+      # Homebrew's portable Ruby may omit the optional base64 gem. Core pack
+      # preserves patch bytes with the same strict, newline-free encoding.
+      patches << info.merge(kind: "embedded", data: [p.contents].pack("m0"))
     else
       raise "Unsupported patch: #{p.class.name}"
     end

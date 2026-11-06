@@ -298,7 +298,7 @@ HEADERS += ../src/processing/example_clip_task.h
 
 ### 6.3 参数界面的边界
 
-通用表单覆盖常用标量、分组、visibleWhen 条件显隐，以及带 fileFilter 的文本文件选择；数组编辑、动态行表或其他特殊交互仍需单独设计。参数自动提交，新的普通读取/计算任务自动进入节点预览。
+通用表单覆盖常用标量、分组、visibleWhen 条件显隐，以及带 fileFilter 的文本文件选择；数组编辑、动态行表或其他特殊交互仍需单独设计。参数自动提交，新的普通读取/计算任务自动进入节点输出预览。浮点参数编辑支持科学计数法，并保留可往返到同一 double 的显示精度；新增参数须验证界面读回、节点切换、预览及正式运行的数值一致性。
 
 如果需要复杂表单，在 UI 层新增独立编辑器，通过节点 ID 与 `WorkflowDocument::setParameters()` 提交参数；Task 不持有控件指针。关联约束仍需在任务中检查，不能只依赖控件的限制。
 
@@ -597,7 +597,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 | Gaussian / Taner | gaussian_filter / taner_filter v1；去均值、半功率通带 | 参数为 X 单位的倒数；输出滤波序列、包络和幅度响应；端点有边界效应 |
 | Hilbert 包络 | hilbert_envelope v1；默认不去均值 | 同 N 点有限记录解析信号，输出包络/正交分量，不自动带通 |
 | 多纬度日照 | insolation_map v1；La2004，纬度×年代 | 复用单纬度日平均日照；不代表其他轨道解或年内日期图 |
-| 新轨道偏心率 | eccentricity_source v1；默认 La2010a，0–2000 ka、间隔 1 ka | La2010a–d 末端 249999 ka，ZB18a/ZB20a–d 末端 300000 ka；独立线性插值，不外推 |
+| 轨道偏心率 | eccentricity_source v1；默认 La2010a，0–2000 ka、间隔 1 ka | La2010a–d 末端 249999 ka，ZB18a/ZB20a–d 末端 300000 ka；独立线性插值，不外推 |
 | PT-ZB18a | precession_tilt_source v1；默认 Ed=1、Td=1 | 倾角/气候岁差/岁差角；本地文件选其他 Ed/Td。岁差角不是近日点经度，不足以单独构造完整日照输入 |
 | 演化 FFT / MTM | evolution_fft / evolution_mtm v1；窗口128点、步长16点、NFFT=窗口长度 | 完整窗口、单边物理PSD；Grid为频率×窗口中心；平均谱不是整段谱；不输出显著性 |
 | 区间 / 去均值 / 标准化 | select_interval / demean / standardize v1 | 区间含端点并保持原顺序；标准化默认N−1；常量标准化报错 |
@@ -624,7 +624,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 - SourcePanel 同时发出原始文件预览输入与包含草稿选项的 SourceItem。控制器以画布节点为准，prepareNodePreview 只冻结该根到该节点的祖先路径，并复用 WorkflowExecutor。
 - ParameterEditor 立即发 edited 让旧结果失效，260ms 后 applyRequested 自动提交；切换/运行前仍 flush。预览 220ms 合并请求，每次一个 worker 和一个最新待执行请求；代次与合作式取消防止过时结果覆盖。
 - 算法/端口/参数名来自 TaskDescriptor 和语言资源；不同输出用选择框，绘图沿用 PlotView。新增普通任务实现声明、工厂和 Task.execute，复用预览执行器。
-- 原始概览和实际执行共用 readSeriesFile，但独立读取；执行完成后用本次根输出更新原始图，防止外部文件改写导致上下图不一致。不缓存全部输入或把抽样数据当作算法输入。
+- 原始概览和实际执行共用 readSeriesFile，但独立读取；执行完成后用本次路径实际使用的根输出更新原始图，防止外部文件改写或多输出端口选择不同导致上下图不一致。不缓存全部输入或把抽样数据当作算法输入。
 - reducePreviewData 在 worker 内生成有界显示副本，原始/结果图复用；预算统一在 PreviewLimits。结果错误显示最早失败步骤。无关分支/空白点击不得触发计算。
 - 隐藏/换页释放预览；正式批次暂停节点预览；关闭时取消且等待后台结束后再关闭。预览本身不调用 ResultRepository.save。含外部写入/删除副作用的新任务须先扩展明确的预览许可策略，不能直接加入自动预览。
 - 多起点按 root NodeId 绑定；每个根×已绑定输入生成独立 RunRequest。同一文件绑定两根则各运行一次。事件必须以 RunId+NodeId 识别，不能只用 NodeId。

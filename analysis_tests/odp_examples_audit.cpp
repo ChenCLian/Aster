@@ -41,6 +41,8 @@ class OdpExamplesAudit : public QObject
     void allPublishedValues();
     void workflowAndPersistence_data();
     void workflowAndPersistence();
+    void cocoDepthWorkflow_data();
+    void cocoDepthWorkflow();
     void invalidAndCancellation();
     void concurrentIndependentReads();
 };
@@ -108,6 +110,102 @@ void OdpExamplesAudit::workflowAndPersistence()
     QCOMPARE(restored.run.nodes[root].report, run.nodes[root].report);
     QCOMPARE(pairDigest(*dataAs<SeriesData>(restored.run.nodes[root].outputs["series"])),
              pairDigest(*dataAs<SeriesData>(run.nodes[root].outputs["series"])));
+}
+void OdpExamplesAudit::cocoDepthWorkflow_data()
+{
+    QTest::addColumn<QString>("source");
+    QTest::addColumn<QString>("method");
+    QTest::addColumn<QString>("axis");
+    QTest::addColumn<QString>("declaredUnit");
+    QTest::addColumn<bool>("accepted");
+    for (const auto *method : {"coco_scan", "coco_monte_carlo", "evolution_coco"})
+    {
+        for (const auto *source : {"odp1143_d18o", "odp846_d18o", "odp926_d13c"})
+            QTest::newRow(qPrintable(QString("%1/%2/depth").arg(source, method)))
+                << QString(source) << QString(method) << QString("depth") << QString("m") << true;
+        QTest::newRow(qPrintable(QString("%1/reject-age").arg(method)))
+            << QString("odp1143_d18o") << QString(method) << QString("age") << QString("m") << false;
+        QTest::newRow(qPrintable(QString("%1/reject-wrong-scale").arg(method)))
+            << QString("odp1143_d18o") << QString(method) << QString("depth") << QString("cm") << false;
+    }
+}
+void OdpExamplesAudit::cocoDepthWorkflow()
+{
+    QFETCH(QString, source);
+    QFETCH(QString, method);
+    QFETCH(QString, axis);
+    QFETCH(QString, declaredUnit);
+    QFETCH(bool, accepted);
+    const auto registry = makeScientificRegistry();
+    WorkflowModel model(registry);
+    const auto root = model.addRoot(source, {0, 0}, {{"example_axis", axis}}).nodeId;
+    QVERIFY(!root.isNull());
+    const auto prep = model.addChild(root, ChildSlot::Down, "preprocess").nodeId;
+    QVERIFY(!prep.isNull());
+    QJsonObject parameters{{"chrono_depth_unit", declaredUnit}};
+    // Exercise the reported ODP 1143 chain with the production defaults.
+    // Other sources need only the minimum valid number of simulations here.
+    if (method == "coco_monte_carlo" && source != "odp1143_d18o")
+        parameters["coco_simulations"] = 19;
+    const auto coco = model.addChild(prep, ChildSlot::Down, method, parameters).nodeId;
+    QVERIFY(!coco.isNull());
+    const auto plan = prepareRuns(model.freeze().snapshot, {});
+    QVERIFY(plan.validation.ok());
+    QCOMPARE(plan.requests.size(), 1);
+    const auto run = WorkflowExecutor().run(plan.requests.front());
+    QCOMPARE(run.nodes[root].state, NodeState::Succeeded);
+    QCOMPARE(run.nodes[prep].state, NodeState::Succeeded);
+    const auto original = examples::load(source, axis);
+    const auto *input = dataAs<SeriesData>(run.nodes[prep].outputs["series"]);
+    QVERIFY(input);
+    QCOMPARE(input->xAxis.unit, original.series.xAxis.unit);
+    QCOMPARE(input->xAxis.name, original.series.xAxis.name);
+    QCOMPARE(run.nodes[root].report["example_source"].toObject()["selected_axis"].toString(), axis);
+    QCOMPARE(pairDigest(*dataAs<SeriesData>(run.nodes[root].outputs["series"])),
+             pairDigest(original.series));
+    const auto result = run.nodes[coco];
+    if (!accepted)
+    {
+        QCOMPARE(result.state, NodeState::Failed);
+        QCOMPARE(result.diagnostic().code, QString("CHRONOLOGY_UNIT"));
+        QCOMPARE(result.diagnostic().context["input_unit"].toString(), input->xAxis.unit);
+        QCOMPARE(result.diagnostic().context["declared_unit"].toString(), declaredUnit);
+        QVERIFY(result.outputs.isEmpty());
+        return;
+    }
+    QVERIFY2(result.state == NodeState::Succeeded, qPrintable(result.error));
+    QCOMPARE(run.state, RunState::Succeeded);
+
+    // The same metre-valued coordinates must produce the same numerical result
+    // as ordinary metres, while the original composite-depth metadata survives.
+    auto metreInput = *input;
+    metreInput.xAxis.unit = "m";
+    const auto task = registry.create(method, parameters);
+    QVERIFY(task);
+    const auto metreResult = task->execute({makeData(metreInput)}, {});
+    QVERIFY2(metreResult.state == NodeState::Succeeded, qPrintable(metreResult.error));
+    if (method == "evolution_coco")
+    {
+        const auto *actual = dataAs<GridData>(result.outputs["correlation_map"]);
+        const auto *expected = dataAs<GridData>(metreResult.outputs["correlation_map"]);
+        QVERIFY(actual && expected);
+        QVERIFY(!actual->values.isEmpty());
+        QCOMPARE(actual->xAxis.unit, input->xAxis.unit);
+        QCOMPARE(actual->xAxis.name, input->xAxis.name);
+        QCOMPARE(actual->x, expected->x);
+        QCOMPARE(actual->y, expected->y);
+        QCOMPARE(actual->values, expected->values);
+    }
+    else
+    {
+        const QString output = method == "coco_scan" ? "correlation" : "scan_adjusted_p";
+        const auto *actual = dataAs<SeriesData>(result.outputs[output]);
+        const auto *expected = dataAs<SeriesData>(metreResult.outputs[output]);
+        QVERIFY(actual && expected);
+        QVERIFY(!actual->x.isEmpty());
+        QCOMPARE(actual->x, expected->x);
+        QCOMPARE(actual->y, expected->y);
+    }
 }
 void OdpExamplesAudit::invalidAndCancellation()
 {

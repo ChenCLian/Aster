@@ -53,7 +53,7 @@
     "summary": "docs/validation.md",
     "logs": "docs/validation_results/release",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Current document/tool checks and retained runtime evidence are recorded separately; native package acceptance and remote downloads require release-specific verification."
+    "scope": "Current documentation checks, latest algorithm/UI regression and historical packaging/platform evidence have separate scopes and logs. Final native packages and remote downloads require release-specific acceptance."
   },
   "help": {
     "local": "compiled Qt resources",

@@ -15,6 +15,7 @@ class ParameterEditor : public QWidget
     Q_OBJECT
   public:
     explicit ParameterEditor(QWidget *parent = nullptr);
+    ~ParameterEditor() override;
     void showNode(const NodeDefinition *node, const TaskRegistry &registry);
     NodeId nodeId() const
     {

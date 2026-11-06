@@ -446,7 +446,7 @@ Default 199; minimum p resolution is 1/(B+1). Increase B for final analyses when
 
 Default: ` 199 `
 
-Range: ` 19 ≤ coco_simulations ≤ 9999 `
+Range: ` 19 ≤ coco_simulations ≤ 20000 `
 
 <a id="m-coco_monte_carlo-p-coco_seed"></a>
 ### Random seed

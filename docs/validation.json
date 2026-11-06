@@ -5,59 +5,69 @@
   "record_type": "release_validation_index",
   "source": {
     "manifest": "PACKAGE_MANIFEST.json",
-    "review_baseline_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d"
+    "identity": "Local 1.1.1 source snapshot; no Git commit is inferred. The source-export manifest identifies delivered file contents.",
+    "runtime_evidence": "Algorithm and full UI logs use the same implementation, task definitions and language resources as this documentation snapshot; documentation resources are checked separately."
   },
-  "scope": "Directory-only Windows deployment and source export, direct Actions program artifacts, dependency checksum metadata, macOS target-slice matching and exact Homebrew patch recovery. Release documents updated; C++ application implementation unchanged. SOURCE_CODE.md is an embedded help resource and requires rebuilding. Source export containment now normalizes both paths; alias-path regression added.",
+  "scope": "Documentation synchronized with source-output selection, depth-unit aliases, frequency editing, scientific-notation input and COCO 10-billion-work/20000-simulation limits. Latest algorithm/UI regression is recorded separately from documentation-only checks and historical packaging evidence.",
   "counting": "Current checks and retained evidence are separate. Counts from different runs must not be summed as a new full regression result; QtTest totals include initialization and cleanup.",
-  "current_checks": {
-    "release_tool_tests": {
-      "passed": 74,
-      "failed": 0,
-      "log": "docs/validation_results/release/packaging_layout_tests.txt"
-    },
-    "windows_packaging_process": {
-      "passed": 12,
-      "failed": 0,
-      "environment": {
-        "powershell": "7.4.6",
-        "python": "3.12.14",
-        "os": "Linux x86_64"
-      },
-      "log": "docs/validation_results/release/windows_packaging_layout_process_tests.txt",
-      "scope": "Controlled native-process fixtures; not a Windows deployment test."
-    },
-    "brew_patch_query": {
-      "status": "passed",
-      "log": "docs/validation_results/release/brew_patch_query_tests.txt",
-      "scope": "Ruby 3.3 with controlled Homebrew API fixtures: local, embedded, external and resource patches. Not a native Homebrew collection run."
-    },
-    "workflow_and_shell": {
-      "status": "passed",
-      "scope": "Workflow YAML structure, exact single-file artifact path, archive:false setting; bash syntax for Linux/macOS packaging scripts. GitHub artifact transfer not executed locally."
-    },
-    "documentation": {
-      "status": "passed",
-      "changed_documents": 4,
-      "local_links": 28,
-      "personal_paths_found": 0,
-      "scope": "Changed publication documents: local file links, old export filenames, checksum-sidecar instructions and path disclosure."
-    },
-    "source_export": {
-      "status": "passed",
-      "scope": "Clean directory export and per-file digests, including a symlinked project root; project root and child output aliases are rejected before writing. Local configuration excluded; no ZIP or checksum sidecar.",
-      "files": 593,
-      "manifest_verified": true,
-      "local_pri_excluded": true,
-      "zip_created": false,
-      "checksum_sidecar_created": false
-    },
-    "source_path_normalization": {
-      "status": "passed",
-      "reproduced_before_fix": true,
-      "scope": "Controlled symlink reproduces the macOS /var versus /private/var mismatch on Linux. Root and output are both resolved before containment checks. Native macOS CI rerun required."
-    }
-  },
   "retained_evidence": [
+    {
+      "id": "packaging_layout_and_source_export",
+      "date": "2026-11-06",
+      "source": {
+        "manifest": "PACKAGE_MANIFEST.json",
+        "review_baseline_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d"
+      },
+      "scope": "Historical packaging-tool checks. Packaging scripts are unchanged in this snapshot; these counts are not a new native packaging run or verification of the present source-export file count.",
+      "checks": {
+        "release_tool_tests": {
+          "passed": 74,
+          "failed": 0,
+          "log": "docs/validation_results/release/packaging_layout_tests.txt"
+        },
+        "windows_packaging_process": {
+          "passed": 12,
+          "failed": 0,
+          "environment": {
+            "powershell": "7.4.6",
+            "python": "3.12.14",
+            "os": "Linux x86_64"
+          },
+          "log": "docs/validation_results/release/windows_packaging_layout_process_tests.txt",
+          "scope": "Controlled native-process fixtures; not a Windows deployment test."
+        },
+        "brew_patch_query": {
+          "status": "passed",
+          "log": "docs/validation_results/release/brew_patch_query_tests.txt",
+          "scope": "Ruby 3.3 with controlled Homebrew API fixtures: local, embedded, external and resource patches. Not a native Homebrew collection run."
+        },
+        "workflow_and_shell": {
+          "status": "passed",
+          "scope": "Workflow YAML structure, exact single-file artifact path, archive:false setting; bash syntax for Linux/macOS packaging scripts. GitHub artifact transfer not executed locally."
+        },
+        "documentation": {
+          "status": "passed",
+          "changed_documents": 4,
+          "local_links": 28,
+          "personal_paths_found": 0,
+          "scope": "Changed publication documents: local file links, old export filenames, checksum-sidecar instructions and path disclosure."
+        },
+        "source_export": {
+          "status": "passed",
+          "scope": "Clean directory export and per-file digests, including a symlinked project root; project root and child output aliases are rejected before writing. Local configuration excluded; no ZIP or checksum sidecar.",
+          "files": 593,
+          "manifest_verified": true,
+          "local_pri_excluded": true,
+          "zip_created": false,
+          "checksum_sidecar_created": false
+        },
+        "source_path_normalization": {
+          "status": "passed",
+          "reproduced_before_fix": true,
+          "scope": "Controlled symlink reproduces the macOS /var versus /private/var mismatch on Linux. Root and output are both resolved before containment checks. Native macOS CI rerun required."
+        }
+      }
+    },
     {
       "id": "macos_r2_native_regression",
       "date": "2026-11-06",
@@ -82,7 +92,7 @@
     {
       "id": "windows_process_and_documentation_baseline",
       "date": "2026-11-06",
-      "scope": "Windows packaging interpreter preflight and collector-process diagnostics, release-tool regression, documentation and source archive integrity. Desktop implementation and embedded help are unchanged.",
+      "scope": "Historical Windows packaging interpreter preflight and collector-process diagnostics, release-tool regression, documentation and source-archive integrity at the recorded baseline.",
       "checks": {
         "release_tool_tests": {
           "passed": 27,
@@ -130,7 +140,7 @@
       "id": "documentation_and_help_baseline",
       "date": "2026-11-06",
       "source_archive_sha256": "a1b62e67999297be4ba1190fd5b2d5868546d0969ddd2cb0e171d58c6266988d",
-      "scope": "Retained checks of unchanged help generator, parameter references and notice staging. Not rerun for Windows process diagnostics.",
+      "scope": "Historical help-generator, bilingual reference and notice-staging checks at the recorded archive baseline; current reference freshness is checked separately.",
       "checks": {
         "help_generator_tests": {
           "passed": 6,
@@ -144,9 +154,9 @@
             "zh",
             "en"
           ],
-          "status": "current",
+          "status": "verified_at_recorded_baseline",
           "log": "docs/validation_results/release/help_reference.txt",
-          "catalogue": "Retained executable from the unchanged descriptor sources; current language files and generated documents checked."
+          "catalogue": "Descriptor executable and language resources from the recorded baseline."
         },
         "staged_documents": {
           "status": "passed",
@@ -179,7 +189,7 @@
         "configuration": "Release build of core, io, science and the help catalogue only; no new desktop application or GUI test run.",
         "numeric_stack": "OpenBLAS 0.3.29 / LP64 LAPACK, PocketFFT, GSL 2.8"
       },
-      "scope": "Retained Release build of the descriptor-export tool. Its implementation, task definitions, fixtures and version are unchanged; the current freshness check uses this executable with the current language resources.",
+      "scope": "Historical Release build of the descriptor-export tool at the recorded archive baseline; not a build of the current desktop package.",
       "log": "docs/validation_results/release/docs_catalog_build.txt",
       "input_archive_sha256": "2c767f085cc541dcd337b3ae41492f8bae43234a58247bb75d2c78d517f34262",
       "evidence_archive_sha256": "e12cbbb5b033f7da2639adbe6546be0f5e6fa08f0edc27e7d727cb3cbc5e6f41"
@@ -248,7 +258,7 @@
     {
       "id": "ui_and_update",
       "source_archive_sha256": "dabec8058c960c4f93c2b6b6f8330b2696411943133b98b985b6c1da8753c0ea",
-      "scope": "Retained full UI and update runs. Help-directory changes are covered by the later focused help record; no full GUI rerun was performed for documentation changes.",
+      "scope": "Historical full UI and update runs at the recorded archive baseline. Latest full UI regression is recorded separately in current_checks.",
       "targets": [
         {
           "target": "aster_ui_tests",
@@ -365,9 +375,115 @@
     "Windows PowerShell 5.1 execution and actual Windows Qt/vcpkg packaging of the revised script.",
     "Native Windows/MSVC and macOS build, deployment or desktop acceptance of the final binary packages.",
     "Native Linux release packaging and actual dependency-source closure on the final CI host.",
-    "A new desktop executable containing the edited embedded documentation.",
     "Live GitHub release assets, downloadable project/dependency sources and their links.",
     "New scientific calibration; historical scientific evidence retains its original scope.",
-    "La2004/La2010 redistribution review remains deferred."
-  ]
+    "La2004/La2010 redistribution review remains deferred.",
+    "Final distributed desktop executables containing the updated help resources; local focused help tests do not validate native release packages."
+  ],
+  "current_checks": {
+    "algorithm_ui_regression": {
+      "date": "2026-11-06",
+      "environment": {
+        "os": "Debian 13 x86_64",
+        "qt": "6.8.2",
+        "compiler": "GCC 14.2.0",
+        "configuration": "Release / QT_QPA_PLATFORM=offscreen",
+        "numeric_stack": "OpenBLAS 0.3.29 / LP64 LAPACK, PocketFFT, GSL 2.8"
+      },
+      "scope": "Full analysis and UI targets after the numeric-editor fix. Implementation and task data are byte-identical to this documentation snapshot. Not a native Windows/macOS run or new external scientific calibration.",
+      "implementation_identity": {
+        "files": 419,
+        "sha256": "8b27849ee890e8b2e9d5e5bc762dae1cf93675a3cfa31685d7364ba040f5e48b",
+        "recipe": "SHA-256 of UTF-8 lines sorted by project-relative path: <file-sha256><two spaces><path><LF>. Includes src/, analysis_tests/, ui_tests/, resources/i18n/, *.pro, *.pri and VERSION; excludes config/local.pri."
+      },
+      "targets": [
+        {
+          "target": "aster_analysis_tests",
+          "passed": 694,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 21,
+          "log": "docs/validation_results/release/algorithm_regression.txt"
+        },
+        {
+          "target": "aster_ui_tests",
+          "passed": 761,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "log": "docs/validation_results/release/parameter_ui_regression.txt"
+        }
+      ],
+      "parameter_coverage": {
+        "registered_tasks": 53,
+        "declared_parameters": 228,
+        "generic_editor_parameters": 223,
+        "round_trip_data_rows": 667,
+        "scope": "Remaining five file-source fields use a separate import editor. Numeric text entry, persisted values, node switching and preview/full-run output are covered; parameter cases are included in the UI total."
+      },
+      "coverage": [
+        "COCO fixed work limit and 20000 simulations",
+        "mcd/rmcd depth-unit matching",
+        "source preview output binding",
+        "frequency-limit commit and legacy ratio handling",
+        "scientific notation and exact double round trips",
+        "preview/full-run parameter and output consistency"
+      ]
+    },
+    "documentation": {
+      "status": "passed",
+      "record": "docs/validation_results/release/documentation_sync_checks.json",
+      "scope": "First-party Markdown links and anchors, repository-path URLs checked against the source tree, QRC resources, release wording, personal paths and unchanged implementation. External website availability is not tested."
+    },
+    "parameter_reference": {
+      "status": "passed",
+      "tasks": 53,
+      "parameters": 228,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "generator_tests_passed": 6,
+      "generator_tests_failed": 0,
+      "log": "docs/validation_results/release/parameter_reference_sync.txt",
+      "scope": "Current task-descriptor executable and unchanged language resources checked against both generated pages; no manual edits to generated references."
+    },
+    "embedded_help": {
+      "status": "passed",
+      "environment": "Qt 6.8.2 / GCC 14.2.0 / Linux x86_64 / Release / offscreen; help QRC rebuilt after documentation changes",
+      "functions": [
+        "helpCatalogueCoverageAndContext",
+        "helpLinksAndFallback",
+        "helpLanguageAndChapterReuse",
+        "helpReferenceVisibleLayout",
+        "helpDirectoryLinks",
+        "parameterHelpTracksSelectedNode",
+        "licenseNoticesOffline",
+        "settingsLinksAndKeyboardNavigation"
+      ],
+      "runs": [
+        {
+          "scale": "1",
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0,
+          "log": "docs/validation_results/release/help_documentation.txt"
+        },
+        {
+          "scale": "1.5",
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0,
+          "log": "docs/validation_results/release/help_documentation_150.txt"
+        }
+      ],
+      "scope": "Focused help/navigation/layout tests; does not repeat full UI regression or validate native packaged binaries. URL dispatch intercepted locally."
+    },
+    "staged_documents": {
+      "staged_root_documents": 7,
+      "local_file_links": 33,
+      "missing": [],
+      "scope": "Notice staging with a placeholder Qt prefix; no binaries or dependency sources collected."
+    }
+  }
 }

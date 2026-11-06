@@ -107,6 +107,10 @@ void WorkflowCanvas::rebuild()
     const auto &definition = m_document->model().definition();
     if (!m_document->node(m_selected))
         m_selected = {};
+    QMap<NodeId, QString> selectedOutputs;
+    for (const auto *node = m_document->node(m_selected); node && node->input;
+         node = m_document->node(node->input->parent))
+        selectedOutputs.insert(node->input->parent, node->input->output);
     m_rects = verticalWorkflowLayout(definition);
     for (const auto &n : definition.nodes)
         if (n.input)
@@ -134,6 +138,16 @@ void WorkflowCanvas::rebuild()
         const auto *registration = m_document->model().registry().find(n.method);
         card->title = methodLabel(registration->descriptor);
         card->detail = portLabel(registration->descriptor, registration->descriptor.defaultOutput);
+        if (registration->descriptor.outputs.size() > 1)
+        {
+            QStringList ports;
+            if (selectedOutputs.contains(n.id))
+                ports << portLabel(registration->descriptor, selectedOutputs.value(n.id));
+            else
+                for (const auto &output : registration->descriptor.outputs)
+                    ports << portLabel(registration->descriptor, output.key);
+            card->detail = ports.join(" · ");
+        }
         if (n.method == "mtm")
             card->detail = QString("NW %1  ·  MTM").arg(n.parameters["nw"].toDouble());
         else if (n.method == "detrend_lowess")

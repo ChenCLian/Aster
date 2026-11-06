@@ -1403,7 +1403,7 @@
   "warning.coco_exclusions": "部分速率被排除。诊断状态：0 可用，1 频带超出 Nyquist，2 周期/频点分辨率不足，3 频谱无方差。仅“可用=1”的相关系数有效；其他行的 0 是占位值。",
   "progress.coco_scan": "扫描沉积速率并比较目标谱",
   "diagnostic.COCO_BUDGET.summary": "COCO 计算规模超出限制。",
-  "diagnostic.COCO_BUDGET.suggestion": "缩小速率范围、增大步长、减少补零/模拟次数，或增大滑窗步长。单窗最多 131072 点；完整输入、缓存和总工作量另有限制，见详细原因。",
+  "diagnostic.COCO_BUDGET.suggestion": "请查看详细原因中的具体限制。输入点数、FFT 长度、速率网格及缓存分别设有上限；按超限项调整采样、扫描范围或补零。",
   "diagnostic.COCO_NO_SCORE.summary": "没有可用的 COCO 匹配结果。",
   "diagnostic.COCO_NO_SCORE.suggestion": "检查信号是否为常数、采样与记录长度是否支持完整目标频带，参见详细原因。不会自动重采样或删减目标。",
   "diagnostic.COCO_PARAMETERS.summary": "COCO 参数或数值范围无效。",
@@ -1722,5 +1722,14 @@
   "ui.inspector_plot": "绘图",
   "ui.inspector_sources": "来源",
   "ui.editing_target": "编辑对象",
-  "ui.toggle_panel": "显示或隐藏%1"
+  "ui.toggle_panel": "显示或隐藏%1",
+  "ui.frequency_zero_hint": "0＝自动",
+  "diagnostic.COCO_MC_WORK_BUDGET.summary": "COCO 蒙特卡洛预计工作量 {estimated_work}，超过固定上限 {maximum_work}。",
+  "diagnostic.COCO_MC_WORK_BUDGET.suggestion": "当前设置最多允许 {maximum_iterations} 次模拟，本次请求 {requested_iterations} 次。可减少模拟次数、缩小速率范围、增大扫描步长或减少补零。上限是程序的固定保护预算，并非本机性能测量结果；若最多次数为 0，需先减小单次计算规模。",
+  "diagnostic.COCO_WINDOW_WORK_BUDGET.summary": "eCOCO 预计工作量 {estimated_work}，超过固定上限 {maximum_work}。",
+  "diagnostic.COCO_WINDOW_WORK_BUDGET.suggestion": "当前设置最多允许 {maximum_iterations} 个窗口，本次需要 {requested_iterations} 个。可增大滑窗步长、缩小速率范围或减少补零。上限是程序的固定保护预算，并非本机性能测量结果；若最多窗口数为 0，需先减小单窗计算规模。",
+  "diagnostic.field.estimated_work": "预计工作量（估算单位）",
+  "diagnostic.field.maximum_work": "固定工作量上限（估算单位）",
+  "diagnostic.field.requested_iterations": "请求次数／窗口数",
+  "diagnostic.field.maximum_iterations": "当前预算允许的最多次数／窗口数"
 }

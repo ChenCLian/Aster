@@ -446,7 +446,7 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 默认值: ` 199 `
 
-范围: ` 19 ≤ coco_simulations ≤ 9999 `
+范围: ` 19 ≤ coco_simulations ≤ 20000 `
 
 <a id="m-coco_monte_carlo-p-coco_seed"></a>
 ### 随机种子

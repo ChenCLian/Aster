@@ -10,6 +10,7 @@
 #include <QPointer>
 #include "ui/common/task_drag_preview.h"
 #include "ui/common/numeric_editor.h"
+#include "ui/common/error_presenter.h"
 #include "ui/common/choice_editor.h"
 #include "ui/panels/plot_style_editor.h"
 #include <QTabBar>
@@ -155,6 +156,8 @@ class UiTests : public QObject
     void fileReadinessSurvivesDisabledPanel();
     void compactInputStatesAndFrequencyEditor();
     void legacyFrequencyZeroCommit();
+    void frequencyLimitTypingPreservesDecimals();
+    void cocoWorkBudgetPresentation();
     void sourceNodePreviewBeforeAddingAnalysis();
     void visibleSelectionActionsPreserveFilterScope();
     void axisHintsPreserveSingleAxisNavigation();
@@ -178,6 +181,11 @@ class UiTests : public QObject
     void previewFileErrorsAndInputReplacement();
     void previewRunsOnlyAncestorsAndSelectedInput();
     void previewUsesTheSelectedParentPort();
+    void generatedSourcePreviewFollowsBranch();
+    void generatedSourcePreviewKeepsOutputChoice();
+    void generatedSourcePreviewHandlesTableOutputs();
+    void generatedSourcePreviewSurvivesDownstreamFailure();
+    void sourceCardFollowsSelectedBranch();
     void previewCancelsStaleWorkAndKeepsUiResponsive();
     void previewIgnoresUnrelatedEditsAndEmptyClicks();
     void previewUsesDraftFileOptionsAndAutoParameters();
@@ -197,6 +205,10 @@ class UiTests : public QObject
     void hierarchicalTaskMenu();
     void astronomySourcesUseSharedUi();
     void parameterValuesAreIndependent();
+    void parameterRoundTrip_data();
+    void parameterRoundTrip();
+    void scientificParameterTyping();
+    void scientificParametersReachPreviewAndRun();
     void verticalLayoutPreservesWorkflow();
     void persistentAddControlsUseTheirOwnParent();
     void exampleSourcePreviewAndLabels();
@@ -1397,6 +1409,204 @@ void UiTests::previewUsesTheSelectedParentPort()
     const auto *b=dataAs<SeriesData>(run.nodes[child].outputs["series"]); QVERIFY(a&&b);
     for(int i=0;i<a->y.size();++i)QCOMPARE(b->y[i],a->y[i]*3);
 }
+
+namespace
+{
+PlotView *generatedSourcePlot(WorkflowPreviewPanel &panel)
+{
+    // Identify the upper plot without requiring a test-only widget name.
+    for (auto *plot : panel.findChildren<PlotView *>())
+        if (plot->objectName() != "nodePreviewPlot") return plot;
+    return nullptr;
+}
+QString sourceCardTooltip(const WorkflowCanvas &canvas, NodeId source)
+{
+    for (auto *item : canvas.scene()->items())
+        if (item->data(0).toInt() == 1 && item->data(1).toUuid() == source)
+            return item->toolTip();
+    return {};
+}
+}
+void UiTests::generatedSourcePreviewFollowsBranch()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("precession_tilt_source").nodeId;
+    const auto tilt = doc.addChild(root, ChildSlot::Down, "mtm",
+                                  {{"ar1", false}, {"swa", false}}, "obliquity").nodeId;
+    const auto mid = doc.addChild(root, ChildSlot::Right, "affine", {}, "precession").nodeId;
+    const auto deep = doc.addChild(mid, ChildSlot::Down, "affine").nodeId;
+    QVERIFY(!root.isNull() && !tilt.isNull() && !deep.isNull());
+    WorkflowPreviewPanel panel(&doc); panel.resize(440, 850); panel.show();
+    auto *controller = panel.controller();
+    auto *source = generatedSourcePlot(panel);
+    auto *output = panel.findChild<PlotView *>("nodePreviewPlot");
+    QVERIFY(source && output);
+    for (const auto &selection : {qMakePair(tilt, QString("obliquity")),
+                                 qMakePair(deep, QString("precession")),
+                                 qMakePair(tilt, QString("obliquity"))})
+    {
+        controller->selectNode(selection.first);
+        QVERIFY(!source->hasOutput()); // Do not show a previous branch while waiting.
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(), WorkflowPreviewController::State::Ready, 15000);
+        QCOMPARE(source->currentPort(), selection.second);
+        const auto actual = encodeData(source->currentData());
+        const auto expected = encodeData(controller->result()->original.outputs[selection.second]);
+        QVERIFY(actual.ok() && expected.ok()); QCOMPARE(actual.bytes, expected.bytes);
+        if (selection.first == tilt)
+        {
+            QCOMPARE(dataAs<SeriesData>(source->currentData())->yAxis.unit, QString("deg"));
+            const auto plan = prepareNodePreview(doc.model(), tilt, {}, {});
+            QVERIFY(plan.validation.ok());
+            const auto run = WorkflowExecutor().run(plan.requests.front());
+            QCOMPARE(encodeData(output->currentData()).bytes,
+                     encodeData(run.nodes[tilt].outputs["spectrum"]).bytes);
+        }
+    }
+    // A new connection on the same ancestor path must also change the source plot.
+    auto definition = doc.model().definition();
+    for (auto &node : definition.nodes)
+        if (node.id == mid) node.input->output = "axial_precession";
+    QVERIFY(doc.replaceDefinition(definition).ok());
+    controller->selectNode(deep);
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(), WorkflowPreviewController::State::Ready, 15000);
+    QCOMPARE(source->currentPort(), QString("axial_precession"));
+    QCOMPARE(dataAs<SeriesData>(source->currentData())->yAxis.unit, QString("rad"));
+    // Rapid selection changes must not deliver an obsolete source plot.
+    controller->selectNode(tilt); controller->selectNode(deep); controller->selectNode(tilt);
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(), WorkflowPreviewController::State::Ready, 15000);
+    QCOMPARE(source->currentPort(), QString("obliquity"));
+}
+void UiTests::generatedSourcePreviewKeepsOutputChoice()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("precession_tilt_source", {{"orbit_end_ka", 100}}).nodeId;
+    const auto child = doc.addChild(root, ChildSlot::Down, "affine", {}, "obliquity").nodeId;
+    WorkflowPreviewPanel panel(&doc); panel.resize(440, 850); panel.show();
+    auto *controller = panel.controller();
+    auto *source = generatedSourcePlot(panel);
+    auto *output = panel.findChild<PlotView *>("nodePreviewPlot");
+    auto *ports = panel.findChild<QComboBox *>("previewOutput");
+    QVERIFY(source && output && ports);
+    controller->selectNode(root);
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QSignalSpy started(controller, &WorkflowPreviewController::started);
+    for (const auto *port : {"obliquity", "precession", "axial_precession"})
+    {
+        const int index = ports->findData(port); QVERIFY(index >= 0);
+        ports->setCurrentIndex(index);
+        QCOMPARE(source->currentPort(), QString(port));
+        QCOMPARE(encodeData(source->currentData()).bytes, encodeData(output->currentData()).bytes);
+    }
+    QCOMPARE(started.count(), 0); // Viewing another output is not a new calculation.
+    controller->retry();
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QCOMPARE(ports->currentData().toString(), QString("axial_precession"));
+    QCOMPARE(source->currentPort(), QString("axial_precession"));
+    controller->selectNode(child);
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QCOMPARE(source->currentPort(), QString("obliquity")); // Bound port overrides the root's view choice.
+    controller->selectNode(root);
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QCOMPARE(ports->currentData().toString(), QString("axial_precession"));
+    QVERIFY(doc.setParameters(root, {{"orbit_end_ka", 80}}).ok());
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QCOMPARE(source->currentPort(), QString("axial_precession"));
+    QCOMPARE(dataAs<SeriesData>(source->currentData())->x.back(), 80.);
+    panel.setSuspended(true); QVERIFY(!source->hasOutput());
+    panel.setSuspended(false);
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QCOMPARE(source->currentPort(), QString("axial_precession"));
+}
+void UiTests::generatedSourcePreviewSurvivesDownstreamFailure()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("precession_tilt_source", {{"orbit_end_ka", 100}}).nodeId;
+    const auto child = doc.addChild(root, ChildSlot::Down, "coco_scan", {}, "obliquity").nodeId;
+    WorkflowPreviewPanel panel(&doc); panel.resize(440, 850); panel.show();
+    auto *controller = panel.controller();
+    auto *source = generatedSourcePlot(panel);
+    auto *output = panel.findChild<PlotView *>("nodePreviewPlot");
+    QVERIFY(source && output);
+    controller->selectNode(child);
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Failed);
+    QCOMPARE(controller->result()->failedNode, child);
+    QCOMPARE(controller->result()->output.diagnostic().code, QString("CHRONOLOGY_UNIT"));
+    QVERIFY(!output->hasOutput());
+    QVERIFY(source->hasOutput());
+    QCOMPARE(source->currentPort(), QString("obliquity"));
+    QCOMPARE(encodeData(source->currentData()).bytes,
+             encodeData(controller->result()->original.outputs["obliquity"]).bytes);
+    // A failure in the source itself must not leave the previous source visible.
+    QVERIFY(doc.setParameters(root, {{"orbit_end_ka", 0}}).ok());
+    QVERIFY(!source->hasOutput());
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Failed);
+    QCOMPARE(controller->result()->failedNode, root);
+    QVERIFY(!source->hasOutput());
+    QVERIFY(doc.setParameters(root, {{"orbit_end_ka", 80}}).ok());
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Failed);
+    QCOMPARE(controller->result()->failedNode, child);
+    QVERIFY(source->hasOutput());
+    QCOMPARE(dataAs<SeriesData>(source->currentData())->x.back(), 80.);
+}
+void UiTests::sourceCardFollowsSelectedBranch()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("precession_tilt_source").nodeId;
+    const auto a = doc.addChild(root, ChildSlot::Down, "affine", {}, "obliquity").nodeId;
+    const auto b = doc.addChild(root, ChildSlot::Right, "affine", {}, "precession").nodeId;
+    const auto deep = doc.addChild(a, ChildSlot::Down, "affine").nodeId;
+    WorkflowCanvas canvas(&doc);
+    const auto &descriptor = doc.model().registry().find("precession_tilt_source")->descriptor;
+    for (const auto &selection : {qMakePair(a, QString("obliquity")),
+                                 qMakePair(b, QString("precession")),
+                                 qMakePair(deep, QString("obliquity"))})
+    {
+        canvas.setSelectedNode(selection.first);
+        QCOMPARE(sourceCardTooltip(canvas, root), methodLabel(descriptor) + "\n" +
+                 portLabel(descriptor, selection.second));
+    }
+    // No active branch: describe all available outputs instead of implying
+    // that every descendant consumes the source's default output.
+    canvas.setSelectedNode(root);
+    const auto description = sourceCardTooltip(canvas, root);
+    for (const auto &port : descriptor.outputs) QVERIFY(description.contains(portLabel(descriptor, port.key)));
+    const auto sine = doc.addRoot("sine_source").nodeId;
+    const auto trend = doc.addChild(sine, ChildSlot::Down, "linear_detrend").nodeId;
+    const auto &transform = doc.model().registry().find("linear_detrend")->descriptor;
+    QString alternative;
+    for (const auto &port : transform.outputs)
+        if (port.key != transform.defaultOutput && port.kind == DataKind::Series) alternative = port.key;
+    QVERIFY(!alternative.isEmpty());
+    const auto child = doc.addChild(trend, ChildSlot::Down, "affine", {}, alternative).nodeId;
+    QVERIFY(!child.isNull());
+    canvas.setSelectedNode(child);
+    QCOMPARE(sourceCardTooltip(canvas, trend), methodLabel(transform) + "\n" + portLabel(transform, alternative));
+}
+
+void UiTests::generatedSourcePreviewHandlesTableOutputs()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("milankovitch_period").nodeId;
+    QVERIFY(!root.isNull());
+    WorkflowPreviewPanel panel(&doc); panel.resize(440, 850); panel.show();
+    auto *source = generatedSourcePlot(panel);
+    auto *output = panel.findChild<PlotView *>("nodePreviewPlot");
+    auto *ports = panel.findChild<QComboBox *>("previewOutput");
+    QVERIFY(source && output && ports);
+    panel.controller()->selectNode(root);
+    QTRY_COMPARE(panel.controller()->state(), WorkflowPreviewController::State::Ready);
+    QVERIFY(ports->count() > 1);
+    QSignalSpy started(panel.controller(), &WorkflowPreviewController::started);
+    for (int i = 0; i < ports->count(); ++i)
+    {
+        ports->setCurrentIndex(i);
+        QVERIFY(dataAs<TableData>(source->currentData()));
+        QCOMPARE(source->currentPort(), ports->currentData().toString());
+        QCOMPARE(encodeData(source->currentData()).bytes, encodeData(output->currentData()).bytes);
+    }
+    QCOMPARE(started.count(), 0);
+}
+
 void UiTests::previewCancelsStaleWorkAndKeepsUiResponsive()
 {
     auto registry=makeScientificRegistry();
@@ -2034,13 +2244,16 @@ void UiTests::restoredOrbitalSourcesPreview()
                                   WorkflowPreviewController::State::Ready, 30000);
         auto *selector = panel.findChild<QComboBox *>("previewOutput");
         auto *plot = panel.findChild<PlotView *>("nodePreviewPlot");
-        QVERIFY(selector && plot);
+        auto *source = generatedSourcePlot(panel);
+        QVERIFY(selector && plot && source);
         const auto expected = registry.create(method, p)->execute({}, {});
         QCOMPARE(expected.state, NodeState::Succeeded);
         for(auto it=expected.outputs.begin();it!=expected.outputs.end();++it) {
             const int index=selector->findData(it.key()); QVERIFY(index>=0); selector->setCurrentIndex(index);
             const auto a=encodeData(plot->currentData()), b=encodeData(it.value());
             QVERIFY(a.ok() && b.ok()); QCOMPARE(a.bytes,b.bytes);
+            QCOMPARE(source->currentPort(), it.key());
+            QCOMPARE(encodeData(source->currentData()).bytes, a.bytes);
             if(dataKind(*it.value())==DataKind::Grid) { QVERIFY(!plot->hasSignificanceGrid()); QCOMPARE(plot->significanceSegmentCount(),0); }
         }
         QTemporaryDir dir;
@@ -2328,6 +2541,67 @@ void UiTests::sourceNodePreviewBeforeAddingAnalysis()
     QCOMPARE(dataAs<SeriesData>(plot->currentData())->y, QVector<double>({1, 2, 4, 8}));
 }
 
+void UiTests::cocoWorkBudgetPresentation()
+{
+    for (const auto *language : {"zh", "en"})
+    {
+        setLanguage(language);
+        for (const auto *code : {"COCO_MC_WORK_BUDGET", "COCO_WINDOW_WORK_BUDGET"})
+        {
+            ErrorInfo error{code, {{"estimated_work", 6000000000.},
+                                  {"maximum_work", 5000000000.},
+                                  {"requested_iterations", 5000},
+                                  {"maximum_iterations", 4166}}, {}};
+            const auto shown = presentError(error);
+            QVERIFY(shown.summary.contains("6000000000"));
+            QVERIFY(shown.summary.contains("5000000000"));
+            QVERIFY(shown.suggestion.contains("4166"));
+            QVERIFY(shown.suggestion.contains("5000"));
+            QVERIFY(!shown.suggestion.contains('{'));
+            QVERIFY(!shown.details.contains("131072"));
+        }
+    }
+    setLanguage("zh");
+}
+
+void UiTests::frequencyLimitTypingPreservesDecimals()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("sine_source").nodeId;
+    const auto node = doc.addChild(root, ChildSlot::Down, "mtm",
+                                  {{"frequency_max", .2}}).nodeId;
+    ParameterEditor editor; editor.resize(330, 900); editor.show(); editor.activateWindow();
+    editor.showNode(doc.node(node), doc.model().registry());
+    auto *limit = editor.findChild<QDoubleSpinBox *>("parameter_frequency_max");
+    QVERIFY(limit);
+    auto *input = limit->findChild<QLineEdit *>();
+    QVERIFY(input);
+    QTest::mouseClick(input, Qt::LeftButton);
+    QTRY_VERIFY(limit->hasFocus());
+    input->selectAll();
+    QTest::keyClicks(input, "0");
+    QTest::qWait(300); // Longer than the parameter debounce: zero must remain editable.
+    QCOMPARE(input->text(), QString("0"));
+    QTest::keyClicks(input, ".");
+    QCOMPARE(input->text(), QString("0."));
+    // Another parameter's visibility refresh must not overwrite a partial decimal.
+    auto *nw = editor.findChild<QDoubleSpinBox *>("parameter_nw");
+    QVERIFY(nw); nw->setValue(3);
+    QCOMPARE(input->text(), QString("0."));
+    QTest::keyClicks(input, "01");
+    QTest::keyClick(input, Qt::Key_Return);
+    QCOMPARE(limit->value(), .01);
+    QCOMPARE(editor.parameters()["frequency_max"].toDouble(), .01);
+    input->selectAll(); QTest::keyClicks(input, "0");
+    QTest::keyClick(input, Qt::Key_Tab);
+    QCOMPARE(limit->value(), 0.);
+    QCOMPARE(input->text(), QString("0"));
+    QTest::mouseClick(input, Qt::LeftButton);
+    input->selectAll(); QTest::keyClicks(input, "0.125");
+    QTest::keyClick(input, Qt::Key_Return);
+    QCOMPARE(limit->value(), .125);
+}
+
 void UiTests::legacyFrequencyZeroCommit()
 {
     WorkflowDocument doc(makeScientificRegistry());
@@ -2351,7 +2625,8 @@ void UiTests::legacyFrequencyZeroCommit()
         QTest::keyClick(input, key);
         QCOMPARE(editor.parameters()["frequency_max"].toDouble(), 0.);
         QCOMPARE(editor.parameters()["fmax_ratio"].toDouble(), 1.);
-        QCOMPARE(limit->specialValueText(), text("ui.frequency_auto"));
+        QVERIFY(limit->specialValueText().isEmpty());
+        QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->text().contains(text("ui.frequency_zero_hint")));
         QVERIFY(editor.dirty());
         QVERIFY(!legacy->isVisible());
     }
@@ -2388,12 +2663,14 @@ void UiTests::compactInputStatesAndFrequencyEditor()
     auto *legacy = editor.findChild<QDoubleSpinBox *>("parameter_fmax_ratio");
     QVERIFY(limit && legacy); QVERIFY(legacy->isVisible());
     QCOMPARE(editor.parameters()["fmax_ratio"].toDouble(), .3);
-    QCOMPARE(limit->specialValueText(), text("ui.frequency_legacy"));
+    QVERIFY(limit->specialValueText().isEmpty());
+    QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->text().contains(text("ui.frequency_legacy")));
     limit->setValue(.08);
     QCOMPARE(editor.parameters()["fmax_ratio"].toDouble(), 1.);
     QVERIFY(!legacy->isVisible());
     limit->setValue(0);
-    QCOMPARE(limit->specialValueText(), text("ui.frequency_auto"));
+    QVERIFY(limit->specialValueText().isEmpty());
+    QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->text().contains(text("ui.frequency_zero_hint")));
     const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
     for (const auto *theme : {"light", "dark"})
     {
@@ -2729,4 +3006,112 @@ void UiTests::axisSegmentsStayVisibleAndKeepBothAxes()
         }
     }
     ThemeManager::instance().apply(*qApp, "light");
+}
+
+void UiTests::parameterRoundTrip_data()
+{
+    QTest::addColumn<QString>("method");
+    QTest::addColumn<QString>("key");
+    QTest::addColumn<QJsonValue>("value");
+    for (const auto &d : makeScientificRegistry().descriptors())
+    {
+        if (d.key == "file_source") continue;
+        for (const auto &p : d.parameters)
+        {
+            QList<QJsonValue> values;
+            if (p.kind == ParameterKind::Number)
+            {
+                for (double v : {p.minimum, p.maximum, 1.23456789012345, 1e-15})
+                    if (v >= p.minimum && v <= p.maximum) values << QJsonValue(v);
+            }
+            else if (p.kind == ParameterKind::Integer)
+                values = {p.minimum, p.maximum};
+            else if (p.kind == ParameterKind::Boolean)
+                values = {true, false};
+            else if (!p.choices.isEmpty())
+                for (const auto &choice : p.choices) values << QJsonValue(choice);
+            else
+                values = {QJsonValue(QString::fromUtf8("test data/参数.csv"))};
+            int i = 0;
+            for (const auto &v : values)
+                QTest::newRow(qPrintable(d.key + "/" + p.key + "/" + QString::number(i++)))
+                    << d.key << p.key << v;
+        }
+    }
+}
+void UiTests::parameterRoundTrip()
+{
+    QFETCH(QString, method); QFETCH(QString, key); QFETCH(QJsonValue, value);
+    const auto registry = makeScientificRegistry();
+    NodeDefinition n; n.id = QUuid::createUuid(); n.method = method;
+    n.parameters = registry.normalize(method, {{key, value}}).parameters;
+    ParameterEditor editor; editor.showNode(&n, registry);
+    // Viewing a task, or editing another field later, must not alter any saved value.
+    QCOMPARE(editor.parameters(), n.parameters);
+    if (auto *spin = editor.findChild<QDoubleSpinBox *>("parameter_" + key))
+    {
+        const QString displayed = spin->text();
+        bool ok = false; const double parsed = spin->locale().toDouble(displayed, &ok);
+        QVERIFY2(ok, qPrintable(displayed));
+        QCOMPARE(parsed, value.toDouble());
+        spin->interpretText();
+        QCOMPARE(editor.parameters(), n.parameters);
+    }
+}
+void UiTests::scientificParameterTyping()
+{
+    const auto registry = makeScientificRegistry();
+    NodeDefinition n; n.id = QUuid::createUuid(); n.method = "affine";
+    n.parameters = registry.normalize(n.method, {}).parameters;
+    ParameterEditor editor; editor.showNode(&n, registry); editor.show();
+    auto *spin = editor.findChild<QDoubleSpinBox *>("parameter_factor"); QVERIFY(spin);
+    spin->setFocus();
+    for (const QString &s : {QString("1e-15"), QString("-1.23456789012345"), QString("1e50")})
+    {
+        spin->selectAll(); QTest::keyClicks(spin, s); QTest::keyClick(spin, Qt::Key_Tab);
+        QCOMPARE(spin->value(), s.toDouble());
+        QCOMPARE(editor.parameters()["factor"].toDouble(), s.toDouble());
+        spin->setFocus();
+    }
+}
+
+void UiTests::scientificParametersReachPreviewAndRun()
+{
+    QTemporaryDir directory;
+    AppSettings settings; settings.databasePath = directory.filePath("parameters.sqlite");
+    MainWindow window(settings, false); window.resize(1500, 950); window.show();
+    const auto root = window.document()->addRoot("sine_source", {{"slope", 0}}).nodeId;
+    const auto target = window.document()->addChild(root, ChildSlot::Down, "affine").nodeId;
+    window.canvas()->nodeSelected(target);
+    auto *editor = window.findChild<ParameterEditor *>();
+    auto *factor = editor->findChild<QDoubleSpinBox *>("parameter_factor"); QVERIFY(factor);
+    factor->setFocus(); factor->selectAll(); QTest::keyClicks(factor, "1e-15");
+    QTest::keyClick(factor, Qt::Key_Return);
+    auto *controller = window.findChild<WorkflowPreviewPanel *>()->controller();
+    QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
+    QVERIFY(window.document()->node(target)->parameters["factor"].toDouble() == 1e-15);
+    const auto before = controller->result(); QVERIFY(before);
+    const auto *source = dataAs<SeriesData>(before->original.outputs["series"]);
+    const auto *preview = dataAs<SeriesData>(before->output.outputs["series"]);
+    QVERIFY(source && preview);
+    QVERIFY(source->y[1] != 0);
+    QVERIFY(preview->y[1] == source->y[1] * 1e-15);
+    const auto expected = encodeData(before->output.outputs["series"]).bytes;
+    // Navigating away and reopening must preserve the same stored input.
+    window.canvas()->nodeSelected(root);
+    window.canvas()->nodeSelected(target);
+    QVERIFY(editor->parameters()["factor"].toDouble() == 1e-15);
+    // Run uses the same frozen parameters as the preview, and the DB keeps them.
+    QSignalSpy batches(window.runner(), &RunController::batchReady);
+    window.startRun();
+    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && batches.count() == 1, 15000);
+    const auto batch = qvariant_cast<std::shared_ptr<const BatchResult>>(batches.last()[0]);
+    QVERIFY(batch && batch->error.isEmpty()); QCOMPARE(batch->items.size(), 1);
+    QVERIFY(batch->items[0].persistence.saved());
+    ResultRepository repository; QVERIFY(repository.open(settings.databasePath).isEmpty());
+    const auto loaded = repository.load(batch->items[0].persistence.recordId); QVERIFY(loaded.ok());
+    QCOMPARE(encodeData(loaded.run.nodes[target].outputs["series"]).bytes, expected);
+    const auto workflow = workflowFromJson(loaded.run.workflowSnapshot).definition;
+    for (const auto &n : workflow.nodes)
+        if (n.id == target) QVERIFY(n.parameters["factor"].toDouble() == 1e-15);
 }

@@ -19,14 +19,16 @@ Built-in sources include sine signals, synthetic orbital proxies, ODP records an
 
 Add a source, then use downstream or branch controls to connect processing and analysis tasks. Tasks can also be searched, double-clicked or dragged from the catalogue. Select the appropriate upstream output when a task has several outputs. Delete selected nodes with the toolbar or Del and check the confirmation. Canvas edits support undo and redo.
 
-Valid parameter changes update the preview. A numeric editor accepts wheel changes only after deliberate click or Tab focus. A closed choice list ignores wheel selection. FFT, Welch and MTM require suitable regularly spaced input; inspect sampling and resample explicitly when necessary, or consider Lomb–Scargle for irregular sampling. Compare detrended and original branches when investigating long trends.
+Valid parameter changes update the preview. Decimal parameters in Step settings accept scientific notation such as `1e-15`, within the declared range. Confirm with Enter or Tab; changing nodes or running the workflow also commits the current edit. A numeric editor accepts wheel changes only after deliberate click or Tab focus. A closed choice list ignores wheel selection. FFT, Welch and MTM require suitable regularly spaced input; inspect sampling and resample explicitly when necessary, or consider Lomb–Scargle for irregular sampling. Compare detrended and original branches when investigating long trends.
 
 <a id="preview"></a>
 ## Original data and node output preview
 
-The upper preview shows original data; the lower preview shows the selected node's output. Its selector can switch between curves, spectra, tables and grids. Select a file-reading node to preview the imported series, or an analysis node to preview its output.
+The upper preview shows the source output used by the selected branch. For a source with several outputs, it follows the branch connection: MTM connected to PT-ZB18a obliquity shows obliquity above, rather than the source's default precession. Selecting the source itself and changing its output selector updates both previews without changing existing downstream connections.
 
-Preview runs in the background up to the selected node and does not create database records. Displayed data may be decimated; calculations use complete input. Recalculate requests a new preview and Fit restores the plotted range. Returning from a full run allows further input and node selection. For an empty preview, check the selected output, input file, upstream connection and parameter diagnostics.
+The lower preview shows the selected node's output. Its selector can switch between curves, spectra, tables and grids. Select a file-reading node to preview imported data, a processing node to inspect transformed data, or an analysis node to inspect its result. The upper preview continues to show source data.
+
+Preview runs in the background up to the selected node and does not create database records. Displayed data may be decimated; calculations use complete input. Recalculate requests a new preview and Fit restores the plotted range. Returning from a full run allows further input and node selection. A downstream failure preserves successfully generated source data and shows diagnostics below. For an empty preview, check the selected output, input file, upstream connection and parameter diagnostics.
 
 <a id="run"></a>
 ## Run and inspect results
@@ -44,7 +46,7 @@ Hover over an axis, its ticks or title for the interaction hint. Scroll to zoom 
 
 The fixed X/Y selector at the top of the Axes page chooses the editing target. Each axis keeps its own range, title, scale, direction, ticks and grid. Log display requires positive values; ranges are entered in original coordinates. It does not transform stored data.
 
-MTM's frequency upper limit uses inverse input-axis units. It crops the output spectrum, threshold curves and peak table, affecting saved results and downstream data. Estimation, background fitting and peak detection still operate on the full spectrum. Use axis zoom to change only the view. Zero selects the automatic limit for new nodes; if an older node retains a legacy ratio, explicitly enter zero and confirm with Enter or Tab to restore the full band.
+MTM's frequency upper limit uses inverse input-axis units. It crops the output spectrum, threshold curves and peak table, affecting saved results and downstream data. Estimation, background fitting and peak detection still operate on the full spectrum. Use axis zoom to change only the view. The editor displays numeric `0` with a separate automatic-limit hint; zero selects the automatic limit for new nodes; if an older node retains a legacy ratio, explicitly enter zero and confirm with Enter or Tab to restore the full band.
 
 Click samples, peaks or grid cells to inspect coordinates. Positive frequencies can show reciprocal periods. Decimated preview readings refer to displayed samples. Esc, clicking blank space or changing the view dismisses the readout. CSV exports complete selected outputs; PNG/PDF exports figures and styles subject to display budgets. See [plotting details (Chinese)](ui/plotting.md) and [statistical limits (Chinese)](methods/statistical_limits.md).
 
@@ -85,5 +87,7 @@ Settings → Contact us opens the authors and contact page. Settings → License
 ## Troubleshooting and updates
 
 Missing Chinese glyphs usually require a CJK font; Linux/WSL instructions are in the [FAQ](../FAQ.md#linux-fonts). Linux startup also requires a working graphical environment and platform libraries. Evaluate input size, concurrency and graphics separately when investigating slow interaction; WSL performance does not establish native desktop performance.
+
+COCO requires a depth axis. The metre-valued composite-depth labels `mcd` and `rmcd` are accepted with depth unit `m`, preserving the source depth reference. Resampling does not convert age to depth. COCO Monte Carlo allows 19–20000 simulations, subject to a separate fixed budget of 10 billion estimated work units per task. All scan-adjusted p values being one can be a valid result. See the [COCO FAQ (Chinese)](../FAQ.md#coco-units) for interpretation and budget diagnostics.
 
 Settings can check releases and open the download page. This version uses complete-package manual updates without background installation. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.

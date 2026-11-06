@@ -3,6 +3,7 @@
 #ifndef ASTER_UI_WORKFLOW_PREVIEW_PANEL_H
 #define ASTER_UI_WORKFLOW_PREVIEW_PANEL_H
 #include "ui/services/workflow_preview_controller.h"
+#include <QHash>
 #include <QWidget>
 class QLabel; class QComboBox; class QProgressBar; class QToolButton;
 class QShowEvent; class QHideEvent;
@@ -23,6 +24,7 @@ class WorkflowPreviewPanel : public QWidget
   private:
     void updateState();
     void showOutput();
+    void showSourceOutput();
     WorkflowDocument *m_document;
     WorkflowPreviewController *m_controller;
     FilePreviewPanel *m_original;
@@ -34,6 +36,7 @@ class WorkflowPreviewPanel : public QWidget
     QToolButton *m_fit, *m_legend, *m_retry;
     bool m_suspended = false;
     std::shared_ptr<const WorkflowPreviewResult> m_displayed;
+    QHash<NodeId, QString> m_outputSelections;
 };
 }
 #endif

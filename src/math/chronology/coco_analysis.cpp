@@ -127,13 +127,26 @@ std::size_t peakCount(const std::vector<double> &p)
     }
     return count;
 }
-void budget(long double work)
+void budget(std::size_t iterations, long double workPerIteration, CocoWorkBudgetError::Kind kind)
 {
+    const auto work = iterations * workPerIteration;
     if (!std::isfinite(work) || work > CocoAnalysisLimits::maxEvaluationWork)
-        throw std::length_error(
-            "COCO simulation/window work limit exceeded; reduce simulations/windows or rate grid");
+        throw CocoWorkBudgetError(kind, iterations, workPerIteration);
 }
 } // namespace
+CocoWorkBudgetError::CocoWorkBudgetError(Kind unit, std::size_t iterations,
+                                       long double workPerIteration)
+    : std::length_error("COCO estimated work exceeds the fixed per-task budget; "
+                        "this is not a hardware performance measurement"),
+      kind(unit), requestedIterations(iterations), maximumIterations(0),
+      estimatedWork(iterations * workPerIteration)
+{
+    if (std::isfinite(workPerIteration) && workPerIteration > 0)
+        maximumIterations = static_cast<std::size_t>(std::min(
+            std::floor(CocoAnalysisLimits::maxEvaluationWork / workPerIteration),
+            static_cast<long double>(kind == Kind::Simulations ? CocoAnalysisLimits::maxSimulations
+                                                               : CocoAnalysisLimits::maxWindows)));
+}
 std::vector<double> cocoAr1(std::size_t n, double rho, std::mt19937_64 &rng)
 {
     if (n < 1 || n > CocoAnalysisLimits::maxInputSamples || !std::isfinite(rho) ||
@@ -195,11 +208,11 @@ CocoMonteCarloResult cocoMonteCarlo(const std::vector<double> &y, double dx, con
         (mc.nullModel != CocoMonteCarloOptions::Null::FixedAr1 &&
          mc.nullModel != CocoMonteCarloOptions::Null::RandomPeaks))
         throw std::invalid_argument(
-            "Invalid COCO Monte Carlo settings; require 19<=B<=9999, 1/(B+1)<=alpha<1 and |rho|<1");
+            "Invalid COCO Monte Carlo settings; require 19<=B<=20000, 1/(B+1)<=alpha<1 and |rho|<1");
     Plan plan(y.size(), dx, o, cancelled);
-    budget(
-        static_cast<long double>(mc.simulations) *
-        (plan.cells * 3 + plan.geometry.fftSize * (std::log2(double(plan.geometry.fftSize)) + 1)));
+    budget(mc.simulations,
+           plan.cells * 3 + plan.geometry.fftSize * (std::log2(double(plan.geometry.fftSize)) + 1),
+           CocoWorkBudgetError::Kind::Simulations);
     const auto observed = coco_detail::observedPower(y, plan.geometry.fftSize, o.detrend);
     CocoMonteCarloResult result;
     result.cacheCells = plan.cells;
@@ -210,8 +223,9 @@ CocoMonteCarloResult cocoMonteCarlo(const std::vector<double> &y, double dx, con
             throw std::domain_error("No positive spectral peaks for the random-peak reference");
         if (result.peaks > CocoAnalysisLimits::maxPeaks)
             throw std::length_error("Random-peak count exceeds 8192");
-        budget(static_cast<long double>(mc.simulations) *
-               (plan.cells * 3 + result.peaks * (2. * plan.geometry.fftSize / y.size() + 3)));
+        budget(mc.simulations,
+               plan.cells * 3 + result.peaks * (2. * plan.geometry.fftSize / y.size() + 3),
+               CocoWorkBudgetError::Kind::Simulations);
     }
     plan.build(cancelled,
                [&](int p)
@@ -278,9 +292,9 @@ CocoEvolutionResult cocoEvolution(const std::vector<double> &y, double dx, const
                                     "COCO scan for one window");
     if (windows * plan.indices.size() > CocoAnalysisLimits::maxMapCells)
         throw std::length_error("eCOCO map exceeds cell budget");
-    budget(
-        static_cast<long double>(windows) *
-        (plan.cells * 3 + plan.geometry.fftSize * (std::log2(double(plan.geometry.fftSize)) + 1)));
+    budget(windows,
+           plan.cells * 3 + plan.geometry.fftSize * (std::log2(double(plan.geometry.fftSize)) + 1),
+           CocoWorkBudgetError::Kind::Windows);
     if (std::any_of(y.begin(), y.end(), [](double v) { return !std::isfinite(v); }))
         throw std::invalid_argument("Non-finite eCOCO input");
     plan.build(cancelled,

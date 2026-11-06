@@ -1366,7 +1366,7 @@
   "warning.coco_exclusions": "Some rates were excluded. Status: 0 eligible, 1 band above Nyquist, 2 insufficient resolution/bins, 3 constant spectrum. Correlations are valid only where eligible=1; other zeros are placeholders.",
   "progress.coco_scan": "Scanning rates and comparing target spectra",
   "diagnostic.COCO_BUDGET.summary": "COCO work budget exceeded.",
-  "diagnostic.COCO_BUDGET.suggestion": "Narrow the rate grid, increase its step, reduce padding/simulations, or increase the window step. At most 131072 samples per window; input/cache/work budgets also apply. See details.",
+  "diagnostic.COCO_BUDGET.suggestion": "See details for the specific limit. Input size, FFT length, rate grid and cache have separate limits; adjust sampling, the rate grid or padding for the exceeded limit.",
   "diagnostic.COCO_NO_SCORE.summary": "No eligible COCO score.",
   "diagnostic.COCO_NO_SCORE.suggestion": "Check variance, sampling and record length against the full target band; see details. No automatic resampling or removal of targets.",
   "diagnostic.COCO_PARAMETERS.summary": "Invalid COCO parameters or numeric range.",
@@ -1722,5 +1722,14 @@
   "ui.inspector_plot": "Plot",
   "ui.inspector_sources": "Sources",
   "ui.editing_target": "Editing target",
-  "ui.toggle_panel": "Show or hide %1"
+  "ui.toggle_panel": "Show or hide %1",
+  "ui.frequency_zero_hint": "0 = Auto",
+  "diagnostic.COCO_MC_WORK_BUDGET.summary": "COCO Monte Carlo estimated work {estimated_work} exceeds the fixed limit {maximum_work}.",
+  "diagnostic.COCO_MC_WORK_BUDGET.suggestion": "These settings permit at most {maximum_iterations} simulations; {requested_iterations} were requested. Reduce simulations, narrow the rate grid, increase its step or reduce padding. This is a fixed program budget, not a hardware benchmark. If the maximum is 0, first reduce the work per simulation.",
+  "diagnostic.COCO_WINDOW_WORK_BUDGET.summary": "eCOCO estimated work {estimated_work} exceeds the fixed limit {maximum_work}.",
+  "diagnostic.COCO_WINDOW_WORK_BUDGET.suggestion": "These settings permit at most {maximum_iterations} windows; {requested_iterations} are required. Increase the window step, narrow the rate grid or reduce padding. This is a fixed program budget, not a hardware benchmark. If the maximum is 0, first reduce the work per window.",
+  "diagnostic.field.estimated_work": "Estimated work (work units)",
+  "diagnostic.field.maximum_work": "Fixed work limit (work units)",
+  "diagnostic.field.requested_iterations": "Requested simulations/windows",
+  "diagnostic.field.maximum_iterations": "Maximum simulations/windows within the current budget"
 }

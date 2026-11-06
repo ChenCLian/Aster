@@ -14,6 +14,8 @@
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
+#include <QDoubleValidator>
+#include <limits>
 #include <QComboBox>
 #include <QCheckBox>
 #include <QLineEdit>
@@ -75,7 +77,24 @@ class CompactDoubleSpinBox : public DecimalEditor
   protected:
     QString textFromValue(double value) const override
     {
-        return locale().toString(value, 'g', 12);
+        // The text must round-trip to the same double, including very small
+        // nonzero cutoffs and parameters loaded from a saved workflow.
+        return locale().toString(value, 'g', QLocale::FloatingPointShortest);
+    }
+    QValidator::State validate(QString &input, int &position) const override
+    {
+        // QDoubleSpinBox's default validator rejects exponent notation even
+        // though textFromValue uses it. Rejecting just "e-" can turn 1e-15 into 115.
+        QDoubleValidator validator(minimum(), maximum(), decimals());
+        validator.setLocale(locale());
+        validator.setNotation(QDoubleValidator::ScientificNotation);
+        return validator.validate(input, position);
+    }
+    double valueFromText(const QString &input) const override
+    {
+        bool ok = false;
+        const double parsed = locale().toDouble(input, &ok);
+        return ok ? parsed : value();
     }
 };
 } // namespace
@@ -132,6 +151,13 @@ ParameterEditor::ParameterEditor(QWidget *p) : QWidget(p)
             if(!name.isEmpty())label->setPixmap(parameterIcon(name).pixmap(20,20));
         }
     });
+}
+ParameterEditor::~ParameterEditor()
+{
+    // A focused spin box can emit editingFinished while QWidget deletes its children.
+    // Disconnect before m_fields and the other editor members are destroyed.
+    for (auto *field : m_fields)
+        disconnect(field, nullptr, this, nullptr);
 }
 void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
 {
@@ -210,7 +236,8 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         else if (p.kind == ParameterKind::Number)
         {
             auto *w = new CompactDoubleSpinBox;
-            w->setDecimals(12);
+            w->setDecimals(std::numeric_limits<double>::max_exponent10 +
+                           std::numeric_limits<double>::digits10);
             w->setRange(p.minimum, p.maximum);
             w->setSingleStep(.05);
             w->setValue(value.toDouble());
@@ -330,9 +357,12 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
 void ParameterEditor::updateVisibility()
 {
     const auto values=parameters();
-    if (auto *limit = qobject_cast<QDoubleSpinBox *>(m_fields.value("frequency_max")))
-        limit->setSpecialValueText(text(values.value("fmax_ratio").toDouble(1) < 1
-                                            ? "ui.frequency_legacy" : "ui.frequency_auto"));
+    // Keep the editable text numeric. setSpecialValueText() reformats even a
+    // partially typed decimal when visibility is refreshed by valueChanged.
+    if (auto *label = findChild<QLabel *>("parameterLabel_frequency_max"))
+        label->setText(text("parameter.frequency_max") + " · " +
+                       text(values.value("fmax_ratio").toDouble(1) < 1
+                                ? "ui.frequency_legacy" : "ui.frequency_zero_hint"));
     for(const auto& p:m_specs) {
         bool visible = !p.hideWhenDefault || values.value(p.key) != p.defaultValue;
         for(auto it=p.visibleWhen.begin();it!=p.visibleWhen.end();++it)
