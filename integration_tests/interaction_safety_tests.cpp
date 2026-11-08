@@ -44,6 +44,8 @@
 #include "ui/workflow/workflow_document.h"
 #include "ui/panels/source_panel.h"
 #include "ui/panels/parameter_editor.h"
+#include "ui/help/help_dialog.h"
+#include <QTextBrowser>
 #include "ui/panels/file_options_editor.h"
 #include "ui/panels/task_catalog.h"
 #include "ui/services/run_controller.h"
@@ -1199,7 +1201,15 @@ void InteractionSafetyTests::ar1GlobalResultPresentation()
         auto *help=editor.findChild<QToolButton *>("methodHelp");
         QVERIFY(help && !help->isHidden());
         QCOMPARE(help->accessibleDescription(),text("methodhelp.ar1_global"));
-        QVERIFY(help->toolTip().contains("64–1024"));
+        QVERIFY(help->toolTip().isEmpty());
+        QVERIFY(help->accessibleDescription().contains("64–1024"));
+        help->click();
+        auto *dialog=editor.findChild<HelpDialog *>("helpDialog");
+        QVERIFY(dialog && dialog->isVisible());
+        QCOMPARE(dialog->currentTopic().anchor,QString("m-ar1_global"));
+        auto *browser=dialog->findChild<QTextBrowser *>("helpBrowser");
+        QVERIFY(browser && browser->toPlainText().contains("64–1024"));
+        dialog->close();
     }
     setLanguage("en");
 }

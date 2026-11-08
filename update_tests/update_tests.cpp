@@ -7,6 +7,8 @@
 #include "ui/common/presentation.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/panels/parameter_editor.h"
+#include "ui/help/help_dialog.h"
+#include <QTextBrowser>
 #include "ui/workflow/workflow_document.h"
 #include "ui/app/main_window.h"
 #include "ui/settings/language_catalog.h"
@@ -311,18 +313,35 @@ private slots:
    editor.showNode(doc.node(odp),doc.model().registry());
    auto *help=editor.findChild<QToolButton*>("methodHelp");
    QVERIFY(help && !help->isHidden());
-   QVERIFY(help->toolTip().contains("PANGAEA.132801"));
-   QVERIFY(help->toolTip().contains("CC BY 3.0"));
+   QVERIFY(help->toolTip().isEmpty());
+   QVERIFY(help->accessibleDescription().contains("PANGAEA.132801"));
+   QVERIFY(help->accessibleDescription().contains("CC BY 3.0"));
+   help->click();
+   auto *dialog=editor.findChild<aster::ui::HelpDialog*>("helpDialog");
+   QVERIFY(dialog && dialog->isVisible());
+   QCOMPARE(dialog->currentTopic().anchor,QString("m-odp1143_d18o"));
+   auto *browser=dialog->findChild<QTextBrowser*>("helpBrowser");
+   QVERIFY(browser);
+   QVERIFY(browser->toPlainText().contains("PANGAEA.132801"));
+   QVERIFY(browser->toPlainText().contains("CC BY 3.0"));
+   dialog->close();
    for(auto *label:editor.findChildren<QLabel*>())
     QVERIFY(!label->text().contains("PANGAEA.132801"));
    editor.showNode(nullptr,doc.model().registry());
    QVERIFY(help->isHidden());QVERIFY(help->toolTip().isEmpty());
+   QVERIFY(help->accessibleDescription().isEmpty());
    const auto sine=doc.addRoot("sine_source").nodeId;
    editor.showNode(doc.node(sine),doc.model().registry());
-   QVERIFY(!help->isHidden());QVERIFY(!help->toolTip().contains("PANGAEA"));
+   QVERIFY(!help->isHidden());QVERIFY(help->toolTip().isEmpty());
+   QVERIFY(!help->accessibleDescription().isEmpty());
+   QVERIFY(!help->accessibleDescription().contains("PANGAEA"));
+   help->click();
+   QCOMPARE(dialog->currentTopic().anchor,QString("m-sine_source"));
+   dialog->close();
    auto invalid=*doc.node(sine);invalid.method="unregistered_method";
    editor.showNode(&invalid,doc.model().registry());
    QVERIFY(help->isHidden());QVERIFY(help->toolTip().isEmpty());
+   QVERIFY(help->accessibleDescription().isEmpty());
   }
   aster::ui::setLanguage("zh");
  }

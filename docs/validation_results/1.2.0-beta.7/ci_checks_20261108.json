@@ -1,0 +1,314 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-beta.7",
+  "date": "2026-11-08",
+  "status": "affected_suites_passed_native_ci_rerun_pending",
+  "scope": "CI regression assertions and asynchronous test readiness; no runtime application, algorithm, dependency or packaging changes.",
+  "received_ci_evidence": {
+    "linux": {
+      "commit": "16a290d05529fed0848e1cf58678ff00562ef034",
+      "ref": "refs/tags/v1.2.0-beta.7",
+      "compile": "passed",
+      "test_totals": {
+        "passed": 2096,
+        "failed": 2,
+        "skipped": 0
+      },
+      "failed_targets": [
+        "aster_integration_tests",
+        "aster_update_tests"
+      ]
+    },
+    "macos": {
+      "commit": "16a290d05529fed0848e1cf58678ff00562ef034",
+      "ref": "refs/tags/v1.2.0-beta.7",
+      "compile": "passed",
+      "test_totals": {
+        "passed": 2095,
+        "failed": 3,
+        "skipped": 0
+      },
+      "failed_targets": [
+        "aster_workspace_tests",
+        "aster_integration_tests",
+        "aster_update_tests"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "help_assertions",
+      "cause": "Two other test executables retained long-tooltip expectations after beta.7 removed hover help. The previous local check covered selected UiTests only.",
+      "fix": "Assert empty tooltips, retained accessible descriptions, correct clicked help topics/content, and selection cleanup in Chinese and English."
+    },
+    {
+      "id": "overlay_readiness",
+      "cause": "subplotOverlayAndRemoval used hasPlot() as readiness although background refinement can keep loading() true; overlay is rejected while loading.",
+      "reproduction": "Linux baseline sometimes passed. Explicitly scheduling viewport refinement reproduced plottedCount=1 versus expected 2 before readiness synchronization. This demonstrates the race mechanism; the macOS native run has not been replayed locally.",
+      "fix": "Wait for canOverlaySelection(), the same readiness gate used by the UI. Retain two-curve, two-legend and removal assertions; exercise both initial load and pending refinement."
+    },
+    {
+      "id": "incompatible_overlay_assertion",
+      "cause": "A neighboring test accepted any message, including the initial empty message or a loading notice.",
+      "fix": "Wait for readiness and require the specific incompatible-axis diagnostic, while checking the original plot and title are retained."
+    }
+  ],
+  "local_environment": {
+    "os": "Debian 13 Linux x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "full_affected_suites": [
+    {
+      "target": "update",
+      "exit_code": 0,
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 5.282,
+      "log": "after_update.log"
+    },
+    {
+      "target": "integration",
+      "exit_code": 0,
+      "passed": 85,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "seconds": 19.077,
+      "log": "after_integration.log"
+    },
+    {
+      "target": "ui",
+      "exit_code": 0,
+      "passed": 799,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 63.867,
+      "log": "after_ui.log"
+    },
+    {
+      "target": "workspace",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 31.71,
+      "log": "after_workspace.log"
+    }
+  ],
+  "totals": {
+    "passed": 1018,
+    "failed": 0,
+    "skipped": 0
+  },
+  "count_note": "QtTest totals include initialization and cleanup. These four complete executables are not the entire 12-executable regression suite.",
+  "repeated_overlay": {
+    "rounds": 20,
+    "input_points": 128,
+    "cases": [
+      "initial_load",
+      "viewport_refinement",
+      "incompatible_units"
+    ],
+    "failed_rounds": 0,
+    "details": [
+      {
+        "round": 1,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_01.log"
+      },
+      {
+        "round": 2,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.667,
+        "log": "repeat_overlay_02.log"
+      },
+      {
+        "round": 3,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_03.log"
+      },
+      {
+        "round": 4,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_04.log"
+      },
+      {
+        "round": 5,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.667,
+        "log": "repeat_overlay_05.log"
+      },
+      {
+        "round": 6,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_06.log"
+      },
+      {
+        "round": 7,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.618,
+        "log": "repeat_overlay_07.log"
+      },
+      {
+        "round": 8,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.666,
+        "log": "repeat_overlay_08.log"
+      },
+      {
+        "round": 9,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_09.log"
+      },
+      {
+        "round": 10,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_10.log"
+      },
+      {
+        "round": 11,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_11.log"
+      },
+      {
+        "round": 12,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.567,
+        "log": "repeat_overlay_12.log"
+      },
+      {
+        "round": 13,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.566,
+        "log": "repeat_overlay_13.log"
+      },
+      {
+        "round": 14,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_14.log"
+      },
+      {
+        "round": 15,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_15.log"
+      },
+      {
+        "round": 16,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_16.log"
+      },
+      {
+        "round": 17,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_17.log"
+      },
+      {
+        "round": 18,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.616,
+        "log": "repeat_overlay_18.log"
+      },
+      {
+        "round": 19,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.566,
+        "log": "repeat_overlay_19.log"
+      },
+      {
+        "round": 20,
+        "exit_code": 0,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 0.617,
+        "log": "repeat_overlay_20.log"
+      }
+    ]
+  },
+  "modified_test_sources": {
+    "update_tests/update_tests.cpp": "65e65df49b53b607f8ed8c2916837e12b33a48bc5eee154c5a50fedc07263ca0",
+    "integration_tests/interaction_safety_tests.cpp": "80f852b5b05e61a71398a9d5d0c3594d6260a5fdb980059c7eb140a71fe317a0",
+    "workspace_tests/workspace_tests.cpp": "c3607c12136d01fa709acc1975e82cc68da123ca7795b3b68365c22870237a78"
+  },
+  "prior_help_record": "interaction_checks.json",
+  "limitations": [
+    "Post-fix validation was performed on Linux/Qt offscreen. macOS and Windows native builds were not run locally.",
+    "Full native CI and final package success remain to be confirmed using a commit containing this patch."
+  ],
+  "logs": "Raw local logs are included in the patch archive under verification/."
+}

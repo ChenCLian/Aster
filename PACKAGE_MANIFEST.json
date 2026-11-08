@@ -804,8 +804,8 @@
     },
     {
       "path": "docs/validation_current.md",
-      "bytes": 12742,
-      "sha256": "2498ed50e257eb909bc7a59a1f9ce1c674689e6b1132bf9c9163048d9b4fba34"
+      "bytes": 13620,
+      "sha256": "86ff4de634d9a7368acb98b726883e1f16139c346599e05990c67a3bc8cda7bf"
     },
     {
       "path": "docs/validation_results/1.2.0-alpha.1/asan_ubsan.txt",
@@ -3063,6 +3063,11 @@
       "sha256": "546f13481759d1c0b21ffaf47ed1978100a038347b652f7e3b91138bf1cc30fd"
     },
     {
+      "path": "docs/validation_results/1.2.0-beta.7/ci_checks_20261108.json",
+      "bytes": 8419,
+      "sha256": "5326ea43e9d1c3882bed0679fa218df97bc21b906efad811825a8819640de3c1"
+    },
+    {
       "path": "docs/validation_results/1.2.0-beta.7/documentation_checks.json",
       "bytes": 517,
       "sha256": "aa8510cca7462d09b12e98383d83080ff1a8837306737b998cdd367717aa3b2e"
@@ -3239,8 +3244,8 @@
     },
     {
       "path": "integration_tests/interaction_safety_tests.cpp",
-      "bytes": 58896,
-      "sha256": "e729c3a959fa1c6c455686a8205f5e1d854e7a6fe45d8c1c2e193eb023205cc7"
+      "bytes": 59393,
+      "sha256": "80f852b5b05e61a71398a9d5d0c3594d6260a5fdb980059c7eb140a71fe317a0"
     },
     {
       "path": "integration_tests/main.cpp",
@@ -3299,8 +3304,8 @@
     },
     {
       "path": "PACKAGE_STATUS.json",
-      "bytes": 6721,
-      "sha256": "fc75fa3a9ab44d8fc7e74013df55b9c38f20031424a7e143afcc20a55af20c4a"
+      "bytes": 7089,
+      "sha256": "09c1fd96437c8280e9f69f6917f4b9e5881c1d9fa92d2832c651c31572baeeaa"
     },
     {
       "path": "QUICK_START.md",
@@ -5604,8 +5609,8 @@
     },
     {
       "path": "update_tests/update_tests.cpp",
-      "bytes": 26123,
-      "sha256": "7fb8ae82ca6047e7b789657aec464f59e7296deeafbeb45ac5b42c6813a5f253"
+      "bytes": 27017,
+      "sha256": "65e65df49b53b607f8ed8c2916837e12b33a48bc5eee154c5a50fedc07263ca0"
     },
     {
       "path": "update_tests/update_tests.pro",
@@ -5619,8 +5624,8 @@
     },
     {
       "path": "workspace_tests/workspace_tests.cpp",
-      "bytes": 115963,
-      "sha256": "62e9c9bfc8b5c731fcbe58f4f743a02ee6b4b86e9db298a2e338b4d9d9d6833e"
+      "bytes": 117030,
+      "sha256": "c3607c12136d01fa709acc1975e82cc68da123ca7795b3b68365c22870237a78"
     },
     {
       "path": "workspace_tests/workspace_tests.pro",

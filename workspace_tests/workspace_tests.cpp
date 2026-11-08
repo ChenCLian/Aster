@@ -189,6 +189,7 @@ class WorkspaceTests : public QObject
     void scientificOutputGroups();
     void addAllScientificOutputs_data();
     void addAllScientificOutputs();
+    void subplotOverlayAndRemoval_data();
     void subplotOverlayAndRemoval();
     void closeDuringLoadAndOldMenu();
     void displayEnvelopeKeepsExtremaAndOriginal();
@@ -1204,8 +1205,15 @@ void WorkspaceTests::heatmapInspectorAcrossPages()
     QCOMPARE(w.currentView()->style().colorGradient,4);
     w.reset(); QVERIFY(!tabs->isTabEnabled(3));
 }
+void WorkspaceTests::subplotOverlayAndRemoval_data()
+{
+    QTest::addColumn<bool>("refinementPending");
+    QTest::newRow("initial_load") << false;
+    QTest::newRow("viewport_refinement") << true;
+}
 void WorkspaceTests::subplotOverlayAndRemoval()
 {
+    QFETCH(bool, refinementPending);
     QTemporaryDir d;
     auto p = d.filePath("r.sqlite");
     ResultRepository repo;
@@ -1217,6 +1225,17 @@ void WorkspaceTests::subplotOverlayAndRemoval()
     w.open(b, PlotWorkspace::Target::Subplot);
     QTRY_VERIFY(w.currentView()->hasPlot());
     QCOMPARE(w.subplotCount(), 2);
+    if (refinementPending)
+    {
+        // A visible plot can still be busy refining its viewport.
+        emit w.currentView()->viewportChanged();
+        QVERIFY(w.currentView()->hasPlot());
+        QVERIFY(w.loading());
+        QVERIFY(!w.canOverlaySelection({a}));
+    }
+    // Use the same readiness gate as the enabled Overlay button. hasPlot()
+    // alone does not mean all initial loads/refinement jobs have completed.
+    QTRY_VERIFY(w.canOverlaySelection({a}));
     w.open(a, PlotWorkspace::Target::Overlay);
     QTRY_COMPARE(w.currentView()->plottedCount(), 2);
     auto *cp = w.currentView()->findChild<QCustomPlot *>();
@@ -1784,9 +1803,13 @@ void WorkspaceTests::rejectedOverlayKeepsOriginal()
     auto old = w.currentView()->style();
     old.title = "Keep me";
     QVERIFY(w.currentView()->applyStyle(old).isEmpty());
+    QTRY_VERIFY(w.canOverlaySelection({second}));
     QSignalSpy messages(&w, &PlotWorkspace::message);
     w.open(second, PlotWorkspace::Target::Overlay);
-    QTRY_VERIFY(!messages.isEmpty());
+    const auto expected = text("ui.overlay_incompatible_detail")
+        .arg(QString::number(ref.recordId), QString::number(second.recordId),
+             QString("ka"), QString("u"), QString("s"), QString("u"));
+    QTRY_VERIFY(!messages.isEmpty() && messages.last().front().toString() == expected);
     QTRY_VERIFY(!w.loading() && w.currentView()->hasPlot());
     QCOMPARE(w.currentView()->plottedCount(), 1);
     QCOMPARE(w.currentView()->style().title, QString("Keep me"));

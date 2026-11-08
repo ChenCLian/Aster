@@ -155,5 +155,15 @@
     "algorithm_or_limit_changes": false,
     "preceding_record": "docs/validation_results/1.2.0-beta.5/shared_test_header_checks_20261108.json",
     "latest_native_evidence": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json"
+  },
+  "ci_regression_review": {
+    "date": "2026-11-08",
+    "version": "1.2.0-beta.7",
+    "status": "affected_suites_passed_native_ci_rerun_pending",
+    "record": "docs/validation_results/1.2.0-beta.7/ci_checks_20261108.json",
+    "application_code_changed": false,
+    "tests_updated": 3,
+    "full_affected_suites_passed": 1018,
+    "overlay_repeat_rounds": 20
   }
 }
