@@ -40,6 +40,9 @@ struct EvolutionOptions
     SegmentTrend trend = SegmentTrend::Mean;
     std::size_t windowSamples = 128, stepSamples = 16, fftLength = 0;
     double nw = 2, maximumFrequencyRatio = 1;
+    // Absolute output limit takes precedence; zero retains automatic/legacy ratio.
+    double maximumFrequency = 0;
+    bool normalizeWindows = false;
 };
 struct EvolutionResult
 {
@@ -47,6 +50,7 @@ struct EvolutionResult
     // power[frequencyRow * centers.size() + windowColumn].
     std::size_t unusedTail = 0, fftLength = 0;
     int unconvergedWindows = 0;
+    std::size_t zeroPowerWindows = 0;
 };
 struct EvolutionCancelled final : std::exception
 {
@@ -56,7 +60,9 @@ struct EvolutionCancelled final : std::exception
     }
 };
 // Full windows only, centered on the first/last observed sample. No implicit
-// resampling, edge padding, significance testing or per-window normalization.
+// resampling, edge padding or significance testing. Optional normalization divides
+// each PSD by its full one-sided maximum BEFORE output cropping. All-zero windows
+// remain zero. meanPower averages the same (raw or normalized) window spectra.
 // retainMap=false returns only window centers and meanPower, without allocating
 // a time-frequency map (used for streaming Welch averaging).
 // PSD is one-sided with units Y^2 * X. FFT uses a periodic Hann or boxcar.

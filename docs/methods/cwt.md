@@ -1,6 +1,6 @@
 # 连续小波分析
 
-适用版本：Aster 1.2.0-beta.5。
+适用版本：Aster 1.2.0-beta.6。
 
 [使用手册](../USER_GUIDE.md) · [参数参考](../reference/task_parameters.md#m-cwt) · [统计限制](statistical_limits.md#cwt)
 

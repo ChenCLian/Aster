@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.5 快速开始
+# Aster 1.2.0-beta.6 快速开始
 
 [使用手册](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md) · [软件介绍](README.md) · [常见问题](FAQ.md) · [发布说明](RELEASE_NOTES.md)
 
@@ -18,8 +18,8 @@
 Linux 启动示例，在下载目录打开终端后执行；将版本号替换为实际下载的版本。beta 版建议使用独立数据库，并保留原数据库备份。
 
 ```bash
-tar -xzf Aster-1.2.0-beta.5-linux-x64.tar.gz
-cd Aster-1.2.0-beta.5-linux-x64
+tar -xzf Aster-1.2.0-beta.6-linux-x64.tar.gz
+cd Aster-1.2.0-beta.6-linux-x64
 ./AppRun
 ```
 

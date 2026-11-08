@@ -1,0 +1,56 @@
+{
+  "version": "1.2.0-beta.6",
+  "date": "2026-11-08",
+  "status": "passed_with_platform_scope",
+  "environment": {
+    "system": "Linux (Debian 13)",
+    "Qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "interaction": "QtTest mouse/keyboard events, offscreen; 340px parameter panels inspected in Chinese and English"
+  },
+  "scope": [
+    "Absolute output frequency limits in evolutionary FFT/MTM; saved legacy ratios retain their meaning until explicitly edited",
+    "Optional per-window normalization against the maximum of the complete one-sided PSD; default off; crop-independent and amplitude-invariant",
+    "Relative units, mean spectrum semantics, zero windows, numerical reference fixtures and database round-trip",
+    "Frequency decimal typing, explicit zero vs unchanged focus, parameter serialization, help lookup and unchanged discrete/linear heatmap defaults"
+  ],
+  "tests": [
+    {
+      "suite": "EvolutionAudit",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "log": "evolution-and-basic-signal.txt"
+    },
+    {
+      "suite": "BasicSignalAudit",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "log": "evolution-and-basic-signal.txt"
+    },
+    {
+      "suite": "UiTests (selected functions and data rows)",
+      "passed": 707,
+      "failed": 0,
+      "skipped": 0,
+      "log": "parameter-ui.txt"
+    }
+  ],
+  "count_note": "QtTest counts include data rows, initialization and cleanup. Historical checks are not included.",
+  "sample_check": {
+    "points": 705,
+    "spacing": 0.2,
+    "baseline": "Cumulative beta.5 source with the final platform packaging fixes",
+    "result": "All three previously generated full-precision CSV maps are byte-identical with normalization disabled.",
+    "grids": [
+      "default: 37 windows × 65 frequencies",
+      "100-sample window, step 1, NFFT 400, legacy ratio 0.8: 606 × 161",
+      "same grid with rectangular taper and linear local detrending: 606 × 161"
+    ],
+    "absolute_limit": "New task regression independently confirms 705 points produce 606 × 161 at absolute limit 2."
+  },
+  "build_identity": "Compiled Aster --version reports Aster_Workspace 1.2.0-beta.6.",
+  "limits": "No larger resource limits, no new libraries, no repeated broad stress test. Native Windows/macOS binaries not built or validated in this environment.",
+  "environment_setup": "The first local database tests could not locate the SQLite plugin. They passed after the test environment plugin path was configured; no application change was required."
+}

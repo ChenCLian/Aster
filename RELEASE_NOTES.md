@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.5 发布说明
+# Aster 1.2.0-beta.6 发布说明
 
 **预发布版本** · Windows x64 / macOS arm64、x86_64 / Linux x64 · 中文 / English
 
@@ -29,6 +29,10 @@ Aster 1.2.0 新增 Welch 交叉谱与跨节点配对，扩展工作流编辑和�
 
 绘图样式和布局在图页打开期间保留，不写入计算结果数据库。预览、结果与图形导出使用统一的默认样式规则。详细操作见[绘图与导出](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md#plots)。
 
+## 演化频谱
+
+演化 FFT 与演化 MTM 支持按实际频率输入上限（单位为输入横轴单位的倒数），并提供默认关闭的逐窗归一化选项。参数帮助说明窗口长度、移动步长与频率网格的换算关系，便于按研究尺度设置分析。热图继续默认显示清晰色块；历史流程与已有结果保持可读。
+
 ## 界面与使用体验
 
 改善输出选择、面板空间分配、绘图操作和输入反馈，统一来源名称、提示文字及帮助说明，提高多数据分析与结果比较的便利性。
@@ -44,10 +48,10 @@ Aster 1.2.0 新增 Welch 交叉谱与跨节点配对，扩展工作流编辑和�
 
 | 平台 | 程序包 | 运行说明 |
 | --- | --- | --- |
-| Windows x64 | `Aster-1.2.0-beta.5-windows-x64.zip` | 完整解压后运行 `Aster.exe` |
-| macOS 15+，Apple Silicon | `Aster-1.2.0-beta.5-macos-arm64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
-| macOS 15+，Intel | `Aster-1.2.0-beta.5-macos-x86_64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
-| Linux x64 | `Aster-1.2.0-beta.5-linux-x64.tar.gz` | Ubuntu 22.04 构建基线；运行 `./AppRun`，需要兼容系统库、X11/XWayland 与字体 |
+| Windows x64 | `Aster-1.2.0-beta.6-windows-x64.zip` | 完整解压后运行 `Aster.exe` |
+| macOS 15+，Apple Silicon | `Aster-1.2.0-beta.6-macos-arm64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
+| macOS 15+，Intel | `Aster-1.2.0-beta.6-macos-x86_64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
+| Linux x64 | `Aster-1.2.0-beta.6-linux-x64.tar.gz` | Ubuntu 22.04 构建基线；运行 `./AppRun`，需要兼容系统库、X11/XWayland 与字体 |
 
 对应源码及各平台依赖材料的获取方式见 [SOURCE_CODE.md](SOURCE_CODE.md)。程序包附带许可证、版权声明及依赖来源索引，具体附件和签名状态以对应发布页为准。
 

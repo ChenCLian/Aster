@@ -330,11 +330,12 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         m_form->addWidget(row);m_rows.insert(p.key,row);
         m_fields.insert(p.key, field);
     }
-    if (d.key == "mtm")
+    if (d.key == "mtm" || d.key == "evolution_fft" || d.key == "evolution_mtm")
         if (auto *limit = qobject_cast<QDoubleSpinBox *>(m_fields.value("frequency_max")))
         {
-            const auto clearLegacyLimit = [this] {
-                if (auto *legacy = qobject_cast<QDoubleSpinBox *>(m_fields.value("fmax_ratio")))
+            const QString legacyKey = d.key == "mtm" ? "fmax_ratio" : "evo_frequency_ratio";
+            const auto clearLegacyLimit = [this, legacyKey] {
+                if (auto *legacy = qobject_cast<QDoubleSpinBox *>(m_fields.value(legacyKey)))
                     legacy->setValue(1);
                 updateVisibility();
             };
@@ -364,7 +365,8 @@ void ParameterEditor::updateVisibility()
     // partially typed decimal when visibility is refreshed by valueChanged.
     if (auto *label = findChild<QLabel *>("parameterLabel_frequency_max"))
         label->setText(text("parameter.frequency_max") + " · " +
-                       text(values.value("fmax_ratio").toDouble(1) < 1
+                       text(values.value("frequency_max").toDouble() == 0 &&
+                            values.value(m_method == "mtm" ? "fmax_ratio" : "evo_frequency_ratio").toDouble(1) < 1
                                 ? "ui.frequency_legacy" : "ui.frequency_zero_hint"));
     for(const auto& p:m_specs) {
         bool visible = !p.hideWhenDefault || values.value(p.key) != p.defaultValue;

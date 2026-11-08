@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QTemporaryDir>
+#include <algorithm>
 #include <cmath>
 #include <future>
 #include <limits>
@@ -101,6 +102,8 @@ class EvolutionAudit : public QObject
     void matchesExistingMtm();
     void invalidNumericsAndCancellation();
     void taskDefaultsAndTypes();
+    void absoluteLimitsAndLegacyWorkflows();
+    void windowNormalization();
     void intervalSelection();
     void centeringAndStandardizing();
     void qualityInspection();
@@ -290,6 +293,103 @@ void EvolutionAudit::taskDefaultsAndTypes()
     QCOMPARE(run("evolution_mtm", makeData(s)).state, NodeState::Failed);
     QVERIFY(!reg.normalize("evolution_fft", {{"evo_taper", "unknown"}}).validation.ok());
     QVERIFY(!reg.normalize("select_interval", {{"interval_action", "unknown"}}).validation.ok());
+}
+void EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
+{
+    const auto data = makeData(sample()); // spacing .25, Nyquist 2
+    for (const char *method : {"evolution_fft", "evolution_mtm"})
+    {
+        const auto full = run(method, data);
+        const auto legacy = run(method, data, {{"evo_frequency_ratio", .5}});
+        const auto absolute = run(method, data, {{"frequency_max", 1}, {"evo_frequency_ratio", .2}});
+        QCOMPARE(absolute.state, NodeState::Succeeded);
+        QCOMPARE(dataAs<GridData>(absolute.outputs["power_map"])->values,
+                 dataAs<GridData>(legacy.outputs["power_map"])->values);
+        QCOMPARE(absolute.report["frequency_limit_mode"].toString(), QString("absolute"));
+        QCOMPARE(legacy.report["frequency_limit_mode"].toString(), QString("legacy_ratio"));
+        const auto clamped = run(method, data, {{"frequency_max", 100}});
+        QCOMPARE(dataAs<GridData>(clamped.outputs["power_map"])->values,
+                 dataAs<GridData>(full.outputs["power_map"])->values);
+        QCOMPARE(run(method, data, {{"frequency_max", .00001}}).state, NodeState::Failed);
+        QCOMPARE(run(method, data, {{"frequency_max", -1}}).state, NodeState::Failed);
+        const auto cropped = dataAs<GridData>(absolute.outputs["power_map"]);
+        const auto original = dataAs<GridData>(full.outputs["power_map"]);
+        QCOMPARE(cropped->values, original->values.mid(0, cropped->values.size()));
+        QVERIFY(!full.report["normalization"].toString().contains("maximum"));
+    }
+    auto s = sample(705);
+    for (qsizetype i = 0; i < s.x.size(); ++i) s.x[i] = 4 + .2 * i;
+    const auto fine = run("evolution_fft", makeData(s),
+        {{"evo_window", 100}, {"evo_step", 1}, {"evo_nfft", 400}, {"frequency_max", 2}});
+    QCOMPARE(fine.state, NodeState::Succeeded);
+    const auto grid = dataAs<GridData>(fine.outputs["power_map"]);
+    QCOMPARE(grid->columns, qsizetype(606));
+    QCOMPARE(grid->rows, qsizetype(161));
+}
+void EvolutionAudit::windowNormalization()
+{
+    for (const char *method : {"evolution_fft", "evolution_mtm"})
+    {
+        const auto s = sample();
+        const QJsonObject options{{"evo_window", 64}, {"evo_step", 32}, {"evo_nfft", 128}};
+        auto normalizedOptions = options;
+        normalizedOptions["evo_normalize"] = true;
+        const auto raw = run(method, makeData(s), options);
+        const auto normalized = run(method, makeData(s), normalizedOptions);
+        QCOMPARE(normalized.state, NodeState::Succeeded);
+        const auto a = dataAs<GridData>(raw.outputs["power_map"]);
+        const auto b = dataAs<GridData>(normalized.outputs["power_map"]);
+        const auto mean = dataAs<SpectrumData>(normalized.outputs["mean_spectrum"]);
+        QCOMPARE(b->valueAxis.name, QString("Relative power"));
+        QCOMPARE(b->valueAxis.unit, QString("1"));
+        QCOMPARE(mean->powerAxis.unit, QString("1"));
+        for (qsizetype c = 0; c < a->columns; ++c)
+        {
+            double peak = 0, normalizedPeak = 0;
+            for (qsizetype f = 0; f < a->rows; ++f)
+                peak = std::max(peak, a->values[f * a->columns + c]);
+            for (qsizetype f = 0; f < a->rows; ++f)
+            {
+                const auto i = f * a->columns + c;
+                QVERIFY(std::abs(b->values[i] - a->values[i] / peak) < 1e-12);
+                normalizedPeak = std::max(normalizedPeak, b->values[i]);
+            }
+            QCOMPARE(normalizedPeak, 1.);
+        }
+        for (qsizetype f = 0; f < b->rows; ++f)
+        {
+            double sum = 0;
+            for (qsizetype c = 0; c < b->columns; ++c) sum += b->values[f * b->columns + c];
+            QVERIFY(std::abs(mean->power[f] - sum / b->columns) < 1e-12);
+        }
+        // Cropping must not renormalize the visible band, even below the main peak.
+        normalizedOptions["frequency_max"] = .125;
+        const auto cropped = run(method, makeData(s), normalizedOptions);
+        QCOMPARE(cropped.state, NodeState::Succeeded);
+        const auto g = dataAs<GridData>(cropped.outputs["power_map"]);
+        QCOMPARE(g->values, b->values.mid(0, g->values.size()));
+        QVERIFY(*std::max_element(g->values.begin(), g->values.end()) < 1);
+        auto scaled = s;
+        for (auto &v : scaled.y) v *= 7;
+        const auto scaledResult = run(method, makeData(scaled), normalizedOptions);
+        QCOMPARE(scaledResult.state, NodeState::Succeeded);
+        const auto scaledGrid = dataAs<GridData>(scaledResult.outputs["power_map"]);
+        for (qsizetype i = 0; i < g->values.size(); ++i)
+            QVERIFY(std::abs(g->values[i] - scaledGrid->values[i]) < 1e-9);
+        auto zero = s;
+        std::fill(zero.y.begin(), zero.y.end(), 0.);
+        const auto zeros = run(method, makeData(zero), normalizedOptions);
+        QCOMPARE(zeros.state, NodeState::Succeeded);
+        const auto zg = dataAs<GridData>(zeros.outputs["power_map"]);
+        QCOMPARE(zeros.report["zero_power_windows"].toInt(), int(zg->columns));
+        for (const double v : zg->values) QCOMPARE(v, 0.);
+        const auto encoded = encodeData(normalized.outputs["power_map"]);
+        QVERIFY(encoded.ok());
+        const auto decoded = decodeData(encoded.bytes);
+        QVERIFY(decoded.ok());
+        QCOMPARE(dataAs<GridData>(decoded.data)->valueAxis.unit, QString("1"));
+        QCOMPARE(dataAs<GridData>(decoded.data)->values, b->values);
+    }
 }
 void EvolutionAudit::intervalSelection()
 {

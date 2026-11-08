@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.2.0-beta.5。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.2.0-beta.6。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.2.0-beta.5` 对应 `v1.2.0-beta.5`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.2.0-beta.6` 对应 `v1.2.0-beta.6`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 软件通过公开 GitHub Releases 检查版本，显示说明并打开下载页。更新采用完整程序包手动安装。正式版通道排除预发布版；需要测试预发布时，在更新窗口选择包含预发布版的通道。
 
@@ -192,7 +192,7 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 ## 创建 GitHub Release
 
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
-2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.2.0-beta.5`，标题填写 `Aster 1.2.0-beta.5`。
+2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.2.0-beta.6`，标题填写 `Aster 1.2.0-beta.6`。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
 4. 上传程序包和各平台 `release-assets/` 中的全部文件，无需上传独立 `.sha256`。Windows 目录由维护者压缩；Actions 的程序归档直接上传，依赖材料构件先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
 5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。

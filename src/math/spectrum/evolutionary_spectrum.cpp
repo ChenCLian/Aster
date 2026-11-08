@@ -59,7 +59,8 @@ EvolutionResult evolutionarySpectrum(const std::vector<double> &y, double dt,
     if (y.size() < 8 || length < 8 || length > y.size() || !o.stepSamples ||
         o.stepSamples > length || nfft < length || !std::isfinite(dt) || dt <= 0 ||
         !std::isfinite(1 / dt) || !std::isfinite(o.maximumFrequencyRatio) ||
-        o.maximumFrequencyRatio <= 0 || o.maximumFrequencyRatio > 1)
+        o.maximumFrequencyRatio <= 0 || o.maximumFrequencyRatio > 1 ||
+        !std::isfinite(o.maximumFrequency) || o.maximumFrequency < 0)
         throw std::invalid_argument("Invalid window, step, FFT length or sampling interval");
     if (o.method != EvolutionMethod::Fft && o.method != EvolutionMethod::Mtm)
         throw std::invalid_argument("Unknown spectral estimator");
@@ -82,7 +83,9 @@ EvolutionResult evolutionarySpectrum(const std::vector<double> &y, double dt,
     if (!std::isfinite(df) || df <= 0)
         throw std::overflow_error("Frequency grid cannot be represented");
     std::size_t bins = 0;
-    while (bins < nfft / 2 + 1 && bins * df <= .5 * fs * o.maximumFrequencyRatio + df * 1e-10)
+    const double maximum = o.maximumFrequency > 0 ? std::min(o.maximumFrequency, .5 * fs)
+                                                  : .5 * fs * o.maximumFrequencyRatio;
+    while (bins < nfft / 2 + 1 && bins * df <= maximum + df * 1e-10)
         ++bins;
     if (bins < 2)
         throw std::invalid_argument("Requested frequency band contains fewer than two bins");
@@ -144,8 +147,8 @@ EvolutionResult evolutionarySpectrum(const std::vector<double> &y, double dt,
             for (std::size_t i = 0; i < length; ++i)
                 buffer[i] = segment[i] * taper[i];
             const auto transform = backend::realFft(std::move(buffer), nfft, 1);
-            psd.resize(bins);
-            for (std::size_t f = 0; f < bins; ++f)
+            psd.resize(o.normalizeWindows ? nfft / 2 + 1 : bins);
+            for (std::size_t f = 0; f < psd.size(); ++f)
             {
                 const auto z = transform[f];
                 const long double r = z.real(), im = z.imag();
@@ -154,6 +157,20 @@ EvolutionResult evolutionarySpectrum(const std::vector<double> &y, double dt,
                 if (psd[f] == 0 && (r != 0 || im != 0))
                     throw std::overflow_error("Spectral power underflow; rescale the input");
             }
+        }
+        if (o.normalizeWindows)
+        {
+            double peak = 0;
+            for (const double p : psd)
+            {
+                if (!std::isfinite(p) || p < 0)
+                    throw std::overflow_error("Non-finite spectral power; rescale the input");
+                peak = std::max(peak, p);
+            }
+            if (peak > 0)
+                for (std::size_t f = 0; f < bins; ++f) psd[f] /= peak;
+            else
+                ++out.zeroPowerWindows;
         }
         for (std::size_t f = 0; f < bins; ++f)
         {

@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.5 User Guide
+# Aster 1.2.0-beta.6 User Guide
 
 [中文手册](USER_GUIDE.md) · [Task and parameter reference](reference/task_parameters_en.md) · [Methods (Chinese)](methods/README.md) · [FAQ (Chinese)](../FAQ.md)
 
@@ -37,6 +37,24 @@ Nothing changes before confirmation. Cancel leaves the workflow untouched; one u
 Valid parameter changes update the preview. Decimal parameters in Step settings accept scientific notation such as `1e-15`, within the declared range. Confirm with Enter or Tab; changing nodes or running the workflow also commits the current edit. A numeric editor accepts wheel changes only after deliberate click or Tab focus. A closed choice list ignores wheel selection. FFT, Welch and MTM require suitable regularly spaced input; inspect sampling and resample explicitly when necessary, or consider Lomb–Scargle for irregular sampling. Compare detrended and original branches when investigating long trends.
 
 For continuous wavelet analysis, choose the calculation convention by its power definition. The default is variance-normalized, scale-corrected power; the alternative is raw power (Torrence–Compo). Their scale ranges and AR(1) estimates also differ. This choice affects computation, while log axes, reversed axes and colors only affect plotting. See the [wavelet method guide (Chinese)](methods/cwt.md).
+
+<a id="evolution-spectrum"></a>
+## Evolutionary FFT and MTM
+
+Evolutionary spectra estimate power in moving windows of a strictly increasing, regularly sampled series. Window length and step are entered in samples. Enter the maximum frequency directly in reciprocal X units, such as 1/m or 1/ka. Zero selects Nyquist automatically; larger values are clamped to Nyquist. Saved legacy ratios remain active until the maximum-frequency field is explicitly edited, including re-entering and confirming zero. The limit crops the saved map and mean spectrum; narrowing it does not improve resolution.
+
+For sample spacing dx, N input samples, window length L and step S:
+
+- Endpoint span is (L-1)*dx; Fourier duration is L*dx; physical step is S*dx.
+- The number of complete windows is floor((N-L)/S)+1. No samples are synthesized at either end.
+- FFT length 0 uses L; an explicit length must be at least L. Frequency spacing is 1/(FFT length*dx). Zero padding densifies the grid without increasing physical frequency resolution.
+
+For example, 705 samples at spacing 0.2 with window 128, step 16 and FFT 0 produce a 37-by-65 map. Window 100, step 1, FFT 400 and maximum frequency 2 produce 606-by-161. This illustrates the conversion, not a universal parameter recommendation. Smaller steps and longer FFTs increase computation. Preview and result views may sample the grid to fit the display; CSV retains the complete calculated outputs.
+
+Normalize each window is off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum then contain dimensionless relative power. This supports comparison of periodic structure but removes absolute power differences between windows. The normalization reference is independent of output cropping. Neither output supplies a significance test, and the mean window spectrum is not the full-record estimate.
+
+Preview and result heatmaps retain discrete cells and linear color mapping by default. In the result plot's heatmap settings, logarithmic color mapping and smooth display remain available without altering calculated values. Parameter help explains the same conversions.
+
 
 <a id="cross-spectrum"></a>
 

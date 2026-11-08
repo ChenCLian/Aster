@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.2.0-beta.5",
+  "version": "1.2.0-beta.6",
   "update_mode": "public_github_release_check_and_browser_download",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -58,15 +58,15 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "record": "docs/validation_results/1.2.0-beta.5/interaction_checks.json",
+    "record": "docs/validation_results/1.2.0-beta.6/evolution_checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.2.0-beta.5",
+    "logs": "docs/validation_results/1.2.0-beta.6",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Focused UI regression: automatic/manual overlay axes, expanded and collapsed output layout, compact A/B preview and recovery from long errors, display labels and PNG titles. Native Linux/X11 small-data interaction plus QtTest offscreen. F4 explicit-add behavior retained; numerical algorithms, limits and data formats unchanged.",
-    "previous_version_record": "docs/validation.json",
+    "scope": "Focused evolutionary FFT/MTM numerical and interaction regression, absolute frequency limits, legacy workflow compatibility and optional per-window normalization. Default PSD and heatmap rendering preserved; no broad stress test or new native Windows/macOS package acceptance.",
+    "previous_version_record": "docs/validation_results/1.2.0-beta.5/interaction_checks.json",
     "previous_version_summary": "docs/validation.md",
     "preceding_development_record": "docs/validation_results/1.2.0-alpha.21/probe_checks.json",
-    "maintainer_acceptance": {
+    "previous_maintainer_acceptance": {
       "status": "reported_temporarily_passed",
       "date": "2026-11-07",
       "scope": "Local acceptance reported by the maintainer; no new cross-platform or final-binary logs supplied."
@@ -130,12 +130,12 @@
   },
   "documentation_review": {
     "date": "2026-11-08",
-    "version": "1.2.0-beta.5",
+    "version": "1.2.0-beta.6",
     "status": "passed_with_platform_limits",
-    "record": "docs/validation_results/1.2.0-beta.5/version_documentation_audit_20261108.json",
+    "record": "docs/validation_results/1.2.0-beta.6/documentation_checks.json",
     "embedded_help_rebuild_required": true,
-    "algorithm_or_limit_changes": false,
-    "scope": "Current documentation and build/package full-version identity; user Windows package requires rebuild and native verification."
+    "algorithm_or_limit_changes": "Optional per-window PSD normalization added; existing estimators, default PSD and limits unchanged.",
+    "scope": "Current documentation, parameter references, compiled full-version identity and source export."
   },
   "release_tooling_review": {
     "date": "2026-11-08",

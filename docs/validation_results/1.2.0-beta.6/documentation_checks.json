@@ -1,0 +1,34 @@
+{
+  "version": "1.2.0-beta.6",
+  "date": "2026-11-08",
+  "documentation": {
+    "scope": [
+      "Current release version labels and examples",
+      "Chinese/English parameter help, user guide and evolutionary spectrum method conventions",
+      "Generated parameter references: 54 tasks / 237 parameters",
+      "Historical validation evidence retains its original versions"
+    ],
+    "status": "passed",
+    "tests": {
+      "release_tools": {
+        "ran": 130,
+        "passed": 129,
+        "skipped": 1,
+        "failed": 0,
+        "skip_reason": "Ruby unavailable; Homebrew query execution is left to macOS CI.",
+        "log": "release-tools.txt"
+      },
+      "reference_generator": {
+        "passed": 7,
+        "failed": 0,
+        "log": "help-reference.txt"
+      },
+      "compiled_catalog": "54 tasks / 237 parameters; both language references current",
+      "compiled_application_version": "Aster_Workspace 1.2.0-beta.6",
+      "links": "Current nonhistorical Markdown relative links resolve.",
+      "source_export": "package_source.py regenerates the complete file checksum manifest; patch application is separately verified against the resulting export."
+    }
+  },
+  "embedded_help_rebuild_required": true,
+  "native_package_acceptance": "Windows/macOS final binaries require rebuilding and native verification."
+}

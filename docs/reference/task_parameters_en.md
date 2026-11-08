@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.2.0-beta.5. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.2.0-beta.6. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -1119,12 +1119,12 @@ Outputs: ` correlation_map `, ` best_rate `, ` best_correlation `, ` window_diag
 <a id="m-evolution_fft"></a>
 ## Evolutionary FFT
 
-One-sided power spectral density in complete moving windows. X must be strictly increasing and regularly spaced. No per-window normalization or significance test.
+One-sided power spectral density in complete moving windows. X must be strictly increasing and regularly spaced. Optional normalization by each window's maximum power is off by default. No significance test.
 
 <a id="m-evolution_fft-p-evo_window"></a>
 ### Window samples
 
-At least 8 samples and no longer than the input. Window span is (L−1)×spacing; Fourier duration is L×spacing.
+Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and the Fourier duration is L*dx. For example, 100 samples at spacing 0.2 give a Fourier duration of 20. Require at least 8 samples and no more than the input length. Choose the window for the periods of interest.
 
 Default: ` 128 `
 
@@ -1133,7 +1133,7 @@ Range: ` 8 ≤ evo_window ≤ 262144 `
 <a id="m-evolution_fft-p-evo_step"></a>
 ### Step samples
 
-1 to window length. Only complete windows are computed; any unused tail is reported.
+Step S in samples; the physical step is S*spacing. The number of complete windows is floor((N-L)/S)+1. For 705 samples and a 128-sample window, step 16 gives 37 windows; step 1 gives 578. Only complete windows are used; unused tail samples are reported. Smaller steps increase computation.
 
 Default: ` 16 `
 
@@ -1142,7 +1142,7 @@ Range: ` 1 ≤ evo_step ≤ 262144 `
 <a id="m-evolution_fft-p-evo_nfft"></a>
 ### FFT length
 
-0 uses the window length. An explicit value must be at least the window length. Padding refines the frequency grid, not physical resolution.
+0 uses the window length; an explicit value must be at least that length. Frequency spacing is 1/(FFT length*sample spacing). For spacing 0.2 and FFT length 400 it is 0.0125. Zero padding densifies the grid, without improving the window's physical frequency resolution.
 
 Default: ` 0 `
 
@@ -1157,14 +1157,30 @@ Default: Remove mean (` mean `)
 
 Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
-<a id="m-evolution_fft-p-evo_frequency_ratio"></a>
-### Maximum frequency ratio
+<a id="m-evolution_fft-p-frequency_max"></a>
+### Maximum frequency
 
-Fraction of Nyquist to publish. At least two frequency bins must remain. MTM weighting still uses the full frequency range.
+In reciprocal input X units, such as 1/m or 1/ka. 0 automatically uses Nyquist, 1/(2*sample spacing); larger limits are clamped to Nyquist. Crops the output map and mean spectrum only; at least two bins must remain. A saved legacy ratio stays active until this field is explicitly edited.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ frequency_max ≤ 1e+100 `
+
+<a id="m-evolution_fft-p-evo_frequency_ratio"></a>
+### Legacy maximum frequency ratio
+
+Retained for legacy workflows. The output limit is ratio/(2*sample spacing). New workflows use Maximum frequency; explicitly editing that field, including confirming 0 for automatic, clears the legacy ratio. MTM weights and window-normalization maxima use the full frequency range.
 
 Default: ` 1 `
 
 Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
+
+<a id="m-evolution_fft-p-evo_normalize"></a>
+### Normalize each window
+
+Off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum become dimensionless relative power. This aids comparison of periodic structure but removes absolute power differences between windows. The output frequency limit does not change the normalization reference.
+
+Default: ` false `
 
 <a id="m-evolution_fft-p-evo_taper"></a>
 ### FFT taper
@@ -1181,12 +1197,12 @@ Outputs: ` power_map `, ` mean_spectrum `
 <a id="m-evolution_mtm"></a>
 ## Evolutionary MTM
 
-Adaptive MTM spectra in complete moving windows. The heatmap describes power variation with position; no whole-map significance test is provided.
+Adaptive MTM spectra in complete moving windows. Optional normalization by each window's maximum power is off by default. The map describes power variation with position; no whole-map significance test is provided.
 
 <a id="m-evolution_mtm-p-evo_window"></a>
 ### Window samples
 
-At least 8 samples and no longer than the input. Window span is (L−1)×spacing; Fourier duration is L×spacing.
+Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and the Fourier duration is L*dx. For example, 100 samples at spacing 0.2 give a Fourier duration of 20. Require at least 8 samples and no more than the input length. Choose the window for the periods of interest.
 
 Default: ` 128 `
 
@@ -1195,7 +1211,7 @@ Range: ` 8 ≤ evo_window ≤ 262144 `
 <a id="m-evolution_mtm-p-evo_step"></a>
 ### Step samples
 
-1 to window length. Only complete windows are computed; any unused tail is reported.
+Step S in samples; the physical step is S*spacing. The number of complete windows is floor((N-L)/S)+1. For 705 samples and a 128-sample window, step 16 gives 37 windows; step 1 gives 578. Only complete windows are used; unused tail samples are reported. Smaller steps increase computation.
 
 Default: ` 16 `
 
@@ -1204,7 +1220,7 @@ Range: ` 1 ≤ evo_step ≤ 262144 `
 <a id="m-evolution_mtm-p-evo_nfft"></a>
 ### FFT length
 
-0 uses the window length. An explicit value must be at least the window length. Padding refines the frequency grid, not physical resolution.
+0 uses the window length; an explicit value must be at least that length. Frequency spacing is 1/(FFT length*sample spacing). For spacing 0.2 and FFT length 400 it is 0.0125. Zero padding densifies the grid, without improving the window's physical frequency resolution.
 
 Default: ` 0 `
 
@@ -1219,14 +1235,30 @@ Default: Remove mean (` mean `)
 
 Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
-<a id="m-evolution_mtm-p-evo_frequency_ratio"></a>
-### Maximum frequency ratio
+<a id="m-evolution_mtm-p-frequency_max"></a>
+### Maximum frequency
 
-Fraction of Nyquist to publish. At least two frequency bins must remain. MTM weighting still uses the full frequency range.
+In reciprocal input X units, such as 1/m or 1/ka. 0 automatically uses Nyquist, 1/(2*sample spacing); larger limits are clamped to Nyquist. Crops the output map and mean spectrum only; at least two bins must remain. A saved legacy ratio stays active until this field is explicitly edited.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ frequency_max ≤ 1e+100 `
+
+<a id="m-evolution_mtm-p-evo_frequency_ratio"></a>
+### Legacy maximum frequency ratio
+
+Retained for legacy workflows. The output limit is ratio/(2*sample spacing). New workflows use Maximum frequency; explicitly editing that field, including confirming 0 for automatic, clears the legacy ratio. MTM weights and window-normalization maxima use the full frequency range.
 
 Default: ` 1 `
 
 Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
+
+<a id="m-evolution_mtm-p-evo_normalize"></a>
+### Normalize each window
+
+Off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum become dimensionless relative power. This aids comparison of periodic structure but removes absolute power differences between windows. The output frequency limit does not change the normalization reference.
+
+Default: ` false `
 
 <a id="m-evolution_mtm-p-evo_nw"></a>
 ### Time-bandwidth NW
@@ -1692,7 +1724,7 @@ Default: ` 0 `
 Range: ` 0 ≤ frequency_max ≤ 1e+100 `
 
 <a id="m-mtm-p-fmax_ratio"></a>
-### Maximum frequency ratio
+### Legacy maximum frequency ratio
 
 Fraction of the Nyquist frequency to publish. Background fitting and peak detection still use the full spectrum.
 
@@ -1802,9 +1834,9 @@ Default: ` 3 `
 Range: ` 1 ≤ nw ≤ 32 `
 
 <a id="m-mtm_ar1_simulation-p-fmax_ratio"></a>
-### Maximum frequency ratio
+### Legacy maximum frequency ratio
 
-Fraction of the Nyquist frequency to publish. Background fitting and peak detection still use the full spectrum.
+Test-band upper limit as a fraction of Nyquist in this archived experimental task. It changes the frequency family used for the maximum statistic and adjusted p values, not just the displayed range. This task is hidden from the catalog.
 
 Default: ` 1 `
 

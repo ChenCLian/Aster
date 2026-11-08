@@ -166,7 +166,10 @@ class UiTests : public QObject
     void parameterHelpTracksSelectedNode();
     void fileReadinessSurvivesDisabledPanel();
     void compactInputStatesAndFrequencyEditor();
+    void legacyFrequencyZeroCommit_data();
     void legacyFrequencyZeroCommit();
+    void evolutionSettingsAndPlotDefaults();
+    void frequencyLimitTypingPreservesDecimals_data();
     void frequencyLimitTypingPreservesDecimals();
     void cocoWorkBudgetPresentation();
     void sourceNodePreviewBeforeAddingAnalysis();
@@ -2635,11 +2638,18 @@ void UiTests::cocoWorkBudgetPresentation()
     setLanguage("zh");
 }
 
+void UiTests::frequencyLimitTypingPreservesDecimals_data()
+{
+    QTest::addColumn<QString>("method");
+    for (const auto *key : {"mtm", "evolution_fft", "evolution_mtm"})
+        QTest::newRow(key) << QString(key);
+}
 void UiTests::frequencyLimitTypingPreservesDecimals()
 {
+    QFETCH(QString, method);
     WorkflowDocument doc(makeScientificRegistry());
     const auto root = doc.addRoot("sine_source").nodeId;
-    const auto node = doc.addChild(root, ChildSlot::Down, "mtm",
+    const auto node = doc.addChild(root, ChildSlot::Down, method,
                                   {{"frequency_max", .2}}).nodeId;
     ParameterEditor editor; editor.resize(330, 900); editor.show(); editor.activateWindow();
     editor.showNode(doc.node(node), doc.model().registry());
@@ -2656,8 +2666,8 @@ void UiTests::frequencyLimitTypingPreservesDecimals()
     QTest::keyClicks(input, ".");
     QCOMPARE(input->text(), QString("0."));
     // Another parameter's visibility refresh must not overwrite a partial decimal.
-    auto *nw = editor.findChild<QDoubleSpinBox *>("parameter_nw");
-    QVERIFY(nw); nw->setValue(3);
+    auto *changedField = editor.findChild<QDoubleSpinBox *>(method == "mtm" ? "parameter_nw" : "parameter_evo_frequency_ratio");
+    QVERIFY(changedField); changedField->setValue(method == "mtm" ? 3 : .8);
     QCOMPARE(input->text(), QString("0."));
     QTest::keyClicks(input, "01");
     QTest::keyClick(input, Qt::Key_Return);
@@ -2673,29 +2683,37 @@ void UiTests::frequencyLimitTypingPreservesDecimals()
     QCOMPARE(limit->value(), .125);
 }
 
+void UiTests::legacyFrequencyZeroCommit_data()
+{
+    QTest::addColumn<QString>("method");
+    for (const auto *key : {"mtm", "evolution_fft", "evolution_mtm"})
+        QTest::newRow(key) << QString(key);
+}
 void UiTests::legacyFrequencyZeroCommit()
 {
+    QFETCH(QString, method);
     WorkflowDocument doc(makeScientificRegistry());
     const auto root = doc.addRoot("sine_source").nodeId;
-    const auto node = doc.addChild(root, ChildSlot::Down, "mtm", {{"fmax_ratio", .3}}).nodeId;
+    const QString legacyKey = method == "mtm" ? "fmax_ratio" : "evo_frequency_ratio";
+    const auto node = doc.addChild(root, ChildSlot::Down, method, {{legacyKey, .3}}).nodeId;
     ParameterEditor editor; editor.resize(300, 650); editor.show(); editor.activateWindow();
     for (const auto key : {Qt::Key_Return, Qt::Key_Tab})
     {
         editor.showNode(doc.node(node), doc.model().registry());
         auto *limit = editor.findChild<QDoubleSpinBox *>("parameter_frequency_max");
-        auto *legacy = editor.findChild<QDoubleSpinBox *>("parameter_fmax_ratio");
+        auto *legacy = editor.findChild<QDoubleSpinBox *>("parameter_" + legacyKey);
         auto *input = limit->findChild<QLineEdit *>();
         QVERIFY(input && legacy);
         QTest::mouseClick(input, Qt::LeftButton);
         QTRY_VERIFY(limit->hasFocus());
         QTest::keyClick(input, Qt::Key_Tab); // Merely visiting the field keeps the old cutoff.
-        QCOMPARE(editor.parameters()["fmax_ratio"].toDouble(), .3);
+        QCOMPARE(editor.parameters()[legacyKey].toDouble(), .3);
         QTest::mouseClick(input, Qt::LeftButton);
         QTRY_VERIFY(limit->hasFocus());
         input->selectAll(); QTest::keyClicks(input, "0");
         QTest::keyClick(input, key);
         QCOMPARE(editor.parameters()["frequency_max"].toDouble(), 0.);
-        QCOMPARE(editor.parameters()["fmax_ratio"].toDouble(), 1.);
+        QCOMPARE(editor.parameters()[legacyKey].toDouble(), 1.);
         QVERIFY(limit->specialValueText().isEmpty());
         QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->text().contains(text("ui.frequency_zero_hint")));
         QVERIFY(editor.dirty());
@@ -2703,6 +2721,56 @@ void UiTests::legacyFrequencyZeroCommit()
     }
 }
 
+void UiTests::evolutionSettingsAndPlotDefaults()
+{
+    const auto registry = makeScientificRegistry();
+    for (const auto *language : {"zh", "en"})
+    for (const auto *method : {"evolution_fft", "evolution_mtm"})
+    {
+        setLanguage(language);
+        WorkflowDocument doc(registry);
+        const auto root = doc.addRoot("sine_source").nodeId;
+        const auto node = doc.addChild(root, ChildSlot::Down, method).nodeId;
+        ParameterEditor editor; editor.resize(340, 1000); editor.show();
+        editor.showNode(doc.node(node), registry);
+        auto *limit = editor.findChild<QDoubleSpinBox *>("parameter_frequency_max");
+        auto *legacy = editor.findChild<QDoubleSpinBox *>("parameter_evo_frequency_ratio");
+        auto *normalize = editor.findChild<QCheckBox *>("parameter_evo_normalize");
+        QVERIFY(limit && legacy && normalize);
+        QVERIFY(!legacy->isVisible());
+        QVERIFY(!normalize->isChecked());
+        QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->toolTip().contains("1/m"));
+        QVERIFY(editor.findChild<QLabel *>("parameterLabel_evo_step")->toolTip().contains("37"));
+        limit->setValue(1);
+        SeriesData s; s.xAxis = {"Depth", "m"}; s.yAxis = {"Proxy", "u"};
+        for (int i = 0; i < 256; ++i) { s.x << .2 * i; s.y << std::sin(.2 * i); }
+        auto task = registry.create(method, editor.parameters());
+        QVERIFY(task);
+        const auto raw = task->execute({makeData(s)}, {});
+        QCOMPARE(raw.state, NodeState::Succeeded);
+        QTest::mouseClick(normalize, Qt::LeftButton);
+        QVERIFY(editor.parameters()["evo_normalize"].toBool());
+        task = registry.create(method, editor.parameters());
+        const auto relative = task->execute({makeData(s)}, {});
+        QCOMPARE(relative.state, NodeState::Succeeded);
+        PlotView view;
+        view.showOutput(raw, "power_map");
+        QVERIFY(!view.style().colorInterpolate);
+        QVERIFY(!view.style().colorLog);
+        view.showOutput(relative, "power_map");
+        QVERIFY(!view.style().colorInterpolate);
+        QVERIFY(!view.style().colorLog);
+        QCOMPARE(dataAs<GridData>(relative.outputs["power_map"])->valueAxis.unit, QString("1"));
+        QVERIFY(view.style().y.label.contains("Frequency"));
+        const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+        if (!capture.isEmpty())
+        {
+            QDir().mkpath(capture);
+            QVERIFY(editor.grab().save(capture + "/evolution_settings_" + language + "_" + method + ".png"));
+        }
+    }
+    setLanguage("zh");
+}
 void UiTests::compactInputStatesAndFrequencyEditor()
 {
     WorkflowDocument doc(makeScientificRegistry());

@@ -1,6 +1,6 @@
 # Aster 算法开发与功能扩展清单
 
-适用版本：**Aster 1.2.0-beta.5**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
+适用版本：**Aster 1.2.0-beta.6**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
 
 当前验证见 [验证记录](validation_current.md)。算法说明按职责归入 `methods/`，任务入口见 [分类表](task_catalogue.md)。
 
@@ -605,7 +605,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 | 多纬度日照 | insolation_map v1；La2004，纬度×年代 | 复用单纬度日平均日照；不代表其他轨道解或年内日期图 |
 | 轨道偏心率 | eccentricity_source v1；默认 La2010a，0–2000 ka、间隔 1 ka | La2010a–d 末端 249999 ka，ZB18a/ZB20a–d 末端 300000 ka；独立线性插值，不外推 |
 | PT-ZB18a | precession_tilt_source v1；默认 Ed=1、Td=1 | 倾角/气候岁差/岁差角；本地文件选其他 Ed/Td。岁差角不是近日点经度，不足以单独构造完整日照输入 |
-| 演化 FFT / MTM | evolution_fft / evolution_mtm v1；窗口128点、步长16点、NFFT=窗口长度 | 完整窗口、单边物理PSD；Grid为频率×窗口中心；平均谱不是整段谱；不输出显著性 |
+| 演化 FFT / MTM | evolution_fft / evolution_mtm v1；窗口128点、步长16点、NFFT=窗口长度 | 完整窗口、默认单边物理PSD；最大频率直接输入，兼容旧比例；逐窗最大功率归一化可选、默认关闭；Grid为频率×窗口中心；平均谱不是整段谱；不输出显著性 |
 | 区间 / 去均值 / 标准化 | select_interval / demean / standardize v1 | 区间含端点并保持原顺序；标准化默认N−1；常量标准化报错 |
 | 采样与间隔检查 | sampling_check v1；大间隔阈值为正间隔中位数×3 | 原样转发输入，附诊断表；不修改数据、不推断地质间断 |
 | 平滑 / 常规谱 | moving_average、savitzky_golay、fft_spectrum、welch_spectrum | 边界、窗与归一化见 methods/smoothing_spectra.md；无自动插值 |

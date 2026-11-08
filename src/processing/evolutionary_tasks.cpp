@@ -15,7 +15,7 @@ TaskDescriptor evolutionDescriptor(bool mtm)
 {
     auto d = task_detail::seriesTransform(mtm ? "Evolutionary MTM" : "Evolutionary FFT",
                                           taskCategory(TaskCategory::Evolution));
-    d.outputs = {{"power_map", "Power spectral density map", DataKind::Grid, true},
+    d.outputs = {{"power_map", "Power map", DataKind::Grid, true},
                  {"mean_spectrum", "Mean window spectrum", DataKind::Spectrum, true}};
     d.defaultOutput = "power_map";
     d.parameters = {
@@ -29,7 +29,9 @@ TaskDescriptor evolutionDescriptor(bool mtm)
                             double(numeric::EvolutionLimits::maxFftSamples),
                             ParameterKind::Integer),
         science_detail::text("evo_trend", "Local detrending", "mean", {"mean", "linear"}),
-        task_detail::number("evo_frequency_ratio", "Maximum / Nyquist", 1, .001, 1)};
+        task_detail::number("frequency_max", "Maximum frequency (0 = automatic)", 0, 0, 1e100),
+        task_detail::number("evo_frequency_ratio", "Legacy maximum / Nyquist", 1, .001, 1),
+        science_detail::boolean("evo_normalize", "Normalize each window by its maximum power", false)};
     if (mtm)
         d.parameters.push_back(task_detail::number("evo_nw", "Time-bandwidth NW", 2, 1, 32));
     else
@@ -37,6 +39,7 @@ TaskDescriptor evolutionDescriptor(bool mtm)
             science_detail::text("evo_taper", "FFT window", "hann", {"hann", "rectangular"}));
     for (auto &p : d.parameters)
     {
+        p.hideWhenDefault = p.key == "evo_frequency_ratio";
         p.group =
             (p.key == "evo_window" || p.key == "evo_step") ? "moving_window" : "spectral_estimator";
     }
@@ -62,6 +65,8 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
     o.stepSamples = p["evo_step"].toInt();
     o.fftLength = p["evo_nfft"].toInt();
     o.maximumFrequencyRatio = p["evo_frequency_ratio"].toDouble();
+    o.maximumFrequency = p["frequency_max"].toDouble();
+    o.normalizeWindows = p["evo_normalize"].toBool();
     o.nw = mtm ? p["evo_nw"].toDouble() : 2;
     o.trend = p["evo_trend"].toString() == "linear" ? numeric::SegmentTrend::Linear
                                                     : numeric::SegmentTrend::Mean;
@@ -108,6 +113,7 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
                           s->yAxis.unit.isEmpty() || s->xAxis.unit.isEmpty()
                               ? QString()
                               : "(" + s->yAxis.unit + ")^2 * (" + s->xAxis.unit + ")"};
+        if (o.normalizeWindows) grid.valueAxis = {"Relative power", "1"};
         SpectrumData mean{grid.y, QVector<double>(r.meanPower.begin(), r.meanPower.end()),
                           grid.yAxis, grid.valueAxis};
         auto report = details;
@@ -123,10 +129,19 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
         report["taper"] = mtm ? "DPSS" : p["evo_taper"].toString();
         report["grid_layout"] = "row_frequency_column_window_center";
         report["boundary"] = "full_windows_only_no_edge_padding";
-        report["normalization"] = "physical_PSD_no_column_normalization";
+        report["normalization"] = o.normalizeWindows ? "per_window_full_spectrum_maximum"
+                                                       : "physical_PSD_no_column_normalization";
+        report["zero_power_windows"] = double(r.zeroPowerWindows);
+        report["nyquist_frequency"] = .5 / dt;
+        report["requested_frequency_max"] = o.maximumFrequency;
+        report["output_frequency_max"] = r.frequency.back();
+        report["frequency_limit_mode"] = o.maximumFrequency > 0 ? "absolute"
+                                            : o.maximumFrequencyRatio < 1 ? "legacy_ratio" : "nyquist";
+        report["frequency_step"] = 1 / (r.fftLength * dt);
         report["confidence_scope"] = "descriptive_map_no_significance_test";
-        report["mean_spectrum_semantics"] =
-            "arithmetic_mean_of_window_PSDs_not_full_record_estimate";
+        report["mean_spectrum_semantics"] = o.normalizeWindows
+            ? "arithmetic_mean_of_window_relative_power_not_physical_PSD"
+            : "arithmetic_mean_of_window_PSDs_not_full_record_estimate";
         report["adaptive_unconverged_windows"] = r.unconvergedWindows;
         report["resampled"] = false;
         if (mtm)
