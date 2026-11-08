@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.6 User Guide
+# Aster 1.2.0-beta.7 User Guide
 
 [中文手册](USER_GUIDE.md) · [Task and parameter reference](reference/task_parameters_en.md) · [Methods (Chinese)](methods/README.md) · [FAQ (Chinese)](../FAQ.md)
 
@@ -179,7 +179,7 @@ Panel shortcuts apply only on Tasks. Main-window navigation does not activate th
 
 ## Help
 
-Press F1 in the main window or choose Settings → User guide. Hover over a parameter's question mark for a short explanation, or click it to open the matching manual section. Method help opens the method's section. The user guide and parameter reference follow the interface language. Chinese entries without a translation use English. Detailed scientific documents are currently in Chinese.
+Press F1 in the main window or choose Settings → User guide. Click a parameter's question mark to open the matching manual section. Method help opens the method's section. The user guide and parameter reference follow the interface language. Chinese entries without a translation use English. Detailed scientific documents are currently in Chinese.
 
 The built-in viewer supports Back, Forward and Find on page. Enter searches forward with wraparound; Ctrl+F focuses the search field. The manual works offline. View on GitHub opens the matching online page. Missing local pages or sections fall back to GitHub; online documentation reflects the repository's current version.
 

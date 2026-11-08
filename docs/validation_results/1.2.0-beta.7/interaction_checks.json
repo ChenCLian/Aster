@@ -1,0 +1,30 @@
+{
+  "version": "1.2.0-beta.7",
+  "date": "2026-11-08",
+  "status": "passed_with_platform_scope",
+  "scope": "Shared parameter editor: remove hover descriptions from parameter labels, inputs and parameter/method help buttons. Preserve existing help navigation and accessible descriptions. No numerical or parameter-default changes.",
+  "environment": {
+    "system": "Linux",
+    "Qt": "6.8.2",
+    "platform": "QtTest/offscreen"
+  },
+  "tests": {
+    "program": "aster_ui_tests",
+    "functions": [
+      "parameterRoundTrip",
+      "parameterHelpTracksSelectedNode",
+      "helpCatalogueCoverageAndContext",
+      "helpLinksAndFallback",
+      "helpLanguageAndChapterReuse",
+      "evolutionSettingsAndPlotDefaults"
+    ],
+    "passed": 697,
+    "failed": 0,
+    "skipped": 0,
+    "log": "parameter-help.txt",
+    "counts_include": "data rows, initialization and cleanup"
+  },
+  "interaction": "Mouse click and keyboard Space open the expected parameter help section; help navigation leaves parameter values unchanged.",
+  "build": "Compiled Aster --version reports Aster_Workspace 1.2.0-beta.7.",
+  "limitations": "No repeat numerical stress tests. Native Windows/macOS packages require rebuild and normal platform acceptance."
+}

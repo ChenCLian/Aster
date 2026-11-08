@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.6 发布说明
+# Aster 1.2.0-beta.7 发布说明
 
 **预发布版本** · Windows x64 / macOS arm64、x86_64 / Linux x64 · 中文 / English
 
@@ -48,10 +48,10 @@ Aster 1.2.0 新增 Welch 交叉谱与跨节点配对，扩展工作流编辑和�
 
 | 平台 | 程序包 | 运行说明 |
 | --- | --- | --- |
-| Windows x64 | `Aster-1.2.0-beta.6-windows-x64.zip` | 完整解压后运行 `Aster.exe` |
-| macOS 15+，Apple Silicon | `Aster-1.2.0-beta.6-macos-arm64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
-| macOS 15+，Intel | `Aster-1.2.0-beta.6-macos-x86_64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
-| Linux x64 | `Aster-1.2.0-beta.6-linux-x64.tar.gz` | Ubuntu 22.04 构建基线；运行 `./AppRun`，需要兼容系统库、X11/XWayland 与字体 |
+| Windows x64 | `Aster-1.2.0-beta.7-windows-x64.zip` | 完整解压后运行 `Aster.exe` |
+| macOS 15+，Apple Silicon | `Aster-1.2.0-beta.7-macos-arm64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
+| macOS 15+，Intel | `Aster-1.2.0-beta.7-macos-x86_64.zip` | 运行 `Aster.app`；签名与公证信息见对应发布页 |
+| Linux x64 | `Aster-1.2.0-beta.7-linux-x64.tar.gz` | Ubuntu 22.04 构建基线；运行 `./AppRun`，需要兼容系统库、X11/XWayland 与字体 |
 
 对应源码及各平台依赖材料的获取方式见 [SOURCE_CODE.md](SOURCE_CODE.md)。程序包附带许可证、版权声明及依赖来源索引，具体附件和签名状态以对应发布页为准。
 

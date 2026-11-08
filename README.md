@@ -4,7 +4,7 @@
 
 **面向地学与天文时间序列的桌面分析工作台。**
 
-当前测试版本 **1.2.0-beta.6** · Windows / macOS / Linux · 中文 / English
+当前测试版本 **1.2.0-beta.7** · Windows / macOS / Linux · 中文 / English
 
 Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成、结果管理和绘图导出组织在同一个工作流中。支持节点输出预览和多输入批处理，并保存计算参数、数据来源及数值结果，便于复查与比较。
 
@@ -25,7 +25,7 @@ Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成�
 | macOS 15+，Intel | `Aster-<版本>-macos-x86_64.zip` | `Aster.app` |
 | Linux x64，以 Ubuntu 22.04 为构建基线 | `Aster-<版本>-linux-x64.tar.gz` | `./AppRun` |
 
-文件名中的 `<版本>` 对应所下载版本，例如 `1.2.0-beta.6`；可用程序包以发布页附件为准。
+文件名中的 `<版本>` 对应所下载版本，例如 `1.2.0-beta.7`；可用程序包以发布页附件为准。
 
 请保留解压后的完整目录。各系统的启动要求和常见问题见 [快速开始](QUICK_START.md) 和 [FAQ](FAQ.md)。
 
@@ -71,7 +71,7 @@ Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成�
 | 源码编译与依赖配置 | [构建说明（在线）](https://github.com/ChenCLian/Aster/blob/main/docs/building.md) |
 | 打包、GitHub Actions 与版本发布 | [发布维护（在线）](https://github.com/ChenCLian/Aster/blob/main/docs/release_maintenance_zh.md) |
 
-程序内按 F1 或选择“设置 → 使用手册”可离线查阅操作指南、参数参考及方法说明。参数“?”悬停显示简短提示，点击定位章节；缺失的本地章节转至 GitHub。发行包中的快速开始和 FAQ 也可直接阅读，源码包另含完整的 `docs/` 目录。
+程序内按 F1 或选择“设置 → 使用手册”可离线查阅操作指南、参数参考及方法说明。点击参数旁的“?”可定位到对应帮助章节；缺失的本地章节转至 GitHub。发行包中的快速开始和 FAQ 也可直接阅读，源码包另含完整的 `docs/` 目录。
 
 报告问题请附版本、操作系统、复现步骤及完整错误信息，提交到 [GitHub Issues](https://github.com/ChenCLian/Aster/issues)。可复现的数据示例有助于定位问题，提交前请移除不宜公开的内容。
 

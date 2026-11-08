@@ -513,8 +513,9 @@ void UiTests::parameterHelpTracksSelectedNode()
     const auto original = editor.parameters();
     auto *row = editor.findChild<QWidget *>("parameterRow_factor"); QVERIFY(row);
     auto *button = row->findChild<QToolButton *>("ParameterHelp"); QVERIFY(button);
-    QVERIFY(!button->toolTip().contains("parameterhelp."));
-    button->click();
+    QVERIFY(button->toolTip().isEmpty());
+    QVERIFY(!button->accessibleDescription().isEmpty());
+    QTest::mouseClick(button, Qt::LeftButton);
     auto *dialog = editor.findChild<HelpDialog *>("helpDialog"); QVERIFY(dialog);
     QCOMPARE(dialog->currentTopic().anchor, QString("m-affine-p-factor"));
     QCOMPARE(editor.parameters(), original); QVERIFY(!editor.dirty());
@@ -525,7 +526,9 @@ void UiTests::parameterHelpTracksSelectedNode()
     editor.findChild<QToolButton *>("methodHelp")->click();
     QCOMPARE(dialog->currentTopic().anchor, QString("m-mtm"));
     row = editor.findChild<QWidget *>("parameterRow_smooth_window"); QVERIFY(row);
-    row->findChild<QToolButton *>("ParameterHelp")->click();
+    button = row->findChild<QToolButton *>("ParameterHelp");
+    button->setFocus();
+    QTest::keyClick(button, Qt::Key_Space);
     QCOMPARE(dialog->currentTopic().anchor, QString("m-mtm-p-smooth_window"));
     QVERIFY(!editor.dirty());
     dialog->close();
@@ -2739,8 +2742,9 @@ void UiTests::evolutionSettingsAndPlotDefaults()
         QVERIFY(limit && legacy && normalize);
         QVERIFY(!legacy->isVisible());
         QVERIFY(!normalize->isChecked());
-        QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->toolTip().contains("1/m"));
-        QVERIFY(editor.findChild<QLabel *>("parameterLabel_evo_step")->toolTip().contains("37"));
+        QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->toolTip().isEmpty());
+        QVERIFY(limit->accessibleDescription().contains("1/m"));
+        QVERIFY(editor.findChild<QSpinBox *>("parameter_evo_step")->accessibleDescription().contains("37"));
         limit->setValue(1);
         SeriesData s; s.xAxis = {"Depth", "m"}; s.yAxis = {"Proxy", "u"};
         for (int i = 0; i < 256; ++i) { s.x << .2 * i; s.y << std::sin(.2 * i); }
@@ -3187,6 +3191,11 @@ void UiTests::parameterRoundTrip()
     ParameterEditor editor; editor.showNode(&n, registry);
     // Viewing a task, or editing another field later, must not alter any saved value.
     QCOMPARE(editor.parameters(), n.parameters);
+    QVERIFY(editor.findChild<QWidget *>("parameter_" + key)->toolTip().isEmpty());
+    QVERIFY(editor.findChild<QLabel *>("parameterLabel_" + key)->toolTip().isEmpty());
+    QVERIFY(editor.findChild<QToolButton *>("methodHelp")->toolTip().isEmpty());
+    for (auto *button : editor.findChildren<QToolButton *>("ParameterHelp"))
+        QVERIFY(button->toolTip().isEmpty());
     if (auto *spin = editor.findChild<QDoubleSpinBox *>("parameter_" + key))
     {
         const QString displayed = spin->text();

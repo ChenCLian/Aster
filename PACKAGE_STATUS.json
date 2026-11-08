@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.2.0-beta.6",
+  "version": "1.2.0-beta.7",
   "update_mode": "public_github_release_check_and_browser_download",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -58,12 +58,12 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "record": "docs/validation_results/1.2.0-beta.6/evolution_checks.json",
+    "record": "docs/validation_results/1.2.0-beta.7/interaction_checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.2.0-beta.6",
+    "logs": "docs/validation_results/1.2.0-beta.7",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Focused evolutionary FFT/MTM numerical and interaction regression, absolute frequency limits, legacy workflow compatibility and optional per-window normalization. Default PSD and heatmap rendering preserved; no broad stress test or new native Windows/macOS package acceptance.",
-    "previous_version_record": "docs/validation_results/1.2.0-beta.5/interaction_checks.json",
+    "scope": "Focused parameter/method help interaction: no hover descriptions; existing clickable help, keyboard access and accessible descriptions preserved. Calculations and defaults unchanged.",
+    "previous_version_record": "docs/validation_results/1.2.0-beta.6/evolution_checks.json",
     "previous_version_summary": "docs/validation.md",
     "preceding_development_record": "docs/validation_results/1.2.0-alpha.21/probe_checks.json",
     "previous_maintainer_acceptance": {
@@ -130,12 +130,12 @@
   },
   "documentation_review": {
     "date": "2026-11-08",
-    "version": "1.2.0-beta.6",
+    "version": "1.2.0-beta.7",
     "status": "passed_with_platform_limits",
-    "record": "docs/validation_results/1.2.0-beta.6/documentation_checks.json",
+    "record": "docs/validation_results/1.2.0-beta.7/documentation_checks.json",
     "embedded_help_rebuild_required": true,
-    "algorithm_or_limit_changes": "Optional per-window PSD normalization added; existing estimators, default PSD and limits unchanged.",
-    "scope": "Current documentation, parameter references, compiled full-version identity and source export."
+    "algorithm_or_limit_changes": false,
+    "scope": "Version labels and help-entry wording; detailed parameter documentation retained."
   },
   "release_tooling_review": {
     "date": "2026-11-08",

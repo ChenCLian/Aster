@@ -190,8 +190,6 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
     const auto help=methodHelp(d.key);
     if (!help.isEmpty())
     {
-        m_help->setToolTip("<p style='white-space:normal'>" +
-                           help.toHtmlEscaped().replace("\n", "<br>") + "</p>");
         m_help->setAccessibleName(methodLabel(d));
         m_help->setAccessibleDescription(help);
         m_help->show();
@@ -265,7 +263,7 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         field->setMinimumWidth(0);
         field->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         const auto help=parameterHelp(p,d.key);
-        field->setToolTip(help);
+        field->setAccessibleDescription(help);
         if(!p.group.isEmpty() && p.group!=lastGroup) {
             auto* group=new QLabel(translatedLabel("parametergroup."+p.group,p.group));
             group->setObjectName("ParameterGroup");
@@ -291,13 +289,11 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         }
         if(!help.isEmpty()) {
             auto* hint=new QToolButton;hint->setText("?");hint->setObjectName("ParameterHelp");
-            hint->setToolTip("<p style='white-space:normal'>"+help.toHtmlEscaped()+"</p>");
             hint->setAccessibleName(parameterLabel(p,d.key));hint->setAccessibleDescription(help);
             hint->setAutoRaise(true);heading->addWidget(hint);
             connect(hint, &QToolButton::clicked, hint, [hint, method=d.key, key=p.key] {
                 openHelp(hint->window(), parameterHelpTopic(method,key));
             });
-            label->setToolTip(hint->toolTip());
         }
         if(p.kind==ParameterKind::Boolean){box->addLayout(heading);}
         else {

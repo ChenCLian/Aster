@@ -1,6 +1,14 @@
-# Aster 1.2.0-beta.6 验证范围
+# Aster 1.2.0-beta.7 验证范围
 
 [文档索引](README.md) · [版本状态](../PACKAGE_STATUS.json) · [发布维护](release_maintenance_zh.md)
+
+beta.7 移除参数及方法帮助的悬停弹框，保留点击问号定位帮助、键盘操作和辅助阅读说明。计算行为与默认设置不变。
+
+## beta.7 检查
+
+[帮助交互检查](validation_results/1.2.0-beta.7/interaction_checks.json)与[文档检查](validation_results/1.2.0-beta.7/documentation_checks.json)记录本次小范围修正的验证。后续章节保留此前版本的实际证据。
+
+## beta.6 检查记录
 
 beta.6 统一演化 FFT、演化 MTM 与 MTM 的频率上限输入，新增默认关闭的逐窗归一化，并更新参数帮助。默认物理功率谱密度、热图显示、数据格式及资源限额保持不变。
 
@@ -65,7 +73,7 @@ beta.5 修正结果布局、联合预览、自动坐标范围与显示文案。�
 
 alpha.10 的 1993 项完整回归结果及一次关闭确认超时、后续复测均保存在其[历史报告](history/release_audit_1.2.0_alpha10.md)中。alpha.19 的完整回归、alpha.20 的交互与适度压力检查、alpha.21 的坐标读数专项各有独立记录；不能将其中某次完整回归的数量视为 beta.5 新运行的数量。测试程序的计数可能包含 QtTest 初始化和清理。
 
-科学方法的独立数值对照与统计误报率校准分别记录；数值吻合不代表所有统计解释均已校准。历次文档检查保留在各版本目录的 `documentation_checks.json`，当前版本采用本页链接的 beta.6 专项记录。
+科学方法的独立数值对照与统计误报率校准分别记录；数值吻合不代表所有统计解释均已校准。历次文档检查保留在各版本目录的 `documentation_checks.json`，当前版本采用本页链接的 beta.7 专项记录。
 
 ## 最终程序包检查
 

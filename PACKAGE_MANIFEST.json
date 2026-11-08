@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.2.0-beta.6",
+  "version": "1.2.0-beta.7",
   "files": [
     {
       "path": ".clang-format",
@@ -570,62 +570,62 @@
     {
       "path": "docs/add_task.md",
       "bytes": 11593,
-      "sha256": "9a078898941fb80f2c7e2f0194c989c64c775b573d270d647b52140822dd352c"
+      "sha256": "67813ff84fed779df380a1496784cde0b809bbb2d96981dc1525bb755e3d9a9b"
     },
     {
       "path": "docs/architecture.md",
       "bytes": 15953,
-      "sha256": "1eefa9b6874f3e1df17e0b8cae87bcbd241c458ca5327c38b43e1379d287e2de"
+      "sha256": "d719c8dc1a9772bdf4cf04780de09de73aabb2ec724b5d57901e5d6456f30ed5"
     },
     {
       "path": "docs/Aster_development_checklist.md",
       "bytes": 50087,
-      "sha256": "06d24b5a64f6a29c45187d292b67e0a98b7443e29c6257e90c50e201c977a6a0"
+      "sha256": "323601c48583eade8e67cf40f1fcf0541db2f91d6642d375dd2ad24ab1fca0ad"
     },
     {
       "path": "docs/building.md",
       "bytes": 6304,
-      "sha256": "0864533559caba23aa5d3f96d12c3e4626093de2389cc1a4595a1af47f67646e"
+      "sha256": "69c1d1d5d7a05c353da7bf764141739a3f160a9c8376ab9ba0e1b7185b56b9b0"
     },
     {
       "path": "docs/dependency_materials_zh.md",
       "bytes": 19977,
-      "sha256": "7bdf8910c20b8ed3f00f71629483f4ea94832228cb50dc7950c42b207625455e"
+      "sha256": "56a80fe261d9b9387c3f55e4b866d58b604ac78262ab9849b057574b954b9ba0"
     },
     {
       "path": "docs/development/batch_joint_analysis.md",
       "bytes": 12203,
-      "sha256": "8bbcbb7cf431aff659f62af69756f0c0f920a323964cb29946ffa51ffb8f8ba1"
+      "sha256": "55a70aafc250c0d802ccac5d35c96765c2648367a5948a07d6ed5b3725588990"
     },
     {
       "path": "docs/development/CHANGELOG_1.2.0.md",
-      "bytes": 27891,
-      "sha256": "0c766a53bc8ec6d72c7cd32a5a05e347e756c60fe7cf087a7b5361416ed1d4e9"
+      "bytes": 28082,
+      "sha256": "07e073de6563d6ee05d0bd5fc80e2f3cd8a883008b6218732488fb12841d8c7d"
     },
     {
       "path": "docs/development/cross_spectrum_contract.md",
       "bytes": 5764,
-      "sha256": "10f7c0970b59c52ce3f4e9bba1ffe9aa6da94c6a172e867e36caf03aa69e2159"
+      "sha256": "7fadd43af86cef3533a2d702e3a2beb003d4e1e21ba1bd95ee28f55c37eb6d22"
     },
     {
       "path": "docs/development/cross_spectrum_interfaces.md",
       "bytes": 15387,
-      "sha256": "381e9579ad369f794442a5a15e9191dc0dce8f719d06f1e8a3185749c86be630"
+      "sha256": "8834be9bc7d3899b84693dd881853fb5a5b00f28bb5ac1c87663b0b1ed9bfc66"
     },
     {
       "path": "docs/development/documentation.md",
       "bytes": 3864,
-      "sha256": "444aa8280d790fc9f9605dec36eb6a4345a0d3c9bfe083c88b415b06b81a18b0"
+      "sha256": "f0a8fb66190c5689044bdbd0abd08590b039f3634101fb50c2e6b369f962a7b5"
     },
     {
       "path": "docs/development/plotting.md",
       "bytes": 5031,
-      "sha256": "3abcc89dd4867ff7ff89873e39d7cce861088a9be983cda3f861b59713099b89"
+      "sha256": "78fb1d1def8047f308f3558041b20c7402f916154aefa17a7a0d5966c165b27e"
     },
     {
       "path": "docs/development/workflow_preview.md",
       "bytes": 4062,
-      "sha256": "d1304771d2fb4e73793b004f99c9c9d636e9db967680b1bae81c9043067531f9"
+      "sha256": "0d6ce8d50db52c00d81b45740166117cbee2b96011133ece3769950fdaf8046b"
     },
     {
       "path": "docs/error_diagnostics.md",
@@ -649,8 +649,8 @@
     },
     {
       "path": "docs/methods/acycle_compatibility.md",
-      "bytes": 9219,
-      "sha256": "9d15744ffc5d961a011b43dc3f42910b764511096d6e971051b55abb87ad9074"
+      "bytes": 9144,
+      "sha256": "1335980811cac2817979fe73b3e885045ae12dce3144807a378e0d355ee24284"
     },
     {
       "path": "docs/methods/ar1_global.md",
@@ -659,13 +659,13 @@
     },
     {
       "path": "docs/methods/astronomy.md",
-      "bytes": 7897,
-      "sha256": "f894a5ee264f52b1b154bdfda79128d282829be18067e6fee04b69e0ca48e71f"
+      "bytes": 7810,
+      "sha256": "56a09777d5b4cf13aa941ec4c5939f8bde6feca18e1bf1a7ecc1f0f3771b07cb"
     },
     {
       "path": "docs/methods/chronology.md",
-      "bytes": 7548,
-      "sha256": "e41c6e482c36692e4a200c5bb9f54f055ebfd821819a2c50fe350d996cc11b49"
+      "bytes": 7464,
+      "sha256": "3c70c3c013cd113e85935c6190f4533e0fad1652c19ba958d6a01ef9bc7e1a78"
     },
     {
       "path": "docs/methods/coco_analysis.md",
@@ -685,12 +685,12 @@
     {
       "path": "docs/methods/cwt.md",
       "bytes": 5181,
-      "sha256": "d53efce2b43dd33aaaf31a2719e2fa288eba53c440a8fe4ee44d6f06aa4a1597"
+      "sha256": "3da6fc9537de30b03f21f42d2d210b78445df8102085af2583d0671834f0d544"
     },
     {
       "path": "docs/methods/cycle_tuning.md",
-      "bytes": 7760,
-      "sha256": "fb471f511030fd52c18d755844ee3b9f8a106e4d683b0f48924bf59aa2566941"
+      "bytes": 7681,
+      "sha256": "40c585aaddd3a01dbcec6e17993be6a05e2da2b72eefa7f9728d952e1a707aac"
     },
     {
       "path": "docs/methods/filtering.md",
@@ -699,8 +699,8 @@
     },
     {
       "path": "docs/methods/orbital_solutions.md",
-      "bytes": 6641,
-      "sha256": "a6b721830641f1cf9be3be35958a4a982fb45f65b4d12fb495aed2751262601e"
+      "bytes": 6575,
+      "sha256": "7579166ee695516d77d688e7c47d10c4e9a5f84528c15f7589d6a30270244a3b"
     },
     {
       "path": "docs/methods/README.md",
@@ -709,8 +709,8 @@
     },
     {
       "path": "docs/methods/seasonal_insolation.md",
-      "bytes": 3748,
-      "sha256": "9158085b89519500970c2bd64f29167d2eb1274a1f8c2c35285ff0f8a0c41efb"
+      "bytes": 3700,
+      "sha256": "3e2fcd130de1a74ea8f6545069537abe7ec257025a7ce958484c013663c42012"
     },
     {
       "path": "docs/methods/series_operations.md",
@@ -724,8 +724,8 @@
     },
     {
       "path": "docs/methods/spectral_extension.md",
-      "bytes": 6063,
-      "sha256": "651c8eb5f490f986d10b45f408e0673678e4d16321429c5532fdf0bc0154cf50"
+      "bytes": 6004,
+      "sha256": "ffc834c7d1c697e8e8ab3639ff310ed93f670330b17fb24bb478ac00b16af279"
     },
     {
       "path": "docs/methods/statistical_limits.md",
@@ -735,12 +735,12 @@
     {
       "path": "docs/numeric_backends.md",
       "bytes": 4416,
-      "sha256": "3bead5862514411632f10d1fa44d75be4400aed0639779a06c1116316a8b2ad6"
+      "sha256": "186d39d096c8af81222b8ea6f68e57037c9b037a2b87ced4654fc7136be9da2d"
     },
     {
       "path": "docs/README.md",
       "bytes": 3523,
-      "sha256": "f61fd1561c6945699cedac91111d9b4ad87486b4dbff67c3c4cdea6026d339bb"
+      "sha256": "28dbc08e4dddefd8ec9f1046c638c198ae781ff0746b8aa02c4746796ac6a881"
     },
     {
       "path": "docs/reference/scientific_evidence.json",
@@ -750,22 +750,22 @@
     {
       "path": "docs/reference/task_parameters.md",
       "bytes": 81815,
-      "sha256": "c87b3e6b278355c9af2f1b6cd15760b23b9e2ca9958f761264e44acff4f4d5e7"
+      "sha256": "fff17e19820bb4c27017c2beb06bafd115d85860794bfd7dfecea4381d315805"
     },
     {
       "path": "docs/reference/task_parameters_en.md",
       "bytes": 83629,
-      "sha256": "dce3beff6fee837446504143623bfb17561d7721193357dd98641648c94aa556"
+      "sha256": "1d3d8b794e30c1c8bf603eb54ca20e4c31db2d0f3ed8652ca1741d0329ef0cec"
     },
     {
       "path": "docs/release_maintenance_zh.md",
       "bytes": 24232,
-      "sha256": "2fc329f119155a9f6015c26c0710363bd5d90e69cfd94231bf3ca676ed29d639"
+      "sha256": "f2f789c4a414ecc354669cc719492419ede641c691fd58d6c93dfd0d9c6d2d4f"
     },
     {
       "path": "docs/task_catalogue.md",
       "bytes": 4562,
-      "sha256": "410071b350d38c2a8794919c10053e7a59f2e530a86c3908d87b52b847a685dc"
+      "sha256": "450a4dfa9087e051e8ce69b5e98d55a2cb49b1946705eda5b3175930fe21707e"
     },
     {
       "path": "docs/third_party.md",
@@ -775,22 +775,22 @@
     {
       "path": "docs/ui/live_preview.md",
       "bytes": 3096,
-      "sha256": "3901d1e8af260dd93ca69846dc737b3d9f4d7f6c67d11c619e7c77b00244bf3c"
+      "sha256": "850d56c61daea2bb9583c2f26dfe66f2ece0412b74f619b3f2ea9372d94b9569"
     },
     {
       "path": "docs/ui/plotting.md",
       "bytes": 12734,
-      "sha256": "648ebf621eb553e1d479843d6f9f0284bbfd7e2ee440fd57da9c4b1a4b5e0616"
+      "sha256": "6d08c84036402d964dd098677cf70128198f2381594e075481ea5b400c756efb"
     },
     {
       "path": "docs/USER_GUIDE.md",
-      "bytes": 26063,
-      "sha256": "0e428be4c05d8eb24eac52e699605425fdffa7ba00f180a9b64692b5e95eeebd"
+      "bytes": 26039,
+      "sha256": "27303b055d148f34126d178c02ebfcad1ae3e06a825707b69c4c31ee74f14ad4"
     },
     {
       "path": "docs/USER_GUIDE_EN.md",
-      "bytes": 25699,
-      "sha256": "e7841d7ddec6d6a1fa7028c867ed01956b3c844a6769b788def7524e3264576f"
+      "bytes": 25657,
+      "sha256": "31c36939b87debbf5e2f6a1e3a0f99c9d50f8828ebcd8f88d9788e9876ea91ae"
     },
     {
       "path": "docs/validation.json",
@@ -804,8 +804,8 @@
     },
     {
       "path": "docs/validation_current.md",
-      "bytes": 12299,
-      "sha256": "27028aca8758f3269c0228411607badfed6452bf1910f9d51ba55e9b3e927081"
+      "bytes": 12742,
+      "sha256": "2498ed50e257eb909bc7a59a1f9ce1c674689e6b1132bf9c9163048d9b4fba34"
     },
     {
       "path": "docs/validation_results/1.2.0-alpha.1/asan_ubsan.txt",
@@ -3063,6 +3063,26 @@
       "sha256": "546f13481759d1c0b21ffaf47ed1978100a038347b652f7e3b91138bf1cc30fd"
     },
     {
+      "path": "docs/validation_results/1.2.0-beta.7/documentation_checks.json",
+      "bytes": 517,
+      "sha256": "aa8510cca7462d09b12e98383d83080ff1a8837306737b998cdd367717aa3b2e"
+    },
+    {
+      "path": "docs/validation_results/1.2.0-beta.7/generated-reference.txt",
+      "bytes": 64,
+      "sha256": "6f31760ec4df7afe5cd1a07210549ad100891d68a0bf39cc9cf13819ea6b4a2c"
+    },
+    {
+      "path": "docs/validation_results/1.2.0-beta.7/interaction_checks.json",
+      "bytes": 1232,
+      "sha256": "d83468267800121bbf9003a683e6e77ddb95dddc1e207cdd397754d86685da86"
+    },
+    {
+      "path": "docs/validation_results/1.2.0-beta.7/parameter-help.txt",
+      "bytes": 50564,
+      "sha256": "587f4586ff093154a2e19f499b7c48bbf125e5a490b7194d275ea74ec276df02"
+    },
+    {
       "path": "docs/validation_results/release/algorithm_regression.txt",
       "bytes": 47675,
       "sha256": "969462385656937768d018537984b4f5ba55103941606803c42c92855c80f75d"
@@ -3200,7 +3220,7 @@
     {
       "path": "FAQ.md",
       "bytes": 17440,
-      "sha256": "e5e1f19d69a0cf673a887267eb0160978bd1a746c9ec6b2366538de778e80605"
+      "sha256": "6eb646375620405539fe2520e8129eac9767b2d320dcdc157caddfbd32f816ab"
     },
     {
       "path": "integration_tests/database_transfer_tests.cpp",
@@ -3279,23 +3299,23 @@
     },
     {
       "path": "PACKAGE_STATUS.json",
-      "bytes": 6924,
-      "sha256": "b5fd0feba57a8fc56cc76df786d989e6bb49e76e3b4c7b2b6c1946ab239fa786"
+      "bytes": 6721,
+      "sha256": "fc75fa3a9ab44d8fc7e74013df55b9c38f20031424a7e143afcc20a55af20c4a"
     },
     {
       "path": "QUICK_START.md",
       "bytes": 9314,
-      "sha256": "457255edf5ab95f8a0828be334c9944a69c9253b46416fe1234057ff7f203a43"
+      "sha256": "811f590f56b79526c37b93a44ab0211964f2444c65a5b8d7e0ca194ecdeb6d48"
     },
     {
       "path": "README.md",
-      "bytes": 6999,
-      "sha256": "a8c93d12e68bbd18bb78c56a364d30018be4996bbd2d8cd52e9e0e63c0e3b246"
+      "bytes": 6996,
+      "sha256": "8c0d36547633dc1110783a264f33956a3af1918ff4afa9808afeba656e5cfb15"
     },
     {
       "path": "RELEASE_NOTES.md",
       "bytes": 5546,
-      "sha256": "c73399194fe0acfaeb7aa99d9e7373e8864a33d1025ab8cb062b0caf6c68dc1e"
+      "sha256": "01b633eda9957d13eb6d72966a433b036e61b9e52d319fe048e017c558ca749a"
     },
     {
       "path": "resources/app/aster-256.png",
@@ -4874,8 +4894,8 @@
     },
     {
       "path": "src/ui/panels/parameter_editor.cpp",
-      "bytes": 17272,
-      "sha256": "b4823ef6931e3bc597374a4070506aedc9a7d4a92b11ec3fc92e0000126a50cd"
+      "bytes": 17003,
+      "sha256": "73c58f4088492ab8839c59555f85a1017fd138a474d5116ed271df892b6619ef"
     },
     {
       "path": "src/ui/panels/parameter_editor.h",
@@ -5574,8 +5594,8 @@
     },
     {
       "path": "ui_tests/ui_tests.cpp",
-      "bytes": 185000,
-      "sha256": "bd21235e7324c825e8e87acb9e6e74824b9f320091179fef348bdc144a232a67"
+      "bytes": 185577,
+      "sha256": "6cbebd20d3d5bfae3d633dbd0a59e1267e6aa090caee28d672aa6fd0c1bf1cbc"
     },
     {
       "path": "ui_tests/ui_tests.pro",
@@ -5595,7 +5615,7 @@
     {
       "path": "VERSION",
       "bytes": 13,
-      "sha256": "c4c22623a8658fe83666b6ae958415201242df62cbe5b3e58f2c75d53caea71a"
+      "sha256": "5e3d2159d183c54d6f460c6c65678f3934ec9a08138a6705bf661e220b75e744"
     },
     {
       "path": "workspace_tests/workspace_tests.cpp",

@@ -1,6 +1,6 @@
 # Welch 交叉谱方法约定
 
-适用版本：Aster 1.2.0-beta.6。Welch 交叉谱支持同工作区内跨普通支路、跨源根节点配对。接口边界见[计算与结果接口](cross_spectrum_interfaces.md)。
+适用版本：Aster 1.2.0-beta.7。Welch 交叉谱支持同工作区内跨普通支路、跨源根节点配对。接口边界见[计算与结果接口](cross_spectrum_interfaces.md)。
 
 ## 方法和输出
 
