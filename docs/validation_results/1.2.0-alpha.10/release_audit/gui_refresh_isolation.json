@@ -1,0 +1,100 @@
+[
+  {
+    "count": 512,
+    "database_bytes": 43573248,
+    "heartbeat_ticks": 130,
+    "maximum_event_loop_gap_ms": 41,
+    "mode": "gui",
+    "peak_rss_kib": 127548,
+    "records": 1025,
+    "run_ms": 1351,
+    "setup_ms": 761,
+    "slow_events": [],
+    "start_ms": 26,
+    "total_ms": 2147,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_PROGRESS"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43532288,
+    "heartbeat_ticks": 140,
+    "maximum_event_loop_gap_ms": 25,
+    "mode": "gui",
+    "peak_rss_kib": 128068,
+    "records": 1025,
+    "run_ms": 1445,
+    "setup_ms": 773,
+    "slow_events": [],
+    "start_ms": 17,
+    "total_ms": 2307,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_PROGRESS"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43511808,
+    "heartbeat_ticks": 137,
+    "maximum_event_loop_gap_ms": 28,
+    "mode": "gui",
+    "peak_rss_kib": 128260,
+    "records": 1025,
+    "run_ms": 1407,
+    "setup_ms": 756,
+    "slow_events": [],
+    "start_ms": 16,
+    "total_ms": 2184,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_PROGRESS"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43569152,
+    "heartbeat_ticks": 112,
+    "maximum_event_loop_gap_ms": 86,
+    "mode": "gui",
+    "peak_rss_kib": 126972,
+    "records": 1025,
+    "run_ms": 1356,
+    "setup_ms": 804,
+    "slow_events": [
+      {
+        "cpu_ms": 49.681000999999924,
+        "event": 43,
+        "name": "AsterMainWindow",
+        "receiver": "aster::ui::MainWindow",
+        "wall_ms": 49
+      }
+    ],
+    "start_ms": 16,
+    "total_ms": 2183,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_REFRESH"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43606016,
+    "heartbeat_ticks": 39,
+    "maximum_event_loop_gap_ms": 117,
+    "mode": "gui",
+    "peak_rss_kib": 127372,
+    "records": 1025,
+    "run_ms": 1064,
+    "setup_ms": 779,
+    "slow_events": [],
+    "start_ms": 23,
+    "total_ms": 1877,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_REFRESH"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43646976,
+    "heartbeat_ticks": 104,
+    "maximum_event_loop_gap_ms": 37,
+    "mode": "gui",
+    "peak_rss_kib": 126436,
+    "records": 1025,
+    "run_ms": 1089,
+    "setup_ms": 745,
+    "slow_events": [],
+    "start_ms": 26,
+    "total_ms": 1858,
+    "diagnostic_only_disabled": "ASTER_TRACE_SKIP_REFRESH"
+  }
+]

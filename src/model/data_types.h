@@ -41,6 +41,12 @@ struct GridData {
 struct TableData {
     QStringList columns;
     QVector<QVector<double>> rows;
+    // Empty means every cell is defined (legacy tables). Otherwise one 0/1
+    // byte per cell; undefined cells have canonical stored value 0, never NaN.
+    // Display/export must consult this mask; 0 is not a numerical substitute.
+    QVector<QVector<quint8>> defined{};
+    bool isDefined(qsizetype row, qsizetype column) const
+    { return defined.isEmpty() || defined[row][column] != 0; }
 };
 
 using DataObject = std::variant<SeriesData, SpectrumData, GridData, TableData>;

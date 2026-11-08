@@ -84,9 +84,20 @@ QString validateData(const DataRef& data)
                 if (column.isEmpty() || names.contains(column)) return QStringLiteral("Invalid table columns");
                 names.insert(column);
             }
-            for (const auto& row : value.rows)
+            if (!value.defined.isEmpty() && value.defined.size() != value.rows.size())
+                return QStringLiteral("Table validity row count mismatch");
+            for (qsizetype r = 0; r < value.rows.size(); ++r) {
+                const auto& row = value.rows[r];
                 if (row.size() != value.columns.size() || !finite(row))
                     return QStringLiteral("Invalid table row");
+                if (!value.defined.isEmpty()) {
+                    const auto& mask = value.defined[r];
+                    if (mask.size() != row.size()) return QStringLiteral("Table validity width mismatch");
+                    for (qsizetype c = 0; c < row.size(); ++c)
+                        if (mask[c] > 1 || (!mask[c] && row[c] != 0))
+                            return QStringLiteral("Invalid table validity cell");
+                }
+            }
         }
         return {};
     }, *data);

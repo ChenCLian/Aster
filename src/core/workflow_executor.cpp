@@ -132,6 +132,9 @@ RunResult WorkflowExecutor::run(const RunRequest &request, EventSink sink,
             order.push_back(child);
     }
     run.workflowSnapshot = workflowToJson(scoped);
+    for (const auto &node : scoped.nodes)
+        if (registry.find(node.method)->descriptor.pairedInput)
+            return invalid(QStringLiteral("Paired tasks require an explicit same-batch execution plan"));
     const auto emitEvent =
         [&](const NodeId &id, NodeState state, const QString &message = QString(), const ErrorInfo &diagnostic = ErrorInfo(), int progress = -1)
     {

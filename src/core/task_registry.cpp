@@ -57,6 +57,7 @@ ValidationResult TaskRegistry::add(TaskDescriptor d, TaskFactory factory)
         reject(QStringLiteral("Missing label/category/factory or invalid version"));
     if (d.inputKind && !knownKind(*d.inputKind)) reject(QStringLiteral("Unknown input kind"));
     if (d.inputKind && d.requiresSourceBinding) reject(QStringLiteral("Transform cannot require source binding"));
+    if (d.pairedInput && !d.inputKind) reject(QStringLiteral("Paired task must declare an input kind"));
     if (d.boundDataKind && (!d.requiresSourceBinding || !knownKind(*d.boundDataKind)))
         reject(QStringLiteral("Invalid bound data kind"));
     QSet<QString> outputKeys;

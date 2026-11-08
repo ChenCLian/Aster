@@ -7,11 +7,50 @@ param(
     [string]$VcpkgRoot = "",
     [string]$DependencyCache = "",
     [string]$DependencySupplement = "",
-    [string]$PythonExe = ""
+    [string]$PythonExe = "",
+    [ValidateSet("Stage", "Reuse", "Collect")][string]$DependencyMode = "Reuse",
+    [string]$DependencyMaterials = ""
 )
 # Run from the x64 Native Tools Command Prompt / its PowerShell child.
 # This script packages a previously built MSVC x64 Release executable.
 $ErrorActionPreference = "Stop"
+
+function Assert-AsterExecutableVersion {
+    param([string]$App, [string]$Version, [string]$Arguments = "--version", [int]$TimeoutMilliseconds = 15000)
+    # PE ProductVersion is numeric (e.g. 1.2.0.0); it cannot distinguish betas.
+    # Probe the deployed executable with redirected handles, without opening UI
+    # or reading user settings. Qt otherwise may show --version in a message box.
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo.FileName = $App
+    $process.StartInfo.Arguments = $Arguments
+    $process.StartInfo.WorkingDirectory = Split-Path -Parent $App
+    $process.StartInfo.UseShellExecute = $false
+    $process.StartInfo.CreateNoWindow = $true
+    $process.StartInfo.RedirectStandardOutput = $true
+    $process.StartInfo.RedirectStandardError = $true
+    $process.StartInfo.EnvironmentVariables["QT_COMMAND_LINE_PARSER_NO_GUI_MESSAGE_BOXES"] = "1"
+    try {
+        if (!$process.Start()) { throw "Could not start the deployed executable." }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        if (!$process.WaitForExit($TimeoutMilliseconds)) {
+            $process.Kill()
+            throw "Executable version check timed out."
+        }
+        $stdout = $stdoutTask.GetAwaiter().GetResult().Trim()
+        $stderr = $stderrTask.GetAwaiter().GetResult().Trim()
+        if ($process.ExitCode -ne 0) {
+            throw "Executable version check exited with $($process.ExitCode): $stderr"
+        }
+        $expected = "Aster_Workspace $Version"
+        if ($stdout -cne $expected) {
+            throw "Executable reports '$stdout'; expected '$expected'. Clean and rebuild the root Aster.pro from this source, then package to a new OutputDir."
+        }
+        Write-Host "Verified executable version: $Version"
+    } finally {
+        $process.Dispose()
+    }
+}
 
 function Get-AsterPython {
     param([string]$Explicit = "")
@@ -113,6 +152,30 @@ function Invoke-AsterCollector {
     throw "Dependency collector failed (exit $exitCode). $reportHint Log: $logPath. The staging folder is preserved for diagnosis; release preparation did not complete."
 }
 
+function Invoke-AsterReuse {
+    param([string]$Python, [string[]]$ReuseArguments)
+    $savedPreference = $ErrorActionPreference
+    $savedEncoding = [Console]::OutputEncoding
+    $PSNativeCommandUseErrorActionPreference = $false
+    $exitCode = $null
+    $launchError = $null
+    try {
+        $ErrorActionPreference = "Continue"
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $global:LASTEXITCODE = $null
+        & $Python -u -X utf8 @ReuseArguments 2>&1 | ForEach-Object { Write-Host $_.ToString() }
+        $exitCode = $global:LASTEXITCODE
+    } catch {
+        $launchError = $_.Exception.Message
+    } finally {
+        [Console]::OutputEncoding = $savedEncoding
+        $ErrorActionPreference = $savedPreference
+    }
+    if ($null -eq $exitCode -or $exitCode -ne 0 -or $launchError) {
+        throw "Dependency reuse failed (exit $exitCode). $launchError No collection/download was attempted. The staging folder is preserved. Run tools/release/collect_dependency_materials.py manually for this folder. Do not publish while DEPENDENCY_MATERIALS_PENDING.txt exists."
+    }
+}
+
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "../.."))
 $version = (Get-Content -LiteralPath (Join-Path $projectRoot "VERSION") -Raw).Trim()
 if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') { throw "Invalid VERSION" }
@@ -141,13 +204,24 @@ $outputRoot = [IO.Path]::GetFullPath($OutputDir)
 $name = "Aster-$version-windows-x64"
 $stage = Join-Path $outputRoot $name
 if (Test-Path -LiteralPath $stage) { throw "Output already exists. Use a new OutputDir; existing packages are never overwritten." }
-$python = Get-AsterPython -Explicit $PythonExe
-Write-Host "Dependency collector: Python $($python.Version) ($($python.Path))"
+if ($DependencyMode -ne "Collect" -and $DependencySupplement) {
+    throw "DependencySupplement requires -DependencyMode Collect; Stage and Reuse do not collect new source/patch declarations."
+}
+# Stage deploys the application only. Python is needed by the later, independent
+# material step, not by deployment itself. Keep preflight for Reuse and Collect.
+$python = $null
+if ($DependencyMode -ne "Stage") {
+    $python = Get-AsterPython -Explicit $PythonExe
+    Write-Host "Dependency mode: $DependencyMode; Python $($python.Version) ($($python.Path))"
+} else {
+    Write-Host "Dependency mode: Stage; deploy only, material collection is a separate step."
+}
 $deployArgs = @("--release", "--no-compiler-runtime", "--no-opengl-sw", "--no-system-d3d-compiler")
 $deployHelp = (& $deploy --help 2>&1) -join "`n"
 if ($LASTEXITCODE -ne 0) { throw "Cannot query windeployqt options" }
 if ($deployHelp -match '--no-system-dxc-compiler') { $deployArgs += "--no-system-dxc-compiler" }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
+Set-Content -LiteralPath (Join-Path $stage "DEPENDENCY_MATERIALS_PENDING.txt") -Encoding UTF8 -Value "Dependency materials have not been verified. Do not publish this staging folder."
 Copy-Item -LiteralPath $app -Destination (Join-Path $stage "Aster.exe")
 # Aster's QWidget/QCustomPlot views use CPU painting; no software OpenGL or
 # system D3D compiler redistributable is needed for these views.
@@ -195,6 +269,9 @@ while ($queue.Count -gt 0) {
 foreach ($required in @("Qt6Core.dll","Qt6Network.dll","platforms/qwindows.dll","sqldrivers/qsqlite.dll","tls/qschannelbackend.dll")) {
     if (!(Test-Path -LiteralPath (Join-Path $stage $required))) { throw "Missing deployment component: $required. Use the standard Qt MSVC build with Schannel TLS support." }
 }
+# Check the complete compiled version in every mode, before collecting/reusing
+# materials or reporting deployment success. A directory name proves no version.
+Assert-AsterExecutableVersion -App (Join-Path $stage "Aster.exe") -Version $version
 # Keep upstream notices alongside the executable. No developer database/settings are copied.
 $notices = Join-Path $stage "licenses"
 New-Item -ItemType Directory -Path $notices | Out-Null
@@ -235,19 +312,11 @@ if ($VcRedist) {
     if (!(Test-Path -LiteralPath $VcRedist -PathType Leaf)) { throw "VcRedist must be the official vc_redist.x64.exe installer" }
     Copy-Item -LiteralPath $VcRedist -Destination (Join-Path $stage "vc_redist.x64.exe")
 }
-# Collect sources separately; copy verified notices into the runnable package.
-$materialRoot = Join-Path $outputRoot "dependency-materials/windows-x64"
-$materialArgs = @("$PSScriptRoot/collect_dependency_materials.py", "--platform", "windows-x64",
-    "--package-dir", $stage, "--qmake", (Join-Path $qtRoot "qmake.exe"),
-    "--vcpkg-prefix", $dependencyRoot, "--output", $materialRoot)
-if ($VcpkgRoot) { $materialArgs += @("--vcpkg-root", $VcpkgRoot) }
-if ($DependencyCache) { $materialArgs += @("--cache", $DependencyCache) }
-if ($DependencySupplement) { $materialArgs += @("--supplement", $DependencySupplement) }
-Invoke-AsterCollector -Python $python.Path -CollectorArguments $materialArgs -MaterialRoot $materialRoot -Version $version
 @"
 Aster $version (Windows x64)
 
-Extract the entire folder before running Aster.exe.
+No installation is required. Extract the complete package, then double-click Aster.exe.
+Keep all files and subfolders together.
 Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
 Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Troubleshooting: FAQ.md.
@@ -263,6 +332,36 @@ Check for updates: Settings -> Check for updates.
 This release checks GitHub releases and opens the browser; it does not auto-install.
 Releases: https://github.com/ChenCLian/Aster/releases
 "@ | Set-Content -LiteralPath (Join-Path $stage "START_HERE.txt") -Encoding UTF8
+# Stage intentionally leaves the pending marker. It is not a completed release.
+# The standalone collector installs verified materials and removes that marker.
+# Default Reuse and explicit Collect still fail if materials cannot be verified.
+$materialRoot = if ($DependencyMaterials) { [IO.Path]::GetFullPath($DependencyMaterials) } else { Join-Path $outputRoot "dependency-materials/windows-x64" }
+if ($DependencyMode -eq "Stage") {
+    Write-Host "Created staging folder: $stage"
+    Write-Host "Next: run tools/release/collect_dependency_materials.py for this folder."
+    Write-Host "  --package-dir `"$stage`""
+    Write-Host "  --output `"$materialRoot`""
+    Write-Host "Use the matching --qmake, --vcpkg-prefix and --vcpkg-root; a shared --cache can be reused."
+    Write-Host "Deployment is complete; dependency materials are still pending."
+    Write-Host "Do not publish while DEPENDENCY_MATERIALS_PENDING.txt exists."
+    return
+}
+if ($DependencyMode -eq "Collect") {
+    $materialArgs = @("$PSScriptRoot/collect_dependency_materials.py", "--platform", "windows-x64",
+        "--package-dir", $stage, "--qmake", (Join-Path $qtRoot "qmake.exe"),
+        "--vcpkg-prefix", $dependencyRoot, "--output", $materialRoot)
+    if ($VcpkgRoot) { $materialArgs += @("--vcpkg-root", $VcpkgRoot) }
+    if ($DependencyCache) { $materialArgs += @("--cache", $DependencyCache) }
+    if ($DependencySupplement) { $materialArgs += @("--supplement", $DependencySupplement) }
+    Invoke-AsterCollector -Python $python.Path -CollectorArguments $materialArgs -MaterialRoot $materialRoot -Version $version
+} else {
+    $reuseArgs = @("$PSScriptRoot/reuse_dependency_materials.py", "--package-dir", $stage,
+        "--materials", $materialRoot, "--qmake", (Join-Path $qtRoot "qmake.exe"))
+    Invoke-AsterReuse -Python $python.Path -ReuseArguments $reuseArgs
+}
+if (Test-Path -LiteralPath (Join-Path $stage "DEPENDENCY_MATERIALS_PENDING.txt")) {
+    throw "Dependency material verification did not complete. The staging folder is not ready for publication."
+}
 Write-Host "Created release folder: $stage"
 Write-Host "For GitHub Release, compress this complete folder into $name.zip."
 Write-Host "Test this folder on a Windows host without Qt/vcpkg before publishing."

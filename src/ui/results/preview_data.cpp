@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/results/preview_data.h"
+#include "io/database/grid_sampling.h"
 #include <algorithm>
 #include <array>
 namespace aster::ui
@@ -34,6 +35,9 @@ void reducePair(const QVector<double> &x, const QVector<double> &y,
 }
 NodeResult reducePreviewData(const NodeResult &result, const CancellationToken &cancel)
 {
+    // Cross-spectrum masks and phase wraps require the complete, bounded table.
+    // Rendering applies adaptive sampling after splitting undefined intervals.
+    if (result.report["cross_spectrum_schema"].toInt() == 1) return result;
     auto display = result;
     for (auto it = display.outputs.begin(); it != display.outputs.end(); ++it)
     {
@@ -50,22 +54,22 @@ NodeResult reducePreviewData(const NodeResult &result, const CancellationToken &
             reducePair(s->frequency, s->power, d.frequency, d.power, cancel);
             it.value() = makeData(std::move(d));
         }
-        else if (const auto *s = dataAs<GridData>(source); s && (s->columns > GridSide || s->rows > GridSide))
+        else if (const auto *s = dataAs<GridData>(source))
         {
-            GridData d; d.rows = std::min(GridSide, s->rows); d.columns = std::min(GridSide, s->columns);
-            d.xAxis = s->xAxis; d.yAxis = s->yAxis; d.valueAxis = s->valueAxis;
-            // Exact sample coordinates preserve alignment between power and significance ratio.
-            // This is explicitly a display approximation; no max-aggregation of test statistics.
-            for (qsizetype c = 0; c < d.columns; ++c) d.x << s->x[c * (s->columns - 1) / std::max(qsizetype(1), d.columns - 1)];
-            for (qsizetype r = 0; r < d.rows; ++r)
+            try
             {
-                if (cancel.isCancelled()) return NodeResult::cancelled();
-                const auto rr = r * (s->rows - 1) / std::max(qsizetype(1), d.rows - 1);
-                d.y << s->y[rr];
-                for (qsizetype c = 0; c < d.columns; ++c)
-                    d.values << s->values[rr * s->columns + c * (s->columns - 1) / std::max(qsizetype(1), d.columns - 1)];
+                auto sample = grid_display::sample(s->columns, s->rows,
+                    [&](qsizetype i) { return s->x[i]; }, [&](qsizetype i) { return s->y[i]; },
+                    [&](qsizetype i) { return s->values[i]; }, {0, s->columns}, {0, s->rows},
+                    GridSide, GridSide, cancel, true);
+                sample.grid.xAxis = s->xAxis; sample.grid.yAxis = s->yAxis; sample.grid.valueAxis = s->valueAxis;
+                auto samples = display.report["plot_samples"].toObject();
+                samples[it.key()] = sample.statistics;
+                display.report["plot_samples"] = samples;
+                if (sample.statistics["reduced"].toBool()) it.value() = makeData(std::move(sample.grid));
             }
-            it.value() = makeData(std::move(d));
+            catch (const std::exception &e)
+            { return cancel.isCancelled() ? NodeResult::cancelled() : NodeResult::failure(QString::fromUtf8(e.what())); }
         }
         else if (const auto *s = dataAs<TableData>(source))
         {
@@ -78,6 +82,7 @@ NodeResult reducePreviewData(const NodeResult &result, const CancellationToken &
                 {
                     if (cancel.isCancelled()) return NodeResult::cancelled();
                     d.rows << s->rows[row].mid(0, columns);
+                    if (!s->defined.isEmpty()) d.defined << s->defined[row].mid(0, columns);
                 }
                 it.value() = makeData(std::move(d));
             }

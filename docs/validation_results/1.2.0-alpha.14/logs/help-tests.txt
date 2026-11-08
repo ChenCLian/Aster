@@ -1,0 +1,11 @@
+test_check_is_read_only_and_detects_changed_defaults_and_translations (test_generate.ReferenceTests.test_check_is_read_only_and_detects_changed_defaults_and_translations) ... ok
+test_descriptor_fallback_without_any_translations (test_generate.ReferenceTests.test_descriptor_fallback_without_any_translations) ... ok
+test_language_separation_preserves_values_and_anchors (test_generate.ReferenceTests.test_language_separation_preserves_values_and_anchors) ... ok
+test_missing_or_empty_chinese_uses_english_once (test_generate.ReferenceTests.test_missing_or_empty_chinese_uses_english_once) ... ok
+test_specific_english_precedes_wrong_generic_chinese_meaning (test_generate.ReferenceTests.test_specific_english_precedes_wrong_generic_chinese_meaning) ... ok
+test_stale_binary_and_duplicate_anchors_are_rejected (test_generate.ReferenceTests.test_stale_binary_and_duplicate_anchors_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.004s
+
+OK

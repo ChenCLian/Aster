@@ -1,0 +1,548 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.5",
+  "date": "2026-11-07",
+  "timezone": "Asia/Shanghai",
+  "scope": "Same-batch cross-spectral feature completeness, performance and affected UI regression",
+  "baseline": "1.2.0-alpha.4",
+  "environment": {
+    "os": "Linux x86_64, Debian 13",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "rendering": "offscreen",
+    "openblas_threads": 1,
+    "benchmark_process_timeout_seconds": 45,
+    "benchmark_address_space_limit_gib": 2
+  },
+  "build": {
+    "status": "passed",
+    "type": "Incremental from alpha.4 artifacts with recursive qmake regeneration and version object rebuild",
+    "application_version": "Aster_Workspace 1.2.0-alpha.5",
+    "optional_benchmark_target": "tools/performance/benchmark.pro compiled and executed"
+  },
+  "requirements": [
+    {
+      "requirement": "Data-centric inputs; pair A/B inside a joint node in the same upstream batch",
+      "status": "implemented"
+    },
+    {
+      "requirement": "Stable dataset/pair identity and actual output-port binding; unused inputs excluded from joint work",
+      "status": "implemented and covered by retained/new regression"
+    },
+    {
+      "requirement": "Welch CSD, magnitude-squared coherence, phase and both auto PSDs",
+      "status": "implemented; numerical sources unchanged from alpha.4"
+    },
+    {
+      "requirement": "A/B preview, formal execution, pair-level persistence, plotting and CSV/PNG/PDF adapters",
+      "status": "implemented; affected integration and plotting regressions pass"
+    },
+    {
+      "requirement": "Independent numerical validation and interface adaptation",
+      "status": "alpha.2/alpha.4 reference evidence retained; no claim of new complete numeric rerun"
+    },
+    {
+      "requirement": "Bilingual operation/parameter/method documentation",
+      "status": "present and synchronized; current verification entry corrected"
+    },
+    {
+      "requirement": "Windows/macOS native builds and final release package acceptance",
+      "status": "pending; not available in this environment"
+    },
+    {
+      "requirement": "Cross-batch/root joins and more joint-analysis methods",
+      "status": "deferred by scope; not implemented"
+    }
+  ],
+  "production_change": [
+    "src/ui/panels/pairing_panel.cpp"
+  ],
+  "issue": {
+    "reproduction": "1000 groups created 2000 permanent combo boxes and blocked modal construction for 15824 ms; 5000-group baseline exceeded 45-second process timeout.",
+    "fix": "Shared candidate model with delegate-created editor only for the active cell; inactive rows retain text and dropdown affordance.",
+    "interaction_checks": [
+      "single-click popup choice",
+      "keyboard confirmation on popup",
+      "actual data UUID/port preserved",
+      "edit last row after scrolling",
+      "Escape cancels dialog without changing original 1000 groups",
+      "bounded editor allocation"
+    ]
+  },
+  "affected_regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 773,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "affected_qt_totals": {
+    "passed": 966,
+    "failed": 0,
+    "skipped": 0
+  },
+  "test_wait_correction": {
+    "initial_failure": "failedStepCannotExportOrReuseAnOlderPlot read record ID 0 while the asynchronous result loader was active",
+    "cause": "The test accepted any ID different from the prior record, including the loading sentinel 0.",
+    "change": "Both rerun/recovery tests now wait for a positive new record ID before querying the database.",
+    "production_result_loading_changed": false,
+    "verification": "Complete integration target rerun after correcting the waits."
+  },
+  "retained_numerical_evidence": {
+    "record": "../1.2.0-alpha.4/integration_checks.json",
+    "all_src_math_processing_core_unchanged": true,
+    "alpha_4_full_suite_passed": 1883,
+    "fresh_full_suite_rerun_in_this_stage": false,
+    "counts_not_added_to_affected_suite": true
+  },
+  "release_tool_tests": {
+    "passed": 97,
+    "failed": 0
+  },
+  "help_generator_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "parameter_references": {
+    "tasks": 54,
+    "parameters": 233,
+    "status": "both languages current"
+  },
+  "performance": {
+    "dialog_before_after": [
+      {
+        "groups": 100,
+        "alpha_4": {
+          "exit_code": 0,
+          "result": {
+            "count": 100,
+            "dialog_construct_ms": 544,
+            "dialog_total_ms": 596,
+            "mode": "dialog",
+            "peak_rss_kib": 62740,
+            "preview_prepare_ms": 1,
+            "preview_ready_ms": 235,
+            "preview_state": 3,
+            "rss_dialog_kib": 60948,
+            "selectors": 200,
+            "set_pairs_ms": 2,
+            "total_ms": 861
+          },
+          "wall_seconds": 0.9780189519951819
+        },
+        "alpha_5": {
+          "exit_code": 0,
+          "result": {
+            "count": 100,
+            "dialog_construct_ms": 7,
+            "dialog_total_ms": 28,
+            "mode": "dialog",
+            "peak_rss_kib": 35620,
+            "preview_prepare_ms": 0,
+            "preview_ready_ms": 217,
+            "preview_state": 3,
+            "rss_dialog_kib": 33444,
+            "selectors": 0,
+            "set_pairs_ms": 8,
+            "total_ms": 271
+          },
+          "wall_seconds": 0.4656018980022054
+        }
+      },
+      {
+        "groups": 1000,
+        "alpha_4": {
+          "exit_code": 0,
+          "result": {
+            "count": 1000,
+            "dialog_construct_ms": 15824,
+            "dialog_total_ms": 16878,
+            "mode": "dialog",
+            "peak_rss_kib": 329552,
+            "preview_prepare_ms": 10,
+            "preview_ready_ms": 236,
+            "preview_state": 3,
+            "rss_dialog_kib": 328760,
+            "selectors": 2000,
+            "set_pairs_ms": 21,
+            "total_ms": 17171
+          },
+          "wall_seconds": 17.267055486998288
+        },
+        "alpha_5": {
+          "exit_code": 0,
+          "result": {
+            "count": 1000,
+            "dialog_construct_ms": 21,
+            "dialog_total_ms": 44,
+            "mode": "dialog",
+            "peak_rss_kib": 38308,
+            "preview_prepare_ms": 2,
+            "preview_ready_ms": 234,
+            "preview_state": 3,
+            "rss_dialog_kib": 36132,
+            "selectors": 0,
+            "set_pairs_ms": 22,
+            "total_ms": 335
+          },
+          "wall_seconds": 0.3961730110022472
+        }
+      },
+      {
+        "groups": 5000,
+        "alpha_4": {
+          "timeout_seconds": 45,
+          "wall_seconds": 45.07895244000247
+        },
+        "alpha_5": {
+          "exit_code": 0,
+          "result": {
+            "count": 5000,
+            "dialog_construct_ms": 58,
+            "dialog_total_ms": 85,
+            "mode": "dialog",
+            "peak_rss_kib": 51716,
+            "preview_prepare_ms": 15,
+            "preview_ready_ms": 230,
+            "preview_state": 3,
+            "rss_dialog_kib": 49532,
+            "selectors": 0,
+            "set_pairs_ms": 136,
+            "total_ms": 513
+          },
+          "wall_seconds": 0.5717413789971033
+        }
+      }
+    ],
+    "current_measurements": {
+      "final-cancel-1000000": {
+        "exit_code": 0,
+        "result": {
+          "cancel_requested_ms": 52,
+          "cancel_response_ms": 1,
+          "compute_ms": 53,
+          "count": 1000000,
+          "error": "Cancellation requested",
+          "mode": "cancel",
+          "peak_rss_kib": 70948,
+          "rss_after_compute_kib": 70948,
+          "state": 5,
+          "total_ms": 1035
+        },
+        "wall_seconds": 1.1021016029990278
+      },
+      "final-dialog-1000": {
+        "exit_code": 0,
+        "result": {
+          "count": 1000,
+          "dialog_construct_ms": 21,
+          "dialog_total_ms": 44,
+          "mode": "dialog",
+          "peak_rss_kib": 38308,
+          "preview_prepare_ms": 2,
+          "preview_ready_ms": 234,
+          "preview_state": 3,
+          "rss_dialog_kib": 36132,
+          "selectors": 0,
+          "set_pairs_ms": 22,
+          "total_ms": 335
+        },
+        "wall_seconds": 0.3961730110022472
+      },
+      "final-plot-1000000": {
+        "exit_code": 0,
+        "result": {
+          "compute_ms": 380,
+          "count": 1000000,
+          "csv_bytes": 22455313,
+          "csv_error": "",
+          "csv_ms": 1066,
+          "error": "",
+          "first_plot_ms": 42,
+          "metric_switches": [
+            {
+              "metric": "coherence",
+              "ms": 1
+            },
+            {
+              "metric": "cross_magnitude",
+              "ms": 22
+            },
+            {
+              "metric": "phase_degrees",
+              "ms": 20
+            },
+            {
+              "metric": "cross_real",
+              "ms": 22
+            },
+            {
+              "metric": "cross_imaginary",
+              "ms": 19
+            },
+            {
+              "metric": "auto_a",
+              "ms": 21
+            },
+            {
+              "metric": "auto_b",
+              "ms": 25
+            },
+            {
+              "metric": "table",
+              "ms": 26
+            },
+            {
+              "metric": "coherence",
+              "ms": 24
+            },
+            {
+              "metric": "cross_magnitude",
+              "ms": 31
+            },
+            {
+              "metric": "phase_degrees",
+              "ms": 22
+            },
+            {
+              "metric": "cross_real",
+              "ms": 21
+            },
+            {
+              "metric": "cross_imaginary",
+              "ms": 23
+            },
+            {
+              "metric": "auto_a",
+              "ms": 22
+            },
+            {
+              "metric": "auto_b",
+              "ms": 21
+            },
+            {
+              "metric": "table",
+              "ms": 19
+            }
+          ],
+          "mode": "plot",
+          "peak_rss_kib": 114604,
+          "png_ms": 230,
+          "png_ok": true,
+          "repeated_metric_cycles_peak_rss_kib": [
+            113832,
+            114604,
+            114604,
+            114604,
+            114604,
+            114604,
+            114604,
+            114604,
+            114604,
+            114604
+          ],
+          "rss_after_compute_kib": 91368,
+          "state": 2,
+          "total_ms": 5573,
+          "twenty_zoom_ms": 86
+        },
+        "wall_seconds": 5.641484570005559
+      },
+      "final-dialog-100": {
+        "exit_code": 0,
+        "result": {
+          "count": 100,
+          "dialog_construct_ms": 7,
+          "dialog_total_ms": 28,
+          "mode": "dialog",
+          "peak_rss_kib": 35620,
+          "preview_prepare_ms": 0,
+          "preview_ready_ms": 217,
+          "preview_state": 3,
+          "rss_dialog_kib": 33444,
+          "selectors": 0,
+          "set_pairs_ms": 8,
+          "total_ms": 271
+        },
+        "wall_seconds": 0.4656018980022054
+      },
+      "final-numeric-1000000": {
+        "exit_code": 0,
+        "result": {
+          "compute_ms": 395,
+          "count": 1000000,
+          "error": "",
+          "mode": "numeric",
+          "peak_rss_kib": 70364,
+          "rss_after_compute_kib": 70364,
+          "state": 2,
+          "total_ms": 2229
+        },
+        "wall_seconds": 2.3215678299893625
+      },
+      "final-batch-16": {
+        "exit_code": 0,
+        "result": {
+          "count": 16,
+          "mode": "batch",
+          "peak_rss_kib": 78048,
+          "runs": [
+            {
+              "database_bytes": 36081664,
+              "elapsed_ms": 619,
+              "error": "",
+              "pair_hashes": {
+                "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+                "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+                "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+                "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+                "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+                "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+                "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+                "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+                "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+                "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+                "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+                "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+                "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+                "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+                "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+                "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+              },
+              "records": 33,
+              "workers": 1
+            },
+            {
+              "database_bytes": 36057088,
+              "elapsed_ms": 243,
+              "error": "",
+              "pair_hashes": {
+                "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+                "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+                "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+                "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+                "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+                "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+                "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+                "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+                "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+                "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+                "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+                "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+                "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+                "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+                "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+                "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+              },
+              "records": 33,
+              "workers": 4
+            }
+          ],
+          "set_pairs_ms": 0,
+          "total_ms": 1556
+        },
+        "wall_seconds": 1.63094618699688
+      },
+      "final-dialog-9999": {
+        "exit_code": 0,
+        "result": {
+          "count": 9999,
+          "dialog_construct_ms": 108,
+          "dialog_total_ms": 144,
+          "mode": "dialog",
+          "peak_rss_kib": 70720,
+          "preview_prepare_ms": 18,
+          "preview_ready_ms": 232,
+          "preview_state": 3,
+          "rss_dialog_kib": 69540,
+          "selectors": 0,
+          "set_pairs_ms": 231,
+          "total_ms": 713
+        },
+        "wall_seconds": 0.7727225449925754
+      },
+      "final-dialog-5000": {
+        "exit_code": 0,
+        "result": {
+          "count": 5000,
+          "dialog_construct_ms": 58,
+          "dialog_total_ms": 85,
+          "mode": "dialog",
+          "peak_rss_kib": 51716,
+          "preview_prepare_ms": 15,
+          "preview_ready_ms": 230,
+          "preview_state": 3,
+          "rss_dialog_kib": 49532,
+          "selectors": 0,
+          "set_pairs_ms": 136,
+          "total_ms": 513
+        },
+        "wall_seconds": 0.5717413789971033
+      }
+    },
+    "interpretation": [
+      "Single executions on this host; no cross-hardware performance guarantee. Baseline and final timings may vary with concurrent host load.",
+      "Dialog benchmark shares small source buffers to isolate editor overhead; peak RSS measures the entire process, not just widgets.",
+      "Maximum-sample and maximum-FFT tests are bounded configurations, not an exhaustive stress test of every parameter combination.",
+      "CSV timing invokes the synchronous convenience API; normal application CSV export uses a worker thread.",
+      "Repeated metric-cycle peak memory stabilized in this test; this is not proof of leak absence.",
+      "Cancellation response measured from actual request timestamp; third-party FFT calls cannot be forcibly interrupted internally.",
+      "The 2 GiB virtual-memory limit belongs to the benchmark harness, not the application. Application budgets remain unchanged."
+    ]
+  },
+  "visual_review": {
+    "scope": "pair dialog after mouse/keyboard changes",
+    "theme": "light",
+    "platform": "Linux offscreen",
+    "screenshots_shipped": false
+  },
+  "compatibility": {
+    "database_schema": 3,
+    "masked_table_payload": 2,
+    "cross_spectrum_method": 2,
+    "algorithm_parameters_and_budgets_unchanged": true,
+    "local_pri_unchanged": true
+  },
+  "remaining": [
+    "Native Windows/macOS build and actual display/input behavior",
+    "Clean-host release package/dependency checks",
+    "Final release version and package documentation freeze"
+  ],
+  "logs": "Workspace and temporary host paths sanitized."
+}

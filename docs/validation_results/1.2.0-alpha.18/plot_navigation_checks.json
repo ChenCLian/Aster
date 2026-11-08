@@ -1,0 +1,362 @@
+{
+  "version": "1.2.0-alpha.18",
+  "base_version": "1.2.0-alpha.17",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.468,
+      "log": "logs/initial-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.62,
+      "log": "logs/initial-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 90.2,
+      "log": "logs/initial-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.366,
+      "log": "logs/initial-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 782,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 76.626,
+      "log": "logs/initial-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.13,
+      "log": "logs/initial-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.524,
+      "log": "logs/initial-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.893,
+      "log": "logs/initial-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 10.863,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 59,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 25.277,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 21.834,
+      "log": "logs/final-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 7.049,
+      "log": "logs/initial-aster_update_tests.txt"
+    }
+  ],
+  "initial_regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.468,
+      "log": "logs/initial-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.62,
+      "log": "logs/initial-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 90.2,
+      "log": "logs/initial-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.366,
+      "log": "logs/initial-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 782,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 76.626,
+      "log": "logs/initial-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.13,
+      "log": "logs/initial-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.524,
+      "log": "logs/initial-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.893,
+      "log": "logs/initial-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 1,
+      "passed": 35,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 1,
+      "status": "failed",
+      "seconds": 9.153,
+      "log": "logs/initial-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 1,
+      "passed": 58,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 1,
+      "status": "failed",
+      "seconds": 26.03,
+      "log": "logs/initial-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 1,
+      "passed": 82,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 4,
+      "status": "failed",
+      "seconds": 21.137,
+      "log": "logs/initial-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 7.049,
+      "log": "logs/initial-aster_update_tests.txt"
+    }
+  ],
+  "final_desktop_regression": [
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 10.863,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 59,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 25.277,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 21.834,
+      "log": "logs/final-aster_integration_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 2037,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "Latest passing result for each of 12 registered executables: initial full run plus final reruns of three desktop targets after updating preference-dependent tests. Includes QtTest initialization and cleanup; reruns are not added.",
+  "initial_test_adjustments": "Three old tests assumed navigation always shares one page and keeps its widgets alive. Current-page destination testing now explicitly chooses that setting; style restoration and record deletion now cover both preferences. Initial failures and final results are retained. No additional production changes were made after the initial full run.",
+  "reproduced_and_fixed": {
+    "issue": "Clicking the already-current step uses the browsed auxiliary output as its default plot",
+    "before": "Browse/check COI, remove the plot and click the CWT step: primary reference is coi, not power",
+    "after": "Navigation uses the registered primary output. Repeated deletion/recreation and removal during a pending initial read restore the heatmap. Explicit COI plotting remains available.",
+    "scope": "A reproducible cause of the reported COI-only plot; the original unrecorded click sequence cannot be identified with certainty."
+  },
+  "behavior_verified": [
+    "New default plots use a new page unless Current figure page is selected; old/missing/invalid settings use New page",
+    "Existing primary plots are reused and preserve style; explicit Add plots can still create another view",
+    "Current-page preference overflows after four cells; changing the preference does not rearrange existing plots",
+    "Settings round-trip, dialog acceptance and bilingual control geometry",
+    "All five CWT outputs form four heatmaps with COI; existing default plus explicit Add yields five total plots across two pages",
+    "MTM family selections form one plot; existing default plus explicit Add yields two plots",
+    "Three repeated add/delete cycles, page restoration, grid payload and COI retained",
+    "Button displays prospective added-plot count; grouping rules remain unchanged"
+  ],
+  "performance_scope": "No scientific or sampling code changes. Existing viewport/idle/refinement and large-output regressions rerun. No new large-grid throughput benchmark.",
+  "python_checks": {
+    "release_tests": 106,
+    "help_tests": 6,
+    "failed": 0,
+    "skipped_classes": 1,
+    "skip_reason": "Ruby/Homebrew query tests require Ruby, unavailable here."
+  },
+  "unchanged": [
+    "Numerical algorithms",
+    "Scientific limits",
+    "Database schema/payloads",
+    "Sampling and plot-data loader",
+    "Output grouping recipes",
+    "Dependency and release scripts",
+    "Historical validation evidence"
+  ],
+  "remaining": [
+    "Adjustable subplot proportions, full-row three-plot layout and deterministic title dragging are not implemented in this batch",
+    "Native Windows/MSVC and macOS builds and GUI acceptance",
+    "Final platform binary and dependency packaging checks"
+  ]
+}

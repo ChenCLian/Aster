@@ -1,0 +1,16 @@
+********* Start testing of Acceptance *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : Acceptance::initTestCase()
+QWARN  : Acceptance::jointSearchUsesVisibleNames() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::jointSearchUsesVisibleNames() This plugin does not support raise()
+FAIL!  : Acceptance::jointSearchUsesVisibleNames() Compared values are not the same
+   Actual   (visible()): 1
+   Expected (0)        : 0
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(206)]
+FAIL!  : Acceptance::shortSinePairExplainsSegmentsAndRecovers() Compared values are not the same
+   Actual   (error.diagnostic().code)  : "CROSS_PARAMETERS"
+   Expected (QString("CROSS_SEGMENTS")): "CROSS_SEGMENTS"
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(229)]
+PASS   : Acceptance::cleanupTestCase()
+Totals: 2 passed, 2 failed, 0 skipped, 0 blacklisted, 673ms
+********* Finished testing of Acceptance *********

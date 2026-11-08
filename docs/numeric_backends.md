@@ -1,6 +1,6 @@
 # Aster 数值接口与跨平台构建
 
-适用版本：1.1.1。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
+适用源码：1.2.0-beta.5。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
 
 ## Windows / Qt Creator
 
@@ -68,4 +68,4 @@ GSL 提供统计和插值功能，wavelib 提供小波计算；统一数值接�
 
 新增科学算法继续继承 Task、实现 descriptor/execute、宏注册。需要线性代数或 FFT 时调用 numeric_backend.h，不直接引入原生库类型。无需重写工作流、数据库或 UI。
 
-`Aster --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。验证范围见 [验证记录](validation.md)。
+`Aster --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。验证范围见 [验证记录](validation_current.md)。

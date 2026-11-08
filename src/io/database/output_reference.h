@@ -14,6 +14,7 @@ struct OutputReference
     qint64 recordId = 0;
     QUuid runId, nodeId;
     QString port, kind;
+    QString method{}; // Optional presentation hint; not part of persisted identity.
     bool valid() const
     {
         return !databasePath.isEmpty() && recordId > 0 && !runId.isNull() && !nodeId.isNull() &&

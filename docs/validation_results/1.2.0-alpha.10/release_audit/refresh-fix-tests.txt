@@ -1,0 +1,8 @@
+********* Start testing of JointUiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : JointUiTests::initTestCase()
+PASS   : JointUiTests::batchDirectoryRefreshCoalesces(completed)
+PASS   : JointUiTests::batchDirectoryRefreshCoalesces(saved-before-error)
+PASS   : JointUiTests::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 2331ms
+********* Finished testing of JointUiTests *********

@@ -1,0 +1,40 @@
+********* Start testing of WorkspaceTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : WorkspaceTests::initTestCase()
+PASS   : WorkspaceTests::metadataDoesNotDecodeOtherOutputs()
+PASS   : WorkspaceTests::cocoPlotUsesSelectedAxes()
+PASS   : WorkspaceTests::fitIgnoresHiddenCurveBounds()
+PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(positive)
+PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(zero)
+PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(negative)
+PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(small_units)
+PASS   : WorkspaceTests::fitRestoresFlatCurveBounds(logarithmic)
+QWARN  : WorkspaceTests::declinedCloseRestoresPreview() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceTests::declinedCloseRestoresPreview()
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 19 columns= 2 ok= true
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] column_controls_ms= 0
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 5 columns= 2 ok= true
+QINFO  : WorkspaceTests::reuseButtonBindsSource() [Aster import] column_controls_ms= 0
+PASS   : WorkspaceTests::reuseButtonBindsSource()
+PASS   : WorkspaceTests::rejectedOverlayKeepsOriginal()
+PASS   : WorkspaceTests::referenceRejectsReplacedIdentity()
+PASS   : WorkspaceTests::databaseSourcePreservesSnapshotAndDependencies()
+PASS   : WorkspaceTests::sourceFailureRemainsSavable()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceTests::pagesReleaseBuffersAndRestoreStyle()
+PASS   : WorkspaceTests::subplotOverlayAndRemoval()
+PASS   : WorkspaceTests::closeDuringLoadAndOldMenu()
+QINFO  : WorkspaceTests::displayEnvelopeKeepsExtremaAndOriginal() one million points -> 4796 display points in 563 ms
+PASS   : WorkspaceTests::displayEnvelopeKeepsExtremaAndOriginal()
+PASS   : WorkspaceTests::largePlotPreparationAndRawExport()
+PASS   : WorkspaceTests::gridAggregationAndCancellation()
+PASS   : WorkspaceTests::advancedStyleAndDynamicInspector()
+PASS   : WorkspaceTests::cleanupTestCase()
+Totals: 23 passed, 0 failed, 0 skipped, 0 blacklisted, 5738ms
+********* Finished testing of WorkspaceTests *********

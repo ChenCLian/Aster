@@ -128,13 +128,14 @@ CsvExportResult exportDataCsv(const DataRef &data, const QString &path,
                     checkpoint();
             }
             out << '\n';
-            for (const auto &row : d->rows)
+            for (qsizetype r = 0; r < d->rows.size(); ++r)
             {
+                const auto& row = d->rows[r];
                 for (qsizetype i = 0; i < row.size(); ++i)
                 {
                     if (i)
                         out << ',';
-                    out << row[i];
+                    if (d->isDefined(r, i)) out << row[i];
                     tick();
                 }
                 out << '\n';

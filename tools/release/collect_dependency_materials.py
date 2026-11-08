@@ -24,6 +24,15 @@ from dependency_providers import (brew_sources, debian_sources, qt_owners,
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def dependency_index(version, platform, names):
+    urls = '\n'.join(f'- [{name}](https://github.com/ChenCLian/Aster/releases/download/v{version}/{name})'
+                     for name in sorted(names))
+    return (f'# Aster {version} dependency sources ({platform})\n\n'
+            f'Source archives and build records for this package:\n\n{urls}\n\n'
+            'Project source: see SOURCE_CODE.md. Third-party notices: licenses/dependencies/.\n'
+            'La2004/La2010 redistribution is a separate, unresolved data review.\n')
+
+
 def supplement(collection, path, package, owners):
     """Explicit exact-version additions for nonstandard installations.
 
@@ -101,7 +110,7 @@ def finish(collection, package, owners, binaries, install=True):
               'Keep the original dependency source filenames, especially the files referenced by Debian .dsc records.',
               'The records ZIP contains licenses, source URLs/checksums, build recipes and the staged binary inventory.',
               'Use the build receipt/recipe to apply patches before rebuilding a dependency.',
-              'Binary fingerprints are captured before macOS signing; final program archives have their own SHA-256 files.', '']
+              'Binary fingerprints are captured before macOS signing; source checksums remain in DEPENDENCIES.json.', '']
     (collection.records / 'README.md').write_text('\n'.join(lines), encoding='utf-8')
     if collection.errors or collection.plan_only:
         # Never write publishable manifests/notices into the application on failure.
@@ -122,12 +131,7 @@ def finish(collection, package, owners, binaries, install=True):
                 archive.write(path, path.relative_to(collection.records).as_posix())
     temporary.replace(collection.assets / records_name)
     names.append(records_name)
-    urls = '\n'.join(f'- [{name}](https://github.com/ChenCLian/Aster/releases/download/v{collection.version}/{name})'
-                     for name in sorted(names))
-    index = (f'# Aster {collection.version} dependency sources ({collection.platform})\n\n'
-             f'Source archives and build records for this package:\n\n{urls}\n\n'
-             'Project source: see SOURCE_CODE.md. Third-party notices: licenses/dependencies/.\n'
-             'La2004/La2010 redistribution is a separate, unresolved data review.\n')
+    index = dependency_index(collection.version, collection.platform, names)
     (collection.output / 'SOURCE_DEPENDENCIES.md').write_text(index, encoding='utf-8')
     if install:
         # Called before macOS signing. Never patch an already signed .app here.
@@ -137,6 +141,8 @@ def finish(collection, package, owners, binaries, install=True):
         shutil.copytree(collection.licenses, target)
         shutil.copy2(collection.records / 'DEPENDENCIES.json', target / 'DEPENDENCIES.json')
         shutil.copy2(collection.output / 'SOURCE_DEPENDENCIES.md', package / 'SOURCE_DEPENDENCIES.md')
+        if collection.platform == 'windows-x64':
+            (package / 'DEPENDENCY_MATERIALS_PENDING.txt').unlink(missing_ok=True)
     return 0
 
 
@@ -166,6 +172,10 @@ def main(argv=None):
         parser.error('Use an output outside the source tree or below dist/')
     if args.platform.startswith('windows') and not args.vcpkg_prefix:
         parser.error('--vcpkg-prefix is required for the Windows provider')
+    if args.platform == 'windows-x64' and not args.no_install and not args.plan_only:
+        (package / 'DEPENDENCY_MATERIALS_PENDING.txt').write_text(
+            'Dependency collection is incomplete. Do not publish this folder.\n'
+            'Complete collect_dependency_materials.py successfully before publishing.\n', encoding='utf-8')
     # Source caches survive retries, but generated records/assets must not retain
     # stale components after a dependency was removed or downgraded.
     output.mkdir(parents=True, exist_ok=True)

@@ -4,9 +4,9 @@
 
 [使用手册](../USER_GUIDE.md) · [科学方法](../methods/README.md) · [English](task_parameters_en.md)
 
-本参考对应 Aster 1.1.1 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
+本参考对应 Aster 1.2.0-beta.5 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
 
-缺少中文的条目使用英文。参数值和输出标识保留程序中的原始名称。
+选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。
 
 ## 目录
 
@@ -18,6 +18,7 @@
 - [排序与去重](#m-clean_series)
 - [COCO 蒙特卡洛检验](#m-coco_monte_carlo)
 - [COCO 固定目标扫描](#m-coco_scan)
+- [Welch 交叉谱分析](#m-cross_spectrum)
 - [连续小波分析](#m-cwt)
 - [峰谷逐周期赋龄](#m-cycle_age_model)
 - [数据库热图](#m-database_grid)
@@ -107,18 +108,18 @@ Y′ = 缩放系数 × Y + 偏移量；负数会反转 Y 的符号，X 不变。
 
 与普通文件导入使用相同解析器，支持自动、逗号、制表符、空白；忽略空行和 # 注释。
 
-默认值: ` auto `
+默认值: 自动检测 (` auto `)
 
-可选值: ` auto `, ` comma `, ` tab `, ` whitespace `
+可选值: 自动检测 (` auto `), 逗号 (` comma `), 制表符 (` tab `), 空白字符 (` whitespace `)
 
 <a id="m-apply_age_model-p-chrono_header"></a>
 ### 表头
 
 自动根据所选两列判断首行。显式有表头会消耗首行，无表头则把首行当数据；无效数值行报错，不自动跳过。
 
-默认值: ` auto `
+默认值: 自动识别 (` auto `)
 
-可选值: ` auto `, ` yes `, ` no `
+可选值: 自动识别 (` auto `), 有表头 (` yes `), 无表头 (` no `)
 
 <a id="m-apply_age_model-p-chrono_depth_column"></a>
 ### 深度列（从 1 开始）
@@ -161,9 +162,9 @@ Y′ = 缩放系数 × Y + 偏移量；负数会反转 Y 的符号，X 不变。
 
 只记录年龄所依附的基准，不自动移动零点。BP1950 为距 1950 年，J2000 为距 2000 年，relative 为自定相对年龄。年龄必须随深度增大；未声明时不当作距今年龄。
 
-默认值: ` unspecified `
+默认值: 未声明 (` unspecified `)
 
-可选值: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+可选值: 未声明 (` unspecified `), 距 1950 年（BP） (` BP1950 `), 距 2000 年（J2000） (` J2000 `), 自定相对年龄 (` relative `)
 
 <a id="m-apply_age_model-p-chrono_model_depth_unit"></a>
 ### 控制表深度单位
@@ -179,9 +180,9 @@ Y′ = 缩放系数 × Y + 偏移量；负数会反转 Y 的符号，X 不变。
 
 默认超范围报错，不删除数据。只有明确选择“线性外推”才用首末区间斜率延长模型，并报告外推点数。转换后不自动重采样。
 
-默认值: ` reject `
+默认值: 超范围报错 (` reject `)
 
-可选值: ` reject `, ` linear `
+可选值: 超范围报错 (` reject `), 允许线性外推 (` linear `)
 
 输出: ` aged_series `, ` age_model `, ` age_intervals `
 
@@ -196,9 +197,9 @@ AR1 零假设下的全局检验，名义水平 5%；覆盖全部正频率。要�
 
 标准精度使用 199 次分析模拟；精细精度使用 999 次，耗时更长。参数筛选使用 999 次模拟。
 
-默认值: ` standard `
+默认值: 标准（199 次分析模拟） (` standard `)
 
-可选值: ` standard `, ` fine `
+可选值: 标准（199 次分析模拟） (` standard `), 精细（999 次，耗时更长） (` fine `)
 
 <a id="m-ar1_global-p-ar1_seed"></a>
 ### 参考模拟随机种子
@@ -297,9 +298,9 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 重复指 X 完全相同，而不是 Y 相同。平均会合并对应 Y；首个/末个按原始输入顺序确定。
 
-默认值: ` average `
+默认值: 取平均值 (` average `)
 
-可选值: ` average `, ` first `, ` last `, ` error `
+可选值: 取平均值 (` average `), 保留首个 Y (` first `), 保留末个 Y (` last `), 报错 (` error `)
 
 输出: ` series `
 
@@ -323,9 +324,9 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 默认手动输入周期。可选 Waltham 模型中点；固定选取 E405、E124、E95、倾角及 P1、P2、P4。不是直接载入 La2004 时间序列。
 
-默认值: ` manual `
+默认值: 手动周期 (` manual `)
 
-可选值: ` manual `, ` waltham_midpoint `
+可选值: 手动周期 (` manual `), Waltham 模型中点 (` waltham_midpoint `)
 
 <a id="m-coco_monte_carlo-p-coco_periods"></a>
 ### 周期列表（ka）
@@ -404,18 +405,18 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 默认仅去均值；可选择不处理或线性去趋势，对数据及目标基函数使用相同规则。不去除红噪声背景，不隐式调用 LOWESS。
 
-默认值: ` mean `
+默认值: 仅去均值 (` mean `)
 
-可选值: ` none `, ` mean `, ` linear `
+可选值: 不去趋势 (` none `), 仅去均值 (` mean `), 线性去趋势 (` linear `)
 
 <a id="m-coco_monte_carlo-p-coco_null"></a>
 ### 参考模型
 
 默认固定参数 Gaussian AR(1)，ρ=0 为白噪声。随机谱峰为文献参考模型；不应将其 p 值当作任意时间序列的误报率保证。
 
-默认值: ` fixed_ar1 `
+默认值: 固定参数 AR(1) (` fixed_ar1 `)
 
-可选值: ` fixed_ar1 `, ` random_peaks `
+可选值: 固定参数 AR(1) (` fixed_ar1 `), 随机谱峰（参考模型） (` random_peaks `)
 
 <a id="m-coco_monte_carlo-p-coco_rho"></a>
 ### AR(1) 系数 ρ
@@ -431,7 +432,7 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 <a id="m-coco_monte_carlo-p-coco_null_peaks"></a>
 ### 参考峰数
 
-0：统计观测周期图的严格局部峰（不含 DC/Nyquist）；或手动指定。随机位置和高度，峰宽为 2 倍 Rayleigh。未扣除红噪声，不等同于 Acycle 的全部选项。
+0：统计观测周期图的严格局部峰，不含零频率和奈奎斯特频率；也可手动指定峰数。模拟峰的位置和高度随机，峰宽为 2 倍 Rayleigh 频率分辨率；不扣除红噪声背景。
 
 默认值: ` 0 `
 
@@ -488,9 +489,9 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 默认手动输入周期。可选 Waltham 模型中点；固定选取 E405、E124、E95、倾角及 P1、P2、P4。不是直接载入 La2004 时间序列。
 
-默认值: ` manual `
+默认值: 手动周期 (` manual `)
 
-可选值: ` manual `, ` waltham_midpoint `
+可选值: 手动周期 (` manual `), Waltham 模型中点 (` waltham_midpoint `)
 
 <a id="m-coco_scan-p-coco_periods"></a>
 ### 周期列表（ka）
@@ -569,11 +570,64 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 
 默认仅去均值；可选择不处理或线性去趋势，对数据及目标基函数使用相同规则。不去除红噪声背景，不隐式调用 LOWESS。
 
-默认值: ` mean `
+默认值: 仅去均值 (` mean `)
 
-可选值: ` none `, ` mean `, ` linear `
+可选值: 不去趋势 (` none `), 仅去均值 (` mean `), 线性去趋势 (` linear `)
 
 输出: ` correlation `, ` scan_diagnostics `, ` best_observed `, ` best_target `, ` target_periods `
+
+
+<a id="m-cross_spectrum"></a>
+## Welch 交叉谱分析
+
+对明确配对的两条等间距序列估计交叉谱、平方相干度和相位；来源可为同工作区的不同普通节点。相位采用 conj(A) × B，沿数值递增的 X 轴解释；不提供显著性阈值。
+
+<a id="m-cross_spectrum-p-psd_window"></a>
+### 每段点数
+
+每段样本点数。至少需要两个完整分段；不自动缩短段长。
+
+默认值: ` 256 `
+
+范围: ` 8 ≤ psd_window ≤ 262144 `
+
+<a id="m-cross_spectrum-p-psd_overlap"></a>
+### 重叠点数
+
+相邻段重叠的样本点数，必须小于段长。
+
+默认值: ` 128 `
+
+范围: ` 0 ≤ psd_overlap ≤ 262143 `
+
+<a id="m-cross_spectrum-p-psd_nfft"></a>
+### FFT 点数
+
+0 使用段长。指定值须不小于段长；补零不增加原始频率分辨能力。
+
+默认值: ` 0 `
+
+范围: ` 0 ≤ psd_nfft ≤ 262144 `
+
+<a id="m-cross_spectrum-p-psd_taper"></a>
+### 窗函数
+
+周期 Hann 窗或矩形窗；两条序列使用相同窗和密度归一化。
+
+默认值: 周期 Hann 窗 (` hann `)
+
+可选值: 周期 Hann 窗 (` hann `), 矩形窗 (` rectangular `)
+
+<a id="m-cross_spectrum-p-psd_trend"></a>
+### 段内去趋势
+
+每个分段分别去均值、去线性趋势或不去趋势。 矩形窗去均值或线性去趋势时，零频点的相干度和相位未定义。
+
+默认值: 去均值 (` mean `)
+
+可选值: 不去趋势 (` none `), 去均值 (` mean `), 去线性趋势 (` linear `)
+
+输出: ` cross_spectrum `
 
 
 <a id="m-cwt"></a>
@@ -584,20 +638,20 @@ X/Y 成对按 X 升序排列，按指定规则合并重复 X。不重采样。
 <a id="m-cwt-p-method"></a>
 ### 小波计算约定
 
-Acycle 约定显示方差归一化的尺度校正功率；Torrence–Compo 约定显示原始小波功率。两者的数值含义不同。
+默认“方差归一化与尺度校正”：将原始小波功率除以输入样本方差和小波尺度；“原始功率”：显示小波系数模的平方。两种约定的尺度范围和 AR(1) 背景估计也不同；切换后将重新计算。
 
-默认值: ` acycle_cwt `
+默认值: 方差归一化与尺度校正 (` acycle_cwt `)
 
-可选值: ` acycle_cwt `, ` torrence_compo `
+可选值: 方差归一化与尺度校正 (` acycle_cwt `), 原始功率（Torrence–Compo） (` torrence_compo `)
 
 <a id="m-cwt-p-mother"></a>
 ### 母小波
 
 Morlet、Paul 或 DOG 母小波；各自的尺度—周期换算和影响锥约定不同。
 
-默认值: ` morlet `
+默认值: Morlet 小波 (` morlet `)
 
-可选值: ` morlet `, ` paul `, ` dog `
+可选值: Morlet 小波 (` morlet `), Paul 小波 (` paul `), 高斯导数小波（DOG） (` dog `)
 
 <a id="m-cwt-p-parameter"></a>
 ### 小波参数
@@ -655,18 +709,18 @@ Morlet 的频率参数须不小于 5；Paul 使用整数阶数；DOG 使用偶�
 
 只记录年龄所依附的基准，不自动移动零点。BP1950 为距 1950 年，J2000 为距 2000 年，relative 为自定相对年龄。年龄必须随深度增大；未声明时不当作距今年龄。
 
-默认值: ` unspecified `
+默认值: 未声明 (` unspecified `)
 
-可选值: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+可选值: 未声明 (` unspecified `), 距 1950 年（BP） (` BP1950 `), 距 2000 年（J2000） (` J2000 `), 自定相对年龄 (` relative `)
 
 <a id="m-cycle_age_model-p-cycle_period_source"></a>
 ### 周期来源
 
 默认手动输入；模型中点取所选 Waltham 周期包络的中点，并从 ka 换算为年龄单位。它不是实测周期。
 
-默认值: ` manual `
+默认值: 手动周期 (` manual `)
 
-可选值: ` manual `, ` model_midpoint `
+可选值: 手动周期 (` manual `), 目标模型中点 (` model_midpoint `)
 
 <a id="m-cycle_age_model-p-cycle_period"></a>
 ### 周期长度
@@ -695,9 +749,9 @@ Morlet 的频率参数须不小于 5；Paul 使用整数阶数；DOG 使用偶�
 
 地轴倾角和四个气候岁差分量随年龄变化；五个偏心率分量采用论文表 1 的固定频率包络近似。
 
-默认值: ` obliquity `
+默认值: 地轴倾角 (` obliquity `)
 
-可选值: ` obliquity `, ` p1 `, ` p2 `, ` p3 `, ` p4 `, ` e405 `, ` e95 `, ` e124 `, ` e99 `, ` e131 `
+可选值: 地轴倾角 (` obliquity `), 气候岁差 P1 (` p1 `), 气候岁差 P2 (` p2 `), 气候岁差 P3 (` p3 `), 气候岁差 P4 (` p4 `), 长偏心率（约 405 ka） (` e405 `), 偏心率（约 95 ka） (` e95 `), 偏心率（约 124 ka） (` e124 `), 偏心率（约 99 ka） (` e99 `), 偏心率（约 131 ka） (` e131 `)
 
 显示条件: ` cycle_period_source ` = ` model_midpoint `
 
@@ -706,9 +760,9 @@ Morlet 的频率参数须不小于 5；Paul 使用整数阶数；DOG 使用偶�
 
 选择适当信号的峰或谷，需要时先显式滤波。平台峰谷只计一次，取中间样点（偶数点平台取左中点）；端点不计入。
 
-默认值: ` peak `
+默认值: 波峰 (` peak `)
 
-可选值: ` peak `, ` trough `
+可选值: 波峰 (` peak `), 波谷 (` trough `)
 
 <a id="m-cycle_age_model-p-cycle_min_relief"></a>
 ### 最小局部起伏
@@ -731,11 +785,11 @@ Morlet 的频率参数须不小于 5；Paul 使用整数阶数；DOG 使用偶�
 <a id="m-cycle_age_model-p-cycle_first_age_mode"></a>
 ### 首个标记年龄
 
-默认一个完整周期，与 Acycle Build Age Model 一致。有定年锚点时可明确指定首个标记的绝对或相对年龄。
+默认将首个标记赋龄为一个完整周期。有定年锚点时，可选择“指定年龄”，填写首个标记的绝对或相对年龄。
 
-默认值: ` one_period `
+默认值: 一个完整周期 (` one_period `)
 
-可选值: ` one_period `, ` specified `
+可选值: 一个完整周期 (` one_period `), 指定年龄 (` specified `)
 
 <a id="m-cycle_age_model-p-cycle_first_age"></a>
 ### 指定首点年龄
@@ -841,9 +895,9 @@ LOWESS 邻域占样本点数的比例，不是 X 轴上的物理长度。
 
 La2010 原始间隔 1 ka；ZB 原始间隔 1.6 ka。此任务只输出偏心率，不混入其他解的倾角或岁差。La2010 约 50 Ma、ZB 约 66 Ma 以前需特别注意相位不确定性。
 
-默认值: ` la2010a `
+默认值: La2010a (` la2010a `)
 
-可选值: ` la2010a `, ` la2010b `, ` la2010c `, ` la2010d `, ` zb18a `, ` zb20a `, ` zb20b `, ` zb20c `, ` zb20d `
+可选值: La2010a (` la2010a `), La2010b (` la2010b `), La2010c (` la2010c `), La2010d (` la2010d `), ZB18a (` zb18a `), ZB20a (` zb20a `), ZB20b (` zb20b `), ZB20c (` zb20c `), ZB20d (` zb20d `)
 
 <a id="m-eccentricity_source-p-orbit_start_ka"></a>
 ### 起始年龄（ka）
@@ -956,9 +1010,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 默认手动输入周期。可选 Waltham 模型中点；固定选取 E405、E124、E95、倾角及 P1、P2、P4。不是直接载入 La2004 时间序列。
 
-默认值: ` manual `
+默认值: 手动周期 (` manual `)
 
-可选值: ` manual `, ` waltham_midpoint `
+可选值: 手动周期 (` manual `), Waltham 模型中点 (` waltham_midpoint `)
 
 <a id="m-evolution_coco-p-coco_periods"></a>
 ### 周期列表（ka）
@@ -1037,9 +1091,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 默认仅去均值；可选择不处理或线性去趋势，对数据及目标基函数使用相同规则。不去除红噪声背景，不隐式调用 LOWESS。
 
-默认值: ` mean `
+默认值: 仅去均值 (` mean `)
 
-可选值: ` none `, ` mean `, ` linear `
+可选值: 不去趋势 (` none `), 仅去均值 (` mean `), 线性去趋势 (` linear `)
 
 <a id="m-evolution_coco-p-ecoco_window"></a>
 ### 窗口点数
@@ -1099,9 +1153,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 每个窗口独立去均值或去线性趋势，然后估计功率谱。
 
-默认值: ` mean `
+默认值: 去均值 (` mean `)
 
-可选值: ` mean `, ` linear `
+可选值: 去均值 (` mean `), 去线性趋势 (` linear `)
 
 <a id="m-evolution_fft-p-evo_frequency_ratio"></a>
 ### 频率上限比例
@@ -1117,9 +1171,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 周期 Hann 窗或矩形窗；按窗函数平方和归一化，保留功率谱密度单位。
 
-默认值: ` hann `
+默认值: 周期 Hann 窗 (` hann `)
 
-可选值: ` hann `, ` rectangular `
+可选值: 周期 Hann 窗 (` hann `), 矩形窗 (` rectangular `)
 
 输出: ` power_map `, ` mean_spectrum `
 
@@ -1161,9 +1215,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 每个窗口独立去均值或去线性趋势，然后估计功率谱。
 
-默认值: ` mean `
+默认值: 去均值 (` mean `)
 
-可选值: ` mean `, ` linear `
+可选值: 去均值 (` mean `), 去线性趋势 (` linear `)
 
 <a id="m-evolution_mtm-p-evo_frequency_ratio"></a>
 ### 频率上限比例
@@ -1205,18 +1259,18 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 用窗函数平方和归一化为单边物理功率谱密度；默认周期 Hann 窗。
 
-默认值: ` hann `
+默认值: 周期 Hann 窗 (` hann `)
 
-可选值: ` hann `, ` rectangular `
+可选值: 周期 Hann 窗 (` hann `), 矩形窗 (` rectangular `)
 
 <a id="m-fft_spectrum-p-psd_trend"></a>
 ### 段内去趋势
 
 FFT 对整段、Welch 对每段独立去均值或去线性趋势，再估计谱。
 
-默认值: ` mean `
+默认值: 去均值 (` mean `)
 
-可选值: ` mean `, ` linear `
+可选值: 去均值 (` mean `), 去线性趋势 (` linear `)
 
 输出: ` spectrum `
 
@@ -1233,7 +1287,7 @@ FFT 对整段、Welch 对每段独立去均值或去线性趋势，再估计谱�
 
 选择列之间的分隔符，或自动检测。文件读取选项在输入数据区逐文件设置。
 
-可选值: ` auto `, ` comma `, ` tab `, ` whitespace `
+可选值: 自动检测 (` auto `), 逗号 (` comma `), 制表符 (` tab `), 空白字符 (` whitespace `)
 
 <a id="m-file_source-p-header"></a>
 ### 首行是列名
@@ -1368,9 +1422,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 可选太阳黄经，或使用公历月长、无闰日的365格日历。365格对应365.24219876个24小时日，春分固定在3月21日正午；不是历史公历逐年还原。
 
-默认值: ` solar_longitude `
+默认值: 太阳黄经 (` solar_longitude `)
 
-可选值: ` solar_longitude `, ` calendar_365 `
+可选值: 太阳黄经 (` solar_longitude `), 月日 · 固定365日历 (` calendar_365 `)
 
 <a id="m-insolation_map-p-month_start"></a>
 ### 起始月份
@@ -1490,9 +1544,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 可选太阳黄经，或使用公历月长、无闰日的365格日历。365格对应365.24219876个24小时日，春分固定在3月21日正午；不是历史公历逐年还原。
 
-默认值: ` solar_longitude `
+默认值: 太阳黄经 (` solar_longitude `)
 
-可选值: ` solar_longitude `, ` calendar_365 `
+可选值: 太阳黄经 (` solar_longitude `), 月日 · 固定365日历 (` calendar_365 `)
 
 <a id="m-insolation_source-p-month_start"></a>
 ### 起始月份
@@ -1581,9 +1635,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 地轴倾角和四个气候岁差分量随年龄变化；五个偏心率分量采用论文表 1 的固定频率包络近似。
 
-默认值: ` obliquity `
+默认值: 地轴倾角 (` obliquity `)
 
-可选值: ` obliquity `, ` p1 `, ` p2 `, ` p3 `, ` p4 `, ` e405 `, ` e95 `, ` e124 `, ` e99 `, ` e131 `
+可选值: 地轴倾角 (` obliquity `), 气候岁差 P1 (` p1 `), 气候岁差 P2 (` p2 `), 气候岁差 P3 (` p3 `), 气候岁差 P4 (` p4 `), 长偏心率（约 405 ka） (` e405 `), 偏心率（约 95 ka） (` e95 `), 偏心率（约 124 ka） (` e124 `), 偏心率（约 99 ka） (` e99 `), 偏心率（约 131 ka） (` e131 `)
 
 输出: ` target_period `, ` lunar_distance `, ` earth_day `, ` mean_obliquity `, ` axial_precession `
 
@@ -1814,9 +1868,9 @@ https://doi.org/10.1594/PANGAEA.132801
 
 仅切换原档案中的年龄或复合深度列，不插值、不改变数值。示例来源、年代模型和缺失值数量保存在结果的“来源”页中。需要等间距输入的方法，请按需添加重采样。
 
-默认值: ` age `
+默认值: 发表的年龄模型 (` age `)
 
-可选值: ` age `, ` depth `
+可选值: 发表的年龄模型 (` age `), 复合深度 (` depth `)
 
 输出: ` series `
 
@@ -1833,9 +1887,9 @@ https://doi.org/10.1594/PANGAEA.60254
 
 仅切换原档案中的年龄或复合深度列，不插值、不改变数值。示例来源、年代模型和缺失值数量保存在结果的“来源”页中。需要等间距输入的方法，请按需添加重采样。
 
-默认值: ` age `
+默认值: 发表的年龄模型 (` age `)
 
-可选值: ` age `, ` depth `
+可选值: 发表的年龄模型 (` age `), 复合深度 (` depth `)
 
 输出: ` series `
 
@@ -1852,9 +1906,9 @@ https://doi.org/10.1594/PANGAEA.60254
 
 仅切换原档案中的年龄或复合深度列，不插值、不改变数值。示例来源、年代模型和缺失值数量保存在结果的“来源”页中。需要等间距输入的方法，请按需添加重采样。
 
-默认值: ` age `
+默认值: 发表的年龄模型 (` age `)
 
-可选值: ` age `, ` depth `
+可选值: 发表的年龄模型 (` age `), 复合深度 (` depth `)
 
 输出: ` series `
 
@@ -1871,9 +1925,9 @@ https://doi.org/10.1594/PANGAEA.743431
 
 仅切换原档案中的年龄或复合深度列，不插值、不改变数值。示例来源、年代模型和缺失值数量保存在结果的“来源”页中。需要等间距输入的方法，请按需添加重采样。
 
-默认值: ` age `
+默认值: 发表的年龄模型 (` age `)
 
-可选值: ` age `, ` depth `
+可选值: 发表的年龄模型 (` age `), 复合深度 (` depth `)
 
 输出: ` series `
 
@@ -1890,9 +1944,9 @@ https://doi.org/10.1594/PANGAEA.743431
 
 仅切换原档案中的年龄或复合深度列，不插值、不改变数值。示例来源、年代模型和缺失值数量保存在结果的“来源”页中。需要等间距输入的方法，请按需添加重采样。
 
-默认值: ` age `
+默认值: 发表的年龄模型 (` age `)
 
-可选值: ` age `, ` depth `
+可选值: 发表的年龄模型 (` age `), 复合深度 (` depth `)
 
 输出: ` series `
 
@@ -1984,18 +2038,18 @@ La2010 实际最后一行为 249999 ka；ZB 为 300000 ka；PT 为 100000 ka。�
 
 重复指 X 完全相同，而不是 Y 相同。平均会合并对应 Y；首个/末个按原始输入顺序确定。
 
-默认值: ` average `
+默认值: 取平均值 (` average `)
 
-可选值: ` average `, ` first `, ` last `, ` error `
+可选值: 取平均值 (` average `), 保留首个 Y (` first `), 保留末个 Y (` last `), 报错 (` error `)
 
 <a id="m-preprocess-p-spacing_mode"></a>
 ### 采样间隔方式
 
 不重采样，或按整理后 X 间隔的均值、中位数、最小值、最大值或自定值建立等间距网格。
 
-默认值: ` median `
+默认值: 中位间隔 (` median `)
 
-可选值: ` none `, ` mean `, ` median `, ` min `, ` max `, ` fixed `
+可选值: 不重采样 (` none `), 平均间隔 (` mean `), 中位间隔 (` median `), 最小间隔 (` min `), 最大间隔 (` max `), 指定间隔 (` fixed `)
 
 <a id="m-preprocess-p-spacing"></a>
 ### 固定间隔
@@ -2013,9 +2067,9 @@ La2010 实际最后一行为 249999 ka；ZB 为 300000 ka；PT 为 100000 ka。�
 
 默认线性插值。三次样条采用自然边界；Akima 为局部分段三次插值。不强制替换用户选项。
 
-默认值: ` linear `
+默认值: 线性 (` linear `)
 
-可选值: ` linear `, ` cubic `, ` akima `
+可选值: 线性 (` linear `), 自然三次样条 (` cubic `), Akima (` akima `)
 
 输出: ` series `
 
@@ -2118,9 +2172,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 可选太阳黄经，或使用公历月长、无闰日的365格日历。365格对应365.24219876个24小时日，春分固定在3月21日正午；不是历史公历逐年还原。
 
-默认值: ` solar_longitude `
+默认值: 太阳黄经 (` solar_longitude `)
 
-可选值: ` solar_longitude `, ` calendar_365 `
+可选值: 太阳黄经 (` solar_longitude `), 月日 · 固定365日历 (` calendar_365 `)
 
 <a id="m-seasonal_insolation-p-month_start"></a>
 ### 起始月份
@@ -2219,9 +2273,9 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 只记录年龄所依附的基准，不自动移动零点。BP1950 为距 1950 年，J2000 为距 2000 年，relative 为自定相对年龄。年龄必须随深度增大；未声明时不当作距今年龄。
 
-默认值: ` unspecified `
+默认值: 未声明 (` unspecified `)
 
-可选值: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+可选值: 未声明 (` unspecified `), 距 1950 年（BP） (` BP1950 `), 距 2000 年（J2000） (` J2000 `), 自定相对年龄 (` relative `)
 
 <a id="m-sedrate_to_age-p-chrono_rate_unit"></a>
 ### 输入速率单位
@@ -2244,11 +2298,11 @@ Y 必须是正沉积速率，默认 cm/ka。已有单位标记必须匹配；kyr
 <a id="m-sedrate_to_age-p-chrono_rate_rule"></a>
 ### 区间速率假设
 
-默认“左端恒定”：每段 Δt=Δz/r左，与 Acycle 常用约定一致，最后一个速率只验证、不使用。“线性变化”：假设速率随深度线性变化，对 1/r 精确积分，不使用平均速率的倒数。
+默认“左端恒定”：每段使用左端沉积速率计算年龄增量，最后一个速率只验证、不参与积分。“线性变化”：假设速率随深度线性变化，对速率倒数积分，不使用平均速率的倒数。
 
-默认值: ` left `
+默认值: 左端恒定 (` left `)
 
-可选值: ` left `, ` linear_rate `
+可选值: 左端恒定 (` left `), 随深度线性变化 (` linear_rate `)
 
 输出: ` age_model `
 
@@ -2263,9 +2317,9 @@ Y 必须是正沉积速率，默认 cm/ka。已有单位标记必须匹配；kyr
 
 保留区间内的样本，或删除区间内的样本；上下限端点均计入区间。
 
-默认值: ` keep `
+默认值: 保留区间 (` keep `)
 
-可选值: ` keep `, ` remove `
+可选值: 保留区间 (` keep `), 删除区间 (` remove `)
 
 <a id="m-select_interval-p-interval_lower"></a>
 ### X 下限
@@ -2359,9 +2413,9 @@ Y 减去均值并除以所选标准差，得到无量纲序列；常数序列不
 
 先减均值，再除以标准差。样本标准差使用 N−1，总体标准差使用 N；常量序列无法标准化。
 
-默认值: ` sample `
+默认值: 样本标准差（N − 1） (` sample `)
 
-可选值: ` sample `, ` population `
+可选值: 样本标准差（N − 1） (` sample `), 总体标准差（N） (` population `)
 
 输出: ` series `
 
@@ -2377,9 +2431,9 @@ Y 减去均值并除以所选标准差，得到无量纲序列；常数序列不
 
 ODP 1260 使用原始的 2679 个不等间距深度位置，仅借用采样位置，没有使用实测 Fe。自定义网格为均匀深度。
 
-默认值: ` odp1260 `
+默认值: ODP 1260 深度模板（2679 点） (` odp1260 `)
 
-可选值: ` odp1260 `, ` uniform `
+可选值: ODP 1260 深度模板（2679 点） (` odp1260 `), 自定义均匀深度 (` uniform `)
 
 <a id="m-synthetic_orbital-p-synthetic_start_m"></a>
 ### 起始深度（m）
@@ -2497,7 +2551,7 @@ clean 方差为 1，noise 方差为 1/SNR；最终 proxy 对两者之和再标�
 <a id="m-taner_filter-p-rolloff_exponent"></a>
 ### 衰减指数 q
 
-采用 Acycle corrected-bandpass-v2 约定的 c=10^q 参数，默认 q=12；不是 dB/倍频程。
+控制 Taner 滤波器的带边衰减参数 c=10^q，默认 q=12；不是 dB/倍频程。
 
 默认值: ` 12 `
 
@@ -2543,17 +2597,17 @@ clean 方差为 1，noise 方差为 1/SNR；最终 proxy 对两者之和再标�
 
 用窗函数平方和归一化为单边物理功率谱密度；默认周期 Hann 窗。
 
-默认值: ` hann `
+默认值: 周期 Hann 窗 (` hann `)
 
-可选值: ` hann `, ` rectangular `
+可选值: 周期 Hann 窗 (` hann `), 矩形窗 (` rectangular `)
 
 <a id="m-welch_spectrum-p-psd_trend"></a>
 ### 段内去趋势
 
 FFT 对整段、Welch 对每段独立去均值或去线性趋势，再估计谱。
 
-默认值: ` mean `
+默认值: 去均值 (` mean `)
 
-可选值: ` mean `, ` linear `
+可选值: 去均值 (` mean `), 去线性趋势 (` linear `)
 
 输出: ` spectrum `

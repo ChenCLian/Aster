@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "application/batch_runner.h"
+#include "application/joint_batch_runner.h"
 #include <algorithm>
 #include <deque>
 #include <future>
@@ -15,7 +16,7 @@ BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, i
                              CancellationToken cancellation) const
 {
     BatchResult batch;
-    if (!plan.validation.ok() || plan.requests.isEmpty() || concurrency < minimumConcurrency || concurrency > maximumConcurrency)
+    if (!plan.validation.ok() || (plan.requests.isEmpty() && plan.batches.isEmpty()) || concurrency < minimumConcurrency || concurrency > maximumConcurrency)
     {
         batch.error = QString("Invalid run plan or concurrency (expected %1..%2)")
                           .arg(minimumConcurrency).arg(maximumConcurrency);
@@ -149,6 +150,14 @@ BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, i
     }
     for (const auto &entry : collected)
         batch.items.push_back(entry.second);
+    for (const auto &joint : plan.batches)
+    {
+        if (cancellation.isCancelled()) break;
+        auto result = runJointBatch(joint, databasePath, concurrency, serialized, completed, cancellation);
+        batch.items += result.items;
+        batch.observerWarnings += result.observerWarnings;
+        if (!result.error.isEmpty()) { batch.error = result.error; break; }
+    }
     return batch;
 }
 } // namespace aster

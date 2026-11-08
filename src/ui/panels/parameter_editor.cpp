@@ -184,7 +184,7 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
     m_title->setText(methodLabel(d));
     if (n->input)
     {
-        m_description->setText(text("ui.input_port") + portLabel(n->input->output));
+        m_description->setText(d.pairedInput ? text("ui.paired_input_ports") : text("ui.input_port") + portLabel(n->input->output));
         m_description->show();
     }
     const auto help=methodHelp(d.key);
@@ -269,6 +269,9 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         if(!p.group.isEmpty() && p.group!=lastGroup) {
             auto* group=new QLabel(translatedLabel("parametergroup."+p.group,p.group));
             group->setObjectName("ParameterGroup");
+            group->setWordWrap(true);
+            group->setMinimumWidth(0);
+            group->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
             if (!lastGroup.isEmpty()) m_form->addSpacing(8);
             m_form->addWidget(group);lastGroup=p.group;
         }

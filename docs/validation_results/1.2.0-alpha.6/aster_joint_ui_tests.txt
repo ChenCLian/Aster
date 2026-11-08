@@ -1,0 +1,57 @@
+********* Start testing of JointUiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : JointUiTests::initTestCase()
+QINFO  : JointUiTests::provenanceGrowthBounded(4-pairs) {"database_bytes":155648,"elapsed_ms":19,"max_pair_provenance_bytes":3391,"pair_provenance_bytes":13564,"pairs":4}
+PASS   : JointUiTests::provenanceGrowthBounded(4-pairs)
+QINFO  : JointUiTests::provenanceGrowthBounded(64-pairs) {"database_bytes":1368064,"elapsed_ms":127,"max_pair_provenance_bytes":3403,"pair_provenance_bytes":217712,"pairs":64}
+PASS   : JointUiTests::provenanceGrowthBounded(64-pairs)
+QINFO  : JointUiTests::provenanceGrowthBounded(128-pairs) {"database_bytes":2748416,"elapsed_ms":179,"max_pair_provenance_bytes":3415,"pair_provenance_bytes":436240,"pairs":128}
+PASS   : JointUiTests::provenanceGrowthBounded(128-pairs)
+PASS   : JointUiTests::saveFailureRetry(source-serial)
+PASS   : JointUiTests::saveFailureRetry(source-parallel)
+PASS   : JointUiTests::saveFailureRetry(pair-serial)
+PASS   : JointUiTests::saveFailureRetry(pair-parallel)
+PASS   : JointUiTests::cancelDuringCalculation()
+PASS   : JointUiTests::realPairWorkflow()
+PASS   : JointUiTests::scopedManifestReplay()
+PASS   : JointUiTests::orbitalPairPorts()
+PASS   : JointUiTests::restoreLogMetricFromUndefinedCoherence()
+PASS   : JointUiTests::identitiesAndInvalidation()
+QINFO  : JointUiTests::mainWindowCompleteFlow() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 36 columns= 2 ok= true
+QINFO  : JointUiTests::mainWindowCompleteFlow() [Aster import] column_controls_ms= 0
+QINFO  : JointUiTests::mainWindowCompleteFlow() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 7 columns= 2 ok= true
+QINFO  : JointUiTests::mainWindowCompleteFlow() [Aster import] column_controls_ms= 0
+PASS   : JointUiTests::mainWindowCompleteFlow()
+PASS   : JointUiTests::missingAndDuplicatePairs()
+PASS   : JointUiTests::executionPersistenceAndFailureIsolation()
+PASS   : JointUiTests::cancelledRecords()
+PASS   : JointUiTests::retainedResultBudget()
+PASS   : JointUiTests::previewPortsAndSupersededCallbacks()
+QWARN  : JointUiTests::pairPanelScope() This plugin does not support propagateSizeHints()
+PASS   : JointUiTests::pairPanelScope()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support raise()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support grabbing the keyboard
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support raise()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(mouse) This plugin does not support grabbing the keyboard
+PASS   : JointUiTests::pairingDialogCommitsActualChoices(mouse)
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support raise()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support grabbing the keyboard
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support raise()
+QWARN  : JointUiTests::pairingDialogCommitsActualChoices(keyboard) This plugin does not support grabbing the keyboard
+PASS   : JointUiTests::pairingDialogCommitsActualChoices(keyboard)
+QWARN  : JointUiTests::largePairDialogCancelsEdits() This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::largePairDialogCancelsEdits() This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::largePairDialogCancelsEdits() This plugin does not support raise()
+QWARN  : JointUiTests::largePairDialogCancelsEdits() This plugin does not support grabbing the keyboard
+PASS   : JointUiTests::largePairDialogCancelsEdits()
+QWARN  : JointUiTests::downstreamPreviewAndPersistence() This plugin does not support propagateSizeHints()
+PASS   : JointUiTests::downstreamPreviewAndPersistence()
+PASS   : JointUiTests::plotMetricMasksAndExport()
+PASS   : JointUiTests::asyncCsvAndDatabaseReload()
+PASS   : JointUiTests::cleanupTestCase()
+Totals: 28 passed, 0 failed, 0 skipped, 0 blacklisted, 6081ms
+********* Finished testing of JointUiTests *********

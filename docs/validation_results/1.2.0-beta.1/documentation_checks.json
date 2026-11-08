@@ -1,0 +1,109 @@
+{
+  "version": "1.2.0-beta.1",
+  "date": "2026-11-07",
+  "status": "passed",
+  "scope": "Release-facing documentation, current version metadata, bilingual generated reference, embedded help and clean source export. No numerical algorithm, parameter limit, runtime UI implementation or payload-format changes.",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen"
+  },
+  "checks": {
+    "version_consistency": {
+      "passed": 2,
+      "log": "version-tests.log"
+    },
+    "reference_generator": {
+      "passed": 6,
+      "log": "generator-tests.log"
+    },
+    "notice_packaging": {
+      "passed": 2,
+      "scope": "Notice presence, byte preservation and resource inclusion; not a new legal or dependency-source completeness review.",
+      "log": "notice-tests.log"
+    },
+    "embedded_help": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "count_includes": "QtTest initTestCase and cleanupTestCase",
+      "coverage": [
+        "catalogue and parameter topics in both languages",
+        "local links and fallback",
+        "language switching and chapter reuse",
+        "reference layout",
+        "directory links",
+        "selected-node parameter help"
+      ],
+      "log": "embedded-help-tests.txt"
+    },
+    "parameter_reference": {
+      "tasks": 54,
+      "parameters": 233,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "log": "parameter-reference.log"
+    },
+    "application_version": {
+      "output": "Aster_Workspace 1.2.0-beta.1",
+      "log": "application-version.log"
+    },
+    "source_export": {
+      "status": "preflight contents verified; final delivery also verifies its generated manifest and ZIP integrity",
+      "tool": "tools/release/package_source.py",
+      "log": "source-export-preflight.log"
+    },
+    "links_resources_and_continuity": {
+      "markdown_files_checked": 60,
+      "relative_links_checked": 431,
+      "missing_links": [],
+      "unresolved_anchors": [],
+      "qrc_entries": 61,
+      "missing_qrc_entries": [],
+      "unchanged_from_alpha21": {
+        "src": true,
+        "resources": true,
+        "analysis_tests": true,
+        "batch_tests": true,
+        "cross_spectrum_tests": true,
+        "style_export_tests": true,
+        "ui_tests": true,
+        "workspace_tests": true,
+        "update_tests": true,
+        "licenses": true
+      },
+      "historical_evidence_files_preserved": 421,
+      "historical_evidence_byte_identical": true
+    }
+  },
+  "material_cleanup": {
+    "archived_reports": {
+      "docs/release_audit_1.2.0.md": "docs/history/release_audit_1.2.0_alpha10.md",
+      "docs/acceptance_1.2.0_alpha20.md": "docs/history/acceptance_1.2.0_alpha20.md"
+    },
+    "historical_report_changes": "Location, historical heading and relative links only; numerical results retain their original versions.",
+    "removed_intermediates": [
+      "tools/release/__pycache__",
+      "tools/help_reference/__pycache__",
+      "PACKAGE_MANIFEST.json"
+    ],
+    "manifest": "package_source.py generates a fresh PACKAGE_MANIFEST.json for every export; no old manifest is reused."
+  },
+  "numerical_or_stress_tests_rerun": false,
+  "retained_evidence": {
+    "readout": "../1.2.0-alpha.21/probe_checks.json",
+    "interactive_acceptance": "../1.2.0-alpha.20/acceptance_checks.json",
+    "full_regression": "../1.2.0-alpha.19/plot_layout_checks.json"
+  },
+  "native_acceptance_complete": false,
+  "maintainer_local_acceptance": "Temporarily passed as reported by the maintainer; no new platform-specific final-binary logs supplied.",
+  "limitations": [
+    "Offscreen help checks do not verify all native window systems.",
+    "Final binary packaging, dependency provenance, signing and publication checks remain platform-specific.",
+    "La2004/La2010 redistribution basis is still recorded as pending in docs/third_party.md."
+  ]
+}

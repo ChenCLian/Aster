@@ -8,10 +8,12 @@
 #include "ui/exports/figure_export_dialog.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/results/results_page.h"
+#include "ui/results/plot_recipe.h"
 #include "ui/common/source_provenance.h"
 #include "ui/results/record_directory_panel.h"
 #include <QStyle>
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
 #include "model/workflow_codec.h"
 #include "ui/panels/plot_style_editor.h"
 #include "ui/panels/result_export_panel.h"
@@ -22,6 +24,9 @@
 #include <QHBoxLayout>
 #include "ui/common/section_splitter.h"
 #include <QTableWidget>
+#include <QTableView>
+#include <QStandardItemModel>
+#include <QListWidget>
 #include <QHeaderView>
 #include <QComboBox>
 #include <QLineEdit>
@@ -41,23 +46,53 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QToolButton>
+#include <QShowEvent>
+#include <functional>
 #include <algorithm>
 namespace aster::ui
 {
+namespace
+{
+class ResultSectionSplitter final : public SectionSplitter
+{
+  public:
+    ResultSectionSplitter() : SectionSplitter(Qt::Vertical) {}
+    std::function<int()> preferredOutputHeight;
+  protected:
+    void showEvent(QShowEvent *event) override
+    {
+        SectionSplitter::showEvent(event);
+        if (!m_initialized && count() == 2 && preferredOutputHeight)
+        {
+            m_initialized = true;
+            const int available = height() - handleWidth();
+            // Show several output rows without making the plot a narrow strip
+            // on a short display. Subsequent sizes belong to the user.
+            const int bottom = std::min(preferredOutputHeight(),
+                                        std::max(220, std::min(available * 45 / 100,
+                                                               available - widget(0)->minimumHeight())));
+            setSizes({std::max(0, available - bottom), bottom});
+        }
+    }
+  private:
+    bool m_initialized = false;
+};
+}
+
 ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     : QWidget(p), m_registry(std::move(registry)), m_loader(new ResultLoader(this)),
       m_exporter(new ExportController(this)), m_figureExporter(new FigureExportController(this))
 {
     auto *outer = new QVBoxLayout(this);
-    outer->setContentsMargins(14, 12, 14, 10);
-    outer->setSpacing(10);
+    outer->setContentsMargins(10, 6, 10, 8);
+    outer->setSpacing(6);
     auto *bar = new QHBoxLayout;
     m_title = new QLabel(text("ui.results_workspace"));
     m_title->setObjectName("PageTitle");
     m_title->setTextFormat(Qt::PlainText);
     m_title->setMinimumWidth(0);
     m_title->setWordWrap(true);
-    m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     bar->addWidget(m_title, 1);
     auto *reload = new QPushButton(text("ui.refresh"));
     bar->addWidget(reload);
@@ -85,15 +120,18 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
             m_workspace->forgetRecord(QFileInfo(m_path).absoluteFilePath(), it.key());
         if (records.contains(m_recordId) || records.contains(m_requestedRecordId))
         {
+            emit recordChanging();
+            m_checked.clear(); m_outputModel->removeRows(0, m_outputModel->rowCount());
             m_loader->invalidate(); m_record.reset(); m_recordId = m_requestedRecordId = 0;
-            m_nodeIds.clear(); m_steps->setRowCount(0); m_ports->clear(); m_details->clear();
-            m_stepNotice->hide(); m_errorDetailsButton->hide(); m_focusReference = {};
+            m_nodeIds.clear(); m_primaryPorts.clear();
+            m_steps->setRowCount(0); m_ports->clear(); m_details->clear();
+            m_stepNotice->hide(); m_errorDetailsButton->hide();
             m_selectedNode = {}; m_title->setText(text("ui.results_workspace"));
             updateOutputActions();
             syncPlotSelection(m_workspace->currentReference());
         }
     });
-    auto *center = new SectionSplitter(Qt::Vertical);
+    auto *center = new ResultSectionSplitter;
     center->setChildrenCollapsible(false);
     center->setObjectName("plotStepsSplitter");
     auto *chart = new QWidget;
@@ -101,14 +139,16 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     chart->setProperty("panelRole", "plot");
     chart->setMinimumSize(260, 220);
     auto *cl = new QVBoxLayout(chart);
-    cl->setContentsMargins(14, 10, 12, 8);
+    cl->setContentsMargins(10, 6, 10, 6);
     cl->setSpacing(6);
     auto *chartBar = new QHBoxLayout;
     m_subtitle = new QLabel(text("ui.plots_and_numerical_output"));
     m_subtitle->setObjectName("SectionTitle");
     m_subtitle->setMinimumWidth(0);
     m_subtitle->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    chartBar->addWidget(m_subtitle, 1);
+    auto *figureTitle = new QLabel(text("ui.plot_pages"));
+    figureTitle->setObjectName("SectionTitle");
+    chartBar->addWidget(figureTitle, 1);
     auto *fit = new QPushButton(text("ui.fit"));
     auto *clear = new QPushButton(text("ui.clear"));
     clear->setObjectName("clearPlot");
@@ -142,60 +182,158 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
             });
     clear->setText(text("ui.remove_subplot"));
     connect(clear, &QPushButton::clicked, m_workspace, &PlotWorkspace::closeSubplot);
-    auto *addPlot = new QToolButton;
-    m_addPlot = addPlot;
-    addPlot->setText(text("ui.add_plot"));
-    addPlot->setPopupMode(QToolButton::InstantPopup);
-    addPlot->setObjectName("addResultPlot");
-    auto *addMenu = new QMenu(addPlot);
-    addPlot->setMenu(addMenu);
-    chartBar->addWidget(addPlot);
-    for (auto target : {PlotWorkspace::Target::Subplot, PlotWorkspace::Target::Page,
-                        PlotWorkspace::Target::Overlay})
-    {
-        auto label = target == PlotWorkspace::Target::Subplot ? text("ui.new_subplot")
-                     : target == PlotWorkspace::Target::Page
-                         ? text("ui.new_page")
-                         : text("ui.overlay_on_selected_subplot");
-        addMenu->addAction(label, this,
-                           [this, target]
-                           {
-                               m_workspace->open(
-                                   reference(m_selectedNode, m_ports->currentData().toString()),
-                                   target);
-                           });
-    }
     center->addWidget(chart);
     auto *stepsPanel = new QWidget;
     stepsPanel->setObjectName("Panel");
     stepsPanel->setProperty("panelRole", "activity");
-    stepsPanel->setMinimumHeight(120);
+    stepsPanel->setMinimumHeight(220);
     auto *sl = new QVBoxLayout(stepsPanel);
-    sl->setContentsMargins(12, 10, 12, 8);
+    sl->setContentsMargins(10, 6, 10, 6);
+    sl->setSpacing(4);
+    auto *browserHeader = new QHBoxLayout;
     auto *stepsTitle = new QLabel(text("ui.steps_in_this_execution"));
     stepsTitle->setObjectName("SectionTitle");
-    sl->addWidget(stepsTitle);
-    m_steps = new QTableWidget(0, 5);
+    browserHeader->addWidget(stepsTitle);
+    browserHeader->addStretch();
+    m_checkedButton = new QToolButton;
+    m_checkedButton->setObjectName("inspectCheckedOutputs");
+    m_checkedButton->setToolTip(text("ui.review_checked_help"));
+    browserHeader->addWidget(m_checkedButton);
+    auto *collapse = new QToolButton;
+    collapse->setObjectName("toggleResultOutputs");
+    collapse->setCheckable(true);
+    collapse->setChecked(true);
+    collapse->setText(text("ui.collapse_outputs"));
+    browserHeader->addWidget(collapse);
+    sl->addLayout(browserHeader);
+    auto *body = new QWidget;
+    auto *bodyLayout = new QVBoxLayout(body);
+    bodyLayout->setContentsMargins(0, 0, 0, 0);
+    bodyLayout->setSpacing(4);
+    auto *browser = new SectionSplitter(Qt::Horizontal);
+    browser->setObjectName("stepOutputSplitter");
+    browser->setChildrenCollapsible(false);
+    m_steps = new QTableWidget(0, 3);
     m_steps->setObjectName("resultSteps");
-    m_steps->setHorizontalHeaderLabels({text("ui.status"), text("ui.task"),
-                                        text("ui.outputs_input"), text("ui.plot"),
-                                        text("ui.export_csv_short")});
+    m_steps->setHorizontalHeaderLabels({text("ui.status"), text("ui.task"), text("ui.outputs_input")});
     m_steps->verticalHeader()->hide();
     m_steps->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_steps->setSelectionMode(QAbstractItemView::SingleSelection);
     m_steps->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_steps->setShowGrid(false);
-    m_steps->verticalHeader()->setDefaultSectionSize(48);
-    m_steps->setColumnWidth(0, 65);
-    m_steps->setColumnWidth(1, 145);
-    m_steps->setColumnWidth(3, 76);
-    m_steps->setColumnWidth(4, 100);
-    m_steps->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    sl->addWidget(m_steps, 1);
+    m_steps->setWordWrap(false);
+    m_steps->verticalHeader()->setDefaultSectionSize(32);
+    m_steps->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    m_steps->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    m_steps->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    m_steps->setMinimumWidth(180);
+    browser->addWidget(m_steps);
+    auto *outputsPanel = new QWidget;
+    auto *outputsLayout = new QVBoxLayout(outputsPanel);
+    outputsLayout->setSpacing(3);
+    outputsLayout->setContentsMargins(0, 0, 0, 0);
+    outputsLayout->addWidget(m_subtitle);
+    m_outputs = new QTableView;
+    m_outputs->setObjectName("resultOutputs");
+    m_outputModel = new QStandardItemModel(this);
+    m_outputModel->setHorizontalHeaderLabels({text("ui.output"), text("ui.output_kind")});
+    m_outputs->setModel(m_outputModel);
+    m_outputs->verticalHeader()->hide();
+    m_outputs->verticalHeader()->setDefaultSectionSize(30);
+    m_outputs->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_outputs->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_outputs->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_outputs->setShowGrid(false);
+    m_outputs->setWordWrap(false);
+    m_outputs->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_outputs->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    outputsLayout->addWidget(m_outputs, 1);
+    browser->addWidget(outputsPanel);
+    browser->setSizes({340, 440});
+    bodyLayout->addWidget(browser, 1);
+    auto *actions = new QHBoxLayout;
+    m_destination = new QLabel;
+    m_destination->setObjectName("plotDestination");
+    m_destination->setTextFormat(Qt::PlainText);
+    m_destination->setWordWrap(true);
+    m_destination->setMinimumWidth(0);
+    m_destination->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    actions->addWidget(m_destination, 1);
+    m_plotChecked = new QPushButton(text("ui.add_selected_subplots"));
+    m_plotChecked->setObjectName("plotCheckedOutputs");
+    actions->addWidget(m_plotChecked);
+    m_overlayChecked = new QPushButton(text("ui.overlay_selected"));
+    m_overlayChecked->setObjectName("overlayCheckedOutputs");
+    actions->addWidget(m_overlayChecked);
+    m_addPlot = new QToolButton;
+    m_addPlot->setObjectName("addResultPlot");
+    m_addPlot->setText(text("ui.more_plot_actions"));
+    m_addPlot->setPopupMode(QToolButton::InstantPopup);
+    auto *menu = new QMenu(m_addPlot);
+    configureMenu(menu);
+    m_pageAction = menu->addAction(text("ui.new_page"), this,
+        [this] { plotChecked(PlotWorkspace::Target::Page); });
+    m_replaceAction = menu->addAction(text("ui.replace_selected_subplot"), this,
+        [this] { plotChecked(PlotWorkspace::Target::Replace); });
+    menu->addAction(text("ui.plot_separately"), this,
+        [this] { plotChecked(PlotWorkspace::Target::Separate); });
+    m_addPlot->setMenu(menu);
+    actions->addWidget(m_addPlot);
+    bodyLayout->addLayout(actions);
+    sl->addWidget(body, 1);
+    connect(m_plotChecked, &QPushButton::clicked, this,
+        [this] { plotChecked(PlotWorkspace::Target::Subplot); });
+    connect(m_overlayChecked, &QPushButton::clicked, this,
+        [this] { plotChecked(PlotWorkspace::Target::Overlay); });
+    connect(m_checkedButton, &QToolButton::clicked, this, &ResultsPage::inspectChecked);
+    connect(collapse, &QToolButton::toggled, this,
+        [body, collapse, stepsPanel, center, browserHeader, sl](bool expanded) {
+        if (!expanded) center->setProperty("expandedOutputSizes", QVariant::fromValue(center->sizes()));
+        collapse->setText(text(expanded ? "ui.collapse_outputs" : "ui.expand_outputs"));
+        body->setVisible(expanded);
+        // Font metrics and theme padding, not a hard-coded 44 px: the latter
+        // clipped Chinese text at common Windows scaling/font settings.
+        const int collapsedHeight = browserHeader->sizeHint().height() +
+            sl->contentsMargins().top() + sl->contentsMargins().bottom();
+        stepsPanel->setMinimumHeight(expanded ? 220 : collapsedHeight);
+        stepsPanel->setMaximumHeight(expanded ? QWIDGETSIZE_MAX : collapsedHeight);
+        if (expanded) center->setSizes(center->property("expandedOutputSizes").value<QList<int>>());
+        else center->setSizes({std::max(0, center->height() - center->handleWidth() - collapsedHeight),
+                               collapsedHeight});
+    });
+    connect(m_outputModel, &QStandardItemModel::itemChanged, this, [this](QStandardItem *item) {
+        if (item->column() != 0) return;
+        const auto ref = item->data(Qt::UserRole).value<OutputReference>();
+        if (!ref.valid()) return;
+        if (item->checkState() == Qt::Checked) m_checked.insert(ref.key(), ref);
+        else m_checked.remove(ref.key());
+        updateOutputActions();
+    });
+    connect(m_outputs->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
+        [this](const QModelIndex &index) {
+            if (index.isValid() && m_ports)
+                m_ports->setCurrentIndex(m_ports->findData(m_outputModel->item(index.row(), 0)->data(Qt::UserRole).value<OutputReference>().port));
+        });
     center->addWidget(stepsPanel);
-    center->setSizes({580, 180});
+    center->preferredOutputHeight = [this, sl, browserHeader, bodyLayout, outputsLayout, actions] {
+        m_steps->ensurePolished(); m_outputs->ensurePolished();
+        const int rows = 5 * std::max(m_steps->verticalHeader()->defaultSectionSize(),
+                                      m_outputs->verticalHeader()->defaultSectionSize());
+        const int tables = std::max(m_steps->horizontalHeader()->sizeHint().height(),
+            m_subtitle->sizeHint().height() + outputsLayout->spacing() +
+            m_outputs->horizontalHeader()->sizeHint().height());
+        return sl->contentsMargins().top() + sl->contentsMargins().bottom() + sl->spacing() +
+            browserHeader->sizeHint().height() + bodyLayout->spacing() + actions->sizeHint().height() +
+            tables + rows + 2 * m_outputs->frameWidth() + 4;
+    };
+    center->setSizes({640, 340});
+    center->setStretchFactor(0, 1);
+    center->setStretchFactor(1, 0);
     m_splitter->addWidget(center);
-    connect(m_steps, &QTableWidget::cellClicked, this, [this](int row, int) { selectStep(row); });
+    connect(m_steps->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
+        [this](const QModelIndex &index) { if (index.isValid()) selectStep(index.row(), true); });
+    // Also reopen the default output when the already-current row is clicked.
+    connect(m_steps, &QTableWidget::clicked, this, [this](const QModelIndex &) { showPort(); });
     auto *right = new QWidget;
     right->setObjectName("Panel");
     right->setProperty("panelRole", "inspector");
@@ -240,9 +378,15 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_exportPanel = new ResultExportPanel;
     detailsTabs->addTab(m_exportPanel, text("ui.export_tab"));
     m_ports = m_exportPanel->ports();
-    connect(m_exportPanel, &ResultExportPanel::outputActivated, this, &ResultsPage::showPort);
+    
     connect(m_ports, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [this] { updateOutputActions(); });
+            [this] {
+                QSignalBlocker block(m_outputs->selectionModel());
+                for (int row = 0; row < m_outputModel->rowCount(); ++row)
+                    if (m_outputModel->item(row, 0)->data(Qt::UserRole).value<OutputReference>().port == m_ports->currentData().toString())
+                        m_outputs->setCurrentIndex(m_outputModel->index(row, 0));
+                updateOutputActions();
+            });
     connect(m_exportPanel, &ResultExportPanel::cancelRequested, this, &ResultsPage::cancelExports);
     connect(m_exporter, &ExportController::progressChanged, m_exportPanel,
             &ResultExportPanel::setProgress);
@@ -322,6 +466,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
                 if (ref.valid()) emit sourceRequested(ref);
             });
     auto *scroll = new QScrollArea;
+    scroll->setObjectName("resultSourceDetailsContainer");
     scroll->setWidgetResizable(true);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_details = new QLabel;
@@ -349,9 +494,6 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
         {
             if (auto *item = m_steps->item(i, 0))
                 item->setForeground(stateColor(m_record->run.nodes.value(m_nodeIds[i]).state));
-            if (auto *item = m_steps->item(i, 2))
-                if (item->data(Qt::UserRole).toBool())
-                    item->setBackground(themeColor("selection"));
         }
         const auto port = m_ports->currentData();
         selectStep(m_nodeIds.indexOf(m_selectedNode), false);
@@ -377,12 +519,17 @@ int ResultsPage::recordCount() const
 }
 void ResultsPage::setDatabase(const QString &p)
 {
+    emit recordChanging();
     m_loader->invalidate();
+    m_checked.clear();
+    m_outputModel->removeRows(0, m_outputModel->rowCount());
     m_path = p;
     m_record.reset();
     m_recordId = 0;
     m_requestedRecordId = 0;
+    m_defaultPlotOnLoad = false;
     m_nodeIds.clear();
+    m_primaryPorts.clear();
     m_steps->setRowCount(0);
     m_ports->clear();
     m_details->clear();
@@ -397,31 +544,6 @@ void ResultsPage::setDatabaseMutationsEnabled(bool enabled)
 {
     m_directory->setMutationsEnabled(enabled);
 }
-void ResultsPage::exportNode(NodeId id, QString port)
-{
-    if (!m_record || exportBusy())
-    {
-        emit message(text("ui.wait_for_the_current_export"));
-        return;
-    }
-    const auto ref = reference(id, port);
-    if (!ref.valid())
-        return;
-    const auto path =
-        QFileDialog::getSaveFileName(this, text("ui.export_node_values"),
-                                     QString("ID_%1_%2_%3.csv")
-                                         .arg(m_recordId)
-                                         .arg(id.toString(QUuid::WithoutBraces).left(8), port),
-                                     "CSV (*.csv)");
-    if (path.isEmpty())
-        return;
-    if (conflictsWithDatabase(path, {m_path}))
-    {
-        emit message(text("ui.cannot_overwrite_database"));
-        return;
-    }
-    m_exporter->startOutput(ref, path);
-}
 void ResultsPage::refresh(qint64 selected)
 {
     m_directory->refresh();
@@ -430,18 +552,24 @@ void ResultsPage::refresh(qint64 selected)
 }
 void ResultsPage::openRecord(qint64 id)
 {
+    emit recordChanging();
+    emit message({});
     m_stepNotice->hide();
-    m_focusReference = {};
+    m_checked.clear();
+    m_outputModel->removeRows(0, m_outputModel->rowCount());
     m_requestedRecordId = id;
     // Keep open plot pages while switching the result directory.
     m_ports->clear();
     m_steps->setRowCount(0);
     m_details->clear();
     m_nodeIds.clear();
+    m_primaryPorts.clear();
     m_selectedNode = {};
     m_record.reset();
     m_recordId = 0;
     m_directory->setCurrentRecord(id);
+    updateOutputActions();
+    m_defaultPlotOnLoad = true;
     m_loader->request(m_path, id, m_directory->filter());
 }
 void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result)
@@ -449,7 +577,7 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
     if (!result->ok())
     {
         // Loading a missing record must not destroy existing figures.
-        emit message(result->error);
+        emit message(translatedLabel(result->error, result->error));
         return;
     }
     m_record = std::move(result);
@@ -461,28 +589,31 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
                          .arg(m_record->displayName.isEmpty()
                                   ? QFileInfo(run.sourceLabel).fileName()
                                   : m_record->displayName));
+    QSignalBlocker stepBlock(m_steps->selectionModel());
     m_steps->setRowCount(definition.nodes.size());
     m_nodeIds.clear();
-    int preferred = 0;
+    m_primaryPorts.clear();
+    m_nodeMethods.clear();
+    int preferred = -1;
+    int fallback = 0;
     for (int i = 0; i < definition.nodes.size(); ++i)
     {
         const auto &n = definition.nodes[i];
         m_nodeIds.push_back(n.id);
+        m_nodeMethods.insert(n.id, n.method);
         const auto node = run.nodes.value(n.id);
         const auto *registration = m_registry.find(n.method);
+        if (registration) m_primaryPorts.insert(n.id, registration->descriptor.defaultOutput);
         auto *state = new QTableWidgetItem(stateLabel(node.state));
+        state->setToolTip(state->text());
         state->setForeground(stateColor(node.state));
         m_steps->setItem(i, 0, state);
         m_steps->setItem(i, 1,
                          new QTableWidgetItem(
                              QString::number(i + 1) + " · " +
                              (registration ? methodLabel(registration->descriptor) : n.method)));
-        auto *detail = new QTableWidgetItem(
-            node.state == NodeState::Succeeded
-                ? QString::number(m_record->outputs.value(n.id).size()) + text("ui.outputs")
-                : resultError(node));
-        if(node.state==NodeState::Succeeded && node.report.contains("peak_count"))
-            detail->setText(detail->text()+QString(text("ui.detected_peaks_count")).arg(node.report["peak_count"].toInt()));
+        m_steps->item(i, 1)->setToolTip(m_steps->item(i, 1)->text());
+        auto *detail = new QTableWidgetItem(QString::number(m_record->outputs.value(n.id).size()));
         QString parentText = text("ui.source");
         if (n.input)
         {
@@ -492,92 +623,58 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
                                      .arg(j + 1)
                                      .arg(portLabel(n.input->output));
         }
+        if (!n.input && run.provenance.contains("batch_pair"))
+        {
+            const auto pair = run.provenance["batch_pair"].toObject();
+            QStringList inputs;
+            for (const auto &side : {"A", "B"})
+            {
+                const auto member = pair[side].toObject();
+                inputs << QString(side) + ": " + QFileInfo(member["label"].toString()).fileName() +
+                    " · " + portLabel(member["output"].toString());
+            }
+            parentText = inputs.join("\n");
+        }
         QStringList matches;
         for (const auto &peak : m_record->matchingPeaks)
             if (peak.node == n.id)
                 matches << QString::number(peak.frequency, 'g', 8) + " " + peak.unit;
-        detail->setText(detail->text() + "\n" + parentText);
+        detail->setToolTip(parentText);
         QStringList warnings;
         for (const auto &warning : node.warnings)
             warnings << translatedLabel(warning, warning);
-        detail->setToolTip(presentError(node).details + "\n" + warnings.join("\n") + "\n" +
+        detail->setToolTip(parentText + "\n" + presentError(node).details + "\n" + warnings.join("\n") + "\n" +
                            matches.join("\n"));
         if (!matches.isEmpty())
         {
             detail->setData(Qt::UserRole, true);
-            detail->setBackground(themeColor("selection"));
+            auto font = detail->font(); font.setBold(true); detail->setFont(font);
             detail->setText(detail->text() + text("ui.peak_match"));
         }
-        auto *plotButton = new QToolButton;
-        plotButton->setText(text("ui.plot"));
-        plotButton->setObjectName("plotNode_" + QString::number(i));
-        plotButton->setPopupMode(QToolButton::MenuButtonPopup);
-        auto *plotMenu = new QMenu(plotButton);
-        plotButton->setMenu(plotMenu);
-        connect(plotButton, &QToolButton::clicked, this, [this, i] { selectStep(i); });
-        auto *saveButton = new QToolButton;
-        saveButton->setText(text("ui.export_csv_short"));
-        saveButton->setToolTip(text("ui.export_node_values_database_results_are_already_saved"));
-        saveButton->setObjectName("saveNode_" + QString::number(i));
-        saveButton->setPopupMode(QToolButton::InstantPopup);
-        auto *saveMenu = new QMenu(saveButton);
-        saveButton->setMenu(saveMenu);
-        for (const auto &output : m_record->outputs.value(n.id))
-        {
-            const auto key = output.port;
-            const auto outputName = registration ? portLabel(registration->descriptor, key) : portLabel(key);
-            auto *outputMenu = plotMenu->addMenu(outputName);
-            for (auto target : {PlotWorkspace::Target::Current, PlotWorkspace::Target::Subplot,
-                                PlotWorkspace::Target::Page, PlotWorkspace::Target::Overlay})
-            {
-                QString label = target == PlotWorkspace::Target::Current
-                                    ? text("ui.current_subplot")
-                                : target == PlotWorkspace::Target::Subplot ? text("ui.new_subplot")
-                                : target == PlotWorkspace::Target::Page
-                                    ? text("ui.new_page")
-                                    : text("ui.overlay_on_selected_subplot");
-                outputMenu->addAction(label, this,
-                                      [this, i, key, target]
-                                      {
-                                          selectStep(i, false);
-                                          m_ports->setCurrentIndex(m_ports->findData(key));
-                                          auto ref = reference(m_selectedNode, key);
-                                          m_workspace->open(ref, target);
-                                      });
-            }
-            outputMenu->addSeparator();
-            outputMenu->addAction(text("ui.use_as_source"), this, [this, nodeId = n.id, key]
-                                  { emit sourceRequested(reference(nodeId, key)); });
-            saveMenu->addAction(outputName + " → CSV", this,
-                                [this, nodeId = n.id, key] { exportNode(nodeId, key); });
-        }
-        plotButton->setEnabled(!m_record->outputs.value(n.id).isEmpty());
-        saveButton->setEnabled(!m_record->outputs.value(n.id).isEmpty());
-        m_steps->setCellWidget(i, 3, plotButton);
-        m_steps->setCellWidget(i, 4, saveButton);
         m_steps->setItem(i, 2, detail);
-        if (n.method == "mtm" && node.state == NodeState::Succeeded)
-            preferred = i;
-    }
-    if (!m_nodeIds.isEmpty())
-    {
-        if (m_focusReference.valid() && m_focusReference.recordId == id)
+        const auto outputs = orderedOutputs(n.id);
+        if (node.state == NodeState::Succeeded && !outputs.isEmpty())
         {
-            auto focus = m_focusReference;
-            m_focusReference = {};
-            selectStep(m_nodeIds.indexOf(focus.nodeId), false);
-            m_ports->setCurrentIndex(m_ports->findData(focus.port));
+            fallback = i;
+            if (outputs.front().kind != "Table" || outputs.front().port == "cross_spectrum")
+                preferred = i;
         }
-        else
-            selectStep(preferred);
     }
+    const bool display = m_defaultPlotOnLoad;
+    m_defaultPlotOnLoad = false;
+    if (!m_nodeIds.isEmpty()) selectStep(preferred >= 0 ? preferred : fallback, display);
     emit recordLoaded(id);
 }
 void ResultsPage::selectStep(int row, bool display)
 {
     if (!m_record || row < 0 || row >= m_nodeIds.size())
         return;
-    m_steps->selectRow(row);
+    QSignalBlocker stepBlock(m_steps->selectionModel());
+    // currentRowChanged fires inside the view's mouse-selection transaction.
+    // Re-selecting here can merge partial rows with its still-pending selection.
+    if (m_steps->currentRow() != row)
+        m_steps->selectionModel()->setCurrentIndex(m_steps->model()->index(row, 1),
+            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     m_selectedNode = m_nodeIds[row];
     const auto &run = m_record->run;
     const auto node = run.nodes.value(m_selectedNode);
@@ -601,8 +698,10 @@ void ResultsPage::selectStep(int row, bool display)
         m_stepNotice->style()->polish(m_stepNotice);
     }
     m_subtitle->setText(registration ? methodLabel(registration->descriptor) : selected.method);
+    m_subtitle->setToolTip(m_subtitle->text());
+    QSignalBlocker portBlock(m_ports);
     m_ports->clear();
-    for (const auto &output : m_record->outputs.value(m_selectedNode))
+    for (const auto &output : orderedOutputs(m_selectedNode))
         m_ports->addItem(registration ? portLabel(registration->descriptor, output.port)
                                       : portLabel(output.port), output.port);
     if (registration)
@@ -611,6 +710,7 @@ void ResultsPage::selectStep(int row, bool display)
         if (i >= 0)
             m_ports->setCurrentIndex(i);
     }
+    rebuildOutputs();
     QString info = "<p><b>" + stateLabel(node.state).toHtmlEscaped() + "</b><br>" +
                    run.startedAt.toLocalTime().toString("yyyy-MM-dd hh:mm:ss") + "</p>";
     if (!node.error.isEmpty())
@@ -622,16 +722,17 @@ void ResultsPage::selectStep(int row, bool display)
     for (auto it = selected.parameters.begin(); it != selected.parameters.end(); ++it)
     {
         QString name = it.key();
+        QString value = it->isBool() ? text(it->toBool() ? "diagnostic.yes" : "diagnostic.no")
+                        : it->isDouble() ? QString::number(it->toDouble(), 'g', 10)
+                                         : it->toString();
         if (registration)
             for (const auto &p : registration->descriptor.parameters)
                 if (p.key == it.key())
                 {
-                    name = parameterLabel(p);
+                    name = parameterLabel(p, selected.method);
+                    if (!p.choices.isEmpty()) value = choiceLabel(p.key, it->toString());
                     break;
                 }
-        QString value = it->isBool()     ? (it->toBool() ? "true" : "false")
-                        : it->isDouble() ? QString::number(it->toDouble(), 'g', 10)
-                                         : it->toString();
         info += "<p>" + name.toHtmlEscaped() + "<br><b>" + value.toHtmlEscaped() + "</b></p>";
     }
     info += "<p>" + text("ui.source_f59a85") + run.sourceLabel.toHtmlEscaped() + "</p>";
@@ -647,6 +748,16 @@ void ResultsPage::selectStep(int row, bool display)
                     .toHtmlEscaped()
                     .replace("\n", "<br>") +
                 "</p>";
+    }
+    const auto pair = run.provenance["batch_pair"].toObject();
+    if (!pair.isEmpty())
+    {
+        for (const auto &side : {"A", "B"})
+        {
+            const auto member = pair[side].toObject();
+            info += "<p><b>" + QString(side) + "</b><br>" + member["label"].toString().toHtmlEscaped() +
+                "<br>" + portLabel(member["output"].toString()).toHtmlEscaped() + "</p>";
+        }
     }
     info += sourceProvenanceHtml(node.report);
     m_details->setText(info);
@@ -758,21 +869,12 @@ void ResultsPage::showErrorDetails()
                   qMin(520, available.height() * 9 / 10));
     dialog.exec();
 }
-void ResultsPage::syncPlotSelection(const OutputReference &ref)
+void ResultsPage::syncPlotSelection(const OutputReference &)
 {
-    if (!ref.valid() || ref.databasePath != QFileInfo(m_path).absoluteFilePath())
-        return;
-    if (m_record && m_recordId == ref.recordId)
-    {
-        selectStep(m_nodeIds.indexOf(ref.nodeId), false);
-        m_ports->setCurrentIndex(m_ports->findData(ref.port));
-    }
-    else
-    {
-        if (m_requestedRecordId != ref.recordId || m_record)
-            openRecord(ref.recordId);
-        m_focusReference = ref;
-    }
+    // Explicit target selection while metadata is loading takes precedence over
+    // a late automatic default plot. Checking outputs never changes the target.
+    m_defaultPlotOnLoad = false;
+    updateOutputActions();
 }
 OutputReference ResultsPage::reference(NodeId node, const QString &port) const
 {
@@ -780,13 +882,14 @@ OutputReference ResultsPage::reference(NodeId node, const QString &port) const
         return {};
     for (const auto &out : m_record->outputs.value(node))
         if (out.port == port)
-            return {QFileInfo(m_path).absoluteFilePath(),
-                    m_recordId,
-                    m_record->run.runId,
-                    node,
-                    port,
-                    out.kind};
+            return reference(node, out);
     return {};
+}
+OutputReference ResultsPage::reference(NodeId node, const OutputInfo &output) const
+{
+    if (!m_record) return {};
+    return {QFileInfo(m_path).absoluteFilePath(), m_recordId, m_record->run.runId,
+            node, output.port, output.kind, m_nodeMethods.value(node)};
 }
 OutputReference ResultsPage::selectedOutput() const
 {
@@ -797,6 +900,7 @@ void ResultsPage::updateOutputActions()
     const auto selected = selectedOutput();
     const auto plotted = m_workspace->currentReference();
     const bool hasFigure = m_plot && m_plot->hasPlot() && plotted.valid();
+    const bool emptyDestination = m_workspace->currentIsEmpty();
     const auto selectedLabel = m_record
         ? QString("ID %1 · %2").arg(m_recordId).arg(m_subtitle->text())
         : text("ui.select_step_for_export");
@@ -805,17 +909,127 @@ void ResultsPage::updateOutputActions()
         : text("ui.no_active_figure");
     m_plotTarget->setText(hasFigure
         ? QString("ID %1 · %2").arg(plotted.recordId).arg(portLabel(plotted.port))
-        : text("ui.no_active_figure"));
+        : text(emptyDestination ? "ui.empty_subplot" : "ui.no_active_figure"));
     m_styleEditor->setVisible(hasFigure);
     m_exportPanel->setTargets(selectedLabel + (selected.valid() ? QString() :
                                 "\n" + text("ui.no_step_output")), selected.valid(),
                               plotLabel, hasFigure);
-    m_addPlot->setEnabled(selected.valid());
+    const auto checked = checkedOutputs();
+    QSet<NodeId> nodes;
+    for (const auto &ref : checked) nodes.insert(ref.nodeId);
+    m_checkedButton->setText(text("ui.checked_output_count").arg(checked.size()).arg(nodes.size()));
+    const bool any = !checked.isEmpty();
+    m_addPlot->setEnabled(any);
+    m_plotChecked->setEnabled(any);
+    m_pageAction->setEnabled(any);
+    m_replaceAction->setEnabled(checked.size() == 1 && (plotted.valid() || emptyDestination) && !m_workspace->loading());
+    m_overlayChecked->setEnabled(m_workspace->canOverlaySelection(checked));
+    m_overlayChecked->setText(text(emptyDestination ? "ui.fill_current_subplot" : "ui.overlay_selected"));
+    m_overlayChecked->setToolTip(m_workspace->destinationLabel() + "\n" +
+        text(emptyDestination ? "ui.empty_subplot_help" : "ui.overlay_compatibility_help"));
+    const auto groupCount = plotGroups(checked).size();
+    m_plotChecked->setText(any ? text("ui.add_plot_count").arg(groupCount) : text("ui.add_selected_subplots"));
+    m_plotChecked->setToolTip(text("ui.plot_group_count").arg(groupCount));
+    m_destination->setText(m_workspace->destinationLabel());
+}
+QVector<OutputInfo> ResultsPage::orderedOutputs(NodeId node) const
+{
+    auto outputs = m_record ? m_record->outputs.value(node) : QVector<OutputInfo>();
+    const auto primary = m_primaryPorts.value(node);
+    auto it = std::find_if(outputs.begin(), outputs.end(), [&primary](const OutputInfo &out) { return out.port == primary; });
+    if (it != outputs.end()) std::rotate(outputs.begin(), it, it + 1);
+    return outputs;
+}
+void ResultsPage::rebuildOutputs()
+{
+    QSignalBlocker selectionBlock(m_outputs->selectionModel());
+    m_outputModel->removeRows(0, m_outputModel->rowCount());
+    const auto outputs = orderedOutputs(m_selectedNode);
+    for (int i = 0; i < outputs.size(); ++i)
+    {
+        const auto ref = reference(m_selectedNode, outputs[i]);
+        auto *name = new QStandardItem(m_ports->itemText(i));
+        auto outputFont = name->font();
+        outputFont.setBold(ref.port == m_primaryPorts.value(m_selectedNode));
+        name->setFont(outputFont);
+        name->setCheckable(true);
+        name->setData(QVariant::fromValue(ref), Qt::UserRole);
+        name->setCheckState(m_checked.contains(ref.key()) ? Qt::Checked : Qt::Unchecked);
+        name->setToolTip(m_ports->itemText(i) + "\n" + ref.port);
+        auto *kind = new QStandardItem(text((QString("kind.") + ref.kind).toUtf8().constData()));
+        m_outputModel->appendRow({name, kind});
+    }
+    if (m_ports->currentIndex() >= 0)
+        m_outputs->setCurrentIndex(m_outputModel->index(m_ports->currentIndex(), 0));
+}
+QVector<OutputReference> ResultsPage::checkedOutputs() const
+{
+    QVector<OutputReference> refs;
+    // Stable workflow/output order, independent of click order and hash ordering.
+    if (m_record)
+        for (const auto &node : m_nodeIds)
+            for (const auto &out : orderedOutputs(node))
+            {
+                auto ref = reference(node, out);
+                if (m_checked.contains(ref.key())) refs.push_back(ref);
+            }
+    return refs;
+}
+void ResultsPage::plotChecked(PlotWorkspace::Target target)
+{
+    m_workspace->openBatch(checkedOutputs(), target);
+    updateOutputActions();
+}
+void ResultsPage::inspectChecked()
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle(text("ui.review_checked_outputs"));
+    dialog.setObjectName("checkedOutputsDialog");
+    connect(this, &ResultsPage::recordChanging, &dialog, &QDialog::reject);
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *list = new QListWidget;
+    const auto refs = checkedOutputs();
+    for (const auto &ref : refs)
+    {
+        const int step = m_nodeIds.indexOf(ref.nodeId);
+        auto *item = new QListWidgetItem(m_steps->item(step, 1)->text() + " · " + portLabel(ref.port), list);
+        item->setData(Qt::UserRole, QVariant::fromValue(ref));
+        item->setCheckState(Qt::Checked);
+    }
+    layout->addWidget(list);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close);
+    auto *clear = buttons->addButton(text("ui.clear_checked_outputs"), QDialogButtonBox::ActionRole);
+    connect(clear, &QPushButton::clicked, &dialog, [this, list] {
+        // One model update for a bulk operation; emitting itemChanged per row
+        // would repeatedly rebuild and scan the whole browser.
+        QSignalBlocker block(list);
+        for (int i = 0; i < list->count(); ++i) list->item(i)->setCheckState(Qt::Unchecked);
+        m_checked.clear();
+        rebuildOutputs(); updateOutputActions();
+    });
+    connect(list, &QListWidget::itemChanged, &dialog, [this](QListWidgetItem *item) {
+        const auto ref = item->data(Qt::UserRole).value<OutputReference>();
+        if (item->checkState() == Qt::Checked) m_checked.insert(ref.key(), ref);
+        else m_checked.remove(ref.key());
+        rebuildOutputs(); updateOutputActions();
+    });
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+    dialog.resize(qMin(620, screen()->availableGeometry().width() * 9 / 10),
+                  qMin(360, screen()->availableGeometry().height() * 9 / 10));
+    dialog.exec();
 }
 void ResultsPage::showPort()
 {
     updateOutputActions();
-    const auto ref = selectedOutput();
-    if (ref.valid()) m_workspace->open(ref);
+    // Navigation uses the task's primary output. Browsing/checking an output
+    // only changes the export/explicit plotting selection, never this default.
+    auto ref = reference(m_selectedNode, m_primaryPorts.value(m_selectedNode));
+    if (!ref.valid())
+    {
+        const auto outputs = orderedOutputs(m_selectedNode);
+        if (!outputs.isEmpty()) ref = reference(m_selectedNode, outputs.front());
+    }
+    if (ref.valid()) m_workspace->openDefault(ref);
 }
 } // namespace aster::ui

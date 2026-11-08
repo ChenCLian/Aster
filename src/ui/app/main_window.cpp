@@ -4,13 +4,17 @@
 #include "ui/settings/theme_manager.h"
 #include "ui/settings/language_catalog.h"
 #include "ui/app/main_window.h"
+#include "ui/workflow/node_edit_dialog.h"
 #include "ui/help/help_dialog.h"
 #include "ui/services/record_directory_service.h"
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
+#include "ui/common/output_picker.h"
 #include "ui/workflow/workflow_document.h"
 #include "ui/workflow/workflow_canvas.h"
 #include "ui/panels/source_panel.h"
 #include "ui/panels/workflow_preview_panel.h"
+#include "ui/panels/pairing_panel.h"
 #include "ui/panels/task_catalog.h"
 #include "ui/panels/parameter_editor.h"
 #include "ui/panels/collapsible_panel.h"
@@ -91,6 +95,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_retry->hide();
     hl->addWidget(m_retry);
     m_cancel = new QPushButton(text("ui.cancel"));
+    m_cancel->setObjectName("cancelRun");
     m_cancel->hide();
     hl->addWidget(m_cancel);
     m_run = new QPushButton(text("ui.run_workflow"));
@@ -119,6 +124,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     tl->setContentsMargins(12, 12, 12, 10);
     tl->setSpacing(8);
     m_progress = new QProgressBar;
+    m_progress->setObjectName("runProgress");
     m_progress->setTextVisible(false);
     m_progress->hide();
     tl->addWidget(m_progress);
@@ -159,7 +165,11 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_taskSplitter->addWidget(canvasPanel);
     m_editor = new ParameterEditor;
     m_catalog = new TaskCatalog(m_document->model().registry());
-    m_parameterPanel = new CollapsiblePanel(text("ui.step_settings"), m_editor, 280);
+    m_pairing = new PairingPanel(m_document);
+    static_cast<QVBoxLayout *>(m_editor->layout())->insertWidget(2, m_pairing);
+    connect(m_pairing, &PairingPanel::pairSelected, m_preview->controller(), &WorkflowPreviewController::selectPair);
+    connect(m_pairing, &PairingPanel::pairSelected, m_canvas, &WorkflowCanvas::setPreviewPair);
+    m_parameterPanel = new CollapsiblePanel(text("ui.step_settings"), m_editor, 300);
     m_parameterPanel->setObjectName("parameterSidePanel");
     m_catalogPanel = new CollapsiblePanel(text("ui.task_library"), m_catalog, 260);
     m_catalogPanel->setObjectName("catalogSidePanel");
@@ -171,6 +181,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_taskSplitter->setSizes({270, 400, 600, 280, 260});
     m_pages->addWidget(taskPage);
     m_results = new ResultsPage(m_document->model().registry());
+    m_results->workspace()->setDefaultPlotNewPage(m_settings.defaultPlotNewPage);
     m_pages->addWidget(m_results);
     connect(m_results, &ResultsPage::message, this, &MainWindow::showMessage);
     m_results->setDatabase(m_settings.databasePath);
@@ -194,6 +205,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                 showMessage(text("ui.database_source_added_connect_tasks_and_run"));
             });
     m_status = new QLabel(text("ui.ready_b796f2"));
+    m_status->setObjectName("runStatus");
     statusBar()->addWidget(m_status, 1);
     auto *version = new QLabel(QCoreApplication::applicationVersion());
     statusBar()->addPermanentWidget(version);
@@ -201,7 +213,16 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_resultTab, &QPushButton::clicked, this, [this] { setPage(1); });
     connect(m_newSource, &QPushButton::clicked, this,
             [this] { sourceMenu(m_newSource->mapToGlobal(QPoint(0, m_newSource->height()))); });
+    connect(m_canvas, &WorkflowCanvas::insertRequested, this,
+        [this](NodeId child, QPoint pos) { rewriteMenu(NodeRewriteKind::InsertBefore, child, pos); });
+    connect(m_canvas, &WorkflowCanvas::replaceRequested, this,
+        [this](NodeId node, QPoint pos) { rewriteMenu(NodeRewriteKind::Replace, node, pos); });
+    connect(m_canvas, &WorkflowCanvas::insertMethodDropped, this,
+        [this](QString method, NodeId child) { reviewRewrite(NodeRewriteKind::InsertBefore, child, method); });
+    connect(m_canvas, &WorkflowCanvas::replaceMethodDropped, this,
+        [this](QString method, NodeId node) { reviewRewrite(NodeRewriteKind::Replace, node, method); });
     connect(m_sources, &SourcePanel::importRequested, this, &MainWindow::importFiles);
+    connect(m_sources, &SourcePanel::editRejected, this, &MainWindow::showMessage);
     connect(m_sources, &SourcePanel::readinessChanged, this, [this] { updateActions(); });
     connect(m_canvas, &WorkflowCanvas::rootRequested, this, &MainWindow::sourceMenu);
     connect(m_canvas, &WorkflowCanvas::nodeSelected, this, &MainWindow::selectNode);
@@ -261,9 +282,33 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_canvas, &WorkflowCanvas::zoomChanged, this,
             [this](int n) { m_zoom->setText(QString::number(n) + "%"); });
     connect(m_run, &QPushButton::clicked, this, &MainWindow::startRun);
+    struct PendingRunUi {
+        QMap<QPair<NodeId, QString>, SourceFileState> files;
+        QString status;
+        bool progress = false, directory = false, cancelling = false;
+    };
+    const auto pendingUi = std::make_shared<PendingRunUi>();
+    auto *runUiRefresh = new QTimer(this);
+    runUiRefresh->setSingleShot(true);
+    runUiRefresh->setInterval(100);
+    const auto flushRunUi = [this, pendingUi] {
+        // Update all states before the progress bar requests a synchronous paint.
+        for (auto it = pendingUi->files.cbegin(); it != pendingUi->files.cend(); ++it)
+            m_sources->setFileState(it.key().first, it.key().second, it.value());
+        pendingUi->files.clear();
+        if (pendingUi->progress) m_progress->setValue(m_terminalSteps.size());
+        pendingUi->progress = false;
+        if (!pendingUi->status.isEmpty()) m_status->setText(pendingUi->status);
+        pendingUi->status.clear();
+        if (pendingUi->directory) m_results->refresh();
+        pendingUi->directory = false;
+    };
+    connect(runUiRefresh, &QTimer::timeout, this, flushRunUi);
     connect(m_cancel, &QPushButton::clicked, this,
-            [this]
+            [this, pendingUi]
             {
+                pendingUi->cancelling = true;
+                pendingUi->status.clear();
                 m_runner->cancel();
                 m_status->setText(text("ui.cancelling_waiting_for_the_current_algorithm"));
             });
@@ -271,40 +316,56 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_retry, &QPushButton::clicked, this,
             [this] { m_runner->retry(m_unsaved.values(), m_settings.databasePath); });
     connect(m_runner, &RunController::eventReady, this,
-            [this](const RunEvent &e)
+            [this, pendingUi, runUiRefresh](const RunEvent &e)
             {
                 if (e.state == NodeState::Running && e.progressPercent < 0)
-                    m_sources->setFileState(e.root, e.sourceLabel, SourceFileState::Running);
-                if (e.state == NodeState::Running && e.progressPercent >= 0)
-                    m_status->setText(text("ui.task_progress").arg(e.sourceLabel)
-                                          .arg(translatedLabel(e.message, e.message)).arg(e.progressPercent));
+                    pendingUi->files[{e.root, e.sourceLabel}] = SourceFileState::Running;
+                if (e.state == NodeState::Running && e.progressPercent >= 0 && !pendingUi->cancelling)
+                    pendingUi->status = text("ui.task_progress").arg(e.sourceLabel)
+                                          .arg(translatedLabel(e.message, e.message)).arg(e.progressPercent);
                 if (e.state != NodeState::Pending && e.state != NodeState::Running)
                 {
                     m_terminalSteps.insert(e.runId.toString() + e.nodeId.toString());
-                    m_progress->setValue(m_terminalSteps.size());
-                    m_status->setText(QString(text("ui.running_1_2_steps_finished"))
+                    pendingUi->progress = true;
+                    if (!pendingUi->cancelling)
+                        pendingUi->status = QString(text("ui.running_1_2_steps_finished"))
                                           .arg(m_terminalSteps.size())
-                                          .arg(m_progress->maximum()));
+                                          .arg(m_progress->maximum());
                 }
+                if (e.state != NodeState::Pending && !runUiRefresh->isActive()) runUiRefresh->start();
             });
+    // Fast batches produce many notifications between paints. Preserve every
+    // terminal step, but coalesce their presentation and directory queries.
     connect(m_runner, &RunController::itemReady, this,
-            [this](const BatchItem &item)
+            [pendingUi, runUiRefresh](const BatchItem &item)
             {
-                m_sources->setFileState(item.root, item.sourceLabel,
+                pendingUi->files[{item.root, item.sourceLabel}] =
                                         item.computation == RunState::Succeeded
                                             ? (item.persistence.saved()
                                                    ? SourceFileState::Saved
                                                    : SourceFileState::Unsaved)
                                         : item.computation == RunState::Cancelled
                                             ? SourceFileState::Cancelled
-                                            : SourceFileState::Failed);
-                if (item.persistence.saved())
-                    m_results->refresh();
+                                            : SourceFileState::Failed;
+                pendingUi->directory |= item.persistence.saved();
+                if (!runUiRefresh->isActive()) runUiRefresh->start();
             });
-    connect(m_runner, &RunController::batchReady, this, &MainWindow::batchFinished);
+    connect(m_runner, &RunController::batchReady, this,
+            [this, pendingUi, runUiRefresh, flushRunUi](std::shared_ptr<const BatchResult> batch) {
+                runUiRefresh->stop();
+                // batchFinished refreshes the last saved result. If work threw
+                // after some itemReady signals, keep those records visible too.
+                if (std::any_of(batch->items.cbegin(), batch->items.cend(),
+                                [](const BatchItem &item) { return item.persistence.saved(); }))
+                    pendingUi->directory = false;
+                flushRunUi();
+                batchFinished(std::move(batch));
+            });
     connect(m_runner, &RunController::busyChanged, this,
-            [this](bool busy)
+            [this, pendingUi, runUiRefresh](bool busy)
             {
+                if (busy) { runUiRefresh->stop(); *pendingUi = {}; }
+                m_document->setEditingLocked(busy);
                 m_results->setDatabaseMutationsEnabled(!busy);
                 m_canvas->setEditable(!busy);
                 m_sources->setEnabled(!busy);
@@ -427,6 +488,7 @@ void MainWindow::selectNode(NodeId id)
     m_canvas->setSelectedNode(id);
     auto *n = m_document->node(id);
     m_editor->showNode(n, m_document->model().registry());
+    m_pairing->selectNode(id);
     if (n)
     {
         auto *root = n;
@@ -440,11 +502,11 @@ void MainWindow::sourceMenu(QPoint pos)
 {
     if (m_runner->busy() || !flushParameters())
         return;
-    m_catalog
-        ->menu(
+    auto *menu = m_catalog->menu(
             this, [](const TaskDescriptor &d) { return !d.inputKind; },
             [this](QString method)
             {
+                if (m_runner->busy() || !flushParameters()) return;
                 auto r = m_document->addRoot(method);
                 if (!r.ok())
                 {
@@ -453,16 +515,15 @@ void MainWindow::sourceMenu(QPoint pos)
                 }
                 selectNode(r.nodeId);
                 m_canvas->fitWorkflow();
-            })
-        ->popup(pos);
+            });
+    showMenuWithinWindow(menu, this, QRect(pos, QSize(1, 1)));
 }
 void MainWindow::childMenu(NodeId parent, ChildSlot slot, QPoint pos)
 {
     if (m_runner->busy() || !flushParameters())
         return;
     selectNode(parent);
-    m_catalog
-        ->menu(
+    auto *menu = m_catalog->menu(
             this,
             [this, parent, slot](const TaskDescriptor &d)
             {
@@ -478,8 +539,15 @@ void MainWindow::childMenu(NodeId parent, ChildSlot slot, QPoint pos)
                         return true;
                 return false;
             },
-            [this, parent, slot](QString method) { addTask(method, parent, slot); })
-        ->popup(pos);
+            [this, parent, slot](QString method) { addTask(method, parent, slot); });
+    showMenuWithinWindow(menu, this, QRect(pos, QSize(1, 1)));
+}
+QRect MainWindow::taskAnchor(NodeId node) const
+{
+    auto *viewport = m_canvas->viewport();
+    auto rect = m_canvas->mapFromScene(m_canvas->nodeRect(node)).boundingRect().intersected(viewport->rect());
+    if (rect.isEmpty()) rect = QRect(viewport->rect().center(), QSize(1, 1));
+    return QRect(viewport->mapToGlobal(rect.topLeft()), rect.size());
 }
 void MainWindow::addTask(QString method, NodeId parent, ChildSlot slot)
 {
@@ -496,6 +564,7 @@ void MainWindow::addTask(QString method, NodeId parent, ChildSlot slot)
             ports.push_back(port.key);
     const auto add = [this, parent, slot, method](const QString &port)
     {
+        if (m_runner->busy() || !flushParameters()) return;
         auto r = m_document->addChild(parent, slot, method, {}, port);
         if (!r.ok())
         {
@@ -514,20 +583,62 @@ void MainWindow::addTask(QString method, NodeId parent, ChildSlot slot)
         showMessage(text("ui.input_and_output_types_are_incompatible"));
         return;
     }
-    auto *menu = new QMenu(this);
-    menu->setAttribute(Qt::WA_DeleteOnClose);
-    menu->addSection(text("ui.choose_output_from").arg(methodLabel(input->descriptor)));
+    QVector<OutputChoice> choices;
+    for (auto *old : findChildren<OutputPicker *>()) old->close();
     for (const auto &port : ports)
-    {
-        const bool preferred = port == input->descriptor.defaultOutput;
-        auto label = portLabel(input->descriptor, port);
-        if (preferred) label += text("ui.usual_output_suffix");
-        auto *action = menu->addAction(label, menu, [add, port] { add(port); });
-        auto font = action->font();
-        font.setBold(preferred);
-        action->setFont(font);
-    }
-    menu->popup(QCursor::pos());
+        choices.push_back({port, portLabel(input->descriptor, port), port == input->descriptor.defaultOutput});
+    auto *picker = new OutputPicker(this,
+        text("ui.choose_output_from").arg(methodLabel(input->descriptor)),
+        text("ui.output_for_task").arg(methodLabel(registration->descriptor)), choices);
+    connect(picker, &OutputPicker::chosen, this, add);
+    connect(m_document, &WorkflowDocument::changed, picker, &QWidget::close);
+    connect(m_document, &WorkflowDocument::sourcesChanged, picker, &QWidget::close);
+    connect(m_runner, &RunController::busyChanged, picker, [picker](bool busy) { if (busy) picker->close(); });
+    // Defer until the task menu/drop event has finished. Use the source node,
+    // never the cursor at the far end of a cascading task menu.
+    QTimer::singleShot(0, picker, [this, picker, parent] {
+        if (!isVisible()) { picker->close(); return; }
+        // A closing cascade can queue a focus-loss event. Restore the owner
+        // before opening the next popup, so that event cannot dismiss it.
+        activateWindow();
+        QTimer::singleShot(0, picker, [this, picker, parent] { picker->openAt(taskAnchor(parent)); });
+    });
+}
+void MainWindow::rewriteMenu(NodeRewriteKind kind, NodeId target, QPoint position)
+{
+    if (m_runner->busy() || !flushParameters()) return;
+    const auto reason = nodeRewriteAvailability(m_document->model(), kind, target);
+    if (!reason.isEmpty()) { showMessage(nodeRewriteMessage(reason)); return; }
+    selectNode(target);
+    const auto revision = m_document->revision();
+    auto *menu = m_catalog->menu(this,
+        [this, kind, target](const TaskDescriptor &d) {
+            return inspectNodeRewrite(m_document->model(), kind, target, d.key).ok();
+        },
+        [this, kind, target, revision](QString method) {
+            if (m_document->revision() == revision) reviewRewrite(kind, target, method);
+        });
+    if (menu->isEmpty()) { menu->deleteLater(); showMessage(text("ui.node_edit_no_method")); return; }
+    connect(m_document, &WorkflowDocument::changed, menu, &QMenu::close);
+    connect(m_document, &WorkflowDocument::sourcesChanged, menu, &QMenu::close);
+    connect(m_runner, &RunController::busyChanged, menu, [menu](bool busy) { if (busy) menu->close(); });
+    showMenuWithinWindow(menu, this, QRect(position, QSize(1, 1)));
+}
+void MainWindow::reviewRewrite(NodeRewriteKind kind, NodeId target, QString method)
+{
+    if (m_runner->busy() || !flushParameters()) return;
+    const auto options = inspectNodeRewrite(m_document->model(), kind, target, method);
+    if (!options.ok()) { showMessage(nodeRewriteMessage(options.error)); return; }
+    for (auto *old : findChildren<NodeEditDialog *>()) old->reject();
+    auto *dialog = new NodeEditDialog(m_document, kind, target, method, this);
+    connect(dialog, &NodeEditDialog::committed, this, [this](NodeId id) { selectNode(id); });
+    connect(m_runner, &RunController::busyChanged, dialog, [dialog](bool busy) { if (busy) dialog->reject(); });
+    // Let the closing cascade restore focus before opening the review form.
+    QTimer::singleShot(0, dialog, [this, dialog, target] {
+        if (!isVisible() || m_runner->busy()) { dialog->reject(); return; }
+        activateWindow();
+        QTimer::singleShot(0, dialog, [this, dialog, target] { dialog->openAt(taskAnchor(target)); });
+    });
 }
 void MainWindow::catalogActivate(QString method)
 {
@@ -571,7 +682,7 @@ void MainWindow::catalogActivate(QString method)
         connect(a, &QAction::triggered, menu,
                 [this, method, id, slot] { addTask(method, id, slot); });
     }
-    menu->popup(QCursor::pos());
+    showMenuWithinWindow(menu, this, taskAnchor(id));
 }
 void MainWindow::removeTask(NodeId id)
 {
@@ -634,6 +745,7 @@ void MainWindow::startRun()
             queue += children.value(queue[i]);
         total += queue.size();
     }
+    for (const auto &batch : plan.batches) total += batch->jobs().size();
     m_sources->clearFileStates();
     m_terminalSteps.clear();
     m_progress->setRange(0, total);
@@ -683,8 +795,8 @@ void MainWindow::updateActions()
     m_settingsButton->setEnabled(idle);
     m_run->setEnabled(idle && m_sources->readyToRun() &&
                       !m_document->model().definition().nodes.isEmpty());
-    m_undo->setEnabled(idle && m_document->model().canUndo());
-    m_redo->setEnabled(idle && m_document->model().canRedo());
+    m_undo->setEnabled(idle && m_document->canUndo());
+    m_redo->setEnabled(idle && m_document->canRedo());
     m_remove->setEnabled(idle && !m_canvas->selectedNode().isNull());
     m_retry->setEnabled(idle);
 }
@@ -703,6 +815,7 @@ void MainWindow::settingsDialog()
     // already be saved without having been applied to the current widgets.
     const bool languageChanged = next.language != LanguageCatalog::instance().language();
     m_settings = next;
+    m_results->workspace()->setDefaultPlotNewPage(m_settings.defaultPlotNewPage);
     ThemeManager::instance().apply(*qApp, m_settings.theme);
     if (changed) m_results->setDatabase(m_settings.databasePath);
     if (languageChanged)

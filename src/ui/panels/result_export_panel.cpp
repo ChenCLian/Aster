@@ -81,8 +81,6 @@ ResultExportPanel::ResultExportPanel(QWidget *parent) : QWidget(parent)
     connect(m_figure, &QPushButton::clicked, this, &ResultExportPanel::exportFigureRequested);
     connect(m_reuse, &QPushButton::clicked, this, &ResultExportPanel::reuseRequested);
     connect(m_cancel, &QPushButton::clicked, this, &ResultExportPanel::cancelRequested);
-    connect(m_ports, qOverload<int>(&QComboBox::activated), this,
-            [this] { emit outputActivated(); });
     updateActions();
 }
 void ResultExportPanel::setTargets(const QString &dataTarget, bool hasData,

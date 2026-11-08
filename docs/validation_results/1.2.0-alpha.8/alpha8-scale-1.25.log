@@ -1,0 +1,17 @@
+********* Start testing of RewriteTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : RewriteTests::initTestCase()
+QWARN  : RewriteTests::dialogMatrix(zh-light) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(zh-light)
+QWARN  : RewriteTests::dialogMatrix(zh-dark) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(zh-dark)
+QWARN  : RewriteTests::dialogMatrix(en-light) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(en-light)
+QWARN  : RewriteTests::dialogMatrix(en-dark) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(en-dark)
+QWARN  : RewriteTests::smallReviewAndLockedConfirm() This plugin does not support raise()
+PASS   : RewriteTests::smallReviewAndLockedConfirm()
+PASS   : RewriteTests::canvasEntryPoints()
+PASS   : RewriteTests::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 195ms
+********* Finished testing of RewriteTests *********

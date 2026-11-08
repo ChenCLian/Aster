@@ -1,5 +1,6 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
+#include "aster_version.h"
 #include "update/update_checker.h"
 #include "ui/settings/settings_dialog.h"
 #include "ui/settings/update_dialog.h"
@@ -93,6 +94,17 @@ protected:QNetworkReply *createRequest(Operation op,const QNetworkRequest &r,QIO
 class UpdateTests:public QObject {
  Q_OBJECT
 private slots:
+ void compiledVersionMatchesSettingsAndHelp() {
+  QCOMPARE(QCoreApplication::applicationVersion(), QStringLiteral(ASTER_VERSION));
+  aster::ui::SettingsDialog dialog({});
+  const auto expected = aster::ui::text("update.installed") + "  " + QCoreApplication::applicationVersion();
+  bool found = false;
+  for (auto *label : dialog.findChildren<QLabel*>()) found |= label->text() == expected;
+  QVERIFY2(found, "Settings must show the full compiled version");
+  QFile help(":/help/FAQ.md");
+  QVERIFY(help.open(QIODevice::ReadOnly));
+  QVERIFY2(help.readAll().contains(ASTER_VERSION), "Rebuild embedded help for the current version");
+ }
  void languageRestartDeferredAndAccepted_data() {
   QTest::addColumn<QString>("before");QTest::addColumn<QString>("after");
   QTest::newRow("zh-en")<<QString("zh")<<QString("en");

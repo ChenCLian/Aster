@@ -5,19 +5,30 @@
 #include <QObject>
 #include <QPointF>
 #include <QString>
+#include <QVector>
+#include <QPen>
 #include <functional>
 #include <optional>
 class QCustomPlot;
 class QFrame;
 class QLabel;
 class QScrollArea;
+class QWidget;
 namespace aster::ui
 {
 // A value snapshot, never a pointer into a graph that refinement may delete.
+struct ProbeValue
+{
+    QString label;
+    double value;
+};
 struct ProbeSample
 {
     QPointF pixel;
-    QString title, details;
+    QString title;
+    QVector<ProbeValue> values;
+    QString note;
+    std::optional<QPen> pen;
 };
 class PlotProbe final : public QObject
 {
@@ -32,8 +43,10 @@ class PlotProbe final : public QObject
     QCustomPlot *m_plot;
     Picker m_picker;
     QFrame *m_bubble, *m_marker;
-    QLabel *m_title, *m_details;
+    QLabel *m_title, *m_swatch;
+    QWidget *m_details;
     QScrollArea *m_scroll;
+    QString m_copyText;
     QPointF m_pressed;
     bool m_pressValid = false, m_dragged = false;
 };

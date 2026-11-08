@@ -1,0 +1,108 @@
+{
+  "version": "1.2.0-alpha.12",
+  "date": "2026-11-07",
+  "status": "passed",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 91.548,
+      "log": "logs/aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 20.27,
+      "log": "logs/aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 9.243,
+      "log": "logs/aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 8.698,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "seconds": 21.301,
+      "log": "logs/aster_integration_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 964,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "QtTest data rows, including initialization and cleanup; final target runs only, not summed with previous versions or earlier diagnostic runs.",
+  "changes": [
+    "Central display-time plotting preset shared by preview, result plots and figure export; user overrides remain session-local.",
+    "Resizable steps/output browser with stable reference checks across steps in one record; changing records clears checks.",
+    "Browsing does not replace figures; clicking a figure changes only destination, not the record browser.",
+    "Batch subplots and single-level plot commands. Four cells per page, 32 pages, eight overlay references remain bounded.",
+    "Overlay/replacement validate asynchronously and commit on success; failure retains original references, data and user style.",
+    "Same-family spectrum backgrounds/thresholds are not duplicated; explicitly added hidden members become visible.",
+    "Row CSV/reuse menus removed; right Export targets remain separate from active figure identity."
+  ],
+  "focused_coverage": [
+    "Metadata-only browsing, current vs checked outputs, record changes and destination selection.",
+    "Batch page overflow, capacity rejection before mutation, single-item replacement and invalid identity failure.",
+    "Mixed compatible/incompatible overlays are atomic; original viewport/title retained on failure.",
+    "1001-output browser with deliberately invalid payloads proves browsing does not decode them; elapsed time recorded in workspace log.",
+    "Existing CWT defaults, asynchronous inspector lifecycle, manual styles, page switching, cross-spectrum metrics and CSV/PNG/PDF regression.",
+    "Light/dark layout screenshots and 1200x720/1600x900-class offscreen inspection."
+  ],
+  "performance_scope": "Output browser construction uses metadata and model/view rows without per-output tool buttons. Existing large plot/display/export regression retained. No new scientific algorithm benchmark campaign.",
+  "unchanged": [
+    "Scientific algorithms and numerical budgets",
+    "Database schema and numeric payload formats",
+    "Workflow execution and pairing semantics",
+    "Local packaging/export folder rules and source dependency configuration template"
+  ],
+  "reproduce": [
+    "Build Release with CONFIG+=help_reference. After changing VERSION, rerun qmake and rebuild version-bearing targets.",
+    "Run the five target executables listed in regression with QT_QPA_PLATFORM=offscreen and OPENBLAS_NUM_THREADS=1.",
+    "Optional ASTER_UI_CAPTURE_DIR writes local UI captures.",
+    "python tools/help_reference/generate.py --build <build> --check",
+    "Aster --version"
+  ],
+  "limits": [
+    "No Windows/MSVC or macOS native build/desktop acceptance in this environment.",
+    "Checked plotting outputs are limited to the current record; CSV remains single-output export.",
+    "Figure pages/styles are not persisted across application restarts.",
+    "No final binary packages or remote Release published."
+  ]
+}

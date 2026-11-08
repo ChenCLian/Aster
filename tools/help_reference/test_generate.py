@@ -36,6 +36,21 @@ class ReferenceTests(unittest.TestCase):
             self.assertNotIn("1.797693", page)
             self.assertIn("` mode ` = ` fixed `", page)
 
+    def test_choices_show_ui_labels_without_changing_saved_identifiers(self):
+        parameter = self.catalog["tasks"][0]["parameters"][0]
+        parameter["default"] = "age"
+        self.catalogs["zh"]["choice.factor.age"] = "年龄"
+        self.catalogs["en"]["choice.factor.age"] = "Age"
+        self.catalogs["en"]["choice.factor.depth"] = "Depth [X]"
+        zh = generate.render(self.catalog, self.catalogs, "zh")
+        en = generate.render(self.catalog, self.catalogs, "en")
+        self.assertIn("默认值: 年龄 (` age `)", zh)
+        self.assertIn("可选值: 年龄 (` age `), Depth \\[X\\] (` depth `)", zh)
+        self.assertIn("Default: Age (` age `)", en)
+        self.assertNotIn("年龄", en)
+        self.assertEqual(parameter["default"], "age")
+        self.assertEqual(parameter["choices"], ["age", "depth"])
+
     def test_missing_or_empty_chinese_uses_english_once(self):
         del self.catalogs["zh"]["parameter.factor"]
         self.catalogs["zh"]["parameterhelp.factor"] = ""

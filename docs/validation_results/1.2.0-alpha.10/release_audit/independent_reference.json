@@ -1,0 +1,12 @@
+[
+  {
+    "generator": "generate_reference.py",
+    "output": "Wrote 16 cases; NumPy 2.3.5, SciPy 1.17.0; direct DFT checks passed",
+    "identical_json": true
+  },
+  {
+    "generator": "generate_real_reference.py",
+    "output": "Generated 8 real-data reference cases",
+    "identical_json": true
+  }
+]

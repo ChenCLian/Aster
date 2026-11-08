@@ -56,7 +56,7 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
         const auto signal = numeric::centeredUnitSignal(source->y.size(),source->y.data());
         if (acycle && !(signal.sampleVariance > 0))
             return NodeResult::failure(makeError(ErrorCode::NumericRange, {{"operation","cwt"}},
-                "Variance-normalized Acycle CWT requires nonconstant data; raw Torrence-Compo power is available for constant data"));
+                "Variance-normalized, scale-corrected CWT requires nonconstant data; raw power (Torrence-Compo) is available for constant data"));
         const auto name = m_mother.toUtf8();
         // Work in samples and unit-amplitude centered values. Restore physical units only at output.
         std::unique_ptr<cwt_set, decltype(&cwt_free)> wave(cwt_init(name.constData(), m_parameter, n, 1, scales), cwt_free);

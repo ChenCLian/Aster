@@ -89,7 +89,8 @@ build_system="$(. /etc/os-release; printf '%s' "$PRETTY_NAME")"
 cat > "$stage/START_HERE.txt" <<EOF
 Aster $version — Linux x64
 Build system: $build_system
-Extract the complete directory, then run ./AppRun. No Qt installation is needed.
+No installation is required. Extract the complete package, then run ./AppRun.
+Keep all files and subfolders together. System requirements are listed below.
 Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
 Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Troubleshooting: FAQ.md.

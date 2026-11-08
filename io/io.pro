@@ -23,6 +23,7 @@ HEADERS += ../src/io/database/output_reference.h
 
 SOURCES += ../src/io/database/plot_reader.cpp
 HEADERS += ../src/io/database/plot_reader.h ../src/io/database/plot_request.h
+HEADERS += ../src/io/database/grid_sampling.h
 
 HEADERS += ../src/io/database/data_format.h
 

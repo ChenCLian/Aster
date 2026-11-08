@@ -1,0 +1,134 @@
+[
+  {
+    "target": "aster_core_tests",
+    "exit_code": 0,
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 0.519,
+    "log": "logs/aster_core_tests.txt"
+  },
+  {
+    "target": "aster_batch_tests",
+    "exit_code": 0,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 0.568,
+    "log": "logs/aster_batch_tests.txt"
+  },
+  {
+    "target": "aster_analysis_tests",
+    "exit_code": 0,
+    "passed": 694,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 21,
+    "status": "passed",
+    "seconds": 79.891,
+    "log": "logs/aster_analysis_tests.txt"
+  },
+  {
+    "target": "aster_cross_spectrum_tests",
+    "exit_code": 0,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 0.467,
+    "log": "logs/aster_cross_spectrum_tests.txt"
+  },
+  {
+    "target": "aster_ui_tests",
+    "exit_code": 0,
+    "passed": 781,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 75.624,
+    "log": "logs/aster_ui_tests.txt"
+  },
+  {
+    "target": "aster_joint_ui_tests",
+    "exit_code": 0,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 8.952,
+    "log": "logs/aster_joint_ui_tests.txt"
+  },
+  {
+    "target": "aster_rewrite_tests",
+    "exit_code": 0,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 2.726,
+    "log": "logs/aster_rewrite_tests.txt"
+  },
+  {
+    "target": "aster_linked_input_tests",
+    "exit_code": 0,
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 2.625,
+    "log": "logs/aster_linked_input_tests.txt"
+  },
+  {
+    "target": "aster_style_export_tests",
+    "exit_code": 0,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 8.92,
+    "log": "logs/aster_style_export_tests.txt"
+  },
+  {
+    "target": "aster_workspace_tests",
+    "exit_code": 0,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 12.047,
+    "log": "logs/aster_workspace_tests.txt"
+  },
+  {
+    "target": "aster_integration_tests",
+    "exit_code": 0,
+    "passed": 83,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 4,
+    "status": "passed",
+    "seconds": 24.372,
+    "log": "logs/aster_integration_tests.txt"
+  },
+  {
+    "target": "aster_update_tests",
+    "exit_code": 0,
+    "passed": 50,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1,
+    "status": "passed",
+    "seconds": 7.547,
+    "log": "logs/aster_update_tests.txt"
+  }
+]

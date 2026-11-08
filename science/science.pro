@@ -86,3 +86,6 @@ SOURCES += ../src/math/synthetic/orbital_proxy.cpp ../src/processing/synthetic_o
 HEADERS += ../src/math/synthetic/orbital_proxy.h ../src/processing/synthetic_orbital_task.h
 RESOURCES += ../resources/synthetic/synthetic.qrc
 DISTFILES += ../resources/synthetic/NOTICE.md ../resources/synthetic/SOURCE_PANGAEA_817206.txt
+
+SOURCES += ../src/math/spectrum/cross_spectrum.cpp ../src/processing/cross_spectrum_task.cpp
+HEADERS += ../src/math/spectrum/cross_spectrum.h ../src/processing/cross_spectrum_task.h

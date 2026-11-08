@@ -229,8 +229,15 @@ class RecordDirectoryTests : public QObject
         QTRY_COMPARE(panel.recordCount(), 0);
         QVERIFY(panel.checkedRecords().isEmpty());
     }
+    void deletingCurrentRecordClosesOnlyRelatedPlots_data()
+    {
+        QTest::addColumn<bool>("newPage");
+        QTest::newRow("new_page") << true;
+        QTest::newRow("current_page") << false;
+    }
     void deletingCurrentRecordClosesOnlyRelatedPlots()
     {
+        QFETCH(bool, newPage);
         QTemporaryDir dir;
         const auto path = dir.filePath("records.sqlite");
         const auto first = sample("first"), second = sample("second");
@@ -242,16 +249,21 @@ class RecordDirectoryTests : public QObject
             secondId = repo.save(second).recordId;
         }
         ResultsPage page(makeScientificRegistry());
+        page.workspace()->setDefaultPlotNewPage(newPage);
         page.resize(1200, 800);
         page.show();
         page.setDatabase(path);
         QTRY_VERIFY(!page.databaseBusy());
         page.openRecord(firstId);
         QTRY_COMPARE(page.recordId(), firstId);
+        page.selectStep(0, true);
+        QTRY_VERIFY(!page.workspace()->loading());
         page.openRecord(secondId);
         QTRY_COMPARE(page.recordId(), secondId);
+        page.selectStep(0, true);
         QTRY_VERIFY(!page.workspace()->loading());
-        QCOMPARE(page.workspace()->pageCount(), 2);
+        QCOMPARE(page.workspace()->pageCount(), newPage ? 2 : 1);
+        QCOMPARE(page.workspace()->subplotCount(), newPage ? 1 : 2);
         auto *list = page.findChild<QListWidget *>("resultRecords");
         list->setCurrentRow(0);
         list->setFocus();
@@ -260,7 +272,8 @@ class RecordDirectoryTests : public QObject
         QTRY_COMPARE(page.recordCount(), 1);
         QTRY_VERIFY(!page.databaseBusy());
         QTRY_COMPARE(page.workspace()->pageCount(), 1);
-        QTRY_COMPARE(page.recordId(), firstId);
+        QCOMPARE(page.workspace()->subplotCount(), 1);
+        QCOMPARE(page.recordId(), qint64(0)); // Deleted browser record is cleared, unrelated figures remain.
         QCOMPARE(page.workspace()->currentReference().recordId, firstId);
         auto *select = page.findChild<QPushButton *>("checkMatchingRecords");
         QVERIFY(select);

@@ -1,0 +1,29 @@
+********* Start testing of WorkspaceTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : WorkspaceTests::initTestCase()
+FAIL!  : WorkspaceTests::closingBackgroundPageKeepsDestination() Compared values are not the same
+   Actual   (w.currentReference().key()): "/tmp/aster_workspace_tests-tvlwMl/close.sqlite|{11191082-5d5f-4737-99eb-fc4adf17a519}|{61ef9c2e-31ad-4ace-aa2a-091ad73e134d}|series"
+   Expected (refs[3].key())             : "/tmp/aster_workspace_tests-tvlwMl/close.sqlite|{285aeda2-4fcf-4977-a083-f8bc80138812}|{ba8495ce-4564-4ed2-9735-b5df772d6332}|series"
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(306)]
+FAIL!  : WorkspaceTests::removedPendingReferenceCannotCommit(overlay-active) Compared values are not the same
+   Actual   (w.figureCells(false)[0].references.size()): 2
+   Expected (1)                                        : 1
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(342)]
+FAIL!  : WorkspaceTests::removedPendingReferenceCannotCommit(replace-active) Compared values are not the same
+   Actual   (w.currentReference().key()): "/tmp/aster_workspace_tests-bqAHmi/pending.sqlite|{0bbc504a-2874-4e46-8365-b66e3f668d59}|{af48a5e8-2465-490a-9681-21ced4b01b31}|series"
+   Expected (first.key())               : "/tmp/aster_workspace_tests-bqAHmi/pending.sqlite|{632a6d2b-6c6a-42ca-9bf2-3c2bcc99aa03}|{7b8412cc-ccc4-407f-b718-2aecc9544995}|series"
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(340)]
+FAIL!  : WorkspaceTests::removedPendingReferenceCannotCommit(overlay-unloaded) Compared values are not the same
+   Actual   (w.figureCells(false)[0].references.size()): 2
+   Expected (1)                                        : 1
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(342)]
+FAIL!  : WorkspaceTests::removedPendingReferenceCannotCommit(replace-unloaded) Compared values are not the same
+   Actual   (w.currentReference().key()): "/tmp/aster_workspace_tests-LHDZwx/pending.sqlite|{c645dc1b-77aa-4f8c-a434-73ca8fbfb25c}|{f8d8075f-6b35-4cf6-898b-c3c0366f1f74}|series"
+   Expected (first.key())               : "/tmp/aster_workspace_tests-LHDZwx/pending.sqlite|{f2a1f1ea-6ef1-41ec-ad58-11bc687f504a}|{2252ef64-2f64-49c2-9c88-f81a173a2354}|series"
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(340)]
+QWARN  : WorkspaceTests::checkedReviewClearsInOneUpdate() This plugin does not support propagateSizeHints()
+FAIL!  : WorkspaceTests::checkedReviewClearsInOneUpdate() 'rebuilds.size() <= 1' returned FALSE. (Clearing a checked list must not rebuild all output rows per item)
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(369)]
+PASS   : WorkspaceTests::cleanupTestCase()
+Totals: 2 passed, 6 failed, 0 skipped, 0 blacklisted, 724ms
+********* Finished testing of WorkspaceTests *********

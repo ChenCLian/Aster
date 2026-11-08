@@ -1,0 +1,185 @@
+{
+  "version": "1.2.0-beta.4",
+  "date": "2026-11-07",
+  "status": "passed",
+  "baseline": "Complete 1.2.0-beta.3 source export; cumulative history and tools preserved",
+  "scope": "Explicit clear command, reusable empty subplot, atomic initialization, cancellation and focused plotting UI regression. Numerical implementation and axis compatibility rules unchanged.",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0 Release",
+    "platform": "offscreen"
+  },
+  "reproduction": {
+    "log": "before-fix.txt",
+    "result": "Confirmed failure: right-click Clear plot removes display but leaves workspace currentReference valid."
+  },
+  "checks": {
+    "workspace_regression": {
+      "logs": [
+        "workspace-regression.txt",
+        "final-regression.txt"
+      ],
+      "unique_test_results_including_init_cleanup": 35,
+      "final_failed": 0,
+      "new_data_rows": 5,
+      "initial_failure": "An existing assertion still expected beta.2 wording 原子图保持不变; beta.3 had corrected it to 原有子图保持不变. The assertion was updated and both compatibility rows re-run successfully. All other regression outcomes retained.",
+      "cases": [
+        "addAllScientificOutputs(cwt_four_heatmaps)",
+        "addAllScientificOutputs(mtm_one_spectrum_family)",
+        "advancedStyleAndDynamicInspector()",
+        "batchPlotTransactionsAndLimits()",
+        "cleanupTestCase()",
+        "clearedSubplotCanBeFilled()",
+        "clearedSubplotScientificRecipes(single_table)",
+        "clearedSubplotScientificRecipes(spectrum_peaks_first)",
+        "clearedSubplotScientificRecipes(wavelet_coi_first)",
+        "clearedSubplotValidatesAndCancels()",
+        "closeDuringLoadAndOldMenu()",
+        "closingBackgroundPageKeepsDestination()",
+        "closingLoadingSubplotNotifiesIdle()",
+        "defaultPlotDestinationPreference(current_page)",
+        "defaultPlotDestinationPreference(new_page)",
+        "defaultPlotIgnoresBrowsedAuxiliaryOutput()",
+        "defaultPlotsFollowRecordAndStepClicks()",
+        "defaultPlotsReusePagesAndExplicitSelection()",
+        "familyOverlayHasNoDuplicateCurve()",
+        "heatmapInspectorAcrossPages()",
+        "initTestCase()",
+        "outputBrowserSelectionAndTargets()",
+        "overlayKeepsClickedDestination(compatible)",
+        "overlayKeepsClickedDestination(different_units)",
+        "pagesReleaseBuffersAndRestoreStyle()",
+        "rejectedOverlayKeepsOriginal()",
+        "removedPendingReferenceCannotCommit(overlay-active)",
+        "removedPendingReferenceCannotCommit(overlay-unloaded)",
+        "removedPendingReferenceCannotCommit(replace-active)",
+        "removedPendingReferenceCannotCommit(replace-unloaded)",
+        "removingRecordKeepsUnrelatedSubplots(background-page)",
+        "removingRecordKeepsUnrelatedSubplots(keep-selected)",
+        "removingRecordKeepsUnrelatedSubplots(remove-selected)",
+        "scientificOutputGroups()",
+        "subplotOverlayAndRemoval()"
+      ]
+    },
+    "clear_fill_coverage": [
+      "Context-menu action and button enablement",
+      "Stable subplot identity and count",
+      "Reset title, provenance, precision text and style",
+      "Rebuild cleared page without reviving former data",
+      "Cleared source removal preserves empty slot",
+      "Atomic rejection of mismatched Y units and missing output",
+      "Clear during pending replacement discards late completion",
+      "Five fill/cancel/clear cycles with pending source removal",
+      "CWT COI-first input gets heatmap ownership and logarithmic reversed Y",
+      "MTM peaks-first input gets spectrum ownership",
+      "Single table can initialize empty slot",
+      "Multiple heatmaps cannot share one slot"
+    ],
+    "ui_and_embedded_help": {
+      "log": "ui-regression.txt",
+      "passed_including_init_cleanup": 11,
+      "failed": 0
+    },
+    "version_tests": {
+      "log": "version-tests.log",
+      "passed": 2
+    },
+    "reference_generator": {
+      "log": "generator-tests.log",
+      "passed": 7,
+      "tasks": 54,
+      "parameters": 233
+    },
+    "license_notices": {
+      "log": "notice-tests.log",
+      "passed": 2
+    },
+    "application_version": {
+      "log": "application-version.log",
+      "output": "Aster_Workspace 1.2.0-beta.4"
+    },
+    "visual_review": "Offscreen 1200x800 results-page capture checked: empty title, empty inspector target, enabled fill button and no stale resolution text; adjacent plot retained.",
+    "links_resources_and_continuity": {
+      "markdown_files_checked": 61,
+      "relative_links_checked": 453,
+      "missing_links": [],
+      "unresolved_anchors": [],
+      "qrc_entries": 62,
+      "missing_qrc_entries": [],
+      "unchanged_from_beta3": {
+        "src/math": true,
+        "src/io": true,
+        "src/core": true,
+        "analysis_tests": true,
+        "batch_tests": true,
+        "cross_spectrum_tests": true,
+        "style_export_tests": true,
+        "ui_tests": true,
+        "update_tests": true,
+        "licenses": true
+      },
+      "historical_evidence_files_preserved": 446,
+      "historical_evidence_byte_identical": true,
+      "source_changes": [
+        "src/ui/results/plot_workspace.h",
+        "src/ui/results/plot_view.cpp",
+        "src/ui/results/plot_workspace.cpp",
+        "src/ui/results/results_page.cpp",
+        "src/ui/results/plot_view.h"
+      ],
+      "only_expected_ui_source_changes": true,
+      "parameter_descriptors_defaults_and_stored_keys_unchanged": true,
+      "packaging_logic_unchanged_except_startup_text": {
+        "tools/release/package_windows.ps1": true,
+        "tools/release/package_linux.sh": true,
+        "tools/release/package_macos.sh": true
+      },
+      "i18n": {
+        "zh": {
+          "only_expected_new_keys": true,
+          "existing_text_unchanged": true,
+          "changed_labels": [
+            "ui.fill_current_subplot",
+            "ui.empty_subplot_help"
+          ],
+          "placeholders_unchanged": true
+        },
+        "en": {
+          "only_expected_new_keys": true,
+          "existing_text_unchanged": true,
+          "changed_labels": [
+            "ui.fill_current_subplot",
+            "ui.empty_subplot_help"
+          ],
+          "placeholders_unchanged": true
+        }
+      },
+      "user_document_structure": {
+        "files": [
+          "README.md",
+          "QUICK_START.md",
+          "FAQ.md",
+          "RELEASE_NOTES.md",
+          "docs/USER_GUIDE.md",
+          "docs/USER_GUIDE_EN.md",
+          "docs/ui/plotting.md"
+        ],
+        "malformed_headings": [],
+        "duplicate_headings": []
+      },
+      "startup_comparisons_removed": true
+    }
+  },
+  "workload": {
+    "new_test_input_samples_max": 256,
+    "targeted_workspace_input_samples_max": 1024,
+    "repeat_clear_fill_cycles": 5,
+    "algorithm_stress_tests_repeated": false
+  },
+  "limitations": [
+    "No native Windows/MSVC, macOS or final-package run in this batch.",
+    "No new numerical accuracy benchmark or large-data memory stress; scientific implementation unchanged.",
+    "Overlay compatibility compares stored unit strings; no conversion, range-proximity or physical-meaning inference."
+  ]
+}

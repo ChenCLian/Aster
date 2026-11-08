@@ -4,28 +4,30 @@
 
 **面向地学与天文时间序列的桌面分析工作台。**
 
-当前版本 **1.1.1** · Windows / macOS / Linux · 中文 / English
+当前测试版本 **1.2.0-beta.5** · Windows / macOS / Linux · 中文 / English
 
-Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成、结果管理和绘图导出组织在同一个工作流中。支持单条记录的节点输出预览和多输入批处理，并保存计算参数、数据来源及数值结果，便于复查与比较。
+Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成、结果管理和绘图导出组织在同一个工作流中。支持节点输出预览和多输入批处理，并保存计算参数、数据来源及数值结果，便于复查与比较。
+
+当前版本处于 beta 测试阶段，建议使用独立数据库。功能范围和兼容性见[本版说明](RELEASE_NOTES.md)。
 
 [下载程序](https://github.com/ChenCLian/Aster/releases) · [快速开始](QUICK_START.md) · [常见问题](FAQ.md) · [本版说明](RELEASE_NOTES.md) · [作者](AUTHORS.md)
 
 ## 下载与运行
 
-在发布页的 **Assets** 中选择对应系统的程序包，完整解压后运行。
+**免安装，完整解压后即可运行。** Windows 用户双击 `Aster.exe`。
 
-| 系统 | 1.1.1 程序包 | 启动入口 |
+在发布页的 **Assets（附件）** 中下载与你的系统对应的程序包。源码包供开发和编译使用。
+
+| 系统 | 程序包文件名格式 | 启动入口 |
 | --- | --- | --- |
-| Windows x64 | `Aster-1.1.1-windows-x64.zip` | `Aster.exe` |
-| macOS 15+，Apple Silicon | `Aster-1.1.1-macos-arm64.zip` | `Aster.app` |
-| macOS 15+，Intel | `Aster-1.1.1-macos-x86_64.zip` | `Aster.app` |
-| Linux x64，以 Ubuntu 22.04 为构建基线 | `Aster-1.1.1-linux-x64.tar.gz` | `./AppRun` |
+| Windows x64 | `Aster-<版本>-windows-x64.zip` | `Aster.exe` |
+| macOS 15+，Apple Silicon | `Aster-<版本>-macos-arm64.zip` | `Aster.app` |
+| macOS 15+，Intel | `Aster-<版本>-macos-x86_64.zip` | `Aster.app` |
+| Linux x64，以 Ubuntu 22.04 为构建基线 | `Aster-<版本>-linux-x64.tar.gz` | `./AppRun` |
 
-各平台附件以发布页实际提供的文件为准。`Source code` 和名称带 `source` 的压缩包用于源码构建。
+文件名中的 `<版本>` 对应所下载版本，例如 `1.2.0-beta.5`；可用程序包以发布页附件为准。
 
-发行包已包含 Qt 和数值计算依赖。Linux 仍需兼容的系统库、X11/XWayland 图形环境与字体。**中文显示为方框时，见 [字体问题](FAQ.md#linux-fonts)**。macOS 包的签名与公证状态以发布说明为准，首次打开受阻时见 [macOS 启动问题](FAQ.md#macos-open)。
-
-安装和第一次分析的完整步骤见 [快速开始](QUICK_START.md)。
+请保留解压后的完整目录。各系统的启动要求和常见问题见 [快速开始](QUICK_START.md) 和 [FAQ](FAQ.md)。
 
 ## 主要功能
 
@@ -35,9 +37,10 @@ Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成�
 | 数据处理 | 排序与去重、区间选取、整理与重采样、缩放与偏移、去均值、标准化、线性与 LOWESS 去趋势 |
 | 平滑与滤波 | 移动平均、Savitzky–Golay、Gaussian 与 Taner 带通、Butterworth 低通/高通、Hilbert 振幅包络 |
 | 频谱与时频分析 | FFT、Welch、MTM、Lomb–Scargle、连续小波变换（CWT）、演化 FFT/MTM；MTM 峰值检测及相关背景与检验输出 |
+| 联合分析 | Welch 交叉谱、平方相干度、相位与双方自谱；同工作区跨普通节点 A/B 配对、双输入预览和来源追溯 |
 | 天文曲线 | 偏心率、倾角、气候岁差、ETP 组合、日平均日照、季节平均/积分日照、多纬度日照图及多套轨道解 |
 | 年代与旋回分析 | 沉积速率转年龄模型、应用年龄模型、逐周期赋龄、COCO 固定目标扫描、蒙特卡洛检验与滑窗分析 |
-| 工作流与预览 | 可视化任务树、多输入批处理、后台节点输出预览、参数即时生效、步骤错误诊断 |
+| 工作流与预览 | 可视化任务树、多输入批处理、普通节点插入与替换、统一撤销/重做、后台节点输出预览和步骤错误诊断 |
 | 结果与绘图 | SQLite 结果库、筛选与峰频率检索、批量选择和删除、兼容数据库合并与备份、多图页/子图、曲线与热图、读点坐标、CSV/PNG/PDF 导出 |
 
 ## 基本流程
@@ -61,7 +64,7 @@ Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成�
 | --- | --- |
 | 完整操作与帮助 | [使用手册](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md)、[English](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE_EN.md) |
 | 任务参数含义与默认值 | [中文](https://github.com/ChenCLian/Aster/blob/main/docs/reference/task_parameters.md) · [English](https://github.com/ChenCLian/Aster/blob/main/docs/reference/task_parameters_en.md) |
-| 安装、导入、预览、运行和导出 | [快速开始](QUICK_START.md) |
+| 启动、导入、预览、运行和导出 | [快速开始](QUICK_START.md) |
 | 启动、字体、数据库、频谱和显示问题 | [FAQ](FAQ.md) |
 | 本版功能与平台说明 | [发布说明](RELEASE_NOTES.md) |
 | 方法、架构与开发文档 | [文档索引（在线）](https://github.com/ChenCLian/Aster/blob/main/docs/README.md) |

@@ -40,6 +40,9 @@ class CancellationToken
 struct TaskInput
 {
     DataRef data;
+    // Paired tasks receive A in data and B in second. Ordinary tasks receive
+    // only data; neither input may be looked up from mutable UI/global state.
+    DataRef second{};
 }; // Empty for source tasks.
 struct ExecutionContext
 {

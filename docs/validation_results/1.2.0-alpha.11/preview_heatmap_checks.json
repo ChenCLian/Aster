@@ -1,0 +1,103 @@
+{
+  "version": "1.2.0-alpha.11",
+  "date": "2026-11-07",
+  "status": "passed",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 75.615,
+      "log": "logs/aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 9.76,
+      "log": "logs/aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 5.852,
+      "log": "logs/aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 9.471,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "seconds": 23.328,
+      "log": "logs/aster_integration_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 960,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "QtTest data rows, including initialization and cleanup; final results only, not added to alpha.10 counts. The style/export target was rerun after adding the theme/contour regression.",
+  "changes": [
+    "Default rainbow heatmap palette; previous scientific palette renamed Blue–green–yellow with stable indices.",
+    "CWT period maps reverse Y by default; lightweight database plots recognized from period/COI metadata. No grid mutation or algorithm change.",
+    "Heatmap inspector tab stays visible and follows current output availability, including initial load, refinement, page switching and clearing.",
+    "Preview tooltip clarifies display-only selection; existing per-node output memory and actual-branch source selection retained."
+  ],
+  "focused_coverage": [
+    "PT-ZB18a source → obliquity MTM → source → precession MTM → source through MainWindow canvas selection; exact data equality and no document edits.",
+    "Visible and hidden first-load inspector; empty/curve/grid transitions, rebinding, same-view rebinding and clearing.",
+    "CWT power/raw/corrected/significance grids; generic grids and spectra keep their direction.",
+    "Real CWT computation → SQLite → plot; page switching preserves manual palette/orientation; reset restores new defaults.",
+    "Reversed and non-reversed raw CSV bytes match; PNG/PDF export; theme changes preserve rendered significance contour."
+  ],
+  "source_preview_finding": "The new MainWindow round-trip test passed on the alpha.10 audit baseline before production changes. No new execution or preview-ownership logic was introduced.",
+  "inspector_finding": "Dynamic tab hiding was replaced by a stable disabled/enabled entry. The exact Windows/Qt 6.12 first-display omission was not reproduced on this Linux/offscreen environment.",
+  "unchanged": [
+    "Scientific algorithms and numeric budgets",
+    "Database and payload formats",
+    "Bottom result-steps area and plotting action layout",
+    "Packaging rules and source dependency configuration template"
+  ],
+  "reproduce": [
+    "Build Release with CONFIG+=help_reference. After changing VERSION, rerun qmake and rebuild the version-bearing targets.",
+    "Run the five target executables listed in regression with QT_QPA_PLATFORM=offscreen and OPENBLAS_NUM_THREADS=1.",
+    "python tools/help_reference/generate.py --build <build> --check",
+    "Aster --version"
+  ],
+  "limits": [
+    "No Windows/MSVC or macOS native build or desktop acceptance in this environment.",
+    "No new algorithm-reference or large-input performance campaign; these implementations are unchanged and alpha.10 evidence remains historical.",
+    "No final platform binary packages or remote Release were published."
+  ]
+}

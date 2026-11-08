@@ -1,21 +1,23 @@
 # Aster 算法开发与功能扩展清单
 
-适用版本：**Aster 1.1.1**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
+适用版本：**Aster 1.2.0-beta.5**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
 
-当前验证见 [验证记录](validation.md)。算法说明按职责归入 `methods/`，任务入口见 [分类表](task_catalogue.md)。
+当前验证见 [验证记录](validation_current.md)。算法说明按职责归入 `methods/`，任务入口见 [分类表](task_catalogue.md)。
 
 ## 1. 功能扩展的基线与边界
 
 任务模型、数据传递、调度、存储、界面、绘图、设置和诊断通过既有接口连接。新增算法应按本清单接入，并为其数学结果和错误边界提供独立验证。
 
-平台部署和实际数据验收需分别执行。当前版本验证结果见 `validation.md` 和 `validation.json`，`PACKAGE_STATUS.json` 提供记录入口。测试计数包含初始化与清理，不等价于所有平台或任意数据均已验证。
+平台部署和实际数据验收需分别执行。当前验证范围见 `validation_current.md`，`PACKAGE_STATUS.json` 提供机器可读记录入口；`validation.md` 和 `validation.json` 保留 1.1.1 历史证据。测试计数包含初始化与清理，不等价于所有平台或任意数据均已验证。
 
 ### 1.1 现有能力
 
 | 项目 | 当前结论 |
 | --- | --- |
 | 单父节点任务树 | 每个节点最多左、右、下三个子槽；可有多个独立根 |
-| 分支执行 | 同一输入内按依赖顺序执行；不同输入之间有界并发 |
+| 分支执行 | 普通运行按输入有界并发；联合批次按实际任务依赖就绪调度 |
+| 联合分析 | TaskInput.data/second 显式 A/B；同工作区普通支路及源根间配对，稳定身份追溯 |
+| 结构编辑 | 普通节点插入/替换；图、来源与配对原子提交，共用最多 100 次有效编辑历史 |
 | 多输出 | 一个节点可返回多个具名输出；一个子节点选择其中一个输出 |
 | 注册与界面生成 | 菜单、任务目录、常规参数表单读取任务声明 |
 | 文件与数据库来源 | 新类型的来源选择界面仍需按具体需求实现 |
@@ -28,9 +30,9 @@
 
 ### 1.2 扩展边界
 
-当前不提供以下功能：同一输入内分支并行、节点合流与重接、免编译科学任务 DLL / 脚本插件、独立项目草稿保存、图页样式跨会话恢复、全页签多页 PDF、无限规模数据处理。
+当前不提供以下功能：任意 DAG 合流与节点重接、联合输出再次配对、直接改写联合节点输入/输出结构、免编译科学任务 DLL / 脚本插件、独立项目草稿保存、图页样式跨会话恢复、全页签多页 PDF、无限规模数据处理。
 
-双输入比较、复数输出或三维场需要先扩展对应的数据与输入契约。
+双输入比较可复用已实现的配对契约；交叉谱以数值表的实部/虚部列表示复数估计，并用有效性掩码表示未定义值。通用复数数组或三维场仍需单独设计类型。
 
 ### 1.3 平台回归清单
 
@@ -38,6 +40,8 @@
 - [ ] 用一份已知正确的小文件验证列选择、单位、表头和坏行策略。
 - [ ] 数据满足前提时，直接运行“读取 → LOWESS → MTM”；不强制插入整理与重采样。
 - [ ] 同一数据建立 MTM / CWT 两个分支；再用两个文件运行同一流程，核对不同记录 ID 与各自步骤。
+- [ ] 验证同源与跨源 A/B 选择、实际预览输入、全部配对运行及 CSV 未定义值；来源删除后不误绑定同名数据。
+- [ ] 验证普通节点插入/替换的端口映射、取消、撤销/重做、运行锁和过期选择窗口。
 - [ ] 输入一份倒序或重复 X 的数据，确认失败原因、位置、下游阻断与详情正确；其他输入仍可完成。
 - [ ] 重启后按 ID 回读结果；验证峰频率筛选、单位筛选，以及用结果建立新数据源。
 - [ ] 验证切换图页、移除子图后右键、实时样式、原始 CSV、PNG / 当前页 PDF 导出。
@@ -49,9 +53,9 @@
 2. 每个 Task 实例拥有自己的参数与临时缓冲区，不用可变全局变量或静态参数 setter。
 3. 参数与小型元数据使用 JSON；数值数组通过 `DataRef` 传递，不序列化成 JSON 再在节点间来回解析。
 4. `DataRef` 是 `std::shared_ptr<const DataObject>`。上游只读；需要原地计算的旧函数，先复制到本任务的可写缓冲区。
-5. 编辑中的 `WorkflowModel` 只由界面线程管理。执行前冻结树、参数与来源，后台使用快照。
-6. 子节点的 `InputBinding` 是逻辑连边依据；位置相邻不产生依赖，左右下也不是线程或调度优先级。
-7. 普通算法只返回结果；`BatchRunner` 和 `ResultRepository` 统一协调保存，不在每个算法中重复写库。
+5. 桌面编辑通过 `WorkflowDocument` / `WorkflowEditor` 提交完整候选，不能直接修改图形项或内部模型。执行前冻结树、参数与来源，后台使用快照。
+6. 普通子节点的 `InputBinding` 是树连边依据；联合计算依赖由 `BatchGrouping` 明确引用 A/B。位置相邻不产生计算依赖，左右下不是调度优先级。
+7. 普通算法只返回结果；普通路径由 `BatchRunner`、联合批次由 `runJointBatch` 配合 `ResultRepository` 协调保存，不在每个算法中重复写库。
 8. 稳定键与显示文字分离：方法键、端口键、参数键、选项值不随中英文切换变化。
 9. 科学约束由算法明确检查。失败可以建议排序、去重或重采样，预处理由显式节点完成。
 10. 新算法通常只增加新实现及注册/构建项。只有契约确实变化时，才修改核心模型。
@@ -77,7 +81,8 @@
 | 新数据库筛选或管理操作 | `src/io/database/` | `record_directory_service.*`、筛选面板/结果页；按需改 schema |
 | 新导出格式 | 数值：`src/io/exports/`；图形：`src/ui/exports/` | 导出控制器、选择界面、验证 |
 | 新数据对象种类 | `src/model/data_types.*` | 核心校验、编解码、读取、导出、数据库来源、绘图与测试 |
-| 双输入/分支合流 | 工作流模型与输入绑定契约 | 验证、执行、快照、来源追溯、画布；单独设计，不按普通算法接入 |
+| 新双输入算法 | `pairedInput`、`TaskInput.data/second`、`BatchGrouping` | 复用来源选择和批次调度；补充双输入科学校验、报告、绘图及回归 |
+| 任意多输入/DAG 或三维类型 | 独立设计扩展契约 | 不能以现有双输入功能代替依赖、存储和界面设计 |
 
 新科学任务统一在 `scientific_registry.*` 注册并由 `science.pro` 构建。`PROCESS_METHODS`、`builtin_tasks.*` 和 `core.pro` 承载核心示例；模块归属按职责确定。
 
@@ -264,7 +269,7 @@ HEADERS += ../src/processing/example_clip_task.h
 
 最小预期结果：默认参数下，Y = `[-2, -0.2, 0.8, 3]` 输出 `[-0.5, -0.2, 0.8, 1]`，X、单位与原输入不变；`clipped_samples = 2`。下限大于上限应返回结构化失败。正常执行应走注册表/执行器，避免直接用未归一化参数构造 Task。
 
-接入该示例时，应验证注册、参数校验、工作流执行、输入不变性、结果及单位、错误与取消、SQLite 回读和 CSV 导出。当前版本的构建与回归结果见 [验证记录](validation.md)。
+接入该示例时，应验证注册、参数校验、工作流执行、输入不变性、结果及单位、错误与取消、SQLite 回读和 CSV 导出。当前版本的构建与回归结果见 [验证记录](validation_current.md)。
 
 ## 6. 输入、输出和参数的精确约定
 
@@ -275,9 +280,9 @@ HEADERS += ../src/processing/example_clip_task.h
 | `SeriesData` | `x`, `y`, `xAxis`, `yAxis` | 非空、等长、有限值；递增/等间隔属于具体算法约束 |
 | `SpectrumData` | `frequency`, `power` 及轴信息 | 非空、等长、有限值；频率与 power 都不能为负 |
 | `GridData` | `x`, `y`, `values`, `rows`, `columns` 及轴信息 | `rows == y.size()`，`columns == x.size()`；行优先 `values[row * columns + column]` |
-| `TableData` | `columns` 与二维 `double` 行 | 列名非空且唯一；行长度一致、有限值；可以无数据行 |
+| `TableData` | `columns`、二维 `double` 行、可选 `defined` 掩码 | 列名非空且唯一；行宽一致且数值有限；掩码为空或与表同形、只含 0/1；可以无数据行 |
 
-当前 Table 是数值表，不是包含任意文本、日期或复数的通用数据框。负值相位曲线不应塞入要求非负的 Spectrum.power；可根据语义用 Series。NaN 缺测掩码、复数阵列、三维场若无法合理表示，应单独设计类型。
+当前 Table 是数值表，不是包含任意文本、日期或复数的通用数据框。负值相位曲线不应塞入要求非负的 Spectrum.power；可根据语义用 Series。未定义单元格使用 `defined` 掩码，不用 NaN 冒充数值；存储、表格、曲线和 CSV 必须保留这一状态。通用复数阵列、三维场若无法合理表示，应单独设计类型。
 
 元数据保存在 `NodeResult.report`，提示保存在 `warnings`，错误通过 `failure(...)`。不要把大数组、指针、QPen、QWidget 塞进 report。
 
@@ -287,6 +292,7 @@ HEADERS += ../src/processing/example_clip_task.h
 - `version`：算法或参数/输出语义变化时提高；仅改显示文字通常不需要。
 - `category`：层级列表，例如 `{"Analysis", "Spectrum"}`；分类文字可翻译。
 - `inputKind`：普通任务指定一种 DataKind；无上游来源任务不设置。
+- `pairedInput`：双输入任务设为 true，A/B 均遵循 inputKind；原单输入执行器拒绝此类任务。
 - `outputs`：列出每个端口的稳定键、显示名、类型与 `required`。
 - `defaultOutput`：必须指向已声明端口。建议指向正常情况下总会生成的主要输出。
 - `parameters`：Number、Integer、Boolean、Text；Text 的 `choices` 非空时生成枚举下拉框。
@@ -401,7 +407,7 @@ return NodeResult::failure(makeError(
 - [ ] 新删除/引用操作遵循已有依赖保护和事务；错误交回界面。
 - [ ] 测试新建库、写入、回读、筛选和删除语义。
 
-当前 schema 为 3、数值编码为 v1，表前缀为 `aster_`。数据库结构变更需声明支持的来源版本，并设计备份、事务迁移和失败恢复；不兼容格式应明确拒绝，不能静默误读或删除用户数据。程序版本变化本身不要求数据库迁移。
+当前 schema 为 3，普通数值载荷为 v1、带有效性掩码的表为 v2，表前缀为 `aster_`。1.1.1 不能读取新掩码表。数据库结构变更需声明支持的来源版本，并设计备份、事务迁移和失败恢复；不兼容格式应明确拒绝，不能静默误读或删除用户数据。程序版本变化本身不要求数据库迁移。
 
 同数据库已提交的结果引用有删除保护；不要把它描述成跨数据库的全局引用管理。数据库位置设置只切换使用的库，不搬迁旧库。
 
@@ -419,11 +425,11 @@ return NodeResult::failure(makeError(
 
 Series/Spectrum 可复用曲线显示，Grid 可复用热图，Table 可复用表格。它们的“能显示”不代表所有领域图形自动完成：置信带、专用多轴对照或特殊标注需要适配。
 
-现有代码仍按 `peaks`、`coi`、`significance_ratio`、`ar1_*`、`swa_*` 等约定组织部分组合绘图与默认样式。新增特别的输出组合时，检查 `plot_view.cpp` 与 `result_repository.cpp` 中的 `loadPlot()` / `loadPlotPreview()`，不要只修改算法返回值后就假设叠加语义正确。
+组合绘图通过 `plot_recipe.h` 的稳定方法/输出标识组织，默认样式由 `plotPreset` 集中生成。新增专用输出组合时，同时检查配方、默认样式、`PlotView`、结果读取和导出适配；预览、自动投图和手动投图应使用一致的语义。绘图配置不写入算法数值或结果数据库。
 
 Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插值统一由 `HeatmapStyleEditor` → `PlotStyle` → `PlotView` 处理；不在算法中修改原始值以迎合颜色。新热图若需要局部 95% 边界，可提供与主网格完全相同 X/Y 坐标的 `significance_ratio` Grid（功率/该阈值），缺少时只显示主热图并给出提示。不同显著性水平或其他含义不能冒用该端口，应扩展语义与标签。COI 继续用 `coi` Series。
 
-添加新的栅格叠加时同时检查 `ResultRepository` 的共同 family 选择和 `PlotRequest` 采样策略；阈值轮廓不能直接用块最大值替代实际坐标样本。渲染预算超限必须有提示，不能输出部分边界当完整结果。新样式 UI 使用 `style_section.h` 分组、语言 JSON 和主题模板，复用 ColorButton；导出仍调用相同 PlotView。已移除未被生产路径使用的 `display_data.*`，不要再把新功能挂到旧预览接口。
+添加新的栅格叠加时同时检查 `ResultRepository` 的共同 family 选择和 `PlotRequest` 采样策略；阈值轮廓不能直接用块最大值替代实际坐标样本。渲染预算超限必须有提示，不能输出部分边界当完整结果。新样式 UI 使用 `style_section.h` 分组、语言 JSON 和主题模板，复用 ColorButton；导出仍调用相同 PlotView。显示数据通过 `PlotDataLoader` / `plot_reader` 准备，避免新增平行的数据读取路径。
 
 新增绘图表现的清单：
 
@@ -491,13 +497,13 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 
 ## 13. 何时才需要调整核心架构
 
-### 13.1 双输入/合流
+### 13.1 双输入与跨节点引用
 
-当前 `TaskInput` 只有一份 `DataRef`，`NodeDefinition` 只有一个上游 `InputBinding`。一个节点多输出，不等于下游同时接收多输入。
+`TaskInput.data` 和 `second` 分别接收 A/B。`NodeDefinition` 保持一个树父节点；联合节点的实际计算输入由 `BatchGrouping` 中的来源节点、数据身份及端口明确声明。桌面选择器支持同工作区普通支路与不同源根，不提供任意输入数量或联合输出再次配对。
 
-如果要把两条独立流程的输出做相关、交叉谱或联合拟合，先确定是否确实需要任意分支合流。需要时独立设计命名输入端口、类型/单位兼容、依赖验证、拓扑执行、失败传播、快照和 UI 连线。所有数据依赖须通过已声明的输入传递。
+新增双输入算法可复用 `pairedInput`、`prepareLinkedBatch`、`BatchWorkflowExecutor`、配对界面及保存路径。算法仍须检查坐标、单位、长度等科学前提；不得通过全局结果表自行寻找另一个输入。更多输入、联合结果再次汇合、任意 DAG 接线或跨已保存批次的实时关联，需要先设计新的依赖、身份、持久化和界面约定。
 
-若研究对象本来就是一份固定的成组数据，可以设计明确的复合输入结构；这与任意节点合流是两个需求，不能混为一谈。
+详情见[联合分析执行约定](development/batch_joint_analysis.md)和[交叉谱接口](development/cross_spectrum_interfaces.md)。
 
 ### 13.2 新 DataKind
 
@@ -519,7 +525,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 
 ## 14. 性能、线程与取消
 
-- 不同输入的并发由 `BatchRunner` 管理；单个输入内保持顺序，不需要为每个节点再创建线程池。
+- 普通请求的并发由 `BatchRunner` 管理，每个请求内部保持顺序；联合批次由 `BatchWorkflowExecutor` 按就绪任务调度。任务内部不再创建额外线程池。
 - 当前 OpenBLAS 和 PocketFFT 的单次计算内部均为1线程，外层负责不同数据间并行；不要从每个任务反复修改全局线程数。
 - 调整数值库线程策略时，联合评估外层并发和内层线程数，避免线程过量与内存峰值。
 - 不使用跨任务可变静态缓冲区；第三方库的上下文/计划对象需核实是否可并行使用。
@@ -603,6 +609,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 | 区间 / 去均值 / 标准化 | select_interval / demean / standardize v1 | 区间含端点并保持原顺序；标准化默认N−1；常量标准化报错 |
 | 采样与间隔检查 | sampling_check v1；大间隔阈值为正间隔中位数×3 | 原样转发输入，附诊断表；不修改数据、不推断地质间断 |
 | 平滑 / 常规谱 | moving_average、savitzky_golay、fft_spectrum、welch_spectrum | 边界、窗与归一化见 methods/smoothing_spectra.md；无自动插值 |
+| Welch 交叉谱 | cross_spectrum v2；段长256、重叠128、FFT=段长、周期Hann、段内去均值 | 有序 A/B、相同均匀 X 网格；复谱平均后计算相干度和相位，未定义值用掩码；见 methods/cross_spectrum.md |
 | 不等距谱 / 高低通 | lomb_scargle、butterworth_lowpass、butterworth_highpass | 浮动均值 LS；Butterworth SOS 双向滤波的截止点、端点与限制见 methods/spectral_extension.md |
 | 年龄映射 | apply_age_model、sedrate_to_age | 控制点/速率的单位、顺序、边界处理见 methods/chronology.md；不隐式改写源数据 |
 | 目标周期 / 逐周期赋龄 | milankovitch_period、cycle_age_model | 周期包络、峰谷选择及歧义见 methods/cycle_tuning.md；不用未验证的自动峰谷序列替代控制点判断 |
@@ -621,7 +628,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 ## 20. 预览、后台和导出的维护约定
 
 - 即时预览为文件栏与画布间的独立列，默认展开。CollapsiblePanel 管收缩/宽度，内部 QSplitter 管上下高度。空数据/空节点不执行计算。
-- SourcePanel 同时发出原始文件预览输入与包含草稿选项的 SourceItem。控制器以画布节点为准，prepareNodePreview 只冻结该根到该节点的祖先路径，并复用 WorkflowExecutor。
+- SourcePanel 同时发出原始文件预览输入与包含草稿选项的 SourceItem。控制器以画布节点为准，普通路径由 prepareNodePreview 冻结根到节点的祖先路径并复用 WorkflowExecutor；联合路径由 batchDependencySlice 提取所选配对的真实依赖，交给 BatchWorkflowExecutor。
 - ParameterEditor 立即发 edited 让旧结果失效，260ms 后 applyRequested 自动提交；切换/运行前仍 flush。预览 220ms 合并请求，每次一个 worker 和一个最新待执行请求；代次与合作式取消防止过时结果覆盖。
 - 算法/端口/参数名来自 TaskDescriptor 和语言资源；不同输出用选择框，绘图沿用 PlotView。新增普通任务实现声明、工厂和 Task.execute，复用预览执行器。
 - 原始概览和实际执行共用 readSeriesFile，但独立读取；执行完成后用本次路径实际使用的根输出更新原始图，防止外部文件改写或多输出端口选择不同导致上下图不一致。不缓存全部输入或把抽样数据当作算法输入。
@@ -633,7 +640,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 - CSV/图形导出先发送本次 finished，再发送 busyChanged(false)。finished 回调中任务仍占用；如需链式导出，在 idle 通知后启动，避免把旧任务完成状态应用到新任务。
 - 取消是合作式的；不可中断的单次原生库调用需要返回后才响应。可捕获 C++ 异常与错误结果不等于原生进程崩溃隔离；项目没有计算子进程。
 - 数值层须检查第三方前提、状态码与内存预算。现有 C 库仍不能承诺在系统级内存耗尽或原生库故障下完全隔离崩溃，正式发布须保留压力测试。
-- 结果库采用 schema 3 和数值编码 v1；读取记录不改写历史结果。记录加载路径失效时直接失败，不重新创建空数据库。
+- 结果库采用 schema 3；普通载荷 v1、掩码表 v2；读取记录不改写历史结果。记录加载路径失效时直接失败，不重新创建空数据库。
 
 - 绘图分组复用 `compatibleCurveAxes`；不要仅因两个输出都是 Series 就共用数轴。数据库预览报告的 `output_bounds` 按输出保留全数据范围，自动缩放只合并可见曲线；视口细化不得覆盖初始全范围。
 - 导出期间拒绝关闭窗口要恢复实时预览；不要依赖并未运行的批次在将来发出 idle 信号。

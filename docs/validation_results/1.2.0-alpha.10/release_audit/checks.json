@@ -1,0 +1,198 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.10",
+  "date": "2026-11-07",
+  "timezone": "UTC",
+  "status": "passed_in_documented_scope_native_package_acceptance_pending",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "cpu_model": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "visible_logical_processors": 9,
+    "cpu_quota": "unavailable",
+    "memory_total_kib": 10206468,
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "numeric_threads": 1,
+    "rendering": "offscreen"
+  },
+  "planned_features": {
+    "same_batch_welch_cross_spectrum": "implemented",
+    "ordinary_cross_node_and_cross_root_pairing": "implemented",
+    "output_picker_and_window_placement": "implemented",
+    "atomic_editing_and_undo_redo": "implemented",
+    "ordinary_node_insertion_and_replacement": "implemented",
+    "desktop_pairing_and_reference_lines": "implemented",
+    "user_and_developer_documentation": "updated"
+  },
+  "excluded_scope": [
+    "Pairing joint-node outputs or descendants",
+    "Structural rewrites directly involving joint nodes",
+    "Live dependencies on separately saved runs",
+    "Arbitrary DAG editing"
+  ],
+  "confirmed_fixes": [
+    {
+      "file": "src/ui/app/main_window.cpp",
+      "issue": "Per-record directory refreshes interleaved with progress repainting starved the GUI event loop during fast large batches.",
+      "change": "Coalesce progress, file-state and directory presentation at 100 ms while counting every terminal step; flush on completion, preserve cancellation text and reset it for the next run, including saved results preceding a caught error.",
+      "regression": "Two 1000-event signal-burst tests for completed and saved-before-error paths; check one progress update, cancellation text, no stale final refresh and a fresh run; real 512-pair GUI execution and 1025 saved records."
+    },
+    {
+      "files": [
+        "src/core/workflow_editor.cpp",
+        "src/core/linked_batch.cpp",
+        "src/ui/workflow/workflow_document.cpp"
+      ],
+      "issue": "Assigning roots[child] from roots[parent] retains a QHash value reference that insertion can invalidate. AddressSanitizer detected heap-use-after-free in largeSubtreeAndLimit.",
+      "change": "Read a value copy before insertion in all three source-root index builders.",
+      "regression": "Existing 10000-node rewrite test plus a new 1024-node extension across two source roots, explicit root identity, execution, preview and undo/redo."
+    },
+    {
+      "file": "src/ui/panels/joint_input_dialog.cpp",
+      "issue": "Non-const indexing of a shared temporary list detached and copied the entire dataset/name list for each displayed pair member.",
+      "change": "Use const at() access in catalog descriptions and member-table display.",
+      "regression": "Actual 1000/9999-pair dialog, member selection, tooltip, cancellation and identity preservation."
+    },
+    {
+      "file": "src/core/batch_workflow.cpp",
+      "issue": "Same-batch unassigned-candidate limit was per joint node, allowing the batch aggregate to exceed the intended bound.",
+      "change": "Apply the 100000-candidate bound to the batch aggregate, matching cross-node planning.",
+      "regression": "50 joint nodes / 99900 candidates accepted; 51 / 101898 rejected; reproduced as failing before the fix."
+    }
+  ],
+  "algorithm_or_numeric_budget_changes": false,
+  "metadata_limit_enforcement_changed": true,
+  "storage_format_changed": false,
+  "source_index_growth_regression": {
+    "added_ordinary_nodes": 1024,
+    "source_roots": 2,
+    "checks": [
+      "node sourceRoot identities",
+      "full execution result",
+      "selected-pair descendant preview",
+      "undo/redo"
+    ]
+  },
+  "regression": {
+    "targets": 12,
+    "passed": 1993,
+    "failed": 0,
+    "skipped": 0,
+    "counting": "QtTest totals include initTestCase/cleanupTestCase and data rows. Do not add focused reruns or sanitizer counts.",
+    "summary": "regression_summary.json",
+    "attempts": "regression_attempts.json",
+    "first_final_run": "1992 passed, 1 timing-sensitive close/restart timeout; unchanged source passed three focused reruns and the whole 50-case update target; final summary uses that target rerun."
+  },
+  "randomized_execution": {
+    "seeds": [
+      1729,
+      1730,
+      1731,
+      1732,
+      1733,
+      1734,
+      1735,
+      1736,
+      1737,
+      1738,
+      1739,
+      1740
+    ],
+    "pairs_per_seed": 24,
+    "samples_per_output": 512,
+    "workers": [
+      1,
+      4,
+      8
+    ],
+    "oracle": "Independent affine/sine formula for every output sample; duplicate labels, reordered sources and downstream pair preview.",
+    "log": "aster_linked_input_tests.txt"
+  },
+  "independent_references": {
+    "synthetic_cases": 16,
+    "real_odp_cases": 8,
+    "regenerated_equal": true,
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "direct_dft": "passed",
+    "record": "independent_reference.json",
+    "scope": "Numerical agreement for these cases; no new significance calibration."
+  },
+  "sanitizers": {
+    "pre_fix_diagnostic": "hash-index-uaf-before.txt",
+    "configuration": "-O1 -g1 -fsanitize=address,undefined -fno-omit-frame-pointer",
+    "targets": [
+      "aster_core_tests",
+      "aster_batch_tests",
+      "aster_cross_spectrum_tests",
+      "aster_joint_ui_tests",
+      "aster_rewrite_tests",
+      "aster_linked_input_tests"
+    ],
+    "passed": 331,
+    "failed": 0,
+    "diagnostics": 0,
+    "record": "sanitizers.json",
+    "address_options": "detect_leaks=0:halt_on_error=1",
+    "undefined_options": "halt_on_error=1:print_stacktrace=1",
+    "leak_scan": "unavailable: LeakSanitizer terminates with ptrace environment fatal error; disabled for ASan/UBSan runs, not counted as leak-free.",
+    "scope": "Project code; prebuilt Qt/numerical dependencies are not instrumented. No ThreadSanitizer run."
+  },
+  "auxiliary_checks": {
+    "release_python_tests_run": 95,
+    "release_python_tests_failures": 0,
+    "release_python_skipped_classes": 1,
+    "release_python_unexecuted_brew_cases": 2,
+    "release_python_skip_reason": "Ruby unavailable; macOS CI uses Homebrew Ruby (BrewQueryTests)",
+    "help_generator_tests": 6,
+    "parameter_reference_tasks": 54,
+    "parameter_reference_parameters": 233,
+    "parameter_references_current": true,
+    "post_documentation_help_qttest_passed": 10,
+    "shell_syntax": [
+      "package_linux.sh",
+      "package_macos.sh"
+    ]
+  },
+  "performance": {
+    "summary": "performance_summary.json",
+    "raw_measurements": "performance_runs.json",
+    "gui_before_refresh_fix": "gui_before_refresh_fix.json",
+    "gui_diagnostic_isolation": "gui_refresh_isolation.json",
+    "dialog_latency_followups": "dialog_latency_followups.json",
+    "fresh_processes": true,
+    "serial_measurements_after_build_and_tests": true,
+    "baseline_comparison": "Same updated benchmark driver and Release libraries with the original joint_input_dialog.cpp object linked first; aggregate-candidate fix does not affect this dialog workload.",
+    "dialog_clock": "Nonblocking constructor and first paint are both cumulative from opening; member selection is measured independently. Older blocking-dialog clock is not comparable.",
+    "rss": "Process high-water RSS, not current allocation or proof of leak absence.",
+    "linked_data": "9999/1000-source scheduling benchmarks share immutable 512-point buffers; GUI512 uses independently allocated 4096-point inputs."
+  },
+  "native_acceptance_pending": [
+    "Windows/MSVC Release build and full regression",
+    "macOS arm64/x86_64 native build and full regression",
+    "Final Linux package on its supported baseline and desktop",
+    "Clean-host fonts, startup, database, imports, exports and cancellation",
+    "Native DPI/multi-monitor dialogs, drag/drop and close/restart confirmation timing",
+    "Platform dependency materials, matching source and final package checks",
+    "La2004/La2010 redistribution basis (existing unresolved release-material item)"
+  ],
+  "reproduce": [
+    "python tools/release/run_tests.py <Release-build>",
+    "python -m unittest discover -s tools/release -p \"test_*.py\"",
+    "python -m unittest discover -s tools/help_reference -p \"test_*.py\"",
+    "python tools/help_reference/generate.py --build <Release-build> --check",
+    "See tools/performance/README.md for benchmark modes",
+    "Build a separate qmake tree with the sanitizer flags above; run the six listed targets with ASAN_OPTIONS and UBSAN_OPTIONS above",
+    "Existing largeSubtreeAndLimit plus largeCrossRootIndexSurvivesGrowth exercise root-index growth under ASan; hash-index-uaf-before.txt records the pre-fix diagnostic."
+  ],
+  "document_integrity": {
+    "markdown_files": 60,
+    "local_and_repository_links_checked": 440,
+    "anchors_checked": 133,
+    "embedded_resources": 48,
+    "external_links_not_availability_checked": 51,
+    "errors": [],
+    "personal_path_findings": [],
+    "intermediate_wording_findings": []
+  }
+}

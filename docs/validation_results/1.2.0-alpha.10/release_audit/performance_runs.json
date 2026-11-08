@@ -1,0 +1,970 @@
+[
+  {
+    "change_member_ms": 62,
+    "count": 1000,
+    "dialog_construct_ms": 315,
+    "dialog_first_paint_ms": 320,
+    "member_chooser_ms": 30,
+    "mode": "dialog",
+    "peak_rss_kib": 43724,
+    "preview_prepare_ms": 9,
+    "preview_ready_ms": 313,
+    "preview_state": 3,
+    "rss_dialog_kib": 41816,
+    "selectors": 0,
+    "set_pairs_ms": 8,
+    "total_ms": 1202,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 462,
+    "count": 1000,
+    "dialog_construct_ms": 264,
+    "dialog_first_paint_ms": 267,
+    "member_chooser_ms": 865,
+    "mode": "dialog",
+    "peak_rss_kib": 44728,
+    "preview_prepare_ms": 3,
+    "preview_ready_ms": 282,
+    "preview_state": 3,
+    "rss_dialog_kib": 42620,
+    "selectors": 0,
+    "set_pairs_ms": 10,
+    "total_ms": 2422,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 17,
+    "count": 1000,
+    "dialog_construct_ms": 1588,
+    "dialog_first_paint_ms": 1592,
+    "member_chooser_ms": 184,
+    "mode": "dialog",
+    "peak_rss_kib": 44604,
+    "preview_prepare_ms": 3,
+    "preview_ready_ms": 231,
+    "preview_state": 3,
+    "rss_dialog_kib": 42240,
+    "selectors": 0,
+    "set_pairs_ms": 123,
+    "total_ms": 2649,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 7327,
+    "count": 9999,
+    "dialog_construct_ms": 1009,
+    "dialog_first_paint_ms": 1016,
+    "member_chooser_ms": 4614,
+    "mode": "dialog",
+    "peak_rss_kib": 91712,
+    "preview_prepare_ms": 180,
+    "preview_ready_ms": 277,
+    "preview_state": 3,
+    "rss_dialog_kib": 87268,
+    "selectors": 0,
+    "set_pairs_ms": 312,
+    "total_ms": 14730,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 776,
+    "count": 9999,
+    "dialog_construct_ms": 1112,
+    "dialog_first_paint_ms": 1114,
+    "member_chooser_ms": 113,
+    "mode": "dialog",
+    "peak_rss_kib": 92300,
+    "preview_prepare_ms": 1147,
+    "preview_ready_ms": 355,
+    "preview_state": 3,
+    "rss_dialog_kib": 87348,
+    "selectors": 0,
+    "set_pairs_ms": 60,
+    "total_ms": 4692,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 2450,
+    "count": 9999,
+    "dialog_construct_ms": 354,
+    "dialog_first_paint_ms": 421,
+    "member_chooser_ms": 70,
+    "mode": "dialog",
+    "peak_rss_kib": 92224,
+    "preview_prepare_ms": 231,
+    "preview_ready_ms": 234,
+    "preview_state": 3,
+    "rss_dialog_kib": 87460,
+    "selectors": 0,
+    "set_pairs_ms": 57,
+    "total_ms": 5860,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 263,
+    "count": 1000000,
+    "error": "",
+    "mode": "numeric",
+    "peak_rss_kib": 74332,
+    "rss_after_compute_kib": 74332,
+    "state": 2,
+    "total_ms": 6025,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 342,
+    "count": 1000000,
+    "error": "",
+    "mode": "numeric",
+    "peak_rss_kib": 73752,
+    "rss_after_compute_kib": 73752,
+    "state": 2,
+    "total_ms": 1429,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 254,
+    "count": 1000000,
+    "error": "",
+    "mode": "numeric",
+    "peak_rss_kib": 73836,
+    "rss_after_compute_kib": 73836,
+    "state": 2,
+    "total_ms": 1209,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 443,
+    "count": 1000000,
+    "csv_bytes": 22455313,
+    "csv_error": "",
+    "csv_ms": 957,
+    "error": "",
+    "first_plot_ms": 58,
+    "metric_switches": [
+      {
+        "metric": "coherence",
+        "ms": 0
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 16
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 37
+      },
+      {
+        "metric": "cross_real",
+        "ms": 18
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 17
+      },
+      {
+        "metric": "auto_a",
+        "ms": 15
+      },
+      {
+        "metric": "auto_b",
+        "ms": 20
+      },
+      {
+        "metric": "table",
+        "ms": 19
+      },
+      {
+        "metric": "coherence",
+        "ms": 28
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 17
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 21
+      },
+      {
+        "metric": "cross_real",
+        "ms": 16
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 15
+      },
+      {
+        "metric": "auto_a",
+        "ms": 14
+      },
+      {
+        "metric": "auto_b",
+        "ms": 15
+      },
+      {
+        "metric": "table",
+        "ms": 14
+      }
+    ],
+    "mode": "plot",
+    "peak_rss_kib": 118056,
+    "png_ms": 122,
+    "png_ok": true,
+    "repeated_metric_cycles_peak_rss_kib": [
+      118056,
+      118056,
+      118056,
+      118056,
+      118056,
+      118056,
+      118056,
+      118056,
+      118056,
+      118056
+    ],
+    "rss_after_compute_kib": 94676,
+    "state": 2,
+    "total_ms": 4573,
+    "twenty_zoom_ms": 54,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 1052,
+    "count": 1000000,
+    "csv_bytes": 22455313,
+    "csv_error": "",
+    "csv_ms": 3635,
+    "error": "",
+    "first_plot_ms": 112,
+    "metric_switches": [
+      {
+        "metric": "coherence",
+        "ms": 0
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 201
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 103
+      },
+      {
+        "metric": "cross_real",
+        "ms": 201
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 36
+      },
+      {
+        "metric": "auto_a",
+        "ms": 24
+      },
+      {
+        "metric": "auto_b",
+        "ms": 35
+      },
+      {
+        "metric": "table",
+        "ms": 33
+      },
+      {
+        "metric": "coherence",
+        "ms": 49
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 20
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 27
+      },
+      {
+        "metric": "cross_real",
+        "ms": 20
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 233
+      },
+      {
+        "metric": "auto_a",
+        "ms": 413
+      },
+      {
+        "metric": "auto_b",
+        "ms": 28
+      },
+      {
+        "metric": "table",
+        "ms": 23
+      }
+    ],
+    "mode": "plot",
+    "peak_rss_kib": 118028,
+    "png_ms": 249,
+    "png_ok": true,
+    "repeated_metric_cycles_peak_rss_kib": [
+      118028,
+      118028,
+      118028,
+      118028,
+      118028,
+      118028,
+      118028,
+      118028,
+      118028,
+      118028
+    ],
+    "rss_after_compute_kib": 95044,
+    "state": 2,
+    "total_ms": 16563,
+    "twenty_zoom_ms": 108,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "compute_ms": 5378,
+    "count": 1000000,
+    "csv_bytes": 22455313,
+    "csv_error": "",
+    "csv_ms": 4119,
+    "error": "",
+    "first_plot_ms": 479,
+    "metric_switches": [
+      {
+        "metric": "coherence",
+        "ms": 1
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 30
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 25
+      },
+      {
+        "metric": "cross_real",
+        "ms": 34
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 244
+      },
+      {
+        "metric": "auto_a",
+        "ms": 25
+      },
+      {
+        "metric": "auto_b",
+        "ms": 36
+      },
+      {
+        "metric": "table",
+        "ms": 32
+      },
+      {
+        "metric": "coherence",
+        "ms": 64
+      },
+      {
+        "metric": "cross_magnitude",
+        "ms": 27
+      },
+      {
+        "metric": "phase_degrees",
+        "ms": 110
+      },
+      {
+        "metric": "cross_real",
+        "ms": 37
+      },
+      {
+        "metric": "cross_imaginary",
+        "ms": 58
+      },
+      {
+        "metric": "auto_a",
+        "ms": 390
+      },
+      {
+        "metric": "auto_b",
+        "ms": 63
+      },
+      {
+        "metric": "table",
+        "ms": 16
+      }
+    ],
+    "mode": "plot",
+    "peak_rss_kib": 117452,
+    "png_ms": 141,
+    "png_ok": true,
+    "repeated_metric_cycles_peak_rss_kib": [
+      117452,
+      117452,
+      117452,
+      117452,
+      117452,
+      117452,
+      117452,
+      117452,
+      117452,
+      117452
+    ],
+    "rss_after_compute_kib": 94600,
+    "state": 2,
+    "total_ms": 22757,
+    "twenty_zoom_ms": 134,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "cancel_requested_ms": 50,
+    "cancel_response_ms": 2,
+    "compute_ms": 52,
+    "count": 1000000,
+    "error": "Cancellation requested",
+    "mode": "cancel",
+    "peak_rss_kib": 74788,
+    "rss_after_compute_kib": 74788,
+    "state": 5,
+    "total_ms": 1000,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "cancel_requested_ms": 50,
+    "cancel_response_ms": 14,
+    "compute_ms": 64,
+    "count": 1000000,
+    "error": "Cancellation requested",
+    "mode": "cancel",
+    "peak_rss_kib": 73932,
+    "rss_after_compute_kib": 73932,
+    "state": 5,
+    "total_ms": 1628,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "cancel_requested_ms": 51,
+    "cancel_response_ms": 2,
+    "compute_ms": 53,
+    "count": 1000000,
+    "error": "Cancellation requested",
+    "mode": "cancel",
+    "peak_rss_kib": 74940,
+    "rss_after_compute_kib": 74940,
+    "state": 5,
+    "total_ms": 1052,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "cancel_requested_ms": 50,
+    "cancel_response_ms": 2,
+    "compute_ms": 52,
+    "count": 1000000,
+    "error": "Cancellation requested",
+    "mode": "cancel",
+    "peak_rss_kib": 73568,
+    "rss_after_compute_kib": 73568,
+    "state": 5,
+    "total_ms": 875,
+    "repeat": 4,
+    "exit_code": 0
+  },
+  {
+    "cancel_requested_ms": 51,
+    "cancel_response_ms": 1,
+    "compute_ms": 52,
+    "count": 1000000,
+    "error": "Cancellation requested",
+    "mode": "cancel",
+    "peak_rss_kib": 74956,
+    "rss_after_compute_kib": 74956,
+    "state": 5,
+    "total_ms": 1076,
+    "repeat": 5,
+    "exit_code": 0
+  },
+  {
+    "count": 1000,
+    "jobs": 2002,
+    "mode": "linked",
+    "parallel_outputs_identical": true,
+    "peak_rss_kib": 48316,
+    "prepare_ms": 30,
+    "runs": [
+      {
+        "elapsed_ms": 988,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 1
+      },
+      {
+        "elapsed_ms": 713,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 4
+      },
+      {
+        "elapsed_ms": 580,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 8
+      }
+    ],
+    "total_ms": 2344,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "count": 1000,
+    "jobs": 2002,
+    "mode": "linked",
+    "parallel_outputs_identical": true,
+    "peak_rss_kib": 48596,
+    "prepare_ms": 29,
+    "runs": [
+      {
+        "elapsed_ms": 704,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 1
+      },
+      {
+        "elapsed_ms": 411,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 4
+      },
+      {
+        "elapsed_ms": 439,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 8
+      }
+    ],
+    "total_ms": 1605,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "count": 1000,
+    "jobs": 2002,
+    "mode": "linked",
+    "parallel_outputs_identical": true,
+    "peak_rss_kib": 47836,
+    "prepare_ms": 19,
+    "runs": [
+      {
+        "elapsed_ms": 703,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 1
+      },
+      {
+        "elapsed_ms": 402,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 4
+      },
+      {
+        "elapsed_ms": 335,
+        "pairs": 1000,
+        "peak_cache_bytes": 16384,
+        "workers": 8
+      }
+    ],
+    "total_ms": 1480,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "count": 9999,
+    "jobs": 20000,
+    "mode": "linked",
+    "parallel_outputs_identical": true,
+    "peak_rss_kib": 218272,
+    "prepare_ms": 326,
+    "runs": [
+      {
+        "elapsed_ms": 8162,
+        "pairs": 9999,
+        "peak_cache_bytes": 16384,
+        "workers": 1
+      },
+      {
+        "elapsed_ms": 4387,
+        "pairs": 9999,
+        "peak_cache_bytes": 16384,
+        "workers": 4
+      },
+      {
+        "elapsed_ms": 3464,
+        "pairs": 9999,
+        "peak_cache_bytes": 16384,
+        "workers": 8
+      }
+    ],
+    "total_ms": 16639,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "count": 16,
+    "mode": "batch",
+    "peak_rss_kib": 82020,
+    "runs": [
+      {
+        "database_bytes": 36081664,
+        "elapsed_ms": 522,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 1
+      },
+      {
+        "database_bytes": 36057088,
+        "elapsed_ms": 198,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 4
+      }
+    ],
+    "set_pairs_ms": 0,
+    "total_ms": 1203,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "count": 16,
+    "mode": "batch",
+    "peak_rss_kib": 81576,
+    "runs": [
+      {
+        "database_bytes": 36081664,
+        "elapsed_ms": 441,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 1
+      },
+      {
+        "database_bytes": 36061184,
+        "elapsed_ms": 301,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 4
+      }
+    ],
+    "set_pairs_ms": 0,
+    "total_ms": 1281,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "count": 16,
+    "mode": "batch",
+    "peak_rss_kib": 81816,
+    "runs": [
+      {
+        "database_bytes": 36081664,
+        "elapsed_ms": 492,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 1
+      },
+      {
+        "database_bytes": 36057088,
+        "elapsed_ms": 326,
+        "error": "",
+        "pair_hashes": {
+          "Pair 0": "9c6a2c0503479cbb8c3fe8f9eb08b3893b4a7dcc7fe544d49f91c3accbb686bc",
+          "Pair 1": "cef102d7669230b9bfafed0a98978d108a8e77d531a98c999d5e498b7bbee002",
+          "Pair 10": "9a0c638a891e14123c92c6b86dad083dfb88b69d3b39c5061af417cdc7344208",
+          "Pair 11": "aa4ded21eb0d9f772822c02c3be104c8ab56fde24247c5575d255b17e2958b0d",
+          "Pair 12": "03cbdb87ae218c27f4bd5946d9cbb95e0095a96d7539c01a56df8bd67bc87632",
+          "Pair 13": "cd8c34644358a7bd793ac47ff490201489e4a393e1ee89f9f5f31aad6e768b4b",
+          "Pair 14": "d3c0da1f656328154413fcc0d693fef9c94670dd36edc7f50b639097ab428d63",
+          "Pair 15": "7e86beddae9511d957e5c717a0b1b3c5a6ee15e2fe0123cdf4605708ac61b481",
+          "Pair 2": "03621c9480f4e5e88d79f7694703749d01b5d46967bdbb82791e3498799add05",
+          "Pair 3": "40ddcb044559a5bad1bfbeb550194eb306d00cca7b353a793f728e206f3258b8",
+          "Pair 4": "5211fb9a8434c84670aa3c05e0da5f3dae91effdb758dcbcee0ecdf046f82388",
+          "Pair 5": "c93475ab9ed98177433bcae67376a5d862e7469aa1f731afc60d621319b57f0f",
+          "Pair 6": "8b43510577c4665ef2cf80b1d98518e43197dbca21c167d894cd8f30d8240ae4",
+          "Pair 7": "acd4b1511ed598f6af281e97ca7684bb0461a73a6781a9966c55b6107f63d0ee",
+          "Pair 8": "38c7700e0deb936e96597890c042ee91564b89ce79cff5d2a1405b7847446c29",
+          "Pair 9": "09711f67ac0518be5a2933d97e942c93a3aae7bdd09f15456c7db1972e0b8049"
+        },
+        "records": 33,
+        "workers": 4
+      }
+    ],
+    "set_pairs_ms": 0,
+    "total_ms": 1350,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "count": 512,
+    "database_bytes": 43659264,
+    "heartbeat_ticks": 125,
+    "maximum_event_loop_gap_ms": 41,
+    "mode": "gui",
+    "peak_rss_kib": 127724,
+    "records": 1025,
+    "run_ms": 1310,
+    "setup_ms": 884,
+    "total_ms": 2218,
+    "repeat": 1,
+    "exit_code": 0
+  },
+  {
+    "count": 512,
+    "database_bytes": 43646976,
+    "heartbeat_ticks": 90,
+    "maximum_event_loop_gap_ms": 25,
+    "mode": "gui",
+    "peak_rss_kib": 127032,
+    "records": 1025,
+    "run_ms": 939,
+    "setup_ms": 900,
+    "total_ms": 1863,
+    "repeat": 2,
+    "exit_code": 0
+  },
+  {
+    "count": 512,
+    "database_bytes": 43614208,
+    "heartbeat_ticks": 119,
+    "maximum_event_loop_gap_ms": 25,
+    "mode": "gui",
+    "peak_rss_kib": 127608,
+    "records": 1025,
+    "run_ms": 1226,
+    "setup_ms": 807,
+    "total_ms": 2062,
+    "repeat": 3,
+    "exit_code": 0
+  },
+  {
+    "change_member_ms": 5,
+    "count": 1000,
+    "dialog_construct_ms": 156,
+    "dialog_first_paint_ms": 158,
+    "member_chooser_ms": 9,
+    "mode": "dialog",
+    "peak_rss_kib": 44004,
+    "preview_prepare_ms": 2,
+    "preview_ready_ms": 231,
+    "preview_state": 3,
+    "rss_dialog_kib": 42008,
+    "selectors": 0,
+    "set_pairs_ms": 2,
+    "total_ms": 475,
+    "repeat": 1,
+    "exit_code": 0,
+    "baseline": true
+  },
+  {
+    "change_member_ms": 6,
+    "count": 1000,
+    "dialog_construct_ms": 152,
+    "dialog_first_paint_ms": 153,
+    "member_chooser_ms": 9,
+    "mode": "dialog",
+    "peak_rss_kib": 43956,
+    "preview_prepare_ms": 2,
+    "preview_ready_ms": 234,
+    "preview_state": 3,
+    "rss_dialog_kib": 41860,
+    "selectors": 0,
+    "set_pairs_ms": 2,
+    "total_ms": 438,
+    "repeat": 2,
+    "exit_code": 0,
+    "baseline": true
+  },
+  {
+    "change_member_ms": 6,
+    "count": 1000,
+    "dialog_construct_ms": 129,
+    "dialog_first_paint_ms": 130,
+    "member_chooser_ms": 9,
+    "mode": "dialog",
+    "peak_rss_kib": 43684,
+    "preview_prepare_ms": 2,
+    "preview_ready_ms": 226,
+    "preview_state": 3,
+    "rss_dialog_kib": 41592,
+    "selectors": 0,
+    "set_pairs_ms": 2,
+    "total_ms": 407,
+    "repeat": 3,
+    "exit_code": 0,
+    "baseline": true
+  },
+  {
+    "change_member_ms": 58,
+    "count": 9999,
+    "dialog_construct_ms": 13566,
+    "dialog_first_paint_ms": 13568,
+    "member_chooser_ms": 34,
+    "mode": "dialog",
+    "peak_rss_kib": 92028,
+    "preview_prepare_ms": 23,
+    "preview_ready_ms": 214,
+    "preview_state": 3,
+    "rss_dialog_kib": 86744,
+    "selectors": 0,
+    "set_pairs_ms": 32,
+    "total_ms": 14033,
+    "repeat": 1,
+    "exit_code": 0,
+    "baseline": true
+  },
+  {
+    "change_member_ms": 58,
+    "count": 9999,
+    "dialog_construct_ms": 22488,
+    "dialog_first_paint_ms": 22489,
+    "member_chooser_ms": 22,
+    "mode": "dialog",
+    "peak_rss_kib": 90632,
+    "preview_prepare_ms": 18,
+    "preview_ready_ms": 236,
+    "preview_state": 3,
+    "rss_dialog_kib": 86720,
+    "selectors": 0,
+    "set_pairs_ms": 31,
+    "total_ms": 22968,
+    "repeat": 2,
+    "exit_code": 0,
+    "baseline": true
+  },
+  {
+    "change_member_ms": 60,
+    "count": 9999,
+    "dialog_construct_ms": 13574,
+    "dialog_first_paint_ms": 13576,
+    "member_chooser_ms": 20,
+    "mode": "dialog",
+    "peak_rss_kib": 92112,
+    "preview_prepare_ms": 20,
+    "preview_ready_ms": 227,
+    "preview_state": 3,
+    "rss_dialog_kib": 86908,
+    "selectors": 0,
+    "set_pairs_ms": 29,
+    "total_ms": 14027,
+    "repeat": 3,
+    "exit_code": 0,
+    "baseline": true
+  }
+]

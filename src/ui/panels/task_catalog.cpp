@@ -5,6 +5,7 @@
 #include <QMouseEvent>
 #include <QLabel>
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/workflow/workflow_canvas.h"
 #include <QTreeWidget>
@@ -178,11 +179,7 @@ QMenu *TaskCatalog::menu(QWidget *owner, const std::function<bool(const TaskDesc
     auto configure = [](QMenu *menu)
     {
         menu->setObjectName("taskPicker");
-        menu->setMinimumWidth(240);
-        auto font = QApplication::font();
-        font.setPointSizeF(std::max(11.0, font.pointSizeF()));
-        menu->setFont(font);
-        menu->setToolTipsVisible(true);
+        configureMenu(menu, 240);
     };
     auto *root = new QMenu(owner);
     configure(root);

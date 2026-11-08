@@ -1,0 +1,91 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "scope": "Shared UI-test header delivery, explicit relative include completeness, clean Git checkout build; no application or algorithm changes.",
+  "reported_ci": {
+    "commit": "927ee763c18e0fa5128f0baf7b29ff29d20972f1",
+    "ref": "refs/tags/v1.2.0-beta.5.1",
+    "platforms": [
+      "macos-arm64",
+      "macos-x86_64"
+    ],
+    "qt": "6.8.3",
+    "compiler": "Apple clang 17.0.0",
+    "make": "GNU Make 3.81",
+    "python": "3.12.10",
+    "release_tool_tests": {
+      "run": 112,
+      "failures": 0,
+      "skipped": 2
+    },
+    "failure": "joint_ui_tests.cpp:31: ../linked_input_tests/ui_helpers.h file not found",
+    "observation": "Both logs pass the preceding macOS test fixes, but neither lists the two source-tracking tests from the Linux supplement. The logs do not establish the state of the maintainer local working directory."
+  },
+  "changes": [
+    "Relocate handwritten helper to tests/support/joint_input_helpers.h, outside the Qt ui_*.h naming pattern.",
+    "Update both C++ includes and qmake HEADERS entries.",
+    "Remove the obsolete path and its special ignore exception.",
+    "Check explicit relative C++ includes before native compilation; retain export-to-Git regression checks."
+  ],
+  "local_validation": {
+    "platform": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "release_tool_tests": {
+      "run": 113,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable for Homebrew metadata regression class",
+      "version_probe_make": "GNU Make 3.81 (whole-second compatibility build)"
+    },
+    "clean_git_checkout": {
+      "tracked_files": 1110,
+      "all_source_paths_preserved": true,
+      "shared_header_tracked": true,
+      "legacy_header_absent": true,
+      "line_endings_only_normalized": true
+    },
+    "negative_control": "Removing the new shared header is rejected by the relative-include check.",
+    "qt_tests": [
+      {
+        "target": "aster_joint_ui_tests",
+        "passed": 37,
+        "failed": 0,
+        "skipped": 0,
+        "includes_initialization_and_cleanup": true
+      },
+      {
+        "target": "aster_linked_input_tests",
+        "passed": 53,
+        "failed": 0,
+        "skipped": 0,
+        "includes_initialization_and_cleanup": true
+      }
+    ],
+    "unchanged_application_src_resources_config": true
+  },
+  "limitations": [
+    "Local Qt tests run offscreen on Linux, not native macOS.",
+    "Unchanged application static libraries reused after byte comparison of source; both test executables rebuilt from clean Git checkout.",
+    "The full native workflow, test execution and package collection must still complete on the corrected commit."
+  ],
+  "patch_baseline": "Aster-1.2.0-beta.5-ci-fixes.zip (preceding combined patch)",
+  "removed_paths": [
+    "linked_input_tests/ui_helpers.h"
+  ],
+  "application_version_changed": false,
+  "input_logs": [
+    {
+      "filename": "logs-macos-arm64(1).zip",
+      "architecture": "arm64",
+      "sha256": "1add63a67c6c345bddc7936e766738d4b84cb4844013a99abdad774eb3c35049"
+    },
+    {
+      "filename": "logs-macos-x86_64(1).zip",
+      "architecture": "x86_64",
+      "sha256": "d601cd7052637133f507d89d4797223113609e6acd61976b08908ab9c89ee87f"
+    }
+  ]
+}

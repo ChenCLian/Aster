@@ -1,0 +1,40 @@
+{
+  "full_run": "final-first-summary.json",
+  "initial_failures": [
+    {
+      "target": "aster_update_tests",
+      "test": "cancelledCloseClearsRestartRequest",
+      "assertion": "edit.prompted && !edit.timedOut",
+      "timeout_ms": 5000,
+      "log": "final-first-aster_update_tests.txt"
+    }
+  ],
+  "source_changed_before_rerun": false,
+  "focused_reruns": [
+    {
+      "repeat": 1,
+      "exit_code": 0,
+      "elapsed_seconds": 0.5155356579998625
+    },
+    {
+      "repeat": 2,
+      "exit_code": 0,
+      "elapsed_seconds": 0.6267517200030852
+    },
+    {
+      "repeat": 3,
+      "exit_code": 0,
+      "elapsed_seconds": 0.5302161149993481
+    }
+  ],
+  "whole_target_rerun": {
+    "target": "aster_update_tests",
+    "exit_code": 0,
+    "passed": 50,
+    "failed": 0,
+    "skipped": 0,
+    "suites": 1
+  },
+  "final_summary": "regression_summary.json",
+  "interpretation": "One timing-sensitive failure did not recur in three isolated repeats or the full update target. The initial failure is retained; its environmental cause is not proven."
+}

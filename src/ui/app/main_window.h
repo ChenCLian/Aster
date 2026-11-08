@@ -6,6 +6,7 @@
 #include "ui/services/run_controller.h"
 #include <QMainWindow>
 #include <QSet>
+namespace aster { enum class NodeRewriteKind; }
 class QStackedWidget;
 class QPushButton;
 class QProgressBar;
@@ -17,6 +18,7 @@ class WorkflowDocument;
 class WorkflowCanvas;
 class SourcePanel;
 class ParameterEditor;
+class PairingPanel;
 class TaskCatalog;
 class CollapsiblePanel;
 class ResultsPage;
@@ -63,6 +65,9 @@ class MainWindow : public QMainWindow
     void sourceMenu(QPoint position);
     void childMenu(NodeId parent, ChildSlot slot, QPoint position);
     void addTask(QString method, NodeId parent, ChildSlot slot);
+    void rewriteMenu(NodeRewriteKind kind, NodeId target, QPoint position);
+    void reviewRewrite(NodeRewriteKind kind, NodeId target, QString method);
+    QRect taskAnchor(NodeId node) const;
     void catalogActivate(QString method);
     void removeTask(NodeId id);
     void importFiles();
@@ -78,6 +83,7 @@ class MainWindow : public QMainWindow
     WorkflowCanvas *m_canvas;
     SourcePanel *m_sources;
     ParameterEditor *m_editor;
+    PairingPanel *m_pairing;
     TaskCatalog *m_catalog;
     ResultsPage *m_results;
     QStackedWidget *m_pages;

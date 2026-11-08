@@ -1,6 +1,6 @@
 # 依赖源码与许可材料
 
-适用版本：Aster 1.1.1。[发布维护](release_maintenance_zh.md) · [第三方说明](third_party.md)
+适用源码：Aster 1.2.0-beta.5。[发布维护](release_maintenance_zh.md) · [第三方说明](third_party.md)
 
 ## 文件放在哪里
 
@@ -18,12 +18,12 @@
 
 ## 自动收集范围
 
-三个原生打包脚本在完成发布产物之前调用 `tools/release/collect_dependency_materials.py`。macOS 在复制许可进入 `.app`、签名和公证之前完成收集。
+Windows 支持分步打包：先用 `-DependencyMode Stage` 部署程序，再单独运行 `tools/release/collect_dependency_materials.py` 收集材料。已有匹配材料时可用默认的 `Reuse` 模式离线复用，也可显式使用 `Collect` 一次完成部署与收集。Linux/macOS 原生打包脚本在完成产物之前调用收集器；macOS 在复制许可进入 `.app`、签名和公证之前完成收集。
 
 - **Qt**：从匹配的 `qmake` 读取版本，下载官方源码模块及 SHA-256。默认包含 qtbase、qtsvg、qtimageformats、qttranslations；根据实际 Qt 库增加需要的模块。提取许可及 Qt 第三方归属文件指向的许可证。
 - **Windows / vcpkg**：读取指定 triplet 的安装数据库、文件所有权和 SPDX；匹配实际 DLL，收集依赖闭包。使用 SPDX 记录的 URL 和摘要下载源码，按文件摘要恢复相同的 port 配方与补丁，不使用最新版本替代。
 - **Linux / Debian、Ubuntu**：以 ELF build ID 匹配发行包和构建机上的库，由 dpkg 查询实际源包版本。使用已配置的软件源获取该版本的 `.dsc`、原始源码和发行版补丁包，并检查 `.dsc` 中的 SHA-256。OpenSSL 和被打包的 Fortran 等运行库一同检查。Qt 官方套件自带的 ICU 单独收集。
-- **macOS / Homebrew**：按目标架构的 Mach-O UUID 匹配实际库，读取已安装 keg 的配方和 receipt，收集对应源码、资源及补丁。Qt 框架中的同名头文件不参与二进制匹配。本地补丁从安装目录、匹配配方的源缓存或安装记录中的固定提交恢复；恢复远程补丁前核对配方内容，不使用最新配方代替旧安装记录。
+- **macOS / Homebrew**：按目标架构的 Mach-O UUID 匹配实际库，读取已安装 keg 的配方和 receipt，收集对应源码、资源及补丁。Qt 框架中的同名头文件不参与二进制匹配。本地补丁优先从安装目录、匹配配方的源缓存或安装记录中的固定提交恢复。API 安装缺少提交号时，允许查询 Homebrew 元数据，但仅接受与已安装版本及配方内容一致的候选；配方比较仅忽略 bottle 信息段，以及 GNU `ftpmirror.gnu.org` 下载指令中已知的 `/gnu/` 前缀差异；源码文件名、校验值、补丁和其他构建内容仍须一致。配方与补丁均从固定提交获取并核对 SHA-256，恢复依据及已安装配方摘要保存在 `local-patch-recovery.json`。版本、配方或校验值不符时停止收集。
 - **已有第三方代码与数据声明**：继续由现有打包步骤收集。Aster 的匹配源码仍由项目源码包提供。
 
 脚本仅下载、校验、读取归档和复制材料，不编译下载的源码，不安装或更新依赖，不自动发布 GitHub。源归档完整保留；解读归档时不展开可执行程序或符号链接。
@@ -32,9 +32,15 @@
 
 ## Windows 本机打包
 
-要求 Python 3.10 或更高版本、已完成的 Release 构建，以及匹配的 Qt、vcpkg 安装。使用已配置 MSVC x64 工具的 PowerShell，在源码根目录运行：
+要求已完成的 Release 构建，以及匹配的 Qt、vcpkg 安装。材料收集和复用另需 Python 3.10 或更高版本；仅部署程序的 `Stage` 模式不需要 Python。使用已配置 MSVC x64 工具的 PowerShell，在源码根目录按以下顺序运行。
+
+**第一步：部署程序。** 首次打包、新版本打包或主动重新收集材料时，使用 `Stage`：
+
+先确认根工程已完成当前源码的 Release 构建。部署不会重新编译；`BuildDir` 必须指向这次构建目录。三种模式均在 DLL 部署后运行程序核对完整版本，不接受“基础版本相同、beta 后缀不同”的 EXE。
 
 ```powershell
+$Version = (Get-Content ./VERSION -Raw).Trim()
+$ReleaseDir = "../Aster-releases/$Version"
 $BuildDir = Read-Host "Release 构建目录"
 $QtBin = Read-Host "匹配的 Qt bin 目录"
 $VcpkgPrefix = Read-Host "实际使用的 installed/x64-windows 目录"
@@ -43,14 +49,46 @@ powershell -ExecutionPolicy Bypass -File tools/release/package_windows.ps1 `
   -BuildDir $BuildDir `
   -QtBin $QtBin `
   -VcpkgPrefix $VcpkgPrefix `
-  -VcpkgRoot $VcpkgRoot `
-  -DependencyCache ../Aster-dependency-cache `
-  -OutputDir ./dist/1.1.1
+  -DependencyMode Stage `
+  -OutputDir $ReleaseDir
 ```
 
-`VcpkgPrefix` 指向库安装位置，`VcpkgRoot` 指向用于安装这些库的 vcpkg 配方仓库，两者不是同一个目录。使用二进制缓存或版本化 manifest 时，必须能恢复与已安装 SPDX 匹配的配方；仅有 DLL 和头文件不足以恢复补丁。
+`Stage` 正常结束后会显示已部署目录和后续材料步骤，不因缺少 `report.json` 报错。它不运行收集器或复用检查，也不下载文件；程序目录保留 `DEPENDENCY_MATERIALS_PENDING.txt`，此时尚未完成发布准备。Qt 部署、DLL 缺失或架构等实际错误仍会终止命令。
 
-脚本在部署之前依次尝试 `py -3`、`python`、`python3`，实际执行检查并要求 Python 3.10 或更高版本。需要指定解释器时，在打包命令中追加 `-PythonExe` 和解释器的完整路径。仅存在命令名或系统商店别名不足以通过检查。
+**第二步：收集并安装材料。** 对第一步生成的实际程序目录运行以下命令，不要另填一个尚不存在的 `staging` 目录：
+
+```powershell
+python -u -X utf8 tools/release/collect_dependency_materials.py `
+  --platform windows-x64 `
+  --package-dir "$ReleaseDir/Aster-$Version-windows-x64" `
+  --qmake "$QtBin/qmake.exe" `
+  --vcpkg-prefix $VcpkgPrefix `
+  --vcpkg-root $VcpkgRoot `
+  --output "$ReleaseDir/dependency-materials/windows-x64" `
+  --cache ../Aster-dependency-cache
+```
+
+独立收集成功后会补齐该目录的许可和源码入口，并自动移除待处理标记；无需再次运行部署命令，也不要手动删除标记。收集失败时修复原因后对同一目录重试。`--plan-only` 或 `--no-install` 不会移除标记。
+
+**第三步：测试并压缩。** 确认收集命令成功、`report.json` 为 `collected`、待处理标记已移除，再测试并压缩完整的 `Aster-<版本>-windows-x64/` 目录。程序包和 `release-assets/` 中的材料按下文发布。项目源码导出独立于这三步，可在它们之前或之后执行。
+
+其他打包方式：
+
+| 模式 | 适用情况 | 材料步骤 |
+| --- | --- | --- |
+| `Stage` | 首次打包、新版本或希望手动收集材料 | 部署后正常结束，材料保持待处理；随后运行独立收集命令 |
+| `Reuse`（默认） | 同一 Aster 版本、相同运行依赖已有完整材料 | 离线验证并安装材料；缺失或不匹配则报错 |
+| `Collect` | 希望部署与收集一次完成 | 部署后运行收集器；失败则报错 |
+
+`Reuse` 读取 `OutputDir/dependency-materials/windows-x64` 的既有材料，也可通过 `-DependencyMaterials <材料目录>` 指定其他位置。该参数指向包含 `report.json` 和 `release-assets/` 的平台目录。离线复用会核对当前 Aster 版本、平台、Qt 版本、全部原生运行文件的路径及摘要、依赖源归档摘要和记录 ZIP 的完整性。仅允许项目可执行文件 `Aster.exe` 变化；依赖 DLL 增加、移除或内容变化均要求重新收集。复用不联网、不解读依赖源码归档、不更新原材料目录；会将记录 ZIP 中的许可复制到新程序包，更新包内 `licenses/dependencies/DEPENDENCIES.json` 的当前程序指纹并记录复用来源。原材料报告和记录 ZIP 保留收集时的快照。
+
+误用 `Reuse` 导致材料检查失败时，若已显示 `Verified executable version` 并完成部署，可直接对保留的程序目录运行第二步，不必删除目录重新部署。版本检查失败不属于这种情况，必须先重新构建正确的程序。不要把复用失败当成发布成功。`Excluding unused SQL driver` 仅表示排除不用的 SQL 插件，是正常提示。
+
+需要部署与收集一次完成时，将打包命令改为 `-DependencyMode Collect`，并按需传入 `-DependencyCache`、`-VcpkgRoot` 和 `-DependencySupplement`。`-DependencyMaterials` 在该模式下指定收集输出目录。`Stage` 与 `Reuse` 不使用下载缓存，也不接受新的补充声明；分步收集时将 `--cache`、`--vcpkg-root`、`--supplement` 传给独立收集命令。发布版本号改变时需重新生成对应版本的材料索引，下载缓存仍可复用。
+
+`VcpkgPrefix` 指向库安装位置，`VcpkgRoot` 指向用于安装这些库的 vcpkg 配方仓库，两者不是同一个目录。收集材料时，若使用二进制缓存或版本化 manifest，必须能恢复与已安装 SPDX 匹配的配方；仅有 DLL 和头文件不足以恢复补丁。
+
+`Reuse` 和 `Collect` 在部署之前依次尝试 `py -3`、`python`、`python3`，实际执行检查并要求 Python 3.10 或更高版本。需要指定解释器时，在打包命令中追加 `-PythonExe` 和解释器的完整路径。仅存在命令名或系统商店别名不足以通过检查。`Stage` 跳过解释器预检；独立收集时直接使用所需 Python 解释器运行命令。
 
 Aster 的 QWidget/QCustomPlot 视图使用 CPU 绘制。Windows 打包不附带未使用的软件 OpenGL 渲染器或系统 D3D 编译器；对于支持相应选项的新版 Qt，也排除自动附带的 DXC 编译器。实际通过导入表发现的运行依赖仍会检查。
 
@@ -79,13 +117,13 @@ Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb
 | 文件或目录 | 用途 |
 | --- | --- |
 | `report.json` | 状态、实际组件、准确版本及未解决项 |
-| `collector.log`（Windows） | 收集器的标准输出、错误输出和退出码；本机诊断使用，不作为 Release 附件 |
+| `collector.log`（Windows 的 `Collect` 模式） | 收集器的标准输出、错误输出和退出码；本机诊断使用，不作为 Release 附件 |
 | `release-assets/` | 应上传到 Release 的全部依赖源码与记录 ZIP；不额外生成 `.sha256` 文件 |
 | `records/` | 记录 ZIP 的展开内容；用于本机查看，不必重复上传 |
 | `cache/` 或指定共享缓存 | 已校验下载的缓存，不上传 |
 | `SOURCE_DEPENDENCIES.md` | 该版本依赖源码入口，同时复制到程序包 |
 
-`status: collected` 表示该次识别出的依赖材料已收集、摘要已核对、原生二进制已有来源映射；不是法律许可认证，也不表示已经上传或已做可重现构建。
+`status: collected` 表示该次识别出的依赖材料已收集、摘要已核对、原生二进制已有来源映射；不是法律许可认证，也不表示已经上传、已做可重现构建或 Aster EXE 已按当前源码重新编译。独立收集器不代替打包脚本的程序版本检查，不能用收集成功绕过版本不匹配错误。
 
 在 GitHub 创建对应版本 Release 后：
 
@@ -96,7 +134,7 @@ Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb
 5. 在发布说明中注明项目源码入口、各平台 `dependency-records.zip` 及依赖源码附件的位置。源码附件和程序放在同一 Release 最便于维护。
 6. 检查程序包内 `SOURCE_DEPENDENCIES.md` 的链接能下载相应附件。当前链接指向 `v<版本>`，正式 Release 必须使用匹配标签。使用其他托管位置时同步该索引；之后重新打包，macOS 必须重新签名。
 
-GitHub 为上传到 Release 的附件记录 SHA-256 摘要；Actions 程序构件也提供摘要。脚本不再生成独立 `.sha256` 附件，依赖下载、缓存复用、来源匹配和 JSON 清单中的摘要校验继续保留。依赖源包保持上游格式和文件名，不能通过改名或解压替代源码索引中引用的归档。
+GitHub 为上传到 Release 的附件记录 SHA-256 摘要；Actions 程序构件也提供摘要。脚本不生成独立 `.sha256` 附件，依赖下载、缓存复用、来源匹配和 JSON 清单中的摘要校验继续保留。依赖源包保持上游格式和文件名，不能通过改名或解压替代源码索引中引用的归档。
 
 Actions 构件保存期为 30 天，只用于交接构建结果；不能用临时构件链接替代持续可用的 Release 源码入口。工作流不创建 Release，也不替用户上传 Release 附件。
 
@@ -104,14 +142,15 @@ Actions 构件保存期为 30 天，只用于交接构建结果；不能用临�
 
 ## 缺项与重试
 
-出现未识别库、摘要不一致、源包版本不可用、配方不匹配或许可文件缺失时，脚本返回非零状态，生成 `report.json`，打包停止在发布产物完成前。已经完成并验证的下载保留在缓存中。失败不会被标记为“已收集完成”。
+收集时出现未识别库、摘要不一致、源包版本不可用、配方不匹配或许可文件缺失，脚本返回非零状态并生成 `report.json`，打包停止在发布产物完成前。离线复用失败会输出具体原因并保留待处理标记，不覆盖原材料报告，也不自动联网补齐。已经完成并验证的下载保留在缓存中。失败不会被标记为“已收集完成”。
 
-Windows 打包另有进程诊断：Python 预检失败时，在部署前停止，不生成材料报告。预检通过后，收集器输出写入 `collector.log`；如果进程异常退出或没有生成有效报告，打包脚本在目录可写时补写 `phase: collector-process` 的失败报告。该状态表示收集过程未正常完成，不能据此认定缺少许可证。报告已列出具体材料问题时，保留原始错误内容。
+Windows 打包的 `Collect` 模式另有进程诊断：Python 预检失败时，在部署前停止，不生成材料报告。预检通过后，收集器输出写入 `collector.log`；如果进程异常退出或没有生成有效报告，打包脚本在目录可写时补写 `phase: collector-process` 的失败报告。该状态表示收集过程未正常完成，不能据此认定缺少许可证。报告已列出具体材料问题时，保留原始错误内容。
 
 | 报告问题 | 处理 |
 | --- | --- |
+| EXE 完整版本不匹配或版本检查超时 | 不继续材料步骤；核对 `BuildDir`、Qt 和运行依赖。版本错误时在新构建目录重新编译，再用新的 `OutputDir` 部署；依赖未变的同版本材料及下载缓存可保留 |
 | Python 预检失败 | 安装 Python 3.10 或更高版本，或使用 `-PythonExe` 指定可运行的解释器；不需要重编译 Aster |
-| `phase: collector-process` | 查看同目录 `collector.log` 中的异常、参数错误或进程退出码；修复后用新的 `OutputDir` 重试 |
+| `phase: collector-process` | 查看同目录 `collector.log` 中的异常、参数错误或进程退出码；修复后对保留的程序目录单独运行收集器，或用新的 `OutputDir` 和 `-DependencyMode Collect` 重新打包 |
 | Qt 源码/校验地址不可用 | 检查对应正式版本是否公开及网络连接；自定义 Qt 提供实际源码材料 |
 | vcpkg recipe/patch hashes 不匹配 | 恢复安装时的 vcpkg checkout；脚本也会在本机最近 100 次 port 历史中寻找匹配文件 |
 | 缺少 `vcpkg.spdx.json` | 还原完整安装记录，或补充经核实的准确版本、源包、许可及配方 |
@@ -121,18 +160,9 @@ Windows 打包另有进程诊断：Python 预检失败时，在部署前停止�
 
 可针对保留的未压缩 staging 目录单独运行收集器；先加 `--plan-only` 检查安装元数据，不下载源归档（仍会获取少量官方校验元数据）。`--no-install` 只输出材料，不改 staging 目录。
 
-```powershell
-python tools/release/collect_dependency_materials.py `
-  --platform windows-x64 `
-  --package-dir ./dist/1.1.1/Aster-1.1.1-windows-x64 `
-  --qmake "$QtBin/qmake.exe" `
-  --vcpkg-prefix $VcpkgPrefix `
-  --vcpkg-root $VcpkgRoot `
-  --output ./dist/1.1.1/dependency-materials/windows-x64 `
-  --cache ../Aster-dependency-cache
-```
+Windows 独立收集命令见[Windows 本机打包](#windows-本机打包)。
 
-同一个收集输出目录可重试，过时清单会重新生成，缓存保留。整体打包脚本继续拒绝覆盖既有程序目录或程序包；确认材料可获取后，用新的 `OutputDir` 重新打包。已签名 macOS 应用应从构建输出重新打包，不能直接修改其内部许可文件。
+同一个收集输出目录可重试，过时清单会重新生成，缓存保留。整体打包脚本继续拒绝覆盖既有程序目录或程序包；仅材料步骤失败时，可对已经部署完成的 Windows 目录单独重新收集；重新部署程序时仍需使用新的 `OutputDir`，并可用 `-DependencyMaterials` 指向已收集的材料。已签名 macOS 应用应从构建输出重新打包，不能直接修改其内部许可文件。
 
 直接运行 Python 收集器时，不经过 Windows 包装脚本的日志和兜底报告逻辑。如果尚未生成 `report.json`，以终端输出为准。Windows 进程诊断回归可运行 `powershell -ExecutionPolicy Bypass -File tools/release/test_windows_packaging.ps1`，无需 Qt、MSVC 或网络。
 

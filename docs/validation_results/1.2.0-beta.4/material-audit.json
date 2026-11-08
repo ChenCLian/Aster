@@ -1,0 +1,70 @@
+{
+  "markdown_files_checked": 61,
+  "relative_links_checked": 453,
+  "missing_links": [],
+  "unresolved_anchors": [],
+  "qrc_entries": 62,
+  "missing_qrc_entries": [],
+  "unchanged_from_beta3": {
+    "src/math": true,
+    "src/io": true,
+    "src/core": true,
+    "analysis_tests": true,
+    "batch_tests": true,
+    "cross_spectrum_tests": true,
+    "style_export_tests": true,
+    "ui_tests": true,
+    "update_tests": true,
+    "licenses": true
+  },
+  "historical_evidence_files_preserved": 446,
+  "historical_evidence_byte_identical": true,
+  "source_changes": [
+    "src/ui/results/plot_workspace.h",
+    "src/ui/results/plot_view.cpp",
+    "src/ui/results/plot_workspace.cpp",
+    "src/ui/results/results_page.cpp",
+    "src/ui/results/plot_view.h"
+  ],
+  "only_expected_ui_source_changes": true,
+  "parameter_descriptors_defaults_and_stored_keys_unchanged": true,
+  "packaging_logic_unchanged_except_startup_text": {
+    "tools/release/package_windows.ps1": true,
+    "tools/release/package_linux.sh": true,
+    "tools/release/package_macos.sh": true
+  },
+  "i18n": {
+    "zh": {
+      "only_expected_new_keys": true,
+      "existing_text_unchanged": true,
+      "changed_labels": [
+        "ui.fill_current_subplot",
+        "ui.empty_subplot_help"
+      ],
+      "placeholders_unchanged": true
+    },
+    "en": {
+      "only_expected_new_keys": true,
+      "existing_text_unchanged": true,
+      "changed_labels": [
+        "ui.fill_current_subplot",
+        "ui.empty_subplot_help"
+      ],
+      "placeholders_unchanged": true
+    }
+  },
+  "user_document_structure": {
+    "files": [
+      "README.md",
+      "QUICK_START.md",
+      "FAQ.md",
+      "RELEASE_NOTES.md",
+      "docs/USER_GUIDE.md",
+      "docs/USER_GUIDE_EN.md",
+      "docs/ui/plotting.md"
+    ],
+    "malformed_headings": [],
+    "duplicate_headings": []
+  },
+  "startup_comparisons_removed": true
+}

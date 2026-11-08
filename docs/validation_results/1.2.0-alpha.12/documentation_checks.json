@@ -1,0 +1,25 @@
+{
+  "version": "1.2.0-alpha.12",
+  "date": "2026-11-07",
+  "status": "passed",
+  "checks": {
+    "markdown_files": 60,
+    "local_and_repository_links_checked": 446,
+    "anchors_checked": 133,
+    "embedded_resources": 48,
+    "external_links_not_availability_checked": 51,
+    "errors": [],
+    "personal_path_findings": [],
+    "intermediate_wording_findings": []
+  },
+  "generated_reference": {
+    "tasks": 54,
+    "parameters": 233,
+    "check": "passed",
+    "change": "version header only"
+  },
+  "version_consistency": "passed",
+  "historical_validation_records": "unchanged",
+  "embedded_help": "rebuilt with updated bilingual guides and plotting reference",
+  "scope": "Output browser, plotting commands, export targeting, visual-style storage boundary, release wording, version headers, local links/anchors and resource existence; remote URLs not checked."
+}

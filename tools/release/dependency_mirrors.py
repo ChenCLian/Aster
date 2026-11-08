@@ -51,7 +51,8 @@ def candidate_urls(url):
                      'https://ftp.jaist.ac.jp/pub/qtproject'):
             mirrors.append(base + path)
     elif (host == 'ftp.gnu.org' and path.startswith('/gnu/')) or host == 'ftpmirror.gnu.org':
-        suffix = path[4:] if host == 'ftp.gnu.org' else path
+        # Both GNU hosts can include /gnu/. Mirror roots already include it.
+        suffix = path[4:] if path.startswith('/gnu/') else path
         mirrors = ['https://mirrors.tuna.tsinghua.edu.cn/gnu' + suffix,
                    'https://mirrors.ustc.edu.cn/gnu' + suffix]
     elif host == 'github.com' and re.fullmatch(r'/[^/]+/[^/]+/(?:archive/.+|releases/download/.+)', path):

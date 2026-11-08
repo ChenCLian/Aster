@@ -1,0 +1,74 @@
+{
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "status": "passed_with_platform_scope",
+  "base": "1.2.0-beta.4; recovered from beta.2 full source plus beta.3 and beta.4 patches",
+  "environment": {
+    "system": "Linux / X11",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "native_window": "1282 x 754",
+    "test_platform": "offscreen"
+  },
+  "scope": {
+    "F1": "Automatic axes refit to all overlay data; manually adjusted axes retain their ranges, including after page reload.",
+    "F2": "Joint input headings use compact filenames and display labels with full identity in tooltips. Long error-to-ready transitions release excess preview height.",
+    "F3": "Expanded output panel requests five rows from actual font/control metrics, capped at 45% of available height on short windows. Collapsed height fits header controls; plot fills released height; manual panel heights restore on expansion.",
+    "F4": "Unchanged by explicit request: Add plots creates the selected output combinations and retains existing plots.",
+    "F5": "Missing-record message, CWT result options, booleans and reviewed diagnostic messages use display translations; ID entry explains Enter action.",
+    "F6": "On-screen and exported default subplot titles share the display-label helper; custom titles remain supported."
+  },
+  "tests": [
+    {
+      "program": "aster_workspace_tests",
+      "log": "workspace-regression.txt",
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Focused selection of workspace, overlay, output layout, empty-slot reuse, refinement and scientific-output-group regressions."
+    },
+    {
+      "program": "aster_style_export_tests",
+      "log": "style-export-regression.txt",
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Focused display, heatmap, export, viewport/style preservation, readout and narrow-inspector regressions."
+    },
+    {
+      "program": "aster_joint_ui_tests",
+      "log": "joint-caption.txt",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Long A/B captions and failed-to-ready preview recovery."
+    }
+  ],
+  "counts_note": "QtTest counts include each program initialization and cleanup; these are selected tests, not a full algorithm suite.",
+  "native_actions": [
+    "Opened CWT result; inspected expanded output list; collapsed and expanded panel; dragged divider and verified retained height.",
+    "Entered a missing result ID and returned to a valid record; verified translated message and preservation of open plots.",
+    "Inspected CWT source labels and translated diagnostics.",
+    "Overlaid a LOWESS trend on its detrended series; exported a PNG and inspected the default title.",
+    "Imported two 256-point CSV sequences, configured a joint A/B pair and switched input previews.",
+    "Confirmed insufficient segment diagnostic and recovered with window 128 / overlap 64."
+  ],
+  "native_note": "The long-error height issue was discovered during the native pass and fixed afterwards; final recovery was verified by QtTest with a rendered panel capture, not a second full native session.",
+  "unchanged": [
+    "Numerical algorithms",
+    "Calculation defaults and limits",
+    "Database schema and stored result values",
+    "F4 explicit add semantics"
+  ],
+  "not_claimed": [
+    "Windows/MSVC or macOS native acceptance",
+    "All DPI and multi-monitor configurations",
+    "New full algorithm or large-data stress validation",
+    "Every possible interaction sequence"
+  ],
+  "documentation": {
+    "current_version_checks": "passed: 2 version checks, 7 help-generator checks, 10 packaging-layout checks",
+    "parameter_reference_check": "54 tasks / 233 parameters; both language references current",
+    "source_export_integrity": "Validated by the source export tool and cumulative patch reconstruction before delivery; archive-specific hashes are supplied with the patch."
+  }
+}

@@ -1,0 +1,386 @@
+{
+  "version": "1.2.0-alpha.17",
+  "base_version": "1.2.0-alpha.16",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.517,
+      "log": "logs/full-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.574,
+      "log": "logs/full-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 73.199,
+      "log": "logs/full-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.367,
+      "log": "logs/full-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 75.343,
+      "log": "logs/final-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.656,
+      "log": "logs/full-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.58,
+      "log": "logs/full-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.581,
+      "log": "logs/full-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.497,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 20.674,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 21.771,
+      "log": "logs/final-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.671,
+      "log": "logs/full-aster_update_tests.txt"
+    }
+  ],
+  "full_regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.517,
+      "log": "logs/full-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.574,
+      "log": "logs/full-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 73.199,
+      "log": "logs/full-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.367,
+      "log": "logs/full-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 69.915,
+      "log": "logs/full-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.656,
+      "log": "logs/full-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.58,
+      "log": "logs/full-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.581,
+      "log": "logs/full-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.873,
+      "log": "logs/full-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 19.898,
+      "log": "logs/full-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 21.905,
+      "log": "logs/full-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.671,
+      "log": "logs/full-aster_update_tests.txt"
+    }
+  ],
+  "final_desktop_regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 75.343,
+      "log": "logs/final-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.497,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 20.674,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 21.771,
+      "log": "logs/final-aster_integration_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 2029,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "Latest passing result per registered target: full 12-target regression plus final reruns of the four desktop consumers after the rejected-overlay fix. Includes QtTest initialization/cleanup; reruns are not added.",
+  "reproduced_and_fixed": [
+    {
+      "issue": "An older asynchronous completion discards a newer pending viewport debounce",
+      "before": "Expected viewportChanged once, observed zero",
+      "after": "New request emitted once; idle completions cause no additional request"
+    },
+    {
+      "issue": "Restore defaults restores axes but leaves only the previous window loaded",
+      "before": "No read after reset; data remains at X=200..220",
+      "after": "Full X=0..4095 reloaded; automatic range state retained"
+    },
+    {
+      "issue": "Wrapped precision status changes plot size and triggers repeated reads",
+      "before": "12 extra completions during a one-second idle observation in each of Chinese and English",
+      "after": "No extra completions during idle observation; stable single-line status with full tooltip"
+    },
+    {
+      "issue": "A gesture deferred during overlay validation is lost when the candidate fails or is removed",
+      "before": "Real worker read held with an exclusive SQLite lock; after rejection, the loaded curve remains at the old range",
+      "after": "Rejected and removed candidates both release the deferred viewport; original target and current zoom retained"
+    }
+  ],
+  "feedback_checklist": [
+    "Source preview and selected output ownership (existing UI regressions)",
+    "Exclusive step selection and checkbox selection kept distinct",
+    "Default record/step plots and reuse without duplication",
+    "Compact output browser, resizable areas and fixed explicit overlay destination",
+    "Common CWT logarithmic/reversed defaults across preview, results and export",
+    "MTM family grouping, CWT power plus COI, separate distinct heatmap quantities",
+    "Initial and viewport refinement, stable colour limits and preserved manual styles",
+    "Pending gestures, restored viewports and idle layout stability"
+  ],
+  "scope_completion": "Previously reported plotting issues and the three newly reproduced boundary cases are addressed within the tested scope. This is not a claim that all software defects are absent.",
+  "performance_scope": "New idle-refinement loop regression; no repeat of the alpha.16 large-matrix benchmark. Sampler, I/O cache and scientific algorithms are byte-identical to alpha.16.",
+  "python_checks": {
+    "release_tests": 106,
+    "help_tests": 6,
+    "failed": 0,
+    "skipped_classes": 1,
+    "skip_reason": "Ruby/Homebrew query tests require Ruby, unavailable here."
+  },
+  "unchanged": [
+    "Numerical algorithms",
+    "Scientific limits",
+    "Database schema/payloads",
+    "Dependency and release scripts",
+    "Historical validation evidence"
+  ],
+  "remaining": [
+    "Native Windows/MSVC and macOS builds and GUI acceptance",
+    "Final platform binary and dependency packaging checks"
+  ]
+}

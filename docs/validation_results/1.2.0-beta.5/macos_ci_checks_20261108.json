@@ -1,0 +1,82 @@
+{
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "status": "local_regressions_passed_native_ci_pending",
+  "scope": "Release-tooling test portability and diagnostic logging only; application code, generated-version rules, algorithms and package version unchanged.",
+  "incoming_logs": [
+    {
+      "name": "logs-macos-arm64.zip",
+      "sha256": "2e48ba7235bddc16fa384051a1916d27c88a90536786c54a3541d912ad21239a",
+      "context": [
+        "Commit: 3bf678ebe85975dca5e9f958df893dcab239506f",
+        "Ref: refs/tags/v1.2.0-beta5",
+        "Darwin arm64"
+      ],
+      "test_summary": "Ran 111 tests in 9.355s\n\nFAILED (failures=2, skipped=2)"
+    },
+    {
+      "name": "logs-macos-x86_64.zip",
+      "sha256": "473a72c639fe72d8bafa72525ea6d97521b2903e01dc8848fbfcd0d60606839d",
+      "context": [
+        "Commit: 3bf678ebe85975dca5e9f958df893dcab239506f",
+        "Ref: refs/tags/v1.2.0-beta5",
+        "Darwin x86_64"
+      ],
+      "test_summary": "Ran 111 tests in 15.188s\n\nFAILED (failures=2, skipped=2)"
+    }
+  ],
+  "findings": [
+    {
+      "issue": "Canonical and symlink temporary paths were compared as literal strings",
+      "fix": "Resolve the expected executable path; add an explicit linked-directory test including spaces and the .exe suffix.",
+      "reproduced_before": true
+    },
+    {
+      "issue": "Rapid fixture rewrites could occur within the same second; make with whole-second timestamp comparison retained the earlier probe",
+      "fix": "Wait for the next observed whole-second timestamp before a fixture edit and the no-op check; retain normal make and exact version assertions. No forced build or generated-file touch.",
+      "reproduced_before": true
+    },
+    {
+      "issue": "An additional Linux APT test fixture wrote an unescaped file URI when TMPDIR contained spaces",
+      "fix": "Construct a percent-encoded absolute file URI in that test fixture; production APT collector unchanged."
+    }
+  ],
+  "environment": {
+    "host": "Linux x86_64",
+    "python": "3.12.14",
+    "qmake": "Qt 6.8.2",
+    "make_current": "GNU Make 4.4.1",
+    "make_coarse": "GNU Make 3.81, built from GNU source with ac_cv_struct_st_mtim_nsec=no",
+    "make_source_url": "https://ftp.gnu.org/gnu/make/make-3.81.tar.gz",
+    "make_source_sha256": "16b77de9f013bcd536b7bc1efbe314223aedfe250f9063e33cbb4dfd347215a2",
+    "make_build_flags": "-O2 -D__alloca=alloca -D__stat=stat -Dbsd_signal=signal (host compatibility only; fixture tooling not distributed)"
+  },
+  "checks": {
+    "runner_symlink_directory": {
+      "tests_run": 10,
+      "failures": 0,
+      "skipped": 0
+    },
+    "version_incremental_current_make": "passed; beta.2 -> beta.5 -> beta.6 -> stable; unchanged version leaves object untouched",
+    "version_incremental_coarse_make": "passed; same exact-version and no-op checks, paths contain spaces",
+    "negative_controls": {
+      "missing_VERSION_dependency": "rejected",
+      "frozen_generated_version": "rejected"
+    },
+    "full_release_suite": {
+      "tests_run": 110,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Homebrew Ruby query class requires Ruby, absent on this Linux host",
+      "environment": "coarse make plus symlink TMPDIR containing spaces"
+    },
+    "additional_run_note": "The first all-tests run with a spaced TMPDIR revealed the APT test-fixture URI issue recorded above; the final complete run passed after correcting that fixture."
+  },
+  "not_claimed": [
+    "Native macOS execution of this patch",
+    "Successful macOS application compilation or package creation",
+    "Numerical or UI tests rerun during this tooling-only patch"
+  ],
+  "next_step": "Commit the patch and start a NEW workflow run on that commit/branch; rerunning the old event uses its original SHA/ref. Final release tag must identify the fixed commit."
+}

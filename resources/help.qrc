@@ -24,10 +24,12 @@
     <file alias="docs/third_party.md">../docs/third_party.md</file>
     <file alias="docs/methods/README.md">../docs/methods/README.md</file>
     <file alias="docs/methods/acycle_compatibility.md">../docs/methods/acycle_compatibility.md</file>
+    <file alias="docs/methods/cwt.md">../docs/methods/cwt.md</file>
     <file alias="docs/methods/ar1_global.md">../docs/methods/ar1_global.md</file>
     <file alias="docs/methods/astronomy.md">../docs/methods/astronomy.md</file>
     <file alias="docs/methods/chronology.md">../docs/methods/chronology.md</file>
     <file alias="docs/methods/coco_analysis.md">../docs/methods/coco_analysis.md</file>
+    <file alias="docs/methods/cross_spectrum.md">../docs/methods/cross_spectrum.md</file>
     <file alias="docs/methods/coco_scan.md">../docs/methods/coco_scan.md</file>
     <file alias="docs/methods/cycle_tuning.md">../docs/methods/cycle_tuning.md</file>
     <file alias="docs/methods/filtering.md">../docs/methods/filtering.md</file>

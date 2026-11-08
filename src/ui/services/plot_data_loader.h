@@ -6,6 +6,7 @@
 #include "io/database/output_reference.h"
 namespace aster::ui
 {
+NodeResult loadCrossSpectrumOutput(const OutputReference &reference);
 NodeResult loadPlotData(const QVector<OutputReference> &references, const PlotRequest &request,
                         const CancellationToken &cancel);
 }

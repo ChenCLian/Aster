@@ -157,7 +157,8 @@ class SourceRepositoryTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which('apt-get'), 'APT parser is unavailable on this host')
     def test_generated_mirror_source_is_accepted_by_apt(self):
         mirrors = self.write_runner_mirror_list()
-        uri = 'mirror+file:' + str(mirrors)
+        # APT source lines split on whitespace; encode a temporary path as a URI.
+        uri = 'mirror+' + mirrors.resolve().as_uri()
         (self.apt / 'sources.list').write_text('deb ' + uri + ' jammy main\n')
         legacy, modern = enable_deb_src.collect(self.apt)
         stage = self.root / 'generated'

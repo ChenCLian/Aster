@@ -1,0 +1,121 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "scope": "CI-reported plotting interaction fixes; no numerical algorithm, limit, database or version changes.",
+  "baseline_patch": "Aster-1.2.0-beta.5-shared-header-fix.zip",
+  "reported_ci": {
+    "commit": "342d147136d0d9700c0d403a6ec59584eb5c02bb",
+    "ref": "refs/tags/v1.2.0-beta.5.3",
+    "qt": "6.8.3",
+    "builds_completed": [
+      "linux-x64",
+      "macos-arm64",
+      "macos-x86_64"
+    ],
+    "failures": [
+      {
+        "platforms": "all three",
+        "test": "WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport",
+        "observed": "Late style submission restores x lower -1499.985 rather than 1001."
+      },
+      {
+        "platforms": "both macOS architectures",
+        "test": "WorkspaceTests::refinementStatusDoesNotRelayout(zh)",
+        "observed": "Idle ready count increases from 8 to 16."
+      },
+      {
+        "platforms": "Linux",
+        "test": "StyleExportTests::probeCompactReadout(en-light/en-dark)",
+        "observed": "Test assumes width < 300 despite the existing implementation allowing 340 logical pixels."
+      }
+    ],
+    "packaging_completed": false
+  },
+  "changes": [
+    "Synchronize unedited axis ranges from the live viewport before a delayed style commit or display refresh; explicit manual range/scale edits retain precedence.",
+    "Make resolution status size hints independent of text, with font-sensitive height, to prevent layout-triggered repeated reads.",
+    "Align readout test with its existing 340-pixel cap and verify numeric readability, containment, copy precision, language, theme and 10/14-point fonts.",
+    "Add eight curve/heatmap, swapped-axis and initial-range cases with pending title edits, data refresh, zoom and explicit manual range changes."
+  ],
+  "recovery": {
+    "reason": "Work environment became unavailable before the patch could be archived or uploaded; workspace maintenance subsequently removed scratch files.",
+    "method": "Recovered the saved beta.5 source and delivered patches in order; reconstructed the pending edits from the retained change record.",
+    "baseline_files_verified": 1112,
+    "baseline_all_hashes_match": true,
+    "previous_turn_results": {
+      "qt_passed": 1092,
+      "qt_failed": 0,
+      "scope": "Six related executables, as recorded before interruption; includes initialization and cleanup.",
+      "raw_logs_available_after_cleanup": false,
+      "fresh_validation": false
+    }
+  },
+  "recovery_validation": {
+    "platform": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "qpa": "offscreen",
+    "build_scope": "Core, I/O, science, application and desktop UI libraries plus the three affected Qt test executables rebuilt from source.",
+    "qt_tests": [
+      {
+        "log": "recovered-style_export_tests.log",
+        "suites": 1,
+        "passed": 53,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "log": "recovered-workspace_tests.log",
+        "suites": 1,
+        "passed": 82,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "log": "recovered-integration_tests.log",
+        "suites": 4,
+        "passed": 85,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "qt_total_passed": 220,
+    "scale_factor_1_5": [
+      {
+        "log": "scaled-style.log",
+        "suites": 1,
+        "passed": 18,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "log": "scaled-status.log",
+        "suites": 1,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "counts_include_initialization_and_cleanup": true,
+    "release_tool_tests": {
+      "run": 113,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable for Homebrew metadata test class"
+    },
+    "previous_and_recovery_counts_not_added_together": true
+  },
+  "restored_environment_preflight": "The first style test run was stopped after detecting the missing Qt SQLite driver. The matching driver was restored and all affected suites rerun; no application change or weakened assertion was used to resolve that environment issue.",
+  "application_code_changed": true,
+  "application_rebuild_required": true,
+  "application_version_changed": false,
+  "removed_paths": [],
+  "limitations": [
+    "No native Windows or macOS execution in the restored environment; the corrected commit still requires native Actions and final package acceptance.",
+    "The macOS idle loop was not directly reproduced on Linux; the text-dependent size-hint defect was reproduced before the interruption and the recovered regression checks pass.",
+    "No new broad numerical stress campaign. Earlier counts are retained separately and are not presented as freshly rerun tests.",
+    "No remote repository, tag or release asset was changed."
+  ]
+}

@@ -1,0 +1,26 @@
+********* Start testing of WorkspaceTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : WorkspaceTests::initTestCase()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(compatible) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(compatible) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(compatible) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(compatible) This plugin does not support propagateSizeHints()
+QINFO  : WorkspaceTests::overlayKeepsClickedDestination(compatible) TITLE LOOKUP "ID 2 · 数据序列" QPoint(558,37) QSize(537, 26)
+QINFO  : WorkspaceTests::overlayKeepsClickedDestination(compatible) TITLE LOOKUP "ID 1 · 数据序列" QPoint(5,37) QSize(538, 26)
+FAIL!  : WorkspaceTests::overlayKeepsClickedDestination(compatible) Compared values are not the same
+   Actual   (w.currentReference().key()): "/tmp/aster_workspace_tests-LHUIFJ/overlay.sqlite|{6ebc4c5c-3452-4101-864e-a15b69207e7a}|{d70c33f9-15fd-4094-bae9-38fdf275884d}|series"
+   Expected (a.key())                   : "/tmp/aster_workspace_tests-LHUIFJ/overlay.sqlite|{2d500f14-aced-4615-ad3e-ffb889c6d0f2}|{88e8c59d-9279-4524-891c-2fe19d602a76}|series"
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(375)]
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(different_units) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(different_units) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(different_units) This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceTests::overlayKeepsClickedDestination(different_units) This plugin does not support propagateSizeHints()
+QINFO  : WorkspaceTests::overlayKeepsClickedDestination(different_units) TITLE LOOKUP "ID 2 · 数据序列" QPoint(558,37) QSize(537, 26)
+QINFO  : WorkspaceTests::overlayKeepsClickedDestination(different_units) TITLE LOOKUP "ID 1 · 数据序列" QPoint(5,37) QSize(538, 26)
+FAIL!  : WorkspaceTests::overlayKeepsClickedDestination(different_units) Compared values are not the same
+   Actual   (w.currentReference().key()): "/tmp/aster_workspace_tests-EgxOze/overlay.sqlite|{a4c97b9d-9934-47c2-9d69-15d4aaeff1a6}|{f73c6cf5-0770-42af-9255-704a720cdfb8}|series"
+   Expected (a.key())                   : "/tmp/aster_workspace_tests-EgxOze/overlay.sqlite|{5c7baf07-f099-4d4e-bda3-05106ecbb4ce}|{65034433-0430-4062-a310-6424b0432f5e}|series"
+   Loc: [../../work/Aster_1.2.0/workspace_tests/workspace_tests.cpp(375)]
+PASS   : WorkspaceTests::cleanupTestCase()
+Totals: 2 passed, 2 failed, 0 skipped, 0 blacklisted, 203ms
+********* Finished testing of WorkspaceTests *********

@@ -1,0 +1,348 @@
+{
+  "version": "1.2.0-alpha.16",
+  "base_version": "1.2.0-alpha.15",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.417,
+      "log": "logs/full-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.678,
+      "log": "logs/full-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 74.01,
+      "log": "logs/full-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.449,
+      "log": "logs/full-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 73.694,
+      "log": "logs/final-aster_ui_tests.txt",
+      "status": "passed"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.476,
+      "log": "logs/full-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.527,
+      "log": "logs/full-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 4.307,
+      "log": "logs/full-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.485,
+      "log": "logs/full-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 15.13,
+      "log": "logs/full-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 23.98,
+      "log": "logs/full-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.86,
+      "log": "logs/full-aster_update_tests.txt"
+    }
+  ],
+  "full_regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.417,
+      "log": "logs/full-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.678,
+      "log": "logs/full-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 74.01,
+      "log": "logs/full-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.449,
+      "log": "logs/full-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 71.467,
+      "log": "logs/full-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.476,
+      "log": "logs/full-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.527,
+      "log": "logs/full-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 4.307,
+      "log": "logs/full-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.485,
+      "log": "logs/full-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 48,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 15.13,
+      "log": "logs/full-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 23.98,
+      "log": "logs/full-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.86,
+      "log": "logs/full-aster_update_tests.txt"
+    }
+  ],
+  "final_desktop_regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 73.694,
+      "log": "logs/final-aster_ui_tests.txt",
+      "status": "passed"
+    }
+  ],
+  "totals": {
+    "passed": 2023,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "Latest passing result for each of 12 registered targets, including QtTest initialization/cleanup. Reruns are not added.",
+  "validated": [
+    "CWT numerical outputs equal full database read; numerical algorithms unchanged",
+    "Shared in-memory and database heatmap sampling agrees exactly at corresponding coordinates",
+    "Logarithmic base-2 period axis and reversed direction survive 32x32 reduction, initial layout and refinement",
+    "First layout refines automatically; zoom/pan changes samples and resolution status",
+    "Manual direction and colour remain intact; automatic colour bounds stay fixed during refinement",
+    "Export snapshot freezes visible colour bounds without mutating live automatic-range setting",
+    "MTM spectra/backgrounds/thresholds/peaks combine without duplicate family layers",
+    "CWT power and COI combine; distinct heatmap quantities remain separate; incompatible overlay preserves target",
+    "Alpha.15 selection, default navigation, layout and deletion safeguards retained"
+  ],
+  "performance": {
+    "dataset_cells": 8388608,
+    "initial_read_ms": 3859,
+    "viewport_read_ms": [
+      392,
+      503
+    ],
+    "cancel_total_ms": 72,
+    "cancel_requested_after_ms": 20,
+    "peak_process_rss_kib": 211304,
+    "scope": "Single local process including fixture construction and saving; one initial read and two viewport reads. No guarantee for native Windows or arbitrary datasets. Before log is the initial alpha.16 implementation, not a benchmark of the alpha.15 release.",
+    "change": "Single sequential initial scan for values/colour bounds; bounded read cache 256 KiB -> 1 MiB; scientific and display grid limits unchanged."
+  },
+  "test_development_notes": [
+    "Initial grouping fixture had no significance_ratio due to a nonstationary fitted AR1 reference. Replaced with a stationary multi-frequency fixture; no algorithm changed.",
+    "A synthetic identity-only test changed recordId but retained the same run UUID. Corrected to a distinct run UUID. Initial and corrected logs retained."
+  ],
+  "python_checks": {
+    "release_tests": 106,
+    "help_tests": 6,
+    "failed": 0,
+    "skipped_classes": 1,
+    "skip_reason": "Ruby/Homebrew query checks require Ruby, unavailable in this environment."
+  },
+  "unchanged": [
+    "Numerical algorithms",
+    "Workflow execution/data model",
+    "Scientific limits",
+    "Database schema and payload formats",
+    "Release packaging scripts",
+    "Historical validation evidence"
+  ],
+  "remaining": [
+    "Native Windows/MSVC and macOS build and GUI acceptance",
+    "Final platform binary/dependency packaging checks"
+  ]
+}

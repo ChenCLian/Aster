@@ -11,7 +11,8 @@
 | `fft_spectrum` | 分析 → 频谱 → 功率谱 | 周期 Hann 窗、去均值，FFT 点数 0（自动取整段长度） | 等间隔 Series → `spectrum`（单边物理 PSD） |
 | `welch_spectrum` | 分析 → 频谱 → 功率谱 | 每段 256 点、重叠 128 点，周期 Hann、各段去均值，FFT 点数 0（取段长） | 等间隔 Series → `spectrum`（各段 PSD 的算术平均） |
 
-默认值只在 Task 描述中定义，注册表归一化后同时供 UI 和执行使用。等间隔条件沿用共同检查（相对间隔容差 1e-6）。不强制加入整理/重采样，不自动减小窗口，不截断输入来满足 FFT 长度。
+参数及默认值见[参数参考](../reference/task_parameters.md)。等间隔检查的相对间隔容差为 1e-6。窗口和 FFT 点数须满足输入长度要求；需要整理或重采样时，先添加相应处理节点。
+
 ## 数学定义与端点
 
 移动平均：对位置 i，取 `[max(0,i-h), min(N-1,i+h)]` 内的已有样本等权平均，h=(窗口点数−1)/2。端点使用截短窗口，不补零、不重复端点。窗口按点数，不按 X 距离；非等间隔输入会提示实际覆盖的物理跨度不固定。该定义为 clipped centered mean；与 MATLAB `smooth` 比较时须核对端点约定。
@@ -29,9 +30,10 @@ Welch：起点依次为 `0, L-overlap, 2*(L-overlap), ...`，只取完全落在�
 当 X 单位为 ka、Y 单位为 u 时，频率为 1/ka，PSD 为 u²·ka；有任一原单位缺失时不猜测单位。这里的 PSD 不等同于 FFT 幅值，也不能把峰高度直接当成振幅。
 
 **该模块 FFT/Welch 只输出描述性功率谱，不生成 p 值、置信阈值或峰频率索引。** 峰值检测、峰标记和数据库频率筛选由 MTM 提供。平滑任务不输出 bootstrap 置信带。与 SciPy 的数值对照不证明任意噪声条件下的统计推断有效。
+
 ## 与 Acycle 和独立参照的关系
 
-核查了参考 Acycle 包中的 `evoperiodogram.m`：它使用局部线性去趋势、矩形窗及 5 倍段长补零；该模块公开提供对应窗/去趋势/FFT 长度参数，但默认采用周期 Hann、去均值、无补零。物理 PSD 定义一致的情况下可比较，默认值不同不能直接判成算法错误。没有复制原 GUI、固定 5 倍补零或旧演化谱中心定位习惯。
+参考 Acycle 包中的 `evoperiodogram.m` 使用局部线性去趋势、矩形窗及 5 倍段长补零。本模块提供窗函数、去趋势和 FFT 长度参数，默认采用周期 Hann 窗、去均值和无补零。比较结果时，应统一这些参数及物理 PSD 定义。
 
 参考文档：
 
@@ -40,9 +42,10 @@ Welch：起点依次为 `0, L-overlap, 2*(L-overlap), ...`，只取完全落在�
 - [SciPy Savitzky–Golay](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html)
 
 固定参照由 `analysis_tests/fixtures/generate_basic_signal_reference.py` 独立生成：NumPy 截短均值、SciPy SG、periodogram/Welch 共 18 例；不调用产品计算代码。另有多项式保持、常量、大数、错误输入、取消、功率积分和数值传输测试。验证未包含直接 MATLAB 运行对照、Acycle GUI 的全部默认值或 bootstrap 行为。
+
 ## 预算与失败行为
 
 - 平滑：最多 100 万点，奇数窗口 1–501 点，`N*window <= 1e8`，阶数 0–5。固定小维正交基和有界权重表；参数不合条件会失败。
-- FFT：整段至少 8 点，nfft 最大 262144 且不得短于整段。不会静默舍弃尾部以匹配 nfft。
-- Welch：输入最多 100 万点，每段至少 8 点，nfft 最大 262144，窗口最多 20000 个，沿用 `windows*nfft <= 1e8` 工作预算。
+- FFT：整段至少 8 点，nfft 最大 262144 且不得短于整段。计算使用完整输入。
+- Welch：输入最多 100 万点，每段至少 8 点，nfft 最大 262144，窗口最多 20000 个，工作预算为 `windows*nfft <= 1e8`。
 - 空/错误维度、非有限值、不递增、非等间隔、非法窗口、超预算及可检测的数值溢出均通过统一诊断返回；上游失败正常阻断后续节点。后台取消按扫描、权重构造和窗口/输出循环检查，不强行终止原生 FFT 内部调用。

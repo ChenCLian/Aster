@@ -1,5 +1,5 @@
 {
-  "scope": "Archived scientific evidence. Each section retains its original tested version, references and scope. The current source build and regression record is maintained separately in docs/validation.json.",
+  "scope": "Archived scientific evidence. Each section retains its original tested version, references and scope. Current development validation is selected by PACKAGE_STATUS.json. docs/validation.json retains the 1.1.1 build and regression archive.",
   "acycle_sources": {
     "reference_archive": "Acycle_3.1.1.zip",
     "sha256": "7c34258597734fdee61e6c183177ce8573f0a3312809c7203cb382939a63e6fd",

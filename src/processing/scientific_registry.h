@@ -38,6 +38,7 @@
     X(moving_average, MovingAverageTask) \
     X(savitzky_golay, SavitzkyGolayTask) \
     X(fft_spectrum, FftSpectrumTask) \
+    X(cross_spectrum, CrossSpectrumTask) \
     X(welch_spectrum, WelchSpectrumTask) \
     X(lomb_scargle, LombScargleTask) \
     X(butterworth_lowpass, ButterworthLowpassTask) \

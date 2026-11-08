@@ -1,0 +1,190 @@
+********* Start testing of WorkspaceServicesTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : WorkspaceServicesTests::initTestCase()
+PASS   : WorkspaceServicesTests::settingsRoundTripAndValidation()
+PASS   : WorkspaceServicesTests::catalogsAndThemes()
+PASS   : WorkspaceServicesTests::viewportReaderPreservesSpikesAndRefines()
+PASS   : WorkspaceServicesTests::gridWindowHasExactValues()
+PASS   : WorkspaceServicesTests::tablePreviewIsBounded()
+PASS   : WorkspaceServicesTests::rejectsWrongIdentityAndCancellation()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceServicesTests::workspaceRefinesWithoutChangingViewport()
+PASS   : WorkspaceServicesTests::extendedStylesAndThemePreserveCustomCurves()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::inactivePagesFollowTheme() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceServicesTests::inactivePagesFollowTheme()
+PASS   : WorkspaceServicesTests::heatmapScaleAndBackground()
+QWARN  : WorkspaceServicesTests::figurePngPdfAndAtomicFailure() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figurePngPdfAndAtomicFailure() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceServicesTests::figurePngPdfAndAtomicFailure()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : WorkspaceServicesTests::figureControllerSnapshotAndCancellation() This plugin does not support propagateSizeHints()
+PASS   : WorkspaceServicesTests::figureControllerSnapshotAndCancellation()
+PASS   : WorkspaceServicesTests::figureCompletionBeforeRestart()
+PASS   : WorkspaceServicesTests::cleanupTestCase()
+Totals: 15 passed, 0 failed, 0 skipped, 0 blacklisted, 1825ms
+********* Finished testing of WorkspaceServicesTests *********
+********* Start testing of InteractionSafetyTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : InteractionSafetyTests::initTestCase()
+PASS   : InteractionSafetyTests::diagnosticSerializationAndTranslations()
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 1 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::multipleRootsKeepFileOptionsAndStatusSeparate()
+QINFO  : InteractionSafetyTests::diagnosticSignalStorageAndDetails() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::diagnosticSignalStorageAndDetails() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::diagnosticSignalStorageAndDetails() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 6 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::diagnosticSignalStorageAndDetails() [Aster import] column_controls_ms= 0
+QWARN  : InteractionSafetyTests::diagnosticSignalStorageAndDetails() This plugin does not support propagateSizeHints()
+PASS   : InteractionSafetyTests::diagnosticSignalStorageAndDetails()
+QWARN  : InteractionSafetyTests::ar1GlobalResultPresentation() This plugin does not support propagateSizeHints()
+QWARN  : InteractionSafetyTests::ar1GlobalResultPresentation() This plugin does not support propagateSizeHints()
+PASS   : InteractionSafetyTests::ar1GlobalResultPresentation()
+PASS   : InteractionSafetyTests::fileToBranchesToDatabaseAndCsv()
+PASS   : InteractionSafetyTests::externalSourcesAndGeneratorsNeedNoDispatchEdits()
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::probeDoesNotLosePendingEditsAndBlocksStaleRun()
+PASS   : InteractionSafetyTests::localizedChoicesKeepStableParameterValues()
+PASS   : InteractionSafetyTests::exportServicesProtectSourceDatabaseAndSidecars()
+PASS   : InteractionSafetyTests::cachedPlotStylesFollowTheme()
+PASS   : InteractionSafetyTests::overlayFitIncludesAllLayers()
+PASS   : InteractionSafetyTests::readFailuresStayBounded()
+PASS   : InteractionSafetyTests::themeTemplateAndTaskResourcesCoverDeclaredChoices()
+QINFO  : InteractionSafetyTests::bulkSourceRefreshKeepsSelectionsAndOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 1 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::bulkSourceRefreshKeepsSelectionsAndOptions() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::bulkSourceRefreshKeepsSelectionsAndOptions()
+PASS   : InteractionSafetyTests::whitespaceReadersRemainIndependent()
+PASS   : InteractionSafetyTests::compactToolbarAndIndependentSidePanels()
+QWARN  : InteractionSafetyTests::detrendOutputMenuKeepsExplicitPortBinding() This plugin does not support raise()
+QWARN  : InteractionSafetyTests::detrendOutputMenuKeepsExplicitPortBinding() This plugin does not support grabbing the keyboard
+PASS   : InteractionSafetyTests::detrendOutputMenuKeepsExplicitPortBinding()
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 5 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 4 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover()
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 6 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 0 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 6 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot()
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(numeric-no-header)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(text-header-as-data-fails)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(text-header-as-data-skip)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(numeric-first-row-consumed-as-header)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(text-header)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(auto-numeric)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(auto-text)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(unused-text-column)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(tabs)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(whitespace)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(wrong-delimiter)
+PASS   : InteractionSafetyTests::filePreviewMatchesWorkflow(too-few-points)
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 1 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::filePreviewFollowsAllEditorOptions() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::filePreviewFollowsAllEditorOptions()
+PASS   : InteractionSafetyTests::filePreviewIsLazyAndDiscardsStaleReads()
+PASS   : InteractionSafetyTests::filePreviewKeepsExtremaWithinDisplayBudget()
+QINFO  : InteractionSafetyTests::filePreviewPanelResizesAndReleasesHiddenData() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 15 columns= 2 ok= true
+QINFO  : InteractionSafetyTests::filePreviewPanelResizesAndReleasesHiddenData() [Aster import] column_controls_ms= 0
+PASS   : InteractionSafetyTests::filePreviewPanelResizesAndReleasesHiddenData()
+PASS   : InteractionSafetyTests::filePreviewVisibleOnFirstShow()
+PASS   : InteractionSafetyTests::filePreviewClearsInvalidInputs()
+PASS   : InteractionSafetyTests::cleanupTestCase()
+Totals: 39 passed, 0 failed, 0 skipped, 0 blacklisted, 16022ms
+********* Finished testing of InteractionSafetyTests *********
+********* Start testing of RecordDirectoryTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : RecordDirectoryTests::initTestCase()
+PASS   : RecordDirectoryTests::stablePagesAndSelectionSnapshot()
+PASS   : RecordDirectoryTests::dependencyProtectionAndAtomicDelete()
+QWARN  : RecordDirectoryTests::checksSurviveFiltersAndCheckboxDoesNotPlot() This plugin does not support propagateSizeHints()
+QWARN  : RecordDirectoryTests::checksSurviveFiltersAndCheckboxDoesNotPlot() This plugin does not support propagateSizeHints()
+QWARN  : RecordDirectoryTests::checksSurviveFiltersAndCheckboxDoesNotPlot() This plugin does not support propagateSizeHints()
+PASS   : RecordDirectoryTests::checksSurviveFiltersAndCheckboxDoesNotPlot()
+QWARN  : RecordDirectoryTests::deletingCurrentRecordClosesOnlyRelatedPlots() This plugin does not support propagateSizeHints()
+QWARN  : RecordDirectoryTests::deletingCurrentRecordClosesOnlyRelatedPlots() This plugin does not support propagateSizeHints()
+QWARN  : RecordDirectoryTests::deletingCurrentRecordClosesOnlyRelatedPlots() This plugin does not support propagateSizeHints()
+PASS   : RecordDirectoryTests::deletingCurrentRecordClosesOnlyRelatedPlots()
+QWARN  : RecordDirectoryTests::canvasDeleteFocusAndUndo() This plugin does not support propagateSizeHints()
+QWARN  : RecordDirectoryTests::canvasDeleteFocusAndUndo() This plugin does not support propagateSizeHints()
+PASS   : RecordDirectoryTests::canvasDeleteFocusAndUndo()
+PASS   : RecordDirectoryTests::cleanupTestCase()
+Totals: 7 passed, 0 failed, 0 skipped, 0 blacklisted, 2902ms
+********* Finished testing of RecordDirectoryTests *********
+********* Start testing of DatabaseTransferTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : DatabaseTransferTests::initTestCase()
+PASS   : DatabaseTransferTests::mergeRemapsIdsOutputsReferencesAndPeaks()
+PASS   : DatabaseTransferTests::cancellationRollsBackAllTables()
+PASS   : DatabaseTransferTests::invalidDatabases(future-schema)
+PASS   : DatabaseTransferTests::invalidDatabases(legacy-schema)
+PASS   : DatabaseTransferTests::invalidDatabases(extra-version)
+PASS   : DatabaseTransferTests::invalidDatabases(trigger)
+PASS   : DatabaseTransferTests::invalidDatabases(orphan)
+PASS   : DatabaseTransferTests::invalidDatabases(payload)
+PASS   : DatabaseTransferTests::invalidDatabases(incomplete-columns)
+PASS   : DatabaseTransferTests::invalidDatabases(uuid)
+PASS   : DatabaseTransferTests::invalidDatabases(peak-index)
+PASS   : DatabaseTransferTests::collisionRejectsEntireMerge()
+PASS   : DatabaseTransferTests::walBackupContainsCommittedChanges()
+PASS   : DatabaseTransferTests::externalSourcesAreRetained()
+PASS   : DatabaseTransferTests::failedSourceRecordsRemainInspectable()
+PASS   : DatabaseTransferTests::capturedSourceMismatchRollsBack()
+PASS   : DatabaseTransferTests::laterSourceMergeRepairsMatchingOwner()
+PASS   : DatabaseTransferTests::observerExceptionDoesNotMisreportCommit()
+QWARN  : DatabaseTransferTests::mergeMenuRefreshesAndKeepsChecks() This plugin does not support propagateSizeHints()
+QWARN  : DatabaseTransferTests::mergeMenuRefreshesAndKeepsChecks() This plugin does not support propagateSizeHints()
+QWARN  : DatabaseTransferTests::mergeMenuRefreshesAndKeepsChecks() This plugin does not support propagateSizeHints()
+QWARN  : DatabaseTransferTests::mergeMenuRefreshesAndKeepsChecks() This plugin does not support propagateSizeHints()
+PASS   : DatabaseTransferTests::mergeMenuRefreshesAndKeepsChecks()
+QWARN  : DatabaseTransferTests::serviceSignalsAndDirectoryEntry() This plugin does not support propagateSizeHints()
+PASS   : DatabaseTransferTests::serviceSignalsAndDirectoryEntry()
+PASS   : DatabaseTransferTests::cleanupTestCase()
+Totals: 22 passed, 0 failed, 0 skipped, 0 blacklisted, 582ms
+********* Finished testing of DatabaseTransferTests *********

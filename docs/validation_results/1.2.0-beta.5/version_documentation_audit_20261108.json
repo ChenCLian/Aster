@@ -1,0 +1,131 @@
+{
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "status": "passed_with_platform_limits",
+  "scope": "Full prerelease build identity, Windows deployment guard, current documentation and source export; no algorithm or numerical-limit changes.",
+  "reported_windows_binary": {
+    "package_label": "1.2.0-beta.5",
+    "settings_screenshot": "1.2.0-beta.2",
+    "native_executable_available_for_inspection": false,
+    "release_status": "requires_rebuild_and_native_verification"
+  },
+  "baseline": "Cumulative beta.5 source export including documentation polish and the separate Stage deployment mode; 1106 files.",
+  "findings": [
+    {
+      "issue": "VERSION read by qmake cat() was not tracked, and a changed compiler definition did not rebuild main.o",
+      "reproduction_before": {
+        "fresh_beta2": "1.2.0-beta.2",
+        "version_only_then_make": "1.2.0-beta.2",
+        "rerun_qmake_then_make": "1.2.0-beta.2"
+      },
+      "fix": "Track VERSION as a qmake input and generate a header included by all three version consumers."
+    },
+    {
+      "issue": "Windows deployment validated numeric PE ProductVersion only, accepting different prerelease suffixes",
+      "fix": "Run the deployed executable with redirected --version output and compare the exact full version before every material mode. Reject mismatch, empty output, nonzero exit, launch failure and timeout."
+    },
+    {
+      "issue": "Documentation review metadata linked a UI report instead of a documentation audit",
+      "fix": "Reference this scoped audit separately; preserve historical UI evidence."
+    }
+  ],
+  "documentation": {
+    "current_markdown_files": 51,
+    "missing_local_link_targets": [],
+    "embedded_help_entries": 49,
+    "missing_help_files": [],
+    "full_prerelease_scan": "passed; current root/docs Markdown checked; historical report links, changelog and validation indices retain original versions",
+    "corrected_topics": [
+      "Build/export/dependency responsibilities",
+      "Full prerelease comparison versus numeric Windows file properties",
+      "Fresh Release build after version mismatch",
+      "Embedded help rebuild requirement",
+      "Stage Python requirement",
+      "Resume material collection only after a successful full executable version check"
+    ]
+  },
+  "checks": {
+    "qmake_incremental_build": {
+      "environment": "Linux / Qt 6.8.2 / GCC 14.2.0 / make",
+      "result": "passed",
+      "versions": [
+        "1.2.0-beta.2",
+        "1.2.0-beta.5",
+        "1.2.0-beta.6",
+        "1.2.0"
+      ],
+      "cases": [
+        "VERSION-only incremental build",
+        "Explicit qmake then incremental build",
+        "Unchanged version avoids unnecessary recompilation",
+        "Shadow build with spaces in paths"
+      ],
+      "before_fix": {
+        "version_only": "retained beta.2",
+        "rerun_qmake": "retained beta.2"
+      }
+    },
+    "windows_packaging_process_tests": {
+      "environment": "PowerShell 7.4.19 on Linux; Python 3.12.14",
+      "command": "pwsh -NoProfile -File tools/release/test_windows_packaging.ps1",
+      "passed": 27,
+      "failed": 0,
+      "native_windows_deployment_tested": false
+    },
+    "actual_desktop_version_gate": {
+      "environment": "PowerShell 7.4.19 / Linux Qt application",
+      "compiled_version": "Aster_Workspace 1.2.0-beta.5",
+      "matching_version_accepted": true,
+      "mismatched_version_rejected": true
+    },
+    "python_release_suite": {
+      "command": "python -m unittest discover -v -s tools/release -p test_*.py (ASTER_TEST_QMAKE set to Qt 6 qmake)",
+      "tests_run_reported": 109,
+      "failures": 0,
+      "errors": 0,
+      "skipped_entries": 1,
+      "skip_reason": "Homebrew Ruby query class requires Ruby, unavailable on this Linux host"
+    },
+    "qt_update_and_settings_suite": {
+      "environment": "Linux / Qt 6.8.2 offscreen, QSQLITE plugin path configured",
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "counts_include_init_and_cleanup": true,
+      "new_case": "compiledVersionMatchesSettingsAndHelp",
+      "initial_environment_attempt": "Stopped after QSQLITE was unavailable because the extracted Qt plugin path was omitted; rerun with the correct path completed successfully."
+    },
+    "help_reference": {
+      "command": "python tools/help_reference/generate.py --build <build> --check",
+      "tasks": 54,
+      "parameters": 233,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "result": "current",
+      "generator_unit_tests_passed": 7
+    },
+    "build": {
+      "rebuilt": [
+        "desktop_ui (including embedded FAQ)",
+        "desktop",
+        "help catalog",
+        "update_tests"
+      ],
+      "reused_unchanged_libraries": [
+        "core",
+        "io",
+        "science",
+        "application"
+      ],
+      "reused_source_byte_comparison": "All src/ and corresponding module project files match the prior compiled beta.5 baseline.",
+      "third_party_warnings": "Existing QCustomPlot Qt deprecation warnings; no build errors."
+    }
+  },
+  "limitations": [
+    "Windows/MSVC and macOS native rebuilds not performed in this environment.",
+    "The user Windows executable has not been read; its code contents cannot be inferred from the version screenshot alone.",
+    "Full-version equality is necessary but does not prove source identity or numerical correctness; release commit and package acceptance remain required."
+  ]
+}

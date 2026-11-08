@@ -1,0 +1,283 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.4",
+  "date_utc": "2026-11-06",
+  "stage": "Real-data numerical checks, UI boundaries and provenance scaling",
+  "environment": {
+    "os": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "gui_test_platform": "offscreen",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  },
+  "build": {
+    "desktop": "passed",
+    "type": "Incremental build from verified alpha.3 source; recursive qmake regeneration and version-bearing object rebuild",
+    "application_version": "Aster_Workspace 1.2.0-alpha.4"
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 773,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "qt_test_totals": {
+    "passed": 1883,
+    "failed": 0,
+    "skipped": 0
+  },
+  "release_tool_tests": {
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0
+  },
+  "help_generator_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "generated_parameter_references": {
+    "tasks": 54,
+    "parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "status": "current"
+  },
+  "real_data": {
+    "reference_cases": 8,
+    "sources": [
+      "PANGAEA.60254: ODP 846 oxygen/carbon isotope records",
+      "PANGAEA.743431: ODP 926 carbon isotope/lightness records"
+    ],
+    "source_integrity": "Generator and C++ loader verify bundled source hashes; citations, license and chronology retained in fixture.",
+    "preparation": [
+      "ODP 846: production preprocess fixed 1 ka with sort/duplicate averaging/linear interpolation, checked independently against NumPy.",
+      "ODP 926: explicitly prepared common 5 ka overlap grid in fixture. Native independently resampled records have different lengths and are rejected."
+    ],
+    "parameter_sets_per_pair": [
+      "128/64/128 periodic Hann constant detrending",
+      "127/63/255 periodic Hann linear detrending",
+      "256/0/512 rectangular no detrending",
+      "64/48/64 rectangular constant detrending"
+    ],
+    "notation": "segment samples / overlap samples / FFT length",
+    "comparisons": [
+      "frequency",
+      "cross magnitude",
+      "coherence",
+      "circular phase difference",
+      "cross real",
+      "cross imaginary",
+      "auto A",
+      "auto B"
+    ],
+    "acceptance_tolerances": {
+      "coordinate_and_interpolated_values_absolute": 1e-10,
+      "spectrum_absolute": "3e-10 * max(abs(reference), 1e-3 * peak) + 1e-300; complex components also use magnitude peak",
+      "coherence_absolute": 2e-09,
+      "phase_degrees_absolute": 2e-07,
+      "phase_comparison_condition": "reference magnitude > peak magnitude * 1e-10"
+    },
+    "zero_frequency_exception": "Raw SciPy references remain unchanged. Rectangular detrending DC has only floating residual power; Aster enforces analytic zero powers and undefined coherence/phase rather than comparing ratios of residuals.",
+    "evidence": "../../../cross_spectrum_tests/fixtures/README.md",
+    "interpretation": "Software regression only; no significance, causal lead/lag or independent astronomical forcing claim from tuned age models."
+  },
+  "new_interface_coverage": [
+    "ODP 846 source/preprocess/pair: preview and formal serial/parallel outputs identical through database reload.",
+    "PT-ZB18a same-source obliquity/precession ports: actual A/B preview units and values, pair output and stored output agree.",
+    "Scoped manifest decodes, reconstructs workflow/grouping and reproduces paired output plus ordinary descendant; unrelated pair and branch omitted.",
+    "Four SQLite late-write failure cases: source/pair at concurrency 1/4; retained results retry with original UUID and exact output bytes.",
+    "Cancellation requested from actual segment-computation progress; cancelled record saved without invented output.",
+    "Undefined coherence to positive auto-B: logarithmic style restored and PNG export succeeds.",
+    "4/64/128 groups with shared last-position reference; pair provenance remains bounded for fixed workflow/source metadata."
+  ],
+  "fixes": [
+    {
+      "issue": "Every pair repeated the full batch manifest, producing quadratic serialized provenance growth.",
+      "resolution": "Index jobs/datasets by identity; store the pair dependency subgraph and descendants. Full manifest API remains available.",
+      "schema_change": false
+    },
+    {
+      "issue": "Restored log style was validated against the currently displayed metric rather than its requested metric.",
+      "resolution": "Check positivity for the incoming cross-spectrum metric before applying the style."
+    },
+    {
+      "issue": "Rectangular detrending left tiny floating DC residuals with arbitrary coherence/phase.",
+      "resolution": "Explicit analytic zero at DC only for rectangular mean/linear detrending. Method version 2; no amplitude threshold elsewhere."
+    }
+  ],
+  "performance": {
+    "cases": [
+      {
+        "pairs": 4,
+        "before": {
+          "database_bytes": 172032,
+          "elapsed_ms": 20,
+          "max_pair_provenance_bytes": 7568,
+          "pair_provenance_bytes": 30272,
+          "pairs": 4
+        },
+        "after": {
+          "database_bytes": 155648,
+          "elapsed_ms": 20,
+          "max_pair_provenance_bytes": 3391,
+          "pair_provenance_bytes": 13564,
+          "pairs": 4
+        }
+      },
+      {
+        "pairs": 64,
+        "before": {
+          "database_bytes": 7086080,
+          "elapsed_ms": 185,
+          "max_pair_provenance_bytes": 92981,
+          "pair_provenance_bytes": 5950764,
+          "pairs": 64
+        },
+        "after": {
+          "database_bytes": 1359872,
+          "elapsed_ms": 117,
+          "max_pair_provenance_bytes": 3403,
+          "pair_provenance_bytes": 217712,
+          "pairs": 64
+        }
+      },
+      {
+        "pairs": 128,
+        "before": {
+          "database_bytes": 25722880,
+          "elapsed_ms": 679,
+          "max_pair_provenance_bytes": 184418,
+          "pair_provenance_bytes": 23605284,
+          "pairs": 128
+        },
+        "after": {
+          "database_bytes": 2805760,
+          "elapsed_ms": 201,
+          "max_pair_provenance_bytes": 3415,
+          "pair_provenance_bytes": 436240,
+          "pairs": 128
+        }
+      }
+    ],
+    "conditions": "Synthetic 512-sample inputs; 64-sample segments, overlap 32, concurrent jobs 4. One shared reference, ordinary sources and paired records included. Before=alpha.3; after=current test run.",
+    "interpretation": "Single-run local measurements, not hardware benchmarks or general dataset size guarantees. Database/provenance byte counts demonstrate removed duplication; wall times vary with host load."
+  },
+  "cancellation": {
+    "elapsed_ms": 17,
+    "requested_during_algorithm": true
+  },
+  "sanitizer": {
+    "passed": 80,
+    "failed": 0,
+    "configuration": "AddressSanitizer + UndefinedBehaviorSanitizer; Debug instrumented selected objects; detect_leaks=0; halt_on_error=1 for UBSan",
+    "instrumented": [
+      "cross-spectrum test harness",
+      "numeric cross_spectrum.cpp",
+      "CrossSpectrumTask",
+      "batch_workflow.cpp",
+      "data_types.cpp",
+      "data_codec.cpp",
+      "plot_reader.cpp",
+      "csv_export.cpp",
+      "preview_data.cpp"
+    ],
+    "scope_limit": "Linked legacy modules, Qt and external numerical libraries are not fully instrumented. This is not whole-application, GUI or leak validation."
+  },
+  "compatibility": {
+    "database_schema": 3,
+    "masked_table_payload": 2,
+    "local_configuration_unchanged": true,
+    "old_1_1_1_can_read_masked_tables": false,
+    "cross_spectrum_method_version": 2,
+    "saved_method_1_results": "Viewable as stored outputs; old workflow method versions are not silently replayed with the new implementation.",
+    "manifest": "schema_version 1 with scope/item marker for item-specific dependency snapshots; source locator metadata is not an immutable source-byte copy."
+  },
+  "limitations": [
+    "No native Windows/MSVC or macOS build, native graphics/input or clean-host package validation in this stage.",
+    "Tests cover the listed parameter/data/boundary cases; they do not establish correctness of every possible algorithm or dataset.",
+    "Profiling uses many small pairs, not maximum-sized arrays or a universal process RAM cap.",
+    "No cross-root/batch join, pair-after-pair grouping, automatic alignment, significance thresholds, MTM cross-spectrum or cross-wavelet.",
+    "Final 1.2.0 release packaging/platform acceptance remains pending."
+  ],
+  "logs": "Paths sanitized; status and totals retained."
+}

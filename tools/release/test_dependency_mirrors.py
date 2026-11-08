@@ -50,6 +50,24 @@ class MirrorTests(unittest.TestCase):
                     'https://github.com/owner/repo/issues/1', 'https://example.org/source.tar.gz']:
             self.assertEqual(candidate_urls(url), [url])
 
+    def test_gnu_prefixed_mirror_urls_do_not_duplicate_gnu(self):
+        for package in ('gcc/gcc-16.2.0/gcc-16.2.0.tar.xz', 'gmp/gmp-6.3.0.tar.xz',
+                        'mpc/mpc-1.4.1.tar.gz'):
+            for host in ('ftp.gnu.org', 'ftpmirror.gnu.org'):
+                url = 'https://' + host + '/gnu/' + package
+                candidates = candidate_urls(url)
+                self.assertEqual(candidates[:2], [
+                    'https://mirrors.tuna.tsinghua.edu.cn/gnu/' + package,
+                    'https://mirrors.ustc.edu.cn/gnu/' + package])
+                self.assertEqual(candidates[-1], url)
+                self.assertFalse(any('/gnu/gnu/' in item for item in candidates))
+
+    def test_gnu_prefix_does_not_rewrite_nonstandard_endpoints(self):
+        for url in ('https://ftpmirror.gnu.org:444/gnu/gcc/gcc.tar.xz',
+                    'https://ftpmirror.gnu.org.evil.example/gnu/gcc/gcc.tar.xz',
+                    'https://ftpmirror.gnu.org/gnu/gcc/gcc.tar.xz?token=private'):
+            self.assertEqual(candidate_urls(url), [url])
+
     def test_404_falls_back_to_next_mirror(self):
         data = b'original archive'
         with patch.object(common, 'open_url', side_effect=[urllib.error.HTTPError('url', 404, 'Not Found', {}, None), io.BytesIO(data)]) as opener:

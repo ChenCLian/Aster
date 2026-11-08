@@ -9,6 +9,7 @@
 #include <limits>
 #include <stdexcept>
 #include "core/workflow_executor.h"
+#include "core/workflow_editor.h"
 #include "model/workflow_codec.h"
 #include "processing/builtin_tasks.h"
 
@@ -48,6 +49,16 @@ TaskRegistry withProbe(FunctionTask::Function function)
 class CoreTests : public QObject {
     Q_OBJECT
 private slots:
+    void compoundEditIsAtomic();
+    void preparedEditsAreRevisionBound();
+    void compoundHistoryRestoresAllState();
+    void draftReferencesNeverRebind();
+    void compoundBindingValidation();
+    void compoundTopologyAndLimits();
+    void compoundNoopPreservesRedo();
+    void compoundLockRejectsAllEdits();
+    void compoundHistoryLimit();
+    void largeCompoundEdit();
     void registryCatalogueAndDefaults();
     void rejectBadParameters();
     void rejectBadRegistrations();
@@ -637,6 +648,224 @@ void CoreTests::invalidRunRequest()
     const auto generated = f.model.addRoot("sine_source", {8, 0});
     request = f.request(); request.root = generated.nodeId;
     QCOMPARE(WorkflowExecutor().run(request).state, RunState::Invalid);
+}
+
+
+namespace {
+TaskRegistry editRegistry()
+{
+    auto r = makeBuiltinRegistry();
+    auto d = AffineTask::descriptor(); d.key = "pair_edit_probe"; d.pairedInput = true;
+    const auto added = r.add(d, [](const QJsonObject& p) { return std::make_unique<AffineTask>(p); });
+    if (!added.ok()) throw std::logic_error(added.message().toStdString());
+    return r;
+}
+struct EditFixture {
+    WorkflowEditor editor{editRegistry()};
+    NodeId root, pair;
+    QUuid a = QUuid::createUuid(), b = QUuid::createUuid(), group = QUuid::createUuid();
+    EditFixture() {
+        WorkflowModel graph(editRegistry(), false);
+        root = graph.addRoot("input_series", {0, 0}).nodeId;
+        pair = graph.addChild(root, ChildSlot::Down, "pair_edit_probe").nodeId;
+        auto draft = editor.beginEdit(); draft.state.definition = graph.definition();
+        draft.state.sources[root] = {{"A", series(), {{"dataset_id", a.toString()}}},
+                                     {"B", series(2), {{"dataset_id", b.toString()}}}};
+        draft.state.grouping[pair] = {{group, "A/B", {a, "series"}, {b, "series"}}};
+        const auto applied = editor.apply(draft);
+        if (!applied.ok()) throw std::logic_error(applied.error.toStdString());
+    }
+    BatchPlanResult plan() const {
+        QVector<BatchDataset> data;
+        for (const auto& s : editor.state().sources.value(root))
+            data.push_back({QUuid(s.provenance["dataset_id"].toString()), s});
+        return prepareBatch(editor.model().freeze().snapshot, root, data, editor.state().grouping);
+    }
+};
+}
+void CoreTests::compoundEditIsAtomic()
+{
+    EditFixture f;
+    const auto before = workflowToJson(f.editor.state().definition);
+    const auto revision = f.editor.revision();
+    auto draft = f.editor.beginEdit();
+    draft.state.sources.clear(); draft.state.grouping.clear();
+    draft.state.definition.nodes[1].input->parent = f.pair; // invalid cycle, with other changes
+    QVERIFY(!f.editor.apply(draft).ok());
+    QCOMPARE(f.editor.revision(), revision);
+    QCOMPARE(workflowToJson(f.editor.state().definition), before);
+    QCOMPARE(f.editor.state().sources.value(f.root).size(), 2);
+    QCOMPARE(f.editor.state().grouping.value(f.pair).size(), 1);
+    QVERIFY(f.editor.undo().ok()); // failure added no checkpoint
+    QVERIFY(f.editor.state().definition.nodes.isEmpty());
+    QVERIFY(!f.editor.canUndo());
+}
+void CoreTests::preparedEditsAreRevisionBound()
+{
+    EditFixture f;
+    auto draft = f.editor.beginEdit(); draft.state.grouping[f.pair][0].label = "Prepared";
+    const auto prepared = f.editor.prepare(draft);
+    QVERIFY(prepared.edit);
+    draft.state.grouping[f.pair][0].label = "Changed after preparation";
+    QCOMPARE(prepared.edit->state().grouping.value(f.pair)[0].label, QString("Prepared"));
+    QVERIFY(f.editor.commit(prepared.edit).ok());
+    QVERIFY(!f.editor.commit(prepared.edit).ok());
+    QVERIFY(f.editor.undo().ok());
+    QVERIFY(!f.editor.commit(prepared.edit).ok()); // undo never restores an old revision
+    EditFixture other;
+    QVERIFY(!other.editor.commit(f.editor.prepare(f.editor.beginEdit()).edit).ok());
+    QVERIFY(!other.editor.prepare(f.editor.beginEdit()).validation.ok());
+    QVERIFY(!f.editor.commit({}).ok());
+}
+void CoreTests::compoundHistoryRestoresAllState()
+{
+    EditFixture f;
+    const auto frozen = f.plan(); QVERIFY(frozen.snapshot);
+    const auto manifest = frozen.snapshot->manifest();
+    const auto data = f.editor.state().sources.value(f.root)[0].data;
+    auto edit = f.editor.beginEdit();
+    edit.state.definition.nodes[1].parameters["factor"] = 3;
+    edit.state.sources[f.root][0].provenance["note"] = "new import options";
+    edit.state.grouping[f.pair][0].label = "Renamed";
+    QVERIFY(f.editor.apply(edit).ok());
+    QVERIFY(f.editor.undo().ok());
+    QCOMPARE(f.editor.state().definition.nodes[1].parameters["factor"].toDouble(), 1.0);
+    QVERIFY(!f.editor.state().sources.value(f.root)[0].provenance.contains("note"));
+    QCOMPARE(f.editor.state().sources.value(f.root)[0].data.get(), data.get());
+    QCOMPARE(f.editor.state().grouping.value(f.pair)[0].label, QString("A/B"));
+    QVERIFY(f.editor.redo().ok());
+    QCOMPARE(f.editor.state().definition.nodes[1].parameters["factor"].toDouble(), 3.0);
+    QCOMPARE(f.editor.state().grouping.value(f.pair)[0].label, QString("Renamed"));
+    QCOMPARE(frozen.snapshot->manifest(), manifest);
+    QVERIFY(f.editor.undo().ok());
+    auto remove = f.editor.beginEdit(); remove.state = {};
+    QVERIFY(f.editor.apply(remove).ok());
+    QVERIFY(f.editor.state().sources.isEmpty()); QVERIFY(f.editor.state().grouping.isEmpty());
+    QVERIFY(f.editor.undo().ok()); QVERIFY(f.plan().snapshot);
+    QCOMPARE(f.editor.state().grouping.value(f.pair)[0].id, f.group);
+}
+void CoreTests::draftReferencesNeverRebind()
+{
+    EditFixture f;
+    auto remove = f.editor.beginEdit(); remove.state.sources[f.root].removeLast();
+    QVERIFY(f.editor.apply(remove).ok()); QVERIFY(!f.plan().snapshot);
+    QCOMPARE(f.editor.state().grouping.value(f.pair)[0].b.dataset, f.b);
+    auto unrelated = f.editor.beginEdit(); unrelated.state.definition.nodes[1].parameters["factor"] = 2;
+    QVERIFY(f.editor.apply(unrelated).ok()); // incomplete draft can still be edited
+    auto invalid = f.editor.beginEdit(); invalid.state.grouping[f.pair][0].b.dataset = QUuid::createUuid();
+    QVERIFY(!f.editor.apply(invalid).ok());
+    QVERIFY(f.editor.undo().ok()); QVERIFY(f.editor.undo().ok()); QVERIFY(f.plan().snapshot);
+    QCOMPARE(f.editor.state().sources.value(f.root)[1].provenance["dataset_id"].toString(), f.b.toString());
+}
+void CoreTests::compoundBindingValidation()
+{
+    EditFixture f;
+    auto draft = f.editor.beginEdit();
+    draft.state.sources[f.root][1].provenance["dataset_id"] = f.a.toString();
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.grouping[f.pair][0].b.port = "missing";
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.sources[QUuid::createUuid()] = {};
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.grouping[f.root] = {};
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.grouping[f.pair][0].id = f.a;
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.grouping[f.pair][0].b = draft.state.grouping[f.pair][0].a;
+    QVERIFY(!f.editor.prepare(draft).edit);
+    draft = f.editor.beginEdit(); draft.state.sources[f.root][0].data.reset();
+    QVERIFY(!f.editor.prepare(draft).edit);
+    // No graph method replacement may silently erase an incompatible pairing.
+    draft = f.editor.beginEdit(); draft.state.definition.nodes[1].method = "affine";
+    QVERIFY(!f.editor.prepare(draft).edit);
+    // Empty pair settings are a valid draft, not a runnable batch.
+    draft = f.editor.beginEdit(); draft.state.grouping.clear();
+    QVERIFY(f.editor.apply(draft).ok()); QVERIFY(!f.plan().snapshot);
+}
+
+void CoreTests::compoundTopologyAndLimits()
+{
+    EditFixture f;
+    WorkflowModel graph(editRegistry(), false);
+    QVERIFY(graph.replaceDefinition(f.editor.state().definition).ok());
+    const auto secondRoot = graph.addRoot("input_series", {4, 0}).nodeId;
+    auto moved = f.editor.beginEdit(); moved.state.definition = graph.definition();
+    moved.state.definition.nodes[1].input->parent = secondRoot;
+    moved.state.definition.layout[f.pair] = {4, 1};
+    QVERIFY(!f.editor.prepare(moved).edit); // explicit graph edge alone cannot rebind A/B
+    QVERIFY(graph.addChild(f.pair, ChildSlot::Down, "pair_edit_probe").ok());
+    auto nested = f.editor.beginEdit(); nested.state.definition = graph.definition();
+    QVERIFY(!f.editor.prepare(nested).edit);
+    auto many = f.editor.beginEdit();
+    auto& sources = many.state.sources[f.root];
+    const auto shared = series();
+    while (sources.size() <= BatchDatasetLimit)
+        sources.push_back({"extra", shared, {{"dataset_id", QUuid::createUuid().toString()}}});
+    QVERIFY(!f.editor.prepare(many).edit);
+    // The joint-batch limit must not introduce a new cap on ordinary input lists.
+    many.state.definition.nodes.removeAt(1); many.state.definition.layout.remove(f.pair);
+    many.state.grouping.clear(); QVERIFY(f.editor.prepare(many).edit);
+}
+void CoreTests::compoundNoopPreservesRedo()
+{
+    EditFixture f;
+    auto draft = f.editor.beginEdit(); draft.state.grouping[f.pair][0].label = "New";
+    QVERIFY(f.editor.apply(draft).ok()); QVERIFY(f.editor.undo().ok());
+    const auto revision = f.editor.revision();
+    const auto result = f.editor.apply(f.editor.beginEdit());
+    QVERIFY(result.ok()); QVERIFY(!result.changed()); QCOMPARE(f.editor.revision(), revision);
+    QVERIFY(f.editor.canRedo()); QVERIFY(f.editor.redo().ok());
+}
+void CoreTests::compoundLockRejectsAllEdits()
+{
+    EditFixture f;
+    auto edit = f.editor.beginEdit(); edit.state.grouping[f.pair][0].label = "pending";
+    const auto prepared = f.editor.prepare(edit); QVERIFY(prepared.edit);
+    f.editor.setLocked(true);
+    QVERIFY(!f.editor.prepare(f.editor.beginEdit()).edit);
+    QVERIFY(!f.editor.commit(prepared.edit).ok()); QVERIFY(!f.editor.undo().ok()); QVERIFY(!f.editor.redo().ok());
+    f.editor.setLocked(false);
+    QVERIFY(!f.editor.commit(prepared.edit).ok()); // even after unlock
+    QVERIFY(f.editor.apply(f.editor.beginEdit()).ok());
+}
+void CoreTests::compoundHistoryLimit()
+{
+    EditFixture f;
+    for (int i = 0; i < 110; ++i) {
+        auto edit = f.editor.beginEdit(); edit.state.grouping[f.pair][0].label = QString::number(i);
+        QVERIFY(f.editor.apply(edit).ok());
+    }
+    int count = 0;
+    while (f.editor.canUndo()) { QVERIFY(f.editor.undo().ok()); ++count; }
+    QCOMPARE(count, int(WorkflowEditor::HistoryLimit));
+    while (f.editor.canRedo()) QVERIFY(f.editor.redo().ok());
+    QCOMPARE(f.editor.state().grouping.value(f.pair)[0].label, QString("109"));
+}
+void CoreTests::largeCompoundEdit()
+{
+    EditFixture f;
+    auto edit = f.editor.beginEdit();
+    auto& sources = edit.state.sources[f.root]; auto& pairs = edit.state.grouping[f.pair];
+    sources.clear(); pairs.clear();
+    const auto shared = series();
+    QUuid first;
+    for (int i = 0; i < BatchDatasetLimit; ++i) {
+        const auto id = QUuid::createUuid();
+        sources.push_back({QString::number(i), shared, {{"dataset_id", id.toString()}}});
+        if (i == 0) first = id;
+        else pairs.push_back({QUuid::createUuid(), QString::number(i), {first, "series"}, {id, "series"}});
+    }
+    QElapsedTimer timer; timer.start();
+    QVERIFY(f.editor.apply(edit).ok());
+    for (int i = 0; i < 10; ++i) {
+        auto next = f.editor.beginEdit(); next.state.definition.nodes[1].parameters["factor"] = i + 2;
+        QVERIFY(f.editor.apply(next).ok());
+    }
+    const auto milliseconds = timer.elapsed();
+    qInfo() << "Compound editor: 10000 datasets, 9999 pairs, initial + 10 edits (ms):" << milliseconds;
+    QVERIFY(milliseconds < 10000); // regression guard, not a user-machine promise
+    QCOMPARE(f.editor.state().sources.value(f.root).back().data.get(), shared.get());
+    QVERIFY(f.editor.undo().ok()); QVERIFY(f.editor.redo().ok());
 }
 
 QTEST_GUILESS_MAIN(CoreTests)

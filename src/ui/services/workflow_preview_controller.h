@@ -12,7 +12,10 @@ RunPlan prepareNodePreview(const WorkflowModel &model, NodeId target, NodeId sou
                            const SourceItem &source);
 struct WorkflowPreviewResult
 {
-    NodeResult output, original;
+    NodeResult output, original, second;
+    bool paired = false;
+    QString pairLabel, labelA, labelB;
+    QString displayA, displayB; // Compact captions; full source identity remains in labelA/B.
     NodeId failedNode;
     QVector<NodeId> executed;
 };
@@ -24,6 +27,7 @@ class WorkflowPreviewController : public QObject
     explicit WorkflowPreviewController(WorkflowDocument *document, QObject *parent = nullptr);
     ~WorkflowPreviewController() override;
     void setSource(NodeId root, SourceItem source, bool ready);
+    void selectPair(QUuid pair);
     void selectNode(NodeId node); // Null/foreign UI clicks do not replace a valid selection.
     void setActive(bool active);
     void setEditing(bool editing);
@@ -42,6 +46,9 @@ class WorkflowPreviewController : public QObject
     void busyChanged(bool busy);
   private:
     void start();
+    void refreshPair();
+    QUuid m_pair;
+    std::shared_ptr<const BatchSnapshot> m_batch;
     WorkflowDocument *m_document;
     NodeId m_node, m_sourceRoot;
     SourceItem m_source;

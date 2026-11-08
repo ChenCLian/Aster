@@ -45,7 +45,9 @@ EncodeResult encodeData(const DataRef& data)
 {
     EncodeResult result; result.error = validateData(data); if (!result.ok()) return result;
     try {
-        QDataStream out(&result.bytes, QIODevice::WriteOnly); configure(out); out << magic << DataFormat::version;
+        QDataStream out(&result.bytes, QIODevice::WriteOnly); configure(out); const auto* table = dataAs<TableData>(data);
+        const bool masked = table && !table->defined.isEmpty();
+        out << magic << (masked ? maskedTableVersion : DataFormat::version);
         quint64 budget = 0;
         std::visit([&](const auto& value) {
             using T = std::decay_t<decltype(value)>;
@@ -63,7 +65,10 @@ EncodeResult encodeData(const DataRef& data)
                 if (value.columns.size() > 10000 || value.rows.size() > elementLimit) throw std::runtime_error("Table dimensions too large");
                 out << quint8(4) << quint32(value.columns.size()) << quint32(value.rows.size());
                 for (const auto& column : value.columns) writeText(out, column);
-                for (const auto& row : value.rows) writeValues(out, row, budget);
+                for (qsizetype r = 0; r < value.rows.size(); ++r) {
+                    writeValues(out, value.rows[r], budget);
+                    if (masked) for (quint8 flag : value.defined[r]) out << flag;
+                }
             }
         }, *data);
         if (out.status() != QDataStream::Ok || result.bytes.size() > byteLimit) throw std::runtime_error("Payload encoding failed or exceeded limit");
@@ -78,7 +83,7 @@ DecodeResult decodeData(const QByteArray& bytes)
         QDataStream in(bytes); configure(in);
         quint32 readMagic = 0; quint16 version = 0; quint8 type = 0; quint64 budget = 0;
         in >> readMagic >> version >> type;
-        if (readMagic != magic || version != DataFormat::version) throw std::runtime_error("Unknown data encoding/version");
+        if (readMagic != magic || (version != DataFormat::version && !(version == maskedTableVersion && type == 4))) throw std::runtime_error("Unknown data encoding/version");
         if (type == 1) {
             SeriesData value; value.xAxis = readAxis(in); value.yAxis = readAxis(in);
             value.x = readValues(in, budget); value.y = readValues(in, budget); result.data = makeData(std::move(value));
@@ -99,12 +104,17 @@ DecodeResult decodeData(const QByteArray& bytes)
             for (quint32 i = 0; i < columns; ++i) value.columns.push_back(readText(in));
             // Each row has a length prefix and exactly `columns` doubles.
             // Reject truncated/forged counts before allocating millions of rows.
-            if (quint64(rows) * (4 + quint64(columns) * 8) > quint64(in.device()->bytesAvailable()))
+            if (quint64(rows) * (4 + quint64(columns) * (version == maskedTableVersion ? 9 : 8)) > quint64(in.device()->bytesAvailable()))
                 throw std::runtime_error("Truncated table rows");
             for (quint32 i = 0; i < rows; ++i) {
                 auto row = readValues(in, budget);
                 if (row.size() != columns) throw std::runtime_error("Table row width mismatch");
                 value.rows.push_back(std::move(row));
+                if (version == maskedTableVersion) {
+                    QVector<quint8> mask(columns);
+                    for (auto& flag : mask) in >> flag;
+                    value.defined.push_back(std::move(mask));
+                }
             }
             result.data = makeData(std::move(value));
         } else throw std::runtime_error("Unknown data type");

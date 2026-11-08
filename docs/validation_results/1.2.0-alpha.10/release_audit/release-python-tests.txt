@@ -1,0 +1,213 @@
+setUpClass (test_brew_query.BrewQueryTests) ... skipped 'Ruby unavailable; macOS CI uses Homebrew Ruby'
+test_archive_traversal_and_symlink_are_not_extracted (test_dependency_materials.DependencyMaterialTests.test_archive_traversal_and_symlink_are_not_extracted) ... ok
+test_checksum_mismatch_does_not_publish_partial_download (test_dependency_materials.DependencyMaterialTests.test_checksum_mismatch_does_not_publish_partial_download) ...   downloading: https://example.org/s.tar
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+ok
+test_corrupt_cache_is_replaced_only_with_verified_bytes (test_dependency_materials.DependencyMaterialTests.test_corrupt_cache_is_replaced_only_with_verified_bytes) ...   downloading: https://example.org/source.tar
+ok
+test_current_spdx_binary_files_are_not_treated_as_port_sources (test_dependency_materials.DependencyMaterialTests.test_current_spdx_binary_files_are_not_treated_as_port_sources) ... ok
+test_deb_src_conversion_preserves_restrictions (test_dependency_materials.DependencyMaterialTests.test_deb_src_conversion_preserves_restrictions) ... ok
+test_debian_collection_includes_distribution_patch_archive (test_dependency_materials.DependencyMaterialTests.test_debian_collection_includes_distribution_patch_archive) ... ok
+test_debian_control_preserves_source_revision (test_dependency_materials.DependencyMaterialTests.test_debian_control_preserves_source_revision) ... ok
+test_failed_inventory_does_not_install_notices (test_dependency_materials.DependencyMaterialTests.test_failed_inventory_does_not_install_notices) ... INCOMPLETE [unknown.so]: Runtime binary has no verified source owner; use the matching build environment or a supplement
+ok
+test_homebrew_formula_through_symlinked_temp_directory (test_dependency_materials.DependencyMaterialTests.test_homebrew_formula_through_symlinked_temp_directory) ... Collecting brew-fixture 1.0_2: fixture-c4f9e8e9237449cc.tar.gz
+ok
+test_homebrew_uses_keg_formula_and_exact_revision (test_dependency_materials.DependencyMaterialTests.test_homebrew_uses_keg_formula_and_exact_revision) ... Collecting brew-fixture 1.0_2: fixture-c4f9e8e9237449cc.tar.gz
+ok
+test_insecure_or_unresolved_source_urls_rejected (test_dependency_materials.DependencyMaterialTests.test_insecure_or_unresolved_source_urls_rejected) ... ok
+test_missing_attribution_license_is_not_claimed_complete (test_dependency_materials.DependencyMaterialTests.test_missing_attribution_license_is_not_claimed_complete) ... ok
+test_qt_attribution_referenced_license_keeps_bytes (test_dependency_materials.DependencyMaterialTests.test_qt_attribution_referenced_license_keeps_bytes) ... ok
+test_qt_official_multiline_attribution_text (test_dependency_materials.DependencyMaterialTests.test_qt_official_multiline_attribution_text) ... ok
+test_qt_sdk_other_libraries_are_not_claimed_as_qt (test_dependency_materials.DependencyMaterialTests.test_qt_sdk_other_libraries_are_not_claimed_as_qt) ... ok
+test_recipe_copy_preserves_exact_patches (test_dependency_materials.DependencyMaterialTests.test_recipe_copy_preserves_exact_patches) ... ok
+test_recipe_hash_rejects_same_version_different_patch (test_dependency_materials.DependencyMaterialTests.test_recipe_hash_rejects_same_version_different_patch) ... ok
+test_same_asset_name_different_contents_rejected (test_dependency_materials.DependencyMaterialTests.test_same_asset_name_different_contents_rejected) ... Collecting fixture 1: same.tar.gz
+ok
+test_source_packager_excludes_downloads_but_keeps_scripts (test_dependency_materials.DependencyMaterialTests.test_source_packager_excludes_downloads_but_keeps_scripts) ... ok
+test_spdx_git_conversion_preserves_pinned_revision (test_dependency_materials.DependencyMaterialTests.test_spdx_git_conversion_preserves_pinned_revision) ... ok
+test_success_records_sources_separately_and_installs_notices (test_dependency_materials.DependencyMaterialTests.test_success_records_sources_separately_and_installs_notices) ... Collecting fixture 1.0: fixture.tar.gz
+ok
+test_supplement_cannot_silently_change_installed_version (test_dependency_materials.DependencyMaterialTests.test_supplement_cannot_silently_change_installed_version) ... ok
+test_unknown_qt_library_requires_mapping (test_dependency_materials.DependencyMaterialTests.test_unknown_qt_library_requires_mapping) ... ok
+test_vcpkg_end_to_end_uses_installed_sources_and_notice (test_dependency_materials.DependencyMaterialTests.test_vcpkg_end_to_end_uses_installed_sources_and_notice) ... Collecting vcpkg-gsl 1.0: gsl-53cc91a4ed42e6bf.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-53cc91a4ed42e6bf.tar.gz
+ok
+test_verified_cache_reused_without_network (test_dependency_materials.DependencyMaterialTests.test_verified_cache_reused_without_network) ... ok
+test_windows_qt_path_patching_keeps_binary_identity (test_dependency_materials.DependencyMaterialTests.test_windows_qt_path_patching_keeps_binary_identity) ... ok
+test_blas_with_binary_payload_is_not_exempt (test_dependency_mirrors.BlasMetadataTests.test_blas_with_binary_payload_is_not_exempt) ... INCOMPLETE [vcpkg-blas]: BLAS port contains missing or non-metadata files; cannot treat it as a routing port
+Collecting vcpkg-gsl 1.0: gsl-affefe23b05387c7.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_missing_spdx_is_not_waived_for_blas (test_dependency_mirrors.BlasMetadataTests.test_missing_spdx_is_not_waived_for_blas) ... INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: vcpkg.spdx.json
+Collecting vcpkg-gsl 1.0: gsl-affefe23b05387c7.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_missing_vcpkg_recipe_license_is_reported (test_dependency_mirrors.BlasMetadataTests.test_missing_vcpkg_recipe_license_is_reported) ... INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: LICENSE.txt
+Collecting vcpkg-gsl 1.0: gsl-affefe23b05387c7.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_modified_recipe_is_not_accepted_as_metadata (test_dependency_mirrors.BlasMetadataTests.test_modified_recipe_is_not_accepted_as_metadata) ... INCOMPLETE [vcpkg-blas]: Cannot recover recipe/patches matching installed SPDX; restore the original vcpkg checkout or supply exact recipes
+Collecting vcpkg-gsl 1.0: gsl-affefe23b05387c7.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_regular_library_missing_copyright_is_still_rejected (test_dependency_mirrors.BlasMetadataTests.test_regular_library_missing_copyright_is_still_rejected) ... INCOMPLETE [vcpkg-gsl]: Required installed metadata file is missing: copyright
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_verified_blas_routes_to_openblas_and_keeps_recipe_license (test_dependency_mirrors.BlasMetadataTests.test_verified_blas_routes_to_openblas_and_keeps_recipe_license) ... Collecting vcpkg-gsl 1.0: gsl-affefe23b05387c7.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-affefe23b05387c7.tar.gz
+ok
+test_404_falls_back_to_next_mirror (test_dependency_mirrors.MirrorTests.test_404_falls_back_to_next_mirror) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 404
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+ok
+test_all_mirrors_fail_without_publishing (test_dependency_mirrors.MirrorTests.test_all_mirrors_fail_without_publishing) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+ok
+test_bad_mirror_checksum_never_replaces_expected_hash (test_dependency_mirrors.MirrorTests.test_bad_mirror_checksum_never_replaces_expected_hash) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+ok
+test_metadata_html_and_invalid_checksum_fall_back (test_dependency_mirrors.MirrorTests.test_metadata_html_and_invalid_checksum_fall_back) ...   metadata unavailable: https://ghfast.top/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Received an HTML page instead of source metadata)
+  metadata unavailable: https://gh-proxy.org/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Invalid Qt SHA-256 response)
+ok
+test_network_errors_retain_http_status (test_dependency_mirrors.MirrorTests.test_network_errors_retain_http_status) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+ok
+test_private_or_unrelated_urls_are_not_forwarded (test_dependency_mirrors.MirrorTests.test_private_or_unrelated_urls_are_not_forwarded) ... ok
+test_routes_preserve_versions_and_original_origin (test_dependency_mirrors.MirrorTests.test_routes_preserve_versions_and_original_origin) ... ok
+test_supported_qt_kits_do_not_need_online_checksum_endpoint (test_dependency_mirrors.MirrorTests.test_supported_qt_kits_do_not_need_online_checksum_endpoint) ... ok
+test_truncated_response_falls_back (test_dependency_mirrors.MirrorTests.test_truncated_response_falls_back) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: IncompleteRead
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+ok
+test_unlisted_qt_version_requires_its_own_checksum (test_dependency_mirrors.MirrorTests.test_unlisted_qt_version_requires_its_own_checksum) ... INCOMPLETE [qt/qtbase]: offline
+INCOMPLETE [qt/qtimageformats]: offline
+INCOMPLETE [qt/qtsvg]: offline
+INCOMPLETE [qt/qttranslations]: offline
+ok
+test_unmatched_local_source_does_not_override_spdx (test_dependency_mirrors.MirrorTests.test_unmatched_local_source_does_not_override_spdx) ...   downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+ok
+test_vcpkg_download_cache_is_verified_and_used_offline (test_dependency_mirrors.MirrorTests.test_vcpkg_download_cache_is_verified_and_used_offline) ...   reused verified local dependency source
+ok
+test_added_runtime_is_rejected (test_dependency_reuse.DependencyReuseTests.test_added_runtime_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_changed_qt_version_is_rejected (test_dependency_reuse.DependencyReuseTests.test_changed_qt_version_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_cli_failure_returns_nonzero_and_preserves_materials (test_dependency_reuse.DependencyReuseTests.test_cli_failure_returns_nonzero_and_preserves_materials) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+ok
+test_cli_handles_corrupt_zip_as_failure (test_dependency_reuse.DependencyReuseTests.test_cli_handles_corrupt_zip_as_failure) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+ok
+test_collector_success_clears_pending_but_no_install_does_not (test_dependency_reuse.DependencyReuseTests.test_collector_success_clears_pending_but_no_install_does_not) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_corrupt_source_asset_is_rejected (test_dependency_reuse.DependencyReuseTests.test_corrupt_source_asset_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_different_platform_is_rejected (test_dependency_reuse.DependencyReuseTests.test_different_platform_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_different_release_version_is_rejected (test_dependency_reuse.DependencyReuseTests.test_different_release_version_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_failed_collection_does_not_clear_pending (test_dependency_reuse.DependencyReuseTests.test_failed_collection_does_not_clear_pending) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+INCOMPLETE [qt]: test failure
+ok
+test_incomplete_report_is_rejected (test_dependency_reuse.DependencyReuseTests.test_incomplete_report_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_legacy_materials_reused_offline_after_application_rebuild (test_dependency_reuse.DependencyReuseTests.test_legacy_materials_reused_offline_after_application_rebuild) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Reused verified dependency materials offline: /tmp/tmp61o2bh50/materials
+Upload all files from: /tmp/tmp61o2bh50/materials/release-assets
+Reused verified dependency materials offline: /tmp/tmp61o2bh50/materials
+Upload all files from: /tmp/tmp61o2bh50/materials/release-assets
+ok
+test_missing_license_in_records_is_rejected (test_dependency_reuse.DependencyReuseTests.test_missing_license_in_records_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_missing_materials_are_rejected (test_dependency_reuse.DependencyReuseTests.test_missing_materials_are_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_missing_recipe_in_records_is_rejected (test_dependency_reuse.DependencyReuseTests.test_missing_recipe_in_records_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_missing_source_asset_is_rejected (test_dependency_reuse.DependencyReuseTests.test_missing_source_asset_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_project_exception_cannot_be_assigned_to_a_dll (test_dependency_reuse.DependencyReuseTests.test_project_exception_cannot_be_assigned_to_a_dll) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_removed_plugin_is_rejected (test_dependency_reuse.DependencyReuseTests.test_removed_plugin_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_report_and_records_must_agree (test_dependency_reuse.DependencyReuseTests.test_report_and_records_must_agree) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_same_version_dll_rebuild_is_rejected (test_dependency_reuse.DependencyReuseTests.test_same_version_dll_rebuild_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_unknown_source_owner_is_rejected (test_dependency_reuse.DependencyReuseTests.test_unknown_source_owner_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_unsafe_zip_entry_is_rejected (test_dependency_reuse.DependencyReuseTests.test_unsafe_zip_entry_is_rejected) ... Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+ok
+test_cli_writes_staging_files_without_changing_input (test_enable_deb_src.SourceRepositoryTests.test_cli_writes_staging_files_without_changing_input) ... ok
+test_deb822_only_runner_preserves_suites_components_and_signature (test_enable_deb_src.SourceRepositoryTests.test_deb822_only_runner_preserves_suites_components_and_signature) ... ok
+test_disabled_and_third_party_sources_are_not_enabled (test_enable_deb_src.SourceRepositoryTests.test_disabled_and_third_party_sources_are_not_enabled) ... ok
+test_embedded_key_and_multiline_values_are_preserved (test_enable_deb_src.SourceRepositoryTests.test_embedded_key_and_multiline_values_are_preserved) ... ok
+test_existing_mirror_source_entries_are_not_duplicated (test_enable_deb_src.SourceRepositoryTests.test_existing_mirror_source_entries_are_not_duplicated) ... ok
+test_existing_source_type_is_success_without_duplicate (test_enable_deb_src.SourceRepositoryTests.test_existing_source_type_is_success_without_duplicate) ... ok
+test_generated_deb822_is_accepted_by_apt_without_downloading (test_enable_deb_src.SourceRepositoryTests.test_generated_deb822_is_accepted_by_apt_without_downloading) ... ok
+test_generated_mirror_source_is_accepted_by_apt (test_enable_deb_src.SourceRepositoryTests.test_generated_mirror_source_is_accepted_by_apt) ... ok
+test_github_deb822_mirror_keeps_signature_and_uri (test_enable_deb_src.SourceRepositoryTests.test_github_deb822_mirror_keeps_signature_and_uri) ... ok
+test_github_ubuntu22_legacy_mirror_transport (test_enable_deb_src.SourceRepositoryTests.test_github_ubuntu22_legacy_mirror_transport) ... ok
+test_legacy_source_keeps_options_and_skips_existing_entry (test_enable_deb_src.SourceRepositoryTests.test_legacy_source_keeps_options_and_skips_existing_entry) ... ok
+test_mirror_path_must_stay_inside_apt_directory (test_enable_deb_src.SourceRepositoryTests.test_mirror_path_must_stay_inside_apt_directory) ... ok
+test_mirror_with_architecture_options_keeps_original_options (test_enable_deb_src.SourceRepositoryTests.test_mirror_with_architecture_options_keeps_original_options) ... ok
+test_missing_empty_and_nonofficial_mirror_lists_are_rejected (test_enable_deb_src.SourceRepositoryTests.test_missing_empty_and_nonofficial_mirror_lists_are_rejected) ... ok
+test_missing_or_disabled_repositories_fail_clearly (test_enable_deb_src.SourceRepositoryTests.test_missing_or_disabled_repositories_fail_clearly) ... ok
+test_mixed_formats_and_repeated_generation (test_enable_deb_src.SourceRepositoryTests.test_mixed_formats_and_repeated_generation) ... ok
+test_multiple_uris_keep_only_matching_distribution_hosts (test_enable_deb_src.SourceRepositoryTests.test_multiple_uris_keep_only_matching_distribution_hosts) ... ok
+test_uri_filter_checks_host_not_comments_or_lookalike_domains (test_enable_deb_src.SourceRepositoryTests.test_uri_filter_checks_host_not_comments_or_lookalike_domains) ... ok
+test_embedded_license_resources (test_license_packaging.LicensePackagingTests.test_embedded_license_resources) ... ok
+test_notice_collection_preserves_bytes_and_paths (test_license_packaging.LicensePackagingTests.test_notice_collection_preserves_bytes_and_paths) ... ok
+test_homebrew_local_and_embedded_patch_bytes_are_preserved (test_packaging_layout.PackagingLayoutTests.test_homebrew_local_and_embedded_patch_bytes_are_preserved) ... ok
+test_homebrew_missing_revision_or_unsafe_patch_path_is_rejected (test_packaging_layout.PackagingLayoutTests.test_homebrew_missing_revision_or_unsafe_patch_path_is_rejected) ... ok
+test_homebrew_patch_uses_matching_api_cache_without_online_formula (test_packaging_layout.PackagingLayoutTests.test_homebrew_patch_uses_matching_api_cache_without_online_formula) ... ok
+test_homebrew_recovers_local_patch_from_exact_commit_and_checks_recipe (test_packaging_layout.PackagingLayoutTests.test_homebrew_recovers_local_patch_from_exact_commit_and_checks_recipe) ... ok
+test_macos_identity_compares_target_slice_of_universal_binary (test_packaging_layout.PackagingLayoutTests.test_macos_identity_compares_target_slice_of_universal_binary) ... ok
+test_qt_framework_header_is_not_sent_to_dwarfdump (test_packaging_layout.PackagingLayoutTests.test_qt_framework_header_is_not_sent_to_dwarfdump) ... ok
+test_source_export_accepts_external_directory_through_project_alias (test_packaging_layout.PackagingLayoutTests.test_source_export_accepts_external_directory_through_project_alias) ... ok
+test_source_export_is_directory_verified_and_private_files_excluded (test_packaging_layout.PackagingLayoutTests.test_source_export_is_directory_verified_and_private_files_excluded) ... ok
+test_source_export_rejects_inside_project (test_packaging_layout.PackagingLayoutTests.test_source_export_rejects_inside_project) ... ok
+test_source_export_rejects_project_aliases (test_packaging_layout.PackagingLayoutTests.test_source_export_rejects_project_aliases) ... ok
+
+----------------------------------------------------------------------
+Ran 95 tests in 0.475s
+
+OK (skipped=1)
+/tmp/tmpse8trl7x/export/Aster-source-export-1.1.1
+10 files; contents verified
+/tmp/tmpvn9nqkcc/out/Aster-source-export-1.1.1
+10 files; contents verified

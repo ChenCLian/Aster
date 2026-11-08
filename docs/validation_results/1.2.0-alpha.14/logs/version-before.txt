@@ -1,0 +1,53 @@
+FFFFFF
+======================================================================
+FAIL: test_current_document_headers_match_version (test_current_version.CurrentVersionTests.test_current_document_headers_match_version) (file='QUICK_START.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 21, in test_current_document_headers_match_version
+    self.assertIn(version, header)
+AssertionError: '1.2.0-alpha.13' not found in '# Aster 1.2.0-alpha.10 快速开始\n\n[使用手册](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md) · [软件介绍](README.md) · [常见问题](FAQ.md) · [发布说明](RELEASE_NOTES.md)\n\n## 1. 安装与启动\n\n从 [GitHub Releases](https://github.com/ChenCLian/Aster/releases) 下载与你的系统和处理器匹配的程序包。完整解压，保留包内的文件与子目录。\n'
+
+======================================================================
+FAIL: test_current_document_headers_match_version (test_current_version.CurrentVersionTests.test_current_document_headers_match_version) (file='docs/release_maintenance_zh.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 21, in test_current_document_headers_match_version
+    self.assertIn(version, header)
+AssertionError: '1.2.0-alpha.13' not found in '# 构建、打包与发布维护\n\n适用源码：Aster 1.2.0-alpha.10。[源码构建](building.md) · [文档索引](README.md)\n\n## 版本与发布方式\n\n根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.2.0-alpha.10` 对应 `v1.2.0-alpha.10`。当前为开发预览版；实际发布时须标记为预发布。改为正式版前完成各平台验收，并同步版本和生成文档。\n'
+
+======================================================================
+FAIL: test_current_document_headers_match_version (test_current_version.CurrentVersionTests.test_current_document_headers_match_version) (file='docs/dependency_materials_zh.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 21, in test_current_document_headers_match_version
+    self.assertIn(version, header)
+AssertionError: '1.2.0-alpha.13' not found in '# 依赖源码与许可材料\n\n适用源码：Aster 1.2.0-alpha.10。[发布维护](release_maintenance_zh.md) · [第三方说明](third_party.md)\n\n## 文件放在哪里\n\n| 内容 | 存放与发布方式 | 是否参与编译 |\n| --- | --- | --- |'
+
+======================================================================
+FAIL: test_release_commands_do_not_use_an_old_candidate (test_current_version.CurrentVersionTests.test_release_commands_do_not_use_an_old_candidate) (file='QUICK_START.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 34, in test_release_commands_do_not_use_an_old_candidate
+    self.assertTrue(all(candidate == version for candidate in candidates), candidates)
+AssertionError: False is not true : ['1.2.0-alpha.10', '1.2.0-alpha.10', '1.2.0-alpha.10']
+
+======================================================================
+FAIL: test_release_commands_do_not_use_an_old_candidate (test_current_version.CurrentVersionTests.test_release_commands_do_not_use_an_old_candidate) (file='docs/release_maintenance_zh.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 34, in test_release_commands_do_not_use_an_old_candidate
+    self.assertTrue(all(candidate == version for candidate in candidates), candidates)
+AssertionError: False is not true : ['1.2.0-alpha.10', '1.2.0-alpha.10', '1.2.0-alpha.10']
+
+======================================================================
+FAIL: test_release_commands_do_not_use_an_old_candidate (test_current_version.CurrentVersionTests.test_release_commands_do_not_use_an_old_candidate) (file='docs/dependency_materials_zh.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_current_version.py", line 34, in test_release_commands_do_not_use_an_old_candidate
+    self.assertTrue(all(candidate == version for candidate in candidates), candidates)
+AssertionError: False is not true : ['1.2.0-alpha.10']
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.012s
+
+FAILED (failures=6)

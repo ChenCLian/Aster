@@ -1,0 +1,5 @@
+{"bytes_read":67158087,"color_bounds":[3.219646771412954e-15,1.9999999999990241,3.219646771412954e-15],"display_columns":1200,"display_rows":600,"elapsed_ms":3859,"mode":"initial","reduced":true,"source_columns":4096,"source_rows":2048,"view_columns":4096,"view_rows":2048,"y_geometric":true}
+{"bytes_read":8388608,"display_columns":23,"display_rows":203,"elapsed_ms":392,"mode":"viewport","reduced":false,"source_columns":4096,"source_rows":2048,"view_columns":23,"view_rows":203,"y_geometric":true}
+{"bytes_read":8388608,"display_columns":23,"display_rows":203,"elapsed_ms":503,"mode":"viewport","reduced":false,"source_columns":4096,"source_rows":2048,"view_columns":23,"view_rows":203,"y_geometric":true}
+cancelled=1 elapsed_ms=72
+{"elapsed_seconds": 5.951, "peak_rss_kib": 211304, "exit_code": 0}

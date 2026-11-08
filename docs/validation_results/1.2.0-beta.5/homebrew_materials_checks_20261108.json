@@ -1,0 +1,220 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "baseline_patch": "Aster-1.2.0-beta.5-plot-interaction-ci-fix.zip",
+  "scope": "Homebrew local patch recovery for API-installed kegs with missing tap_git_head; packaging tools only.",
+  "reported_ci": {
+    "linux_x64": {
+      "status": "maintainer_reported_passed",
+      "new_log_reviewed": false
+    },
+    "macos_arm64": {
+      "log": "logs-macos-arm64(3).zip",
+      "log_sha256": "50d4facf875ba67a683b3547b434e3ec440cb015287ee9be97056d53921123a8",
+      "commit": "95d467f31a6ba4f7d7f05d3262de83efd16d65c1",
+      "ref": "refs/tags/v1.2.0-beta.5.4",
+      "qt": "6.8.3",
+      "compilation": "passed",
+      "qt_test_summary": [
+        {
+          "target": "aster_core_tests",
+          "exit_code": 0,
+          "passed": 64,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 0.424,
+          "log": "aster_core_tests.txt"
+        },
+        {
+          "target": "aster_batch_tests",
+          "exit_code": 0,
+          "passed": 69,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 0.736,
+          "log": "aster_batch_tests.txt"
+        },
+        {
+          "target": "aster_analysis_tests",
+          "exit_code": 0,
+          "passed": 694,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 21,
+          "status": "passed",
+          "seconds": 25.637,
+          "log": "aster_analysis_tests.txt"
+        },
+        {
+          "target": "aster_cross_spectrum_tests",
+          "exit_code": 0,
+          "passed": 80,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 0.267,
+          "log": "aster_cross_spectrum_tests.txt"
+        },
+        {
+          "target": "aster_ui_tests",
+          "exit_code": 0,
+          "passed": 782,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 79.541,
+          "log": "aster_ui_tests.txt"
+        },
+        {
+          "target": "aster_joint_ui_tests",
+          "exit_code": 0,
+          "passed": 37,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 10.826,
+          "log": "aster_joint_ui_tests.txt"
+        },
+        {
+          "target": "aster_rewrite_tests",
+          "exit_code": 0,
+          "passed": 29,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 2.909,
+          "log": "aster_rewrite_tests.txt"
+        },
+        {
+          "target": "aster_linked_input_tests",
+          "exit_code": 0,
+          "passed": 53,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 2.821,
+          "log": "aster_linked_input_tests.txt"
+        },
+        {
+          "target": "aster_style_export_tests",
+          "exit_code": 0,
+          "passed": 53,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 15.985,
+          "log": "aster_style_export_tests.txt"
+        },
+        {
+          "target": "aster_workspace_tests",
+          "exit_code": 0,
+          "passed": 82,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 44.046,
+          "log": "aster_workspace_tests.txt"
+        },
+        {
+          "target": "aster_integration_tests",
+          "exit_code": 0,
+          "passed": 85,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 4,
+          "status": "passed",
+          "seconds": 28.268,
+          "log": "aster_integration_tests.txt"
+        },
+        {
+          "target": "aster_update_tests",
+          "exit_code": 0,
+          "passed": 51,
+          "failed": 0,
+          "skipped": 0,
+          "suites": 1,
+          "status": "passed",
+          "seconds": 5.472,
+          "log": "aster_update_tests.txt"
+        }
+      ],
+      "qt_total_passed": 2079,
+      "counts_include_initialization_and_cleanup": true,
+      "mach_o_dependency_closure_checked_files": 27,
+      "failure_stage": "dependency source and license material collection",
+      "failure_component": "brew-gcc",
+      "failure_version": "16.2.0",
+      "error": "Local Homebrew patch requires the installed patch or an exact recorded homebrew/core revision",
+      "secondary_error": "No license/attribution materials were collected",
+      "packaging_complete": false
+    },
+    "macos_x86_64": {
+      "new_log_reviewed": false,
+      "status": "not_verified_this_round"
+    }
+  },
+  "changes": [
+    "Retain installed-patch, matching source-cache and recorded-commit recovery first.",
+    "When homebrew/core receipt has no revision, query candidate API metadata; require full keg version and exact installed recipe match apart from the bottle stanza.",
+    "Require immutable 40-hex commit, formula SHA-256 and requested local patch SHA-256; refuse HEAD, different versions/recipes, missing checksums and corrupt data.",
+    "Reuse one verified API snapshot for a component and retain local-patch-recovery.json alongside its recipes.",
+    "Keep existing missing-material publication blocking; no GCC runtime or license checks removed."
+  ],
+  "validation": {
+    "local_platform": "Linux x86_64",
+    "new_test_methods": 13,
+    "new_tests_status": "passed",
+    "controlled_native_adapter_fixtures": [
+      "macos-arm64",
+      "macos-x86_64"
+    ],
+    "release_tool_tests": {
+      "run": 126,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable for the unchanged Homebrew Ruby metadata test class",
+      "qt_version_incremental_build_test": "passed with explicit Qt 6 qmake"
+    },
+    "negative_reproduction": "The new missing-revision regression fails against the previous provider with the same error as CI.",
+    "live_network_probe": {
+      "source": "Homebrew public API and pinned raw homebrew/core files",
+      "gcc_version": "16.2.0",
+      "tap_git_head": "b0d5f75b388723517600bbdd5651b04ffe172b05",
+      "formula_sha256": "f09c8035d0874fb1d8a2d7ca3464f8108273c4c532cec582d7b9f340aa544aa3",
+      "patch_path": "Patches/gcc/gcc-16.2.0.diff",
+      "patch_bytes": 205825,
+      "patch_sha256": "578a78ae0bc62a02f260b6a20c7f23e71deee16ed644e9cb5619247be4df5a71",
+      "status": "passed",
+      "scope": "Real metadata and files; installed recipe simulated by stripping the fetched bottle stanza. Not a native Homebrew collection."
+    },
+    "evidence_in_patch": [
+      "release-tests.log",
+      "baseline-reproduction.log",
+      "live-homebrew-probe.log",
+      "patch-verification.json"
+    ]
+  },
+  "application_code_changed": false,
+  "application_rebuild_required": false,
+  "version_changed": false,
+  "removed_paths": [],
+  "limitations": [
+    "Updated collector has not run on native macOS here. Actions on a new commit must complete material collection and final archive generation.",
+    "API recovery stops if the installed formula is older/different or lacks verified patch metadata; it does not substitute a newer dependency.",
+    "No new numerical stress testing or GUI regression run; the attached macOS CI logs provide the native application test evidence.",
+    "No remote repository, tag or release asset was modified."
+  ]
+}

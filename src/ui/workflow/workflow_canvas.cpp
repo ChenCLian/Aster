@@ -3,9 +3,13 @@
 #include <QKeyEvent>
 #include <QSet>
 #include "ui/workflow/workflow_layout.h"
+#include "ui/workflow/node_edit_dialog.h"
+#include <QDragLeaveEvent>
 #include "ui/settings/theme_manager.h"
 #include "ui/workflow/workflow_canvas.h"
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
+#include "ui/panels/joint_input_dialog.h"
 #include <QGraphicsItem>
 #include <QMouseEvent>
 #include <QScrollBar>
@@ -98,20 +102,84 @@ void WorkflowCanvas::setSelectedNode(NodeId id)
     m_selected = id;
     rebuild();
 }
+void WorkflowCanvas::setPreviewPair(QUuid pair)
+{
+    const auto joint=m_document->pairNodeFor(m_selected);
+    if(joint.isNull() || m_previewPairs.value(joint)==pair)return;
+    m_previewPairs[joint]=pair;rebuild();
+}
 void WorkflowCanvas::rebuild()
 {
     const auto center = mapToScene(viewport()->rect().center());
     scene()->clear();
+    m_dropHighlight = nullptr;
+    m_insertions.clear();
     m_rects.clear();
     m_slots.clear();
     const auto &definition = m_document->model().definition();
     if (!m_document->node(m_selected))
         m_selected = {};
-    QMap<NodeId, QString> selectedOutputs;
+    QMap<NodeId, QStringList> selectedOutputs;
+    const auto markOutput = [&selectedOutputs](NodeId node, const QString& output) {
+        if (!selectedOutputs[node].contains(output)) selectedOutputs[node].append(output);
+    };
     for (const auto *node = m_document->node(m_selected); node && node->input;
          node = m_document->node(node->input->parent))
-        selectedOutputs.insert(node->input->parent, node->input->output);
+    {
+        if (m_document->model().registry().find(node->method)->descriptor.pairedInput) break;
+        markOutput(node->input->parent, node->input->output);
+    }
+    QSet<NodeId> jointNodes, jointParents, insertable, replaceable;
+    for (const auto &n : definition.nodes)
+        if (m_document->model().registry().find(n.method)->descriptor.pairedInput)
+        { jointNodes.insert(n.id); if (n.input) jointParents.insert(n.input->parent); }
+    for (const auto &n : definition.nodes)
+        if (n.input && !jointNodes.contains(n.id) && !jointNodes.contains(n.input->parent))
+        { insertable.insert(n.id); if (!jointParents.contains(n.id)) replaceable.insert(n.id); }
+    for (auto it = m_previewPairs.begin(); it != m_previewPairs.end();)
+        if (!jointNodes.contains(it.key())) it = m_previewPairs.erase(it); else ++it;
     m_rects = verticalWorkflowLayout(definition);
+    const auto activeJoint=m_document->pairNodeFor(m_selected);
+    const auto groups=m_document->grouping();
+    auto pairs=groups.value(activeJoint);
+    BatchPair activePair;
+    if(!pairs.isEmpty()) {
+        activePair=pairs.front();
+        for(const auto& pair:pairs)if(pair.id==m_previewPairs.value(activeJoint)){activePair=pair;break;}
+        const auto* joint=m_document->node(activeJoint);
+        const auto box=m_rects.value(activeJoint);
+        for(int side=0;side<2;++side) {
+            const auto ref=side==0?activePair.a:activePair.b;
+            const auto origin=ref.node.isNull()?joint->input->parent:ref.node;
+            const bool available=jointMemberAvailable(*m_document,activeJoint,ref);
+            const auto label=QString(side==0?"A":"B");
+            const auto tip=label+" · "+jointMemberLabel(*m_document,activeJoint,ref);
+            const auto color=themeColor(available?"text":"error");
+            const auto targetY=box.top()+(side==0?28:62);
+            QPointF end(box.left(),targetY);
+            if(available) {
+                markOutput(origin, ref.port);
+                for (const auto* node = m_document->node(origin); node && node->input;
+                     node = m_document->node(node->input->parent))
+                    markOutput(node->input->parent, node->input->output);
+                const auto from=m_rects.value(origin);
+                const bool fromRight=from.center().x()>=box.center().x();
+                const double direction=fromRight?1:-1;
+                end.setX(fromRight?box.right():box.left());
+                const QPointF start(fromRight?from.left():from.right(),from.center().y()+(side==0?-8:8));
+                const double gap=16+side*8;
+                const double sourceLane=start.x()-direction*gap,targetLane=end.x()+direction*gap;
+                const double crossY=box.top()-52-side*12;
+                QPainterPath path(start);path.lineTo(sourceLane,start.y());path.lineTo(sourceLane,crossY);path.lineTo(targetLane,crossY);path.lineTo(targetLane,end.y());path.lineTo(end);
+                QPen pen(color,1.7,side==0?Qt::DashLine:Qt::DashDotLine);pen.setCosmetic(true);
+                auto* line=scene()->addPath(path,pen);line->setZValue(-.6);line->setData(0,5);line->setData(1,origin);line->setData(2,activeJoint);line->setData(3,activePair.id);line->setToolTip(tip);
+                auto* arrow=scene()->addPolygon(QPolygonF{end,end+QPointF(direction*7,-4),end+QPointF(direction*7,4)},Qt::NoPen,QBrush(color));arrow->setZValue(-.5);arrow->setData(0,5);
+            }
+            auto* badge=scene()->addSimpleText(available?label:label+"!");auto font=badge->font();font.setBold(true);font.setPointSizeF(9);badge->setFont(font);badge->setBrush(color);
+            badge->setPos(end.x()==box.left()?end.x()-badge->boundingRect().width()-4:end.x()+4,end.y()-badge->boundingRect().height()-4);
+            badge->setToolTip(available?tip:text("ui.joint_unavailable")+"\n"+tip);badge->setData(0,6);badge->setData(1,side);badge->setData(2,available);badge->setZValue(1);
+        }
+    }
     for (const auto &n : definition.nodes)
         if (n.input)
         {
@@ -122,13 +190,31 @@ void WorkflowCanvas::rebuild()
             path.lineTo(start.x(), bend);
             path.lineTo(end.x(), bend);
             path.lineTo(end);
-            auto *edge = scene()->addPath(path, QPen(themeColor("controlBorder"), 1.6));
+            const bool jointEdge=jointNodes.contains(n.id);
+            auto *edge = scene()->addPath(path, QPen(themeColor("controlBorder"), jointEdge?1:1.6,jointEdge?Qt::DotLine:Qt::SolidLine));
+            if(jointEdge)edge->setToolTip(text("ui.joint_placement_edge"));
             edge->setZValue(-1);
             scene()
                 ->addPolygon(QPolygonF{end, end + QPointF(-3, -7), end + QPointF(3, -7)}, Qt::NoPen,
                              QBrush(themeColor("controlBorder")))
                 ->setZValue(-1);
         }
+    if (m_editable && definition.nodes.size() < WorkflowNodeLimit)
+        for (const auto &n : definition.nodes)
+        {
+            if (!insertable.contains(n.id)) continue;
+            const auto child = m_rects.value(n.id);
+            const QRectF rect(child.center().x() - 12, child.top() - 34, 24, 22);
+            m_insertions[n.id] = rect;
+            auto *control = new Card;
+            control->rect = rect; control->ghost = true; control->title = "+";
+            control->setToolTip(text("ui.insert_node_hint"));
+            control->setData(0, 4); control->setData(1, n.id);
+            control->setAcceptedMouseButtons(Qt::NoButton);
+            control->setCursor(Qt::PointingHandCursor); control->setZValue(2);
+            scene()->addItem(control);
+        }
+    int ordinal=0;
     for (const auto &n : definition.nodes)
     {
         auto *card = new Card;
@@ -142,7 +228,8 @@ void WorkflowCanvas::rebuild()
         {
             QStringList ports;
             if (selectedOutputs.contains(n.id))
-                ports << portLabel(registration->descriptor, selectedOutputs.value(n.id));
+                for (const auto& key : selectedOutputs.value(n.id))
+                    ports << portLabel(registration->descriptor, key);
             else
                 for (const auto &output : registration->descriptor.outputs)
                     ports << portLabel(registration->descriptor, output.key);
@@ -158,7 +245,11 @@ void WorkflowCanvas::rebuild()
         else if (n.method == "cwt")
             card->detail = n.parameters["mother"].toString() + "  ·  dj " +
                            QString::number(n.parameters["dj"].toDouble());
-        card->setToolTip(card->title + "\n" + card->detail);
+        if(registration->descriptor.pairedInput)
+            card->detail=text("ui.joint_canvas_pairs").arg(groups.value(n.id).size());
+        card->setToolTip(QString("#%1 · %2").arg(++ordinal).arg(card->title) + "\n" + card->detail +
+            (replaceable.contains(n.id)
+                ? "\n" + text("ui.replace_node_hint") : QString()));
         card->setData(0, 1);
         card->setData(1, n.id);
         card->setAcceptedMouseButtons(Qt::NoButton);
@@ -310,6 +401,11 @@ void WorkflowCanvas::mousePressEvent(QMouseEvent *e)
                 emit slotActivated(item->data(2).toUuid(), slot, viewport()->mapToGlobal(e->pos()));
                 return;
             }
+            if (kind == 4 && m_editable)
+            {
+                emit insertRequested(item->data(1).toUuid(), viewport()->mapToGlobal(e->pos()));
+                return;
+            }
             if (kind == 3 && m_editable)
             {
                 emit rootRequested(viewport()->mapToGlobal(e->pos()));
@@ -371,16 +467,23 @@ void WorkflowCanvas::contextMenuEvent(QContextMenuEvent *e)
     if (item && item->data(0).toInt() == 1 && m_editable)
     {
         const auto id = item->data(1).toUuid();
+        auto *replace = menu->addAction(text("ui.replace_node") + QStringLiteral("…"), this,
+            [this, id, position = e->globalPos()] { emit replaceRequested(id, position); });
+        replace->setData("replace_node");
+        const auto reason = nodeRewriteAvailability(m_document->model(), NodeRewriteKind::Replace, id);
+        replace->setEnabled(reason.isEmpty()); replace->setToolTip(nodeRewriteMessage(reason));
+        menu->setToolTipsVisible(true);
         menu->addAction(text("ui.delete_task_and_descendants"), this,
                         [this, id] { emit removeRequested(id); });
     }
     menu->addAction(text("ui.fit_workflow"), this, &WorkflowCanvas::fitWorkflow);
-    menu->popup(e->globalPos());
+    showMenuWithinWindow(menu, this, QRect(e->globalPos(), QSize(1, 1)));
 }
 bool WorkflowCanvas::dropTarget(const QPoint &pos, const QString &method, NodeId &parent,
-                                ChildSlot &slot) const
+                                ChildSlot &slot, int &rewrite) const
 {
-    if (!m_editable)
+    rewrite = 0;
+    if (!m_editable || m_document->editingLocked())
         return false;
     auto *item = itemAt(pos);
     const auto *dragged = m_document->model().registry().find(method);
@@ -391,6 +494,15 @@ bool WorkflowCanvas::dropTarget(const QPoint &pos, const QString &method, NodeId
         parent = {};
         slot = ChildSlot::Down;
         return !item || item->data(0).toInt() == 3;
+    }
+    if (item && (item->data(0).toInt() == 1 || item->data(0).toInt() == 4))
+    {
+        const bool replacement = item->data(0).toInt() == 1;
+        parent = item->data(1).toUuid();
+        if (!inspectNodeRewrite(m_document->model(), replacement ? NodeRewriteKind::Replace : NodeRewriteKind::InsertBefore,
+                                parent, method).ok()) return false;
+        rewrite = replacement ? 2 : 1;
+        return true;
     }
     if (!item || item->data(0).toInt() != 2)
         return false;
@@ -412,30 +524,46 @@ void WorkflowCanvas::dragEnterEvent(QDragEnterEvent *e)
     if (m_editable && e->mimeData()->hasFormat(TaskMimeType))
         e->acceptProposedAction();
 }
+void WorkflowCanvas::clearDropHighlight()
+{
+    delete m_dropHighlight; m_dropHighlight = nullptr;
+}
 void WorkflowCanvas::dragMoveEvent(QDragMoveEvent *e)
 {
-    NodeId p;
-    ChildSlot s;
-    if (dropTarget(e->position().toPoint(), QString::fromUtf8(e->mimeData()->data(TaskMimeType)), p,
-                   s))
+    NodeId p; ChildSlot s; int rewrite = 0;
+    const bool valid = dropTarget(e->position().toPoint(), QString::fromUtf8(e->mimeData()->data(TaskMimeType)), p, s, rewrite);
+    clearDropHighlight();
+    if (valid)
+    {
         e->acceptProposedAction();
-    else
-        e->ignore();
+        if (rewrite)
+        {
+            const auto rect = rewrite == 2 ? m_rects.value(p) : m_insertions.value(p);
+            m_dropHighlight = scene()->addRect(rect.adjusted(-3, -3, 3, 3),
+                QPen(themeColor("accent"), 1.5, Qt::DashLine), Qt::NoBrush);
+            m_dropHighlight->setZValue(-.5);
+        }
+    }
+    else e->ignore();
+}
+void WorkflowCanvas::dragLeaveEvent(QDragLeaveEvent *e)
+{
+    clearDropHighlight(); e->accept();
 }
 void WorkflowCanvas::dropEvent(QDropEvent *e)
 {
-    NodeId p;
-    ChildSlot s;
+    NodeId p; ChildSlot s; int rewrite = 0;
     const auto method = QString::fromUtf8(e->mimeData()->data(TaskMimeType));
-    if (dropTarget(e->position().toPoint(), method, p, s))
+    const bool valid = dropTarget(e->position().toPoint(), method, p, s, rewrite);
+    clearDropHighlight();
+    if (valid)
     {
         e->acceptProposedAction();
-        if (p.isNull())
-            emit sourceDropped(method);
-        else
-            emit methodDropped(method, p, s);
+        if (rewrite == 1) emit insertMethodDropped(method, p);
+        else if (rewrite == 2) emit replaceMethodDropped(method, p);
+        else if (p.isNull()) emit sourceDropped(method);
+        else emit methodDropped(method, p, s);
     }
-    else
-        e->ignore();
+    else e->ignore();
 }
 } // namespace aster::ui

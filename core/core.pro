@@ -15,7 +15,11 @@ SOURCES += \
     ../src/core/task.cpp \
     ../src/core/task_registry.cpp \
     ../src/core/workflow_model.cpp \
+    ../src/core/workflow_editor.cpp \
+    ../src/core/workflow_rewrite.cpp \
     ../src/core/workflow_executor.cpp \
+    ../src/core/batch_workflow.cpp \
+    ../src/core/linked_batch.cpp \
     ../src/processing/builtin_tasks.cpp \
     ../src/processing/input_series_task.cpp \
     ../src/processing/sine_source_task.cpp \
@@ -31,7 +35,10 @@ HEADERS += \
     ../src/core/task.h \
     ../src/core/task_registry.h \
     ../src/core/workflow_model.h \
+    ../src/core/workflow_editor.h \
+    ../src/core/workflow_rewrite.h \
     ../src/core/workflow_executor.h \
+    ../src/core/batch_workflow.h \
     ../src/processing/process_definitions.h \
     ../src/processing/builtin_tasks.h \
     ../src/processing/task_helpers.h \

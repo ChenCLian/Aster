@@ -1,0 +1,46 @@
+********* Start testing of UiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : UiTests::initTestCase()
+QWARN  : UiTests::outputPopupPlacement() This plugin does not support raise()
+QWARN  : UiTests::outputPopupPlacement() This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPopupPlacement()
+QWARN  : UiTests::outputPickerInteraction(zh-light) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(zh-light) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(zh-light)
+QWARN  : UiTests::outputPickerInteraction(zh-dark) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(zh-dark) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(zh-dark)
+QWARN  : UiTests::outputPickerInteraction(en-light) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(en-light) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(en-light)
+QWARN  : UiTests::outputPickerInteraction(en-dark) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(en-dark) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(en-dark)
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+PASS   : UiTests::outputPickerFilteringAndCancellation()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerWorkflowBinding()
+PASS   : UiTests::cleanupTestCase()
+Totals: 9 passed, 0 failed, 0 skipped, 0 blacklisted, 1253ms
+********* Finished testing of UiTests *********

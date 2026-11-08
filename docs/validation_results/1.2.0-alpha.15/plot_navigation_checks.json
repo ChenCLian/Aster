@@ -1,0 +1,378 @@
+{
+  "version": "1.2.0-alpha.15",
+  "base_version": "1.2.0-alpha.14",
+  "date": "2026-11-07",
+  "status": "passed_with_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.618,
+      "log": "logs/aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.619,
+      "log": "logs/aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 77.871,
+      "log": "logs/aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.367,
+      "log": "logs/aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 82.774,
+      "log": "logs/final-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.411,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.679,
+      "log": "logs/aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 3.111,
+      "log": "logs/aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 12.784,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 15.229,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 34.175,
+      "log": "logs/final-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 7.976,
+      "log": "logs/aster_update_tests.txt"
+    }
+  ],
+  "initial_regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.618,
+      "log": "logs/aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.619,
+      "log": "logs/aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 77.871,
+      "log": "logs/aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.367,
+      "log": "logs/aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 1,
+      "passed": 780,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 1,
+      "status": "failed",
+      "seconds": 72.524,
+      "log": "logs/aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 9.411,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.679,
+      "log": "logs/aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 3.111,
+      "log": "logs/aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 1,
+      "passed": 35,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 1,
+      "status": "failed",
+      "seconds": 9.296,
+      "log": "logs/aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 12.086,
+      "log": "logs/aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 1,
+      "passed": 82,
+      "failed": 1,
+      "skipped": 0,
+      "suites": 4,
+      "status": "failed",
+      "seconds": 23.489,
+      "log": "logs/aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 7.976,
+      "log": "logs/aster_update_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 2021,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "Latest passing result for each of 12 targets, including QtTest init/cleanup. Updated desktop targets replace their initial result; reruns and historical totals are not added.",
+  "final_layout_regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 82.774,
+      "log": "logs/final-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 12.784,
+      "log": "logs/final-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 15.229,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 34.175,
+      "log": "logs/final-aster_integration_tests.txt"
+    }
+  ],
+  "validation_sequence": "Full registered suite, updated browsing assertions and compact-layout adjustment, then four affected desktop suites. Deletion regression exposed removal of unrelated subplots on the same page. Fixed per-subplot deletion, added active/background/selection tests, rebuilt embedded help and reran workspace/integration suites on the final build. Initial results and failure logs retained; UI/style results are from before the final deletion-only fix.",
+  "test_expectation_updates": [
+    "Record clicks now create a default plot instead of leaving an empty figure.",
+    "Browsing a different record selects its default; explicitly revisiting the prior step restores its styled plot.",
+    "Default plots share the current page; deleting one record removes only its subplot and keeps the unrelated subplot."
+  ],
+  "reproduction": {
+    "log": "logs/before.txt",
+    "automatic_plot": "Missing before the change; click/default/reuse tests now pass.",
+    "step_selection": "Offscreen actual multi-selection was not reproduced. Removed look-alike hover and peak-match fills; avoided reentrant row selection and verified single selected row.",
+    "overlay": "Before and after tests target the first subplot correctly, including a subsequent selection during I/O. The screenshot age/depth and Y-unit mismatch is a valid rejection, not evidence of retargeting.",
+    "record_deletion": "logs/deletion-before.txt: removing one record closed its entire mixed-record page. Now only affected subplots are removed; other widgets, manual styles and a surviving selection are retained.",
+    "large_output_directory": "New automatic default loading exposed a pre-existing limit counting every node output. Limit and display budget now count only the requested plot family; original 64-family-output limit remains enforced."
+  },
+  "coverage": [
+    "Last successful graphical default, step clicks, repeated-output reuse and style retention.",
+    "Cross-page reuse, full-page overflow and explicit destination selection during record metadata loading.",
+    "Output checks preserve selected target; cross-record compatible overlay uses that target.",
+    "Overlay submitted to first subplot cannot be retargeted by a later selection.",
+    "Incompatible overlay preserves both original subplots and reports both X/Y unit pairs in Chinese.",
+    "1001-output metadata directory with corrupt unrelated table payloads opens only the default plot family.",
+    "Exact family limit passes, one above fails, selected-output-only read excludes other curves.",
+    "Record deletion on active and background mixed-record pages; removed/retained selection, style retention, pending transactions and empty-page cleanup.",
+    "Light/dark and 1200x720 layout, resizable/collapsible output area, visible output row.",
+    "Existing plotting, export, preview, workflow, algorithm and update regression suites."
+  ],
+  "python_checks": {
+    "release_tests": 106,
+    "help_tests": 6,
+    "failures": 0,
+    "skipped_classes": 1,
+    "unexecuted_methods": 2,
+    "skip_reason": "Ruby/Homebrew query tests require Ruby unavailable here."
+  },
+  "unchanged": [
+    "Scientific methods and computation budgets.",
+    "Database schema and stored data payloads.",
+    "Release/dependency packaging scripts and source configuration template.",
+    "Historical validation evidence."
+  ],
+  "remaining": [
+    "Native Windows/macOS verification of the revised interaction and layout; offscreen does not reproduce every native hover/focus behavior.",
+    "Final platform package and dependency publication checks; no release was published."
+  ]
+}

@@ -1,4 +1,6 @@
-# Acycle 对照约定与来源
+# 与 Acycle 的方法对照与验证范围
+
+小波选项与输出的使用说明见[连续小波分析](cwt.md)。本页记录参考实现、对照范围及方法差异。
 
 对照对象为 Acycle 3.1.1 验证快照中的具体函数。不同版本、GUI 分支及修改快照分别记录。源码哈希及历史 MATLAB 验收摘要见 [来源记录](../reference/scientific_evidence.json)。当前独立固定参照位于 `analysis_tests/fixtures/`，日常回归由 `analysis_tests` 执行。
 
@@ -19,7 +21,7 @@
 | MTM SWA | `spectralswafdr.m` 调用的 `specswa.m` | 使用单边谱的 log10 功率；搜索/尾部/平滑规则与参照源码对应。少于 33 个频点时返回不适用状态，不输出替代的常数 SWA |
 | MTM FDR | `spectralswafdr.m` 的 Hopkins/Weedon 路径 | 使用 H(floor(NW))、完整单边检验族及最后被拒绝的观测 p 值对应曲线；与通用 BY 校正区分 |
 | CWT 默认 | `wave_readGUI.m` 的 method_sel=2、`ar1nv.m`、`wave_update_wavelet.m` | `acycle_cwt`：dj 默认 0.1、最大尺度目标 0.34Ndt、ar1nv 估计；原始/尺度校正/显示功率分开输出 |
-| CWT 原始功率 | Torrence–Compo `wavelet.m`、`wave_signif.m`、`rhoAR1ML.m` | 作为 `torrence_compo` 明确保留，不与默认 Acycle CWT 混用；尺度数按无量纲量计算 |
+| CWT 原始功率 | Torrence–Compo `wavelet.m`、`wave_signif.m`、`rhoAR1ML.m` | 作为 `torrence_compo` 明确保留，不与默认的方差归一化、尺度校正模式混用；尺度数按无量纲量计算 |
 | `mtm_ar1_simulation` | 无对应 Acycle 方法 | 从任务目录和添加菜单隐藏；注册表仍能识别已保存的任务，不删除既有数据库结果 |
 | 文件、内存与数据库源 | 工作台基础设施 | 文件读取/列选择/预览与执行保持同一解析器；数据库 4 个 typed 来源、`input_series` 保留，不属于需仿照 MATLAB 的科学算法 |
 
@@ -56,7 +58,7 @@
 3. AR1 使用相同的线性/对数最小二乘目标，但采用正幅度、|rho|<1 的有界求解。Acycle 无约束求解器或缺少工具箱时的粗网格回退不作为必须复现的数值行为。
 4. 默认使用线性插值，与参照路径一致；GSL 自然三次样条和 Akima 是独立选项。
 5. 保留奇异/溢出检查、资源上限和取消；默认 CWT 的工作内存预估也计入额外功率矩阵。原始功率无定义或数值无法表示时给出错误，不静默改变单位。
-6. 保留高阶母小波的最短标称周期保护。Torrence–Compo 模式不照搬 GUI 中对带单位的 pt2 直接取 log2 来决定层数的写法：换时间单位不应额外改变尺度数量。默认 Acycle CWT 分支使用无量纲 N 的公式，无此混淆。
+6. 保留高阶母小波的最短标称周期保护。Torrence–Compo 模式不照搬 GUI 中对带单位的 pt2 直接取 log2 来决定层数的写法：换时间单位不应额外改变尺度数量。默认的方差归一化、尺度校正分支使用无量纲 N 的公式，无此混淆。
 7. COI 两端存真实的零边界距离，作者 MATLAB 中的极小正数仅是绘图哨兵；跨语言对照比较内部点。
 8. 峰突出度/宽度及样本方差与总体方差的字段语义不混改。辅助功能不等于 Acycle 全部功能已经移植。
 

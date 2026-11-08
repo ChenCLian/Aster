@@ -1,0 +1,9 @@
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.025s
+
+OK
+/tmp/tmpu2ijz6qd/export/Aster-source-export-1.1.1
+10 files; contents verified
+/tmp/tmpx0awlnbw/out/Aster-source-export-1.1.1
+10 files; contents verified

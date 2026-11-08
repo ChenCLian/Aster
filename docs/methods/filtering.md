@@ -41,7 +41,7 @@ Hilbert 定义对照 [MathWorks hilbert 算法说明](https://www.mathworks.com/
 
 支持至少 2 个纬度、2 个年代；最多 361 个纬度、20000 个年代和 2000000 格点。按请求间隔采样，最后不足一个间隔的部分不强行添点。输出为“纬度 × 年代”的日平均日照图；不包含年内日期维度或季节积分。
 
-图输出为 `Grid`，不满足去趋势和滤波任务的 `Series` 输入契约。日照图显示物理强度，不包含 CWT 影响锥或显著性边界。
+日照图是二维数据，不能直接作为去趋势或滤波任务的一维序列输入。日照图显示物理强度，不包含 CWT 影响锥或显著性边界。
 ## 文件职责
 
 `src/math/filtering/bandpass.h/.cpp` 负责纯数值计算；`src/processing/filter_tasks.h/.cpp` 包装三种任务；`src/processing/insolation_map_task.h/.cpp` 负责多纬度日照来源与预算。任务注册、参数界面及结果存储使用通用接口。

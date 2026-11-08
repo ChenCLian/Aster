@@ -289,6 +289,7 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
                 a.lower = current.lower;
                 a.upper = current.upper;
                 a.manualRange = true;
+                m_rangeEdited[m_axisIndex] = true;
                 loadAxis();
                 scheduleApply();
             });
@@ -304,6 +305,13 @@ void PlotStyleEditor::scheduleApply(int delayMs)
 }
 void PlotStyleEditor::connectLiveControls()
 {
+    const auto rangeEdited = [this] {
+        if (!m_loading && !m_applying) m_rangeEdited[m_axisIndex] = true;
+    };
+    connect(m_manual, &QCheckBox::toggled, this, rangeEdited);
+    connect(m_log, &QCheckBox::toggled, this, rangeEdited);
+    connect(m_lower, &QLineEdit::textChanged, this, rangeEdited);
+    connect(m_upper, &QLineEdit::textChanged, this, rangeEdited);
     for (auto *control : findChildren<QCheckBox *>())
         connect(control, &QCheckBox::toggled, this, [this] { scheduleApply(); });
     for (auto *control : findChildren<QComboBox *>())
@@ -345,25 +353,60 @@ void PlotStyleEditor::setView(PlotView *view)
     }
     reload();
 }
+void PlotStyleEditor::syncOutputAvailability()
+{
+    const bool hasPlot = m_view && m_view->hasPlot();
+    const bool grid = hasPlot && dataAs<GridData>(m_view->currentData());
+    // Keep the tab geometry stable while a database plot loads or a page changes.
+    // A refinement updates availability without resetting unfinished style edits.
+    if (!grid && m_tabs->currentIndex() == 3)
+        m_tabs->setCurrentIndex(0);
+    m_tabs->setTabEnabled(3, grid);
+    setEnabled(hasPlot);
+}
 void PlotStyleEditor::refreshDisplayInfo()
 {
+    syncOutputAvailability();
     if (!m_view) return;
     QScopedValueRollback<bool> loading(m_loading,true);
+    syncViewportRanges();
     m_heatmap->setStatus(m_view->heatmapStatus(),m_view->hasSignificanceGrid());
     const auto viewport=m_view->styleWithViewport();
     if (!m_view->style().colorManual)
         m_heatmap->setAutomaticRange(viewport.colorLower,viewport.colorUpper);
 }
+void PlotStyleEditor::syncViewportRanges()
+{
+    if (!m_view || !m_view->hasPlot()) return;
+    const auto current = m_view->styleForReload();
+    for (int i = 0; i < 2; ++i)
+        if (!m_rangeEdited[i])
+        {
+            auto &draft = i ? m_draft.y : m_draft.x;
+            const auto &live = i ? current.y : current.x;
+            draft.manualRange = live.manualRange;
+            draft.lower = live.lower;
+            draft.upper = live.upper;
+        }
+    if (!m_rangeEdited[m_axisIndex])
+    {
+        QScopedValueRollback<bool> loading(m_loading, true);
+        const auto &axis = m_axisIndex ? m_draft.y : m_draft.x;
+        m_manual->setChecked(axis.manualRange);
+        m_lower->setEnabled(axis.manualRange);
+        m_upper->setEnabled(axis.manualRange);
+        m_lower->setText(displayedNumber(axis.lower));
+        m_upper->setText(displayedNumber(axis.upper));
+    }
+}
 void PlotStyleEditor::reload()
 {
     if (m_applying) return; // Keep cursor and partially entered text during live editing.
     m_liveTimer.stop();
-    if (!m_view)
-    {
-        setEnabled(false);
-        return;
-    }
+    syncOutputAvailability();
+    if (!m_view) return;
     m_loading = true;
+    m_rangeEdited[0] = m_rangeEdited[1] = false;
     m_draft = m_view->style();
     const auto viewport = m_view->styleWithViewport();
     if (!m_draft.x.manualRange)
@@ -378,10 +421,7 @@ void PlotStyleEditor::reload()
     }
     if (!m_draft.colorManual)
     { m_draft.colorLower=viewport.colorLower; m_draft.colorUpper=viewport.colorUpper; }
-    setEnabled(m_view->hasPlot());
     m_canvasDetails->load(m_draft);
-    const bool grid = dataAs<GridData>(m_view->currentData());
-    m_tabs->setTabVisible(3, grid);
     m_heatmap->load(m_draft, m_view->heatmapStatus(), m_view->hasSignificanceGrid());
     loadAxis();
     auto old = m_curveKey;
@@ -485,6 +525,9 @@ bool PlotStyleEditor::apply()
     storeCurve();
     m_canvasDetails->store(m_draft);
     if (dataAs<GridData>(m_view->currentData())) m_heatmap->store(m_draft);
+    // A delayed title/curve edit must not restore an axis snapshot taken
+    // before a newer pan/zoom. Explicit range/scale edits still take precedence.
+    syncViewportRanges();
     // The view may normalize theme colors; do not reload all text fields and
     // reset cursor positions on each edit.
     const auto draft = m_draft;
@@ -493,6 +536,7 @@ bool PlotStyleEditor::apply()
     if (error.isEmpty())
     {
         m_draft = m_view->style();
+        m_rangeEdited[0] = m_rangeEdited[1] = false;
         QScopedValueRollback<bool> loading(m_loading, true);
         m_canvasDetails->setFollowingTheme(m_draft.followTheme);
         refreshDisplayInfo();

@@ -1,0 +1,51 @@
+********* Start testing of RewriteTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : RewriteTests::initTestCase()
+PASS   : RewriteTests::insertSlots(0)
+PASS   : RewriteTests::insertSlots(1)
+PASS   : RewriteTests::insertSlots(2)
+PASS   : RewriteTests::replaceMultipleOutputs()
+PASS   : RewriteTests::replaceLeafChangesOutputKind()
+PASS   : RewriteTests::rejectsInvalidRequests(0)
+PASS   : RewriteTests::rejectsInvalidRequests(1)
+PASS   : RewriteTests::rejectsInvalidRequests(2)
+PASS   : RewriteTests::rejectsInvalidRequests(3)
+PASS   : RewriteTests::rejectsInvalidRequests(4)
+PASS   : RewriteTests::rejectsInvalidRequests(5)
+PASS   : RewriteTests::rejectsInvalidRequests(6)
+PASS   : RewriteTests::rejectsInvalidRequests(7)
+PASS   : RewriteTests::rejectsInvalidRequests(8)
+PASS   : RewriteTests::staleLockedAndCancel()
+PASS   : RewriteTests::layoutFallbackAndBlocked()
+PASS   : RewriteTests::jointBoundaries()
+QINFO  : RewriteTests::largeSubtreeAndLimit() prepare insertion, 9998 moved nodes: 119 ms
+PASS   : RewriteTests::largeSubtreeAndLimit()
+QWARN  : RewriteTests::dialogMatrix(zh-light) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(zh-light)
+QWARN  : RewriteTests::dialogMatrix(zh-dark) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(zh-dark)
+QWARN  : RewriteTests::dialogMatrix(en-light) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(en-light)
+QWARN  : RewriteTests::dialogMatrix(en-dark) This plugin does not support raise()
+PASS   : RewriteTests::dialogMatrix(en-dark)
+QWARN  : RewriteTests::dialogCancelStaleAndDestroyed() This plugin does not support raise()
+PASS   : RewriteTests::dialogCancelStaleAndDestroyed()
+QWARN  : RewriteTests::smallReviewAndLockedConfirm() This plugin does not support raise()
+PASS   : RewriteTests::smallReviewAndLockedConfirm()
+PASS   : RewriteTests::canvasEntryPoints()
+PASS   : RewriteTests::previewAndExecutionAgreeAfterUndo()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support grabbing the keyboard
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support grabbing the keyboard
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support grabbing the keyboard
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support raise()
+QWARN  : RewriteTests::mainWindowMenuAndDrag() This plugin does not support grabbing the keyboard
+PASS   : RewriteTests::mainWindowMenuAndDrag()
+PASS   : RewriteTests::cleanupTestCase()
+Totals: 29 passed, 0 failed, 0 skipped, 0 blacklisted, 3651ms
+********* Finished testing of RewriteTests *********

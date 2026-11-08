@@ -11,13 +11,14 @@ struct PlotRequest
 {
     bool window = false, logX = false, logY = false;
     bool includeFamily = true;
-    bool gridSampleCoordinates = false; // Internal: contours cannot use block maxima.
     double xLower = 0, xUpper = 1, yLower = 0, yUpper = 1;
     int columns = 1200, rows = 600;
 };
 namespace PlotLimits
 {
-constexpr int chunkBytes = 256 * 1024;
+// Bounded BLOB/axis caches. Larger blocks amortize SQLite substring retrieval
+// without materializing the complete scientific output in the plot worker.
+constexpr int chunkBytes = 1024 * 1024;
 constexpr int maxDimension = 8192;
 constexpr int maxHeatmapCells = 4 * 1024 * 1024;
 constexpr int maxTableRows = 10000;

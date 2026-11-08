@@ -1,9 +1,10 @@
 # 源码构建与开发
 
+适用版本：Aster 1.2.0-beta.5。
+
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 
 本文面向从源码编译或维护 Aster 的开发者。安装发行包无需配置 Qt、vcpkg 或编译器。
-
 
 ## 依赖
 
@@ -52,15 +53,17 @@ make -j4
 
 ## 打包与更新
 
-程序版本的统一入口是根目录 [VERSION](../VERSION)。修改版本或图标构建配置后，重新运行 qmake 并构建。
+程序版本的统一入口是根目录 [VERSION](../VERSION)。修改版本或图标构建配置后，重新运行 qmake 并构建。完整版本通过生成头文件编入程序；版本文件变更会触发 qmake 更新及相关源文件重新编译。
+
+升级旧源码或发现界面版本与源码不一致时，使用新的 Release 构建目录编译整个根工程，避免沿用旧对象文件。打包脚本不编译源码，只复制 `BuildDir/bin/Aster.exe`；修改输出目录名、导出源码或收集材料均不会更新这个 EXE。发布前打开实际程序包，在“设置”中核对完整版本（包括 `beta` 后缀）。
 
 - **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `Aster-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
-- **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1` 收集 EXE、Qt 插件、第三方 DLL、许可说明及匹配的依赖源码；源码归档单独输出。发布前应在未安装开发环境的 Windows 主机测试。
+- **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1 -DependencyMode Stage` 部署 EXE、Qt 插件和第三方 DLL，再单独收集依赖源码与许可材料。已有同版本匹配材料时可用默认的 `Reuse` 模式离线复用；`Collect` 模式一次完成部署与收集。操作见[依赖材料说明](dependency_materials_zh.md#windows-本机打包)。项目源码通过独立导出命令生成普通目录。发布前应在未安装开发环境的 Windows 主机测试。
 - **检查更新：**“设置 → 检查更新”按需读取本项目的 GitHub Releases，比较版本并打开发布页。默认检查正式版；草稿不会作为可用更新。
 - **安装新版：**当前采用完整程序包手动更换；关闭软件后，将新版解压到新目录，再打开原数据库。
 - **macOS / Linux：**`package_macos.sh`、`package_linux.sh` 收集各平台依赖并生成完整程序包。`.github/workflows/build-desktop.yml` 可在 GitHub 的原生系统上自动构建、测试和打包；不自动发布。
 
-打包需要 Python 3.10 或更高版本及可用的依赖安装记录。具体命令见 [发布与版本维护](release_maintenance_zh.md)，依赖源码、缓存和 Release 附件的管理见 [依赖材料](dependency_materials_zh.md)。
+源码导出、依赖材料收集/复用和发布校验需要 Python 3.10 或更高版本；Windows 的 `Stage` 部署模式不需要 Python。收集材料还需匹配的依赖安装记录。具体命令见 [发布与版本维护](release_maintenance_zh.md)，依赖源码、缓存和 Release 附件的管理见 [依赖材料](dependency_materials_zh.md)。
 
 常用命令行：
 
@@ -71,7 +74,6 @@ Aster --database ./results.sqlite --language zh --theme light
 ```
 
 ## 开发与验证
-
 
 | 入口 | 用途 |
 | --- | --- |
@@ -86,5 +88,5 @@ Aster --database ./results.sqlite --language zh --theme light
 
 修改参数定义或帮助译文时，按[参数参考维护说明](../tools/help_reference/README.md)生成并校验两种语言的文档，再重新构建程序。常规编译不需要 Python；生成和发布校验需要 Python 3.10 或以上版本。
 
-当前源码的构建与回归记录见 [validation.md](validation.md)；发行验收以对应源码提交和程序包的记录为准。自动化测试不能替代各平台的实际部署与交互验收。
+当前源码的构建与回归范围见 [当前验证入口](validation_current.md)；发行验收以对应源码提交和程序包的记录为准。自动化测试不能替代各平台的实际部署与交互验收。
 

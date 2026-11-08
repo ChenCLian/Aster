@@ -23,8 +23,12 @@ bool FigureExportController::start(QVector<FigureCell> cells, FigureOptions opti
     if (m_busy)
         return false;
     auto error = validateFigureOptions(options);
-    if (cells.isEmpty())
-        error = text("error.no_figure_selected");
+    const auto rectangles = figureCellRects(cells, options.pixels);
+    if (rectangles.size() != cells.size() || rectangles.isEmpty())
+        error = text(cells.isEmpty() ? "error.no_figure_selected" : "error.invalid_figure_layout");
+    if (error.isEmpty()) for (const auto &rect : rectangles)
+        if (qRound(rect.width() * 96. / options.dpi) < 220 || qRound(rect.height() * 96. / options.dpi) < 160)
+            error = text("error.increase_export_size_or_reduce_dpi_for_this_subplot_layout");
     for (const auto &cell : cells)
         for (const auto &ref : cell.references)
         {
@@ -41,19 +45,19 @@ bool FigureExportController::start(QVector<FigureCell> cells, FigureOptions opti
     auto cancel = m_cancel;
     auto data = std::make_shared<QVector<NodeResult>>();
     auto failure = std::make_shared<QString>();
-    const int columns = cells.size() > 1 ? 2 : 1, rows = (cells.size() + columns - 1) / columns;
     m_worker = QThread::create(
-        [cells, options, cancel, data, failure, columns, rows]
+        [cells, rectangles, cancel, data, failure]
         {
             try
             {
-                for (const auto &cell : cells)
+                for (int i = 0; i < cells.size(); ++i)
                 {
+                    const auto &cell = cells[i];
                     if (cancel.isCancelled())
                         return;
                     auto request = cell.request;
-                    request.columns = options.pixels.width() / columns;
-                    request.rows = options.pixels.height() / rows;
+                    request.columns = rectangles[i].width();
+                    request.rows = rectangles[i].height();
                     if (cell.style.swapXY)
                         std::swap(request.columns, request.rows);
                     auto result = loadPlotData(cell.references, request, cancel);

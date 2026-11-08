@@ -40,6 +40,10 @@ struct TaskDescriptor {
     QVector<ParameterSpec> parameters;
     // Binding-only sources are created by their picker, not the generic task menu.
     bool catalogVisible = true;
+    // Paired batch execution. Both inputs must have inputKind.
+    // The ordinary graph keeps one parent; the batch plan explicitly resolves
+    // dataset, output port and optional origin node for A and B.
+    bool pairedInput = false;
 };
 
 using TaskFactory = std::function<std::unique_ptr<Task>(const QJsonObject&)>;

@@ -12,6 +12,7 @@ struct AppSettings
     QString language = "zh";
     QString theme = "light";
     int concurrency = defaultConcurrency();
+    bool defaultPlotNewPage = true;
     static QString configPath();
     static AppSettings load(const QString &path = {});
     QString save(const QString &path = {}) const;

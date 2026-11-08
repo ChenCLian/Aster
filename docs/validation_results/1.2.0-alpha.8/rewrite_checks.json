@@ -1,0 +1,180 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.8",
+  "baseline": "1.2.0-alpha.7",
+  "date": "2026-11-07",
+  "timezone": "UTC",
+  "scope": "Ordinary-node insertion and replacement: core transactions, port mapping, UI entry points, complete undo/redo and preview refresh. Numerical algorithms are unchanged.",
+  "environment": {
+    "os": "Linux x86_64, Debian 13",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "rendering": "offscreen",
+    "openblas_threads": 1
+  },
+  "build": {
+    "status": "passed",
+    "type": "Reconfigured out-of-tree incremental build; version-bearing application, help exporter and update-test objects rebuilt",
+    "application_version": "Aster_Workspace 1.2.0-alpha.8"
+  },
+  "regression_strategy": "Full regression, then rerun the full UI suite after updating its exact tooltip expectation for the new replacement hint; all other binaries unchanged",
+  "regression_tests": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "log": "aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 780,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "log": "aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_update_tests.txt"
+    }
+  ],
+  "total_passed": 1936,
+  "total_failed": 0,
+  "total_skipped": 0,
+  "focused_checks": [
+    "Insertion in left, right and downstream slots; unchanged IDs, sources, unrelated branches and frozen runs",
+    "Replacement retains target ID and layout, resets parameters, explicitly maps multiple downstream outputs, and allows a terminal output-kind change",
+    "Reject missing/extra/unknown mappings, incompatible types, source roots, same-method replacement and direct joint boundaries",
+    "Layout alternative and all-directions blocked; 10000-node cap and large subtree insertion",
+    "Preparation/cancel does not publish; running lock, stale token, undo/redo and duplicate commit protection",
+    "Live preview matches formal execution after replacement, undo and insertion",
+    "Real cascading menu activation, context-menu replacement catalogue, task drag to edge/node and existing add-slot drag",
+    "Chinese/English and light/dark review, small owner window, deliberate port choice, cancellation, document destruction and invalidation before deferred open"
+  ],
+  "scaling": {
+    "factors": [
+      1.25,
+      1.5,
+      2.0
+    ],
+    "passed_per_factor": 8,
+    "mode": "Qt offscreen; not a native desktop/multi-monitor acceptance"
+  },
+  "local_performance_sample": {
+    "existing_nodes": 9999,
+    "moved_nodes": 9998,
+    "result_nodes": 10000,
+    "prepare_ms": 96,
+    "kind": "single measurement in this validation environment; not a hardware-independent time budget"
+  },
+  "help_reference": {
+    "tasks": 54,
+    "parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "generation_check": "passed",
+    "python_tests_passed": 6
+  },
+  "supplementary_packaging_checks": {
+    "python_tests_run": 95,
+    "failures": 0,
+    "skipped_suites": 1,
+    "skip_reason": "Ruby unavailable; Homebrew query test class is skipped on this host"
+  },
+  "limits": [
+    "Source roots and edits directly involving paired input/output nodes are not enabled",
+    "No cross-node or cross-root joint inputs",
+    "Unrelated logical-grid branches are not moved to make space",
+    "Native Windows/macOS build, window placement, drag/drop and package acceptance remain pending"
+  ],
+  "reproduce": [
+    "qmake -r Aster.pro CONFIG+=release CONFIG+=help_reference; build all targets with the configured native toolchain",
+    "python tools/release/run_tests.py <build>",
+    "python tools/help_reference/generate.py --build <build> --check",
+    "python -m unittest discover -s tools/help_reference -p \"test_*.py\""
+  ]
+}

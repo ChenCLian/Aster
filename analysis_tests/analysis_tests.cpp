@@ -147,7 +147,10 @@ class AnalysisTests : public QObject
 void AnalysisTests::scientificCatalogue()
 {
     const auto r = makeScientificRegistry();
-    QCOMPARE(r.descriptors().size(), 53);
+    QCOMPARE(r.descriptors().size(), 54);
+    QVERIFY(r.find("cross_spectrum"));
+    QVERIFY(r.find("cross_spectrum")->descriptor.pairedInput);
+    QVERIFY(r.find("cross_spectrum")->descriptor.catalogVisible);
     QVERIFY(r.find("synthetic_orbital"));
     QVERIFY(r.find("file_source")->descriptor.requiresSourceBinding);
     QVERIFY(!r.find("file_source")->descriptor.boundDataKind);

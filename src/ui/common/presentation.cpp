@@ -67,6 +67,10 @@ QString portLabel(const TaskDescriptor &descriptor, const QString &port)
     fallback = translatedLabel("port." + port, fallback);
     return translatedLabel("output." + descriptor.key + "." + port, fallback);
 }
+QString defaultPlotTitle(qint64 recordId, const QString &port)
+{
+    return QString("ID %1 · %2").arg(recordId).arg(portLabel(port));
+}
 QString resultError(const NodeResult &result)
 {
     return presentError(result).summary;

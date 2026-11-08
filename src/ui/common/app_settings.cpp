@@ -31,6 +31,7 @@ AppSettings AppSettings::load(const QString &path)
     const int storedConcurrency = s.value("execution/concurrency", out.concurrency).toInt(&validConcurrency);
     if (validConcurrency)
         out.concurrency = std::clamp(storedConcurrency, minimumConcurrency, maximumConcurrency);
+    out.defaultPlotNewPage = s.value("plotting/defaultTarget", "new_page").toString() != "current_page";
     return out;
 }
 QString AppSettings::save(const QString &path) const
@@ -40,6 +41,7 @@ QString AppSettings::save(const QString &path) const
     s.setValue("appearance/language", language);
     s.setValue("appearance/theme", theme);
     s.setValue("execution/concurrency", concurrency);
+    s.setValue("plotting/defaultTarget", defaultPlotNewPage ? "new_page" : "current_page");
     s.sync();
     return s.status() == QSettings::NoError
                ? QString()

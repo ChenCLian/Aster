@@ -1,0 +1,7 @@
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+Compiled resource byte matches: 48
+Local method link and guide anchor: 4 language/theme combinations passed
+Quick start example: f=0.25, coherence=1, phase=0 degrees

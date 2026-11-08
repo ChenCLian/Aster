@@ -1,0 +1,22 @@
+********* Start testing of StyleExportTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : StyleExportTests::initTestCase()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(zh-light)
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(zh-dark)
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(en-light)
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(en-dark)
+PASS   : StyleExportTests::cleanupTestCase()
+Totals: 6 passed, 0 failed, 0 skipped, 0 blacklisted, 805ms
+********* Finished testing of StyleExportTests *********

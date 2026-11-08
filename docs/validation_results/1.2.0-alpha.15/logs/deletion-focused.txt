@@ -1,0 +1,14 @@
+********* Start testing of WorkspaceTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : WorkspaceTests::initTestCase()
+PASS   : WorkspaceTests::removingRecordKeepsUnrelatedSubplots(remove-selected)
+PASS   : WorkspaceTests::removingRecordKeepsUnrelatedSubplots(keep-selected)
+PASS   : WorkspaceTests::removingRecordKeepsUnrelatedSubplots(background-page)
+PASS   : WorkspaceTests::removedPendingReferenceCannotCommit(overlay-active)
+PASS   : WorkspaceTests::removedPendingReferenceCannotCommit(replace-active)
+PASS   : WorkspaceTests::removedPendingReferenceCannotCommit(overlay-unloaded)
+PASS   : WorkspaceTests::removedPendingReferenceCannotCommit(replace-unloaded)
+PASS   : WorkspaceTests::closingBackgroundPageKeepsDestination()
+PASS   : WorkspaceTests::cleanupTestCase()
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 1581ms
+********* Finished testing of WorkspaceTests *********

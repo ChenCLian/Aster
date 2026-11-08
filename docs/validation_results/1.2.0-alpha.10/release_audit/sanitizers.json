@@ -1,0 +1,56 @@
+[
+  {
+    "target": "aster_core_tests",
+    "exit_code": 0,
+    "seconds": 3.338,
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  },
+  {
+    "target": "aster_batch_tests",
+    "exit_code": 0,
+    "seconds": 4.797,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  },
+  {
+    "target": "aster_cross_spectrum_tests",
+    "exit_code": 0,
+    "seconds": 5.025,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  },
+  {
+    "target": "aster_joint_ui_tests",
+    "exit_code": 0,
+    "seconds": 27.386,
+    "passed": 36,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  },
+  {
+    "target": "aster_rewrite_tests",
+    "exit_code": 0,
+    "seconds": 10.026,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  },
+  {
+    "target": "aster_linked_input_tests",
+    "exit_code": 0,
+    "seconds": 11.667,
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0,
+    "sanitizer_diagnostic": false
+  }
+]

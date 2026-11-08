@@ -1,0 +1,210 @@
+{
+  "version": "1.2.0-alpha.14",
+  "date": "2026-11-07",
+  "status": "passed_with_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression_entry": "python tools/release/run_tests.py <build>",
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.519,
+      "log": "logs/aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.568,
+      "log": "logs/aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 79.891,
+      "log": "logs/aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.467,
+      "log": "logs/aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 75.624,
+      "log": "logs/aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.952,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.726,
+      "log": "logs/aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.625,
+      "log": "logs/aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.92,
+      "log": "logs/aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 12.047,
+      "log": "logs/aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 24.372,
+      "log": "logs/aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 7.547,
+      "log": "logs/aster_update_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 2012,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "QtTest data rows including initialization/cleanup; this run only, not added to historical validation.",
+  "python_checks": {
+    "release_tests_executed": 106,
+    "failures": 0,
+    "skipped_classes": 1,
+    "unexecuted_methods": 2,
+    "skip_reason": "Homebrew Ruby query test class requires Ruby, unavailable here; macOS CI uses Homebrew Ruby.",
+    "help_generator_tests_executed": 6,
+    "help_generator_failures": 0
+  },
+  "shell_syntax": {
+    "scripts": [
+      "package_linux.sh",
+      "package_macos.sh",
+      "linux_app_run.sh"
+    ],
+    "command": "bash -n",
+    "status": "passed"
+  },
+  "changes": [
+    "Regression executable stdout/stderr streamed directly to per-target logs.",
+    "Missing executables, launch errors, timeouts and interrupts are recorded; ordinary failures do not discard remaining target diagnostics.",
+    "Summary reset at start and atomically checkpointed after each target; interruption stops subsequent targets and fails the run.",
+    "Per-target --timeout option defaults to 900 seconds and rejects nonpositive values.",
+    "Current documentation version headers and candidate commands checked in the release unit suite.",
+    "Quick start, release-maintenance and dependency-material instructions updated from a stale alpha.10 label; native acceptance sequence clarified."
+  ],
+  "new_tests": {
+    "runner": 9,
+    "current_version": 2,
+    "coverage": [
+      "Missing executable then successful next target.",
+      "Timeout partial output and continuation; real Python subprocess timeout retains UTF-8 output.",
+      "Launch failure, abnormal exit, skipped QtTest row, missing totals, multi-suite totals and Windows .exe discovery.",
+      "Summary checkpoint order, interruption, timeout option validation.",
+      "Current version in document headers/status and no stale candidate in release commands."
+    ]
+  },
+  "reproduction": {
+    "runner_before_fix": "logs/runner-before.txt",
+    "version_before_fix": "logs/version-before.txt",
+    "description": "Before the fix, missing/timeout cases fail (two tests), and current version checks identify six stale header/example assertions. Historical documents are excluded from current-header enforcement."
+  },
+  "unchanged": [
+    "All src/ desktop and scientific implementations are byte-identical to alpha.13.",
+    "Workflow, computation budgets and database formats.",
+    "Windows packaging remains a directory; source export remains a directory with internal manifest, without ZIP or standalone .sha256.",
+    "Native Linux/macOS packaging scripts and GitHub workflow."
+  ],
+  "scope": "A release-tool and documentation update. Existing registered Qt tests run once through the updated runner for end-to-end collection; no new independent algorithm accuracy or performance campaign.",
+  "remaining": [
+    "Windows/MSVC and macOS native build/window/package acceptance.",
+    "Final Linux package acceptance on the supported baseline, with display and clean-host dependencies.",
+    "PowerShell packaging script cannot execute here (PowerShell unavailable); Python/static layout tests do not substitute for a Windows package run.",
+    "Two Ruby/Homebrew query tests deferred to macOS/Ruby.",
+    "Final matching source/dependency artifacts and release publication checks; no remote publication performed."
+  ]
+}

@@ -3,12 +3,12 @@
 #ifndef ASTER_PLOT_WORKSPACE_H
 #define ASTER_PLOT_WORKSPACE_H
 #include "ui/results/plot_view.h"
+#include "ui/results/plot_layout_widget.h"
 #include "ui/exports/figure_export.h"
 #include "io/database/output_reference.h"
 #include <QPointer>
 #include <QVector>
 class QTabWidget;
-class QGridLayout;
 class QThread;
 namespace aster::ui
 {
@@ -21,13 +21,24 @@ class PlotWorkspace : public QWidget
         Current,
         Subplot,
         Page,
-        Overlay
+        Overlay,
+        Replace,
+        Separate
     };
     explicit PlotWorkspace(QWidget *parent = nullptr);
     ~PlotWorkspace() override;
     PlotView *currentView() const;
     OutputReference currentReference() const;
+    bool currentIsEmpty() const;
+    bool canOverlaySelection(const QVector<OutputReference> &references) const;
     void open(const OutputReference &reference, Target target = Target::Current);
+    // Navigation reuses an existing primary output; it never replaces a figure.
+    void openDefault(const OutputReference &reference);
+    void setDefaultPlotNewPage(bool enabled) { m_defaultPlotNewPage = enabled; }
+    // Batch commands freeze stable references and reject capacity/type errors
+    // before changing pages. Overlay/replacement commit only after successful I/O.
+    void openBatch(const QVector<OutputReference> &references, Target target);
+    QString destinationLabel() const;
     void closePage(int index);
     void closeSubplot();
     void reset();
@@ -49,7 +60,8 @@ class PlotWorkspace : public QWidget
     struct Cell
     {
         QUuid id = QUuid::createUuid();
-        QVector<OutputReference> refs;
+        QVector<OutputReference> refs, pendingRefs;
+        bool replacing = false;
         PlotStyle style;
         bool saved = false;
         QPointer<PlotView> view;
@@ -61,6 +73,9 @@ class PlotWorkspace : public QWidget
         QString label;
         QVector<Cell> cells;
         QPointer<QWidget> widget;
+        QPointer<PlotLayoutWidget> host;
+        PlotArrangement arrangement;
+        bool customArrangement = false;
     };
     struct Job
     {
@@ -69,16 +84,23 @@ class PlotWorkspace : public QWidget
         QVector<OutputReference> refs;
         PlotRequest request;
         bool refine = false;
+        bool transaction = false, replacing = false;
     };
+    void openReferences(const QVector<OutputReference> &references, Target target);
     void activate(int index);
     void build();
+    void reflow(Page &page);
     void queue(Cell &cell, bool refine = false);
     void pump();
+    void invalidate(Cell &cell);
+    void clearCell(QUuid cell);
+    void showEmpty(Cell &cell);
     void select(QUuid cell);
     void store();
     QTabWidget *m_tabs;
     QVector<Page> m_pages;
     int m_active = -1;
+    bool m_defaultPlotNewPage = true;
     QUuid m_selected;
     QVector<Job> m_jobs;
     QThread *m_worker = nullptr;

@@ -1,0 +1,107 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "baseline_patch": "Aster-1.2.0-beta.5-homebrew-materials-fix.zip",
+  "reported_ci": {
+    "platform": "macos-arm64",
+    "commit": "8578d032e706e33116384b59c29753b6f182f342",
+    "ref": "refs/tags/v1.2.0-beta.5.5",
+    "log": "logs-macos-arm64(4).zip",
+    "log_sha256": "6a640be2fab19a088db9e6169497eb253e7d673bf14e9f836a9d243124f66ab0",
+    "compilation": "passed",
+    "qt_test_passed": 2079,
+    "qt_test_failed": 0,
+    "counts_include_initialization_and_cleanup": true,
+    "packaging_failure": "Homebrew API formula does not match the installed formula; restore its original local patches",
+    "failing_component": "brew-gcc 16.2.0",
+    "packaging_complete": false
+  },
+  "diagnosis": {
+    "previous_patch_loaded": true,
+    "previous_validation_gap": "Previous live check simulated a stripped API recipe instead of using the actual bottle formula.",
+    "real_bottle_formula_difference": "After removing the bottle stanza, only the stable source URL differs: ftpmirror.gnu.org/gnu/gcc/... versus ftpmirror.gnu.org/gcc/....",
+    "source_sha256_unchanged": true,
+    "patch_path_and_build_recipe_unchanged": true
+  },
+  "changes": [
+    "Normalize only literal GNU ftpmirror url/mirror directive /gnu/ prefix differences when comparing Homebrew recipes; all other content remains compared.",
+    "Keep full keg version, pinned commit, formula SHA-256, patch SHA-256 and missing-material checks; preserve installed recipe bytes.",
+    "Record original installed formula SHA-256 and comparison policy with patch recovery provenance.",
+    "Remove duplicate /gnu/ prefixes in GNU mirror routing while retaining original upstream URL and expected source digest.",
+    "Include Homebrew formulas, sanitized installation receipts and recovery metadata in CI log artifacts."
+  ],
+  "local_validation": {
+    "platform": "Linux x86_64",
+    "release_tests": {
+      "run": 130,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable for unchanged Homebrew Ruby metadata test class"
+    },
+    "new_regression_tests": 4,
+    "actual_old_provider_reproduction": "Old comparison rejects real bottle formula; updated comparison accepts the known prefix difference and rejects altered source checksums/patch paths.",
+    "actual_bottle": {
+      "bottle_sha256": "8c57a4e5c65c93b90b280e3e761833f946b5a7d186f2067d239af44b71c5a577",
+      "bytes": 164217448,
+      "url": "https://ghcr.io/v2/homebrew/core/gcc/blobs/sha256:8c57a4e5c65c93b90b280e3e761833f946b5a7d186f2067d239af44b71c5a577",
+      "formula_member": "gcc/16.2.0/.brew/gcc.rb",
+      "formula_sha256": "12bfeec69dce50d92fb20869b4aca8b89e7028b962b656303017331ca5daffdf",
+      "verified": true
+    },
+    "actual_gcc_collection": {
+      "component": {
+        "id": "brew-gcc",
+        "version": "16.2.0",
+        "provider": "homebrew-installed-keg",
+        "sources": [
+          {
+            "url": "https://ftpmirror.gnu.org/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz",
+            "checksum_algorithm": "sha256",
+            "expected_checksum": "e6738e29597f733270731aa90600f37ffdc045079dfc27ec7e8192cc81085c3e",
+            "asset": "gcc-e6738e29597f7332.tar.xz",
+            "status": "verified",
+            "retrieved_via": "https",
+            "download_url": "https://mirrors.tuna.tsinghua.edu.cn/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz",
+            "sha256": "e6738e29597f733270731aa90600f37ffdc045079dfc27ec7e8192cc81085c3e",
+            "bytes": 107200820
+          }
+        ],
+        "notices": [
+          "licenses/brew-gcc"
+        ],
+        "recipes": [
+          "recipes/brew-gcc/Patches/gcc/gcc-16.2.0.diff",
+          "recipes/brew-gcc/local-patch-recovery.json",
+          "recipes/brew-gcc/gcc.rb"
+        ]
+      },
+      "notice_files": 61,
+      "formula_sha256": "12bfeec69dce50d92fb20869b4aca8b89e7028b962b656303017331ca5daffdf",
+      "source_url": "https://ftpmirror.gnu.org/gnu/gcc/gcc-16.2.0/gcc-16.2.0.tar.xz",
+      "source_sha256": "e6738e29597f733270731aa90600f37ffdc045079dfc27ec7e8192cc81085c3e",
+      "patches": [
+        {
+          "kind": "local",
+          "path": "Patches/gcc/gcc-16.2.0.diff",
+          "strip": "p1",
+          "sha256": "578a78ae0bc62a02f260b6a20c7f23e71deee16ed644e9cb5619247be4df5a71",
+          "origin": "https://raw.githubusercontent.com/Homebrew/homebrew-core/b0d5f75b388723517600bbdd5651b04ffe172b05/Patches/gcc/gcc-16.2.0.diff"
+        }
+      ],
+      "errors": []
+    },
+    "actual_gcc_collection_scope": "Real bottle formula, real pinned API recipe and patch, complete checksummed GNU source and notice extraction using production Python collection functions. No native Homebrew/Ruby or macOS bundle execution."
+  },
+  "application_code_changed": false,
+  "application_version_changed": false,
+  "windows_rebuild_required": false,
+  "removed_paths": [],
+  "limitations": [
+    "Updated final macOS packaging and signing flow must still complete on native Actions.",
+    "Recipe differences beyond bottle information and the specified GNU prefix remain errors; no arbitrary older recipe substitution.",
+    "Linux remains reported passed by the maintainer; no new Intel or Windows runtime validation this round.",
+    "No remote repository, tag or release was changed."
+  ]
+}

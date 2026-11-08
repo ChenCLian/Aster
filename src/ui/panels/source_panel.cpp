@@ -303,18 +303,9 @@ void SourcePanel::selectRoot(NodeId id)
 }
 void SourcePanel::addFiles(const QStringList &paths)
 {
-    auto id = root();
-    if (!m_document->node(id) || m_document->node(id)->method != "file_source")
-    {
-        auto result = m_document->addRoot("file_source");
-        if (!result.ok())
-            return;
-        id = result.nodeId;
-        selectRoot(id);
-    }
-    auto list = m_document->files(id);
-    list.append(paths);
-    m_document->setFiles(id, list);
+    const auto result = m_document->importFiles(root(), paths);
+    if (!result.ok()) { emit editRejected(result.error); return; }
+    if (result.ok() && !result.nodeId.isNull()) selectRoot(result.nodeId);
 }
 bool SourcePanel::applyCurrentOptions()
 {

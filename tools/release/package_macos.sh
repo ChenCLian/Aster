@@ -110,7 +110,8 @@ if [[ -n "${ASTER_NOTARY_PROFILE:-}" ]]; then
 fi
 cat > "$stage/START_HERE.txt" <<EOF
 Aster $version — macOS $arch
-Move Aster.app to Applications, then open it. No separate Qt installation is needed.
+No installation is required. Extract the package and open Aster.app.
+You can move Aster.app to Applications for convenient access.
 The provided CI build targets macOS 15 or newer. Choose the package for your Mac.
 The default build is ad-hoc signed, without Developer ID signing or notarization.
 Check the release notes for this package's signing status.

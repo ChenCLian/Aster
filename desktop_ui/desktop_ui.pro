@@ -7,6 +7,12 @@ INCLUDEPATH += ../src
 DESTDIR = $$OUT_PWD/../lib
 win32-msvc:QMAKE_CXXFLAGS += /utf-8 /bigobj
 
+SOURCES += ../src/ui/panels/pairing_panel.cpp
+HEADERS += ../src/ui/panels/pairing_panel.h
+SOURCES += ../src/ui/common/popup_placement.cpp ../src/ui/common/output_picker.cpp
+HEADERS += ../src/ui/common/popup_placement.h ../src/ui/common/output_picker.h
+SOURCES += ../src/ui/workflow/node_edit_dialog.cpp
+HEADERS += ../src/ui/workflow/node_edit_dialog.h
 SOURCES += ../src/ui/help/help_dialog.cpp
 HEADERS += ../src/ui/help/help_dialog.h
 
@@ -58,6 +64,8 @@ HEADERS += ../src/ui/services/record_directory_service.h ../src/ui/panels/record
 
 SOURCES += ../src/ui/results/plot_workspace.cpp
 HEADERS += ../src/ui/results/plot_workspace.h
+SOURCES += ../src/ui/results/plot_layout_widget.cpp
+HEADERS += ../src/ui/results/plot_layout_widget.h ../src/ui/results/plot_arrangement.h
 
 SOURCES += ../src/ui/panels/axis_details_editor.cpp
 HEADERS += ../src/ui/panels/axis_details_editor.h
@@ -133,3 +141,10 @@ HEADERS += ../src/update/release_version.h ../src/update/release_feed.h ../src/u
 HEADERS += ../src/ui/common/numeric_editor.h ../src/ui/common/section_splitter.h
 HEADERS += ../src/ui/common/choice_editor.h ../src/ui/common/segmented_selector.h \
     ../src/ui/common/plot_axis_hints.h
+
+SOURCES += ../src/ui/panels/joint_input_dialog.cpp
+HEADERS += ../src/ui/panels/joint_input_dialog.h
+
+SOURCES += ../src/ui/results/plot_preset.cpp
+HEADERS += ../src/ui/results/plot_preset.h
+HEADERS += ../src/ui/results/plot_recipe.h ../src/io/database/grid_sampling.h

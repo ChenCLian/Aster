@@ -1,0 +1,191 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.3",
+  "date": "2026-11-06",
+  "stage": "Desktop same-batch pairing, preview, execution, persistence and plotting/export integration",
+  "environment": {
+    "os": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "gui_test_platform": "offscreen"
+  },
+  "desktop_build": "passed",
+  "application_version": "Aster_Workspace 1.2.0-alpha.3",
+  "verification_sequence": "Full ten-target run followed by affected-target reruns: scientific catalogue expectation updated to 54; missing bilingual psd_trend.none labels added and parameter references regenerated. Final summaries use each target latest successful run.",
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 773,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "qt_test_totals": {
+    "passed": 1861,
+    "failed": 0,
+    "skipped": 0
+  },
+  "release_tool_tests": {
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0
+  },
+  "help_generator_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "generated_parameter_references": {
+    "tasks": 54,
+    "parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "status": "current; cross-spectrum is registered in the public task catalogue"
+  },
+  "numerical_core": {
+    "changed_from_alpha_2": false,
+    "regression_passed": 70,
+    "independent_reference_record": "../1.2.0-alpha.2/cross_spectrum_checks.json",
+    "new_reference_data_generated": false
+  },
+  "new_ui_integration_suite": {
+    "passed": 14,
+    "failed": 0,
+    "count_includes_init_and_cleanup": true
+  },
+  "interface_coverage": [
+    "MainWindow: two CSV files, explicit grouping, preview, RunController, database and result page",
+    "Stable source identity across reordering and import-option edits; remove/reimport does not substitute an old member",
+    "Grouping undo/redo follows graph history",
+    "Missing, self, duplicate and out-of-scope pair validation; preview uses only its selected two inputs",
+    "Pair dialog selects actual dataset UUID and upstream output port; same-name candidates are disambiguated",
+    "Dual input preview matches chosen alternative output, handles parameter changes and discards superseded callbacks",
+    "Ordinary descendants after a pair preserve preview selection and pair-level record assembly",
+    "Production batch persistence isolates a bad-grid pair from successful pairs",
+    "Cancelled pending records do not invent algorithm execution history",
+    "Pending numerical payload budget cancels remaining work instead of retaining unbounded unsaved record output",
+    "Cross-spectrum database reload restores full schema, units and masks",
+    "Metric selection preserves appearance, breaks undefined cells and wrapped phase, and handles all-undefined metrics",
+    "Synchronous and asynchronous CSV export retain all eight columns and units; PNG and PDF use the selected metric",
+    "Existing core, analysis, UI, style export, workspace, integration and updater regression suites"
+  ],
+  "visual_review": {
+    "theme": "light",
+    "language": "en",
+    "resolution": "1450x900 main window; 820x420 pair dialog",
+    "screens": [
+      "task with paired preview",
+      "pair management dialog",
+      "stored paired result"
+    ],
+    "platform": "Linux offscreen Qt rendering",
+    "screenshots_in_source_package": false
+  },
+  "fixed_integration_issue": {
+    "issue": "The figure export gateway rejected every Table output, including the typed cross-spectrum table.",
+    "resolution": "Permit the cross_spectrum port through the gateway, then require validated typed data and a renderable metric in PlotView; ordinary tables remain CSV-only.",
+    "regression": "asyncCsvAndDatabaseReload exports the stored pair as PDF; plotMetricMasksAndExport exports PNG and checks phase/style state."
+  },
+  "compatibility": {
+    "existing_numeric_sources_unchanged": true,
+    "local_configuration_unchanged": true,
+    "workflow_graph_format_unchanged": true,
+    "database_schema": 3,
+    "legacy_payload_bytes_unchanged": true,
+    "masked_table_payload_version": 2,
+    "old_1_1_1_can_read_masked_tables": false,
+    "pair_record_snapshot": "Executed result suffix, not a replayable single-input workflow; complete frozen graph and source/group manifest kept in provenance."
+  },
+  "resource_guards": {
+    "scheduler_cached_payload_mib": 256,
+    "pending_record_payload_mib": 512,
+    "process_total_ram_cap": false,
+    "save_failure": "Retain retryable record and cooperatively cancel remaining jobs; running tasks may still complete."
+  },
+  "limitations": [
+    "Windows and macOS native build, actual graphics drivers, input methods and clean-host deployment have not been tested in this stage.",
+    "No claim that all possible algorithms or real-world datasets are verified; this stage exercises the existing regression suites and the listed new interfaces.",
+    "Extended real-data acceptance, save-failure/retry stress testing and large-batch profiling remain later checks.",
+    "No new sanitizer run in alpha.3; alpha.2 numerical sanitizer results have their own narrower scope.",
+    "Same upstream source batch only; no cross-root joins, pair-after-pair grouping, automatic alignment, significance thresholds, MTM cross-spectrum or cross-wavelet.",
+    "Source UUIDs are stable in the current document session and stored in run provenance; this stage does not add project save/load.",
+    "Source manifests preserve references and options, not immutable copies of source-file bytes."
+  ],
+  "logs": "Local workspace and temporary paths replaced with placeholders; test status and totals preserved."
+}

@@ -1,0 +1,214 @@
+{
+  "version": "1.2.0-alpha.19",
+  "base_version": "1.2.0-alpha.18",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.468,
+      "log": "logs/initial-aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.62,
+      "log": "logs/initial-aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "status": "passed",
+      "seconds": 70.281,
+      "log": "logs/initial-aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 0.418,
+      "log": "logs/initial-aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 782,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 74.99,
+      "log": "logs/initial-aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 10.588,
+      "log": "logs/initial-aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_rewrite_tests",
+      "exit_code": 0,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 2.784,
+      "log": "logs/initial-aster_rewrite_tests.txt"
+    },
+    {
+      "target": "aster_linked_input_tests",
+      "exit_code": 0,
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 3.113,
+      "log": "logs/initial-aster_linked_input_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 13.566,
+      "log": "logs/initial-aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 37.392,
+      "log": "logs/final-aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 85,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "status": "passed",
+      "seconds": 24.317,
+      "log": "logs/initial-aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "status": "passed",
+      "seconds": 8.108,
+      "log": "logs/initial-aster_update_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 2043,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "Latest result for each of 12 registered executables: the complete regression run plus a corrected workspace-test rerun. QtTest initialization and cleanup included. Repeated runs are not added.",
+  "regression_followup": {
+    "initial_workspace_failures": 4,
+    "cause": "Tests assumed QObject child enumeration followed left-to-right visual order; QSplitter construction changed that order. Diagnostic coordinates confirmed the clicked title selected its own correct subplot.",
+    "correction": "Test title lookup now sorts by visible y/x coordinates before selecting a requested visual position. Production code did not change after the complete regression run.",
+    "rerun": "All 64 workspace cases passed; initial failures and diagnostic log are retained."
+  },
+  "behavior_verified": [
+    "Default three-cell layout spans the bottom row; four-cell default is two by two",
+    "4000 deterministic model transitions preserve all four identities and tile the page without overlap",
+    "Title-center swaps, panel-edge splits, whole-page edge placement, cancellation, external/cross-page payload rejection and stale removed identity rejection",
+    "Resize handles defer actual child geometry until release; double-click equalizes; narrow windows scroll",
+    "PlotView/data-buffer identities survive moves; style, viewport and pending overlay commit remain attached to their cell",
+    "Current-page selection and destination numbering follow stable cell identity and visual order",
+    "Inactive pages release plotting widgets and restore layout/proportions; deletion/reset/re-add preserve valid topology",
+    "Four synthetic million-cell heatmaps remain present with logarithmic reversed period axes after repeated layout changes; refresh settles without idle looping",
+    "Whole-page PNG/PDF use normalized areas and proportions; asynchronous export equals direct rendering at per-cell resolutions",
+    "Export snapshot is unaffected by later UI edits; invalid/overlapping/incomplete/non-finite layouts do not overwrite existing files",
+    "Bilingual labels, help resources and generated parameter references remain consistent"
+  ],
+  "performance": {
+    "tree_transitions": 4000,
+    "tree_transitions_ms": 18,
+    "heatmap_original_dimensions": [
+      4096,
+      256
+    ],
+    "visible_heatmaps": 4,
+    "successive_layout_submissions": 12,
+    "submission_ms": 807,
+    "settled_ms": 1109,
+    "read_completions": 4,
+    "scope": "Synthetic display fixture, Release/offscreen. Submission timing excludes deferred painting/reads; settle timing includes test waits. Buffers/PlotView identities retained across structural moves. Divider moves defer actual panel resizing until release. No idle read loop observed. Not an algorithm benchmark or a guarantee for native GUI performance."
+  },
+  "visual_review": [
+    "Three plots with top full-width span and unequal heights",
+    "Default bottom full-width third plot",
+    "Four-heatmap arrangement",
+    "PNG/PDF with 60/40 row proportions and unequal lower columns"
+  ],
+  "python_checks": {
+    "release_tests": 106,
+    "help_tests": 6,
+    "failed": 0,
+    "skipped_classes": 1,
+    "skip_reason": "Ruby/Homebrew query tests require Ruby, unavailable in this environment."
+  },
+  "unchanged": [
+    "Numerical algorithms",
+    "Scientific limits",
+    "Database schema/payloads",
+    "Sampling and plot-data loader",
+    "Output grouping recipes and runtime plotting presets",
+    "Dependency and release scripts",
+    "Historical validation evidence"
+  ],
+  "remaining": [
+    "Native Windows/MSVC and macOS builds and title-drag acceptance, including Esc and high-DPI/multiple displays",
+    "Final native binary and dependency packaging checks"
+  ],
+  "layout_scope": "Same-page title dragging; four subplots per page and 32 pages total. Layout is plotting-session state, not an analysis database field."
+}

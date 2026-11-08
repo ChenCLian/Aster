@@ -1,0 +1,164 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.7",
+  "baseline": "1.2.0-alpha.6",
+  "date": "2026-11-07",
+  "timezone": "UTC",
+  "scope": "Unified atomic editing of graph, layout, parameters, source bindings and pairs; complete history and UI integration",
+  "environment": {
+    "os": "Linux x86_64, Debian 13",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "rendering": "offscreen",
+    "openblas_threads": 1
+  },
+  "build": {
+    "status": "passed",
+    "type": "Fresh out-of-tree build followed by final incremental rebuild",
+    "application_version": "Aster_Workspace 1.2.0-alpha.7"
+  },
+  "regression_tests": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_core_tests.txt"
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_batch_tests.txt"
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21,
+      "log": "aster_analysis_tests.txt"
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_cross_spectrum_tests.txt"
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 780,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "log": "aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_update_tests.txt"
+    }
+  ],
+  "total_passed": 1907,
+  "total_failed": 0,
+  "total_skipped": 0,
+  "counting": "QtTest totals include suite initialization and cleanup; counts are not a count of independently validated scientific methods.",
+  "new_coverage": [
+    "Compound graph/source/group failure leaves all state and history unchanged",
+    "Prepared candidates are immutable and tied to document identity and revision; undo/redo cannot revive stale edits",
+    "Full-state undo/redo, bounded history, no-op suppression and preservation of redo",
+    "Source removal retains unresolved pair identity; undo restores the original identity and runnable pair",
+    "Unknown/wrong ports, duplicate source/pair identities, self-pairs, invalid topology and batch limits",
+    "Joint batch limits do not introduce a cap on ordinary input lists",
+    "Run locks reject document mutations and invalidate previously prepared edits",
+    "File imports and database source creation commit in one edit; observers see complete state",
+    "File options undo/redo; duplicate imports and unchanged options are no-ops",
+    "Pair/source/parameter compound edits and undo/redo invalidate and restore preview correctly",
+    "Frozen execution manifests and shared immutable numerical buffers remain unchanged"
+  ],
+  "editor_scale_check": {
+    "test": "CoreTests::largeCompoundEdit",
+    "datasets": 10000,
+    "pairs": 9999,
+    "operations": "Initial commit and 10 parameter edits",
+    "elapsed_ms": 198,
+    "numerical_buffers": "Shared immutable DataRef; test verifies pointer identity",
+    "interpretation": "Single measurement in this test environment; excludes algorithm execution, file I/O and whole-window repaint. Not a hardware-independent latency guarantee."
+  },
+  "additional_checks": {
+    "parameter_reference_tasks": 54,
+    "parameter_reference_parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "help_generator_tests": 6,
+    "license_packaging_tests": 2
+  },
+  "compatibility": {
+    "database_schema": 3,
+    "workflow_serialization_unchanged": true,
+    "cross_spectrum_method": 2,
+    "algorithms_parameters_and_budgets_unchanged": true,
+    "local_pri_unchanged": true
+  },
+  "limits": [
+    "No native Windows or macOS execution; final native builds and desktop acceptance remain required.",
+    "Node insertion/replacement UI and cross-node joint inputs are not implemented in this batch.",
+    "History keeps up to 100 effective edits and may retain immutable source data references; this is not a process memory limit.",
+    "Undo does not restore disk file bytes, remove saved database results, or restore viewport/selection state.",
+    "Existing numerical suites were rerun; this batch adds no new independent scientific reference implementation."
+  ],
+  "log_policy": "Final successful regression outputs only; workspace and temporary paths sanitized."
+}

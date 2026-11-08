@@ -4,9 +4,9 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.1.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.2.0-beta.5. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
-Parameter values and output identifiers retain their original program names.
+Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
 ## Contents
 
@@ -18,6 +18,7 @@ Parameter values and output identifiers retain their original program names.
 - [Sort and deduplicate](#m-clean_series)
 - [COCO Monte Carlo test](#m-coco_monte_carlo)
 - [COCO fixed-target scan](#m-coco_scan)
+- [Welch cross-spectrum analysis](#m-cross_spectrum)
 - [Continuous wavelet transform](#m-cwt)
 - [Cycle-count age model](#m-cycle_age_model)
 - [Database Grid](#m-database_grid)
@@ -107,18 +108,18 @@ Default: empty string
 
 Uses the normal import parser: automatic, comma, tab or whitespace. Blank lines and # comments are ignored.
 
-Default: ` auto `
+Default: Automatic (` auto `)
 
-Values: ` auto `, ` comma `, ` tab `, ` whitespace `
+Values: Automatic (` auto `), Comma (` comma `), Tab (` tab `), Whitespace (` whitespace `)
 
 <a id="m-apply_age_model-p-chrono_header"></a>
 ### Header
 
 Auto detection examines the selected columns. Yes consumes the first row; No parses it as data. Invalid numeric rows fail rather than being skipped.
 
-Default: ` auto `
+Default: Auto detect (` auto `)
 
-Values: ` auto `, ` yes `, ` no `
+Values: Auto detect (` auto `), Header present (` yes `), No header (` no `)
 
 <a id="m-apply_age_model-p-chrono_depth_column"></a>
 ### Depth column (1-based)
@@ -161,9 +162,9 @@ Values: ` yr `, ` ka `, ` Ma `
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
 
-Default: ` unspecified `
+Default: Unspecified (` unspecified `)
 
-Values: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 2000 (J2000) (` J2000 `), User-defined relative age (` relative `)
 
 <a id="m-apply_age_model-p-chrono_model_depth_unit"></a>
 ### Control depth unit
@@ -179,9 +180,9 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Default rejects uncovered data without deleting rows. Explicit linear extrapolation extends endpoint secants and reports the count. No automatic resampling follows.
 
-Default: ` reject `
+Default: Reject outside range (` reject `)
 
-Values: ` reject `, ` linear `
+Values: Reject outside range (` reject `), Allow linear extrapolation (` linear `)
 
 Outputs: ` aged_series `, ` age_model `, ` age_intervals `
 
@@ -196,9 +197,9 @@ Global test under the AR1 null, nominal level 5%, over all positive frequencies.
 
 Standard precision uses 199 analysis simulations; fine uses 999 and takes longer. Parameter screening uses 999 simulations.
 
-Default: ` standard `
+Default: Standard (199 analysis simulations) (` standard `)
 
-Values: ` standard `, ` fine `
+Values: Standard (199 analysis simulations) (` standard `), Fine (999; slower) (` fine `)
 
 <a id="m-ar1_global-p-ar1_seed"></a>
 ### Reference simulation seed
@@ -297,9 +298,9 @@ Sorts X/Y pairs by increasing X and merges duplicate X values using the selected
 
 Duplicate means exactly equal X, not repeated Y. Average combines Y; first/last refer to original input order.
 
-Default: ` average `
+Default: Average (` average `)
 
-Values: ` average `, ` first `, ` last `, ` error `
+Values: Average (` average `), Keep first Y (` first `), Keep last Y (` last `), Report error (` error `)
 
 Outputs: ` series `
 
@@ -323,9 +324,9 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
-Default: ` manual `
+Default: Manual periods (` manual `)
 
-Values: ` manual `, ` waltham_midpoint `
+Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
 
 <a id="m-coco_monte_carlo-p-coco_periods"></a>
 ### Periods (ka)
@@ -404,18 +405,18 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` none `, ` mean `, ` linear `
+Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
 
 <a id="m-coco_monte_carlo-p-coco_null"></a>
 ### Reference model
 
 Default: fixed-parameter Gaussian AR(1); rho=0 is white noise. Random spectral peaks are a literature reference model, not a general time-series false-positive guarantee.
 
-Default: ` fixed_ar1 `
+Default: Fixed-parameter AR(1) (` fixed_ar1 `)
 
-Values: ` fixed_ar1 `, ` random_peaks `
+Values: Fixed-parameter AR(1) (` fixed_ar1 `), Random peaks (reference model) (` random_peaks `)
 
 <a id="m-coco_monte_carlo-p-coco_rho"></a>
 ### AR(1) coefficient rho
@@ -431,7 +432,7 @@ Shown when: ` coco_null ` = ` fixed_ar1 `
 <a id="m-coco_monte_carlo-p-coco_null_peaks"></a>
 ### Reference peak count
 
-0: count strict local periodogram peaks, excluding DC/Nyquist; otherwise use this count. Random positions and heights, width 2 Rayleigh. No red-noise subtraction; not a replica of all Acycle options.
+0: count strict local periodogram peaks, excluding zero and Nyquist frequencies; otherwise use the specified count. Simulated peaks have random positions and heights, with width 2 Rayleigh frequency-resolution units. No red-noise background subtraction.
 
 Default: ` 0 `
 
@@ -488,9 +489,9 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
-Default: ` manual `
+Default: Manual periods (` manual `)
 
-Values: ` manual `, ` waltham_midpoint `
+Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
 
 <a id="m-coco_scan-p-coco_periods"></a>
 ### Periods (ka)
@@ -569,11 +570,64 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` none `, ` mean `, ` linear `
+Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
 
 Outputs: ` correlation `, ` scan_diagnostics `, ` best_observed `, ` best_target `, ` target_periods `
+
+
+<a id="m-cross_spectrum"></a>
+## Welch cross-spectrum analysis
+
+Estimate cross spectra, magnitude-squared coherence and phase for explicitly paired, aligned series from ordinary nodes in the same workspace. Phase uses conj(A) × B along increasing numeric X. No significance threshold is supplied.
+
+<a id="m-cross_spectrum-p-psd_window"></a>
+### Segment points
+
+Samples per segment. At least two complete segments are required; the length is not shortened automatically.
+
+Default: ` 256 `
+
+Range: ` 8 ≤ psd_window ≤ 262144 `
+
+<a id="m-cross_spectrum-p-psd_overlap"></a>
+### Overlap points
+
+Overlapping samples between segments; must be smaller than the segment length.
+
+Default: ` 128 `
+
+Range: ` 0 ≤ psd_overlap ≤ 262143 `
+
+<a id="m-cross_spectrum-p-psd_nfft"></a>
+### FFT points
+
+0 uses the segment length. A specified value must be at least the segment length; zero padding does not improve original resolving power.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ psd_nfft ≤ 262144 `
+
+<a id="m-cross_spectrum-p-psd_taper"></a>
+### Window function
+
+Periodic Hann or rectangular window; both series use the same window and density normalization.
+
+Default: Periodic Hann (` hann `)
+
+Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
+
+<a id="m-cross_spectrum-p-psd_trend"></a>
+### Segment detrending
+
+Remove the mean or a linear trend from each segment, or leave each segment unchanged. With rectangular-window mean or linear removal, DC coherence and phase are undefined.
+
+Default: Remove mean (` mean `)
+
+Values: None (` none `), Remove mean (` mean `), Remove linear trend (` linear `)
+
+Outputs: ` cross_spectrum `
 
 
 <a id="m-cwt"></a>
@@ -584,20 +638,20 @@ Continuous wavelet time-frequency analysis of regularly sampled data, with power
 <a id="m-cwt-p-method"></a>
 ### Wavelet convention
 
-The Acycle convention displays variance-normalized, scale-corrected power; Torrence–Compo displays raw wavelet power. Their values have different meanings.
+Default variance-normalized, scale-corrected mode divides power by the input sample variance and wavelet scale. Raw-power mode displays squared wavelet-coefficient magnitude. Scale ranges and AR(1) background estimates also differ. Switching modes recalculates the result.
 
-Default: ` acycle_cwt `
+Default: Variance-normalized, scale-corrected (` acycle_cwt `)
 
-Values: ` acycle_cwt `, ` torrence_compo `
+Values: Variance-normalized, scale-corrected (` acycle_cwt `), Raw power (Torrence–Compo) (` torrence_compo `)
 
 <a id="m-cwt-p-mother"></a>
 ### Mother wavelet
 
 Morlet, Paul or DOG mother wavelet. Scale-to-period conversion and cone-of-influence conventions depend on the mother.
 
-Default: ` morlet `
+Default: Morlet (` morlet `)
 
-Values: ` morlet `, ` paul `, ` dog `
+Values: Morlet (` morlet `), Paul (` paul `), Derivative of Gaussian (DOG) (` dog `)
 
 <a id="m-cwt-p-parameter"></a>
 ### Wavelet parameter
@@ -655,18 +709,18 @@ Values: ` yr `, ` ka `, ` Ma `
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
 
-Default: ` unspecified `
+Default: Unspecified (` unspecified `)
 
-Values: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 2000 (J2000) (` J2000 `), User-defined relative age (` relative `)
 
 <a id="m-cycle_age_model-p-cycle_period_source"></a>
 ### Period source
 
 Manual by default. Model midpoint uses the selected Waltham envelope midpoint, converted from ka to the Age unit. It is not a measured period.
 
-Default: ` manual `
+Default: Manual duration (` manual `)
 
-Values: ` manual `, ` model_midpoint `
+Values: Manual duration (` manual `), Target model midpoint (` model_midpoint `)
 
 <a id="m-cycle_age_model-p-cycle_period"></a>
 ### Cycle duration
@@ -695,9 +749,9 @@ Shown when: ` cycle_period_source ` = ` model_midpoint `
 
 Obliquity and four climatic-precession components vary with age. Five eccentricity frequency envelopes are fixed approximations from Table 1.
 
-Default: ` obliquity `
+Default: Obliquity (` obliquity `)
 
-Values: ` obliquity `, ` p1 `, ` p2 `, ` p3 `, ` p4 `, ` e405 `, ` e95 `, ` e124 `, ` e99 `, ` e131 `
+Values: Obliquity (` obliquity `), Climatic precession P1 (` p1 `), Climatic precession P2 (` p2 `), Climatic precession P3 (` p3 `), Climatic precession P4 (` p4 `), Long eccentricity (~405 ka) (` e405 `), Eccentricity (~95 ka) (` e95 `), Eccentricity (~124 ka) (` e124 `), Eccentricity (~99 ka) (` e99 `), Eccentricity (~131 ka) (` e131 `)
 
 Shown when: ` cycle_period_source ` = ` model_midpoint `
 
@@ -706,9 +760,9 @@ Shown when: ` cycle_period_source ` = ` model_midpoint `
 
 Choose peaks or troughs of a suitable signal; filter explicitly beforehand if needed. Flat tops/bottoms count once, at the central sample (left of two central samples). Endpoints are excluded.
 
-Default: ` peak `
+Default: Peaks (` peak `)
 
-Values: ` peak `, ` trough `
+Values: Peaks (` peak `), Troughs (` trough `)
 
 <a id="m-cycle_age_model-p-cycle_min_relief"></a>
 ### Minimum local relief
@@ -731,11 +785,11 @@ Range: ` 0 ≤ cycle_min_distance ≤ 1000000000000 `
 <a id="m-cycle_age_model-p-cycle_first_age_mode"></a>
 ### First marker age
 
-Default is one full period, matching Acycle Build Age Model. Specify an absolute or relative first age explicitly when a dated marker is available.
+By default, the first marker is assigned an age of one full period. Choose a specified age to enter an absolute or relative age when a dated marker is available.
 
-Default: ` one_period `
+Default: One full period (` one_period `)
 
-Values: ` one_period `, ` specified `
+Values: One full period (` one_period `), Specified age (` specified `)
 
 <a id="m-cycle_age_model-p-cycle_first_age"></a>
 ### Specified first age
@@ -841,9 +895,9 @@ Orbital eccentricity. La2010 covers 0–249999 ka and ZB covers 0–300000 ka; t
 
 La2010 native spacing: 1 ka; ZB: 1.6 ka. Only eccentricity is supplied; no tilt/precession is borrowed from other solutions. Treat phases earlier than ~50 Ma (La2010) or ~66 Ma (ZB) with caution.
 
-Default: ` la2010a `
+Default: La2010a (` la2010a `)
 
-Values: ` la2010a `, ` la2010b `, ` la2010c `, ` la2010d `, ` zb18a `, ` zb20a `, ` zb20b `, ` zb20c `, ` zb20d `
+Values: La2010a (` la2010a `), La2010b (` la2010b `), La2010c (` la2010c `), La2010d (` la2010d `), ZB18a (` zb18a `), ZB20a (` zb20a `), ZB20b (` zb20b `), ZB20c (` zb20c `), ZB20d (` zb20d `)
 
 <a id="m-eccentricity_source-p-orbit_start_ka"></a>
 ### Start age (ka)
@@ -956,9 +1010,9 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
-Default: ` manual `
+Default: Manual periods (` manual `)
 
-Values: ` manual `, ` waltham_midpoint `
+Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
 
 <a id="m-evolution_coco-p-coco_periods"></a>
 ### Periods (ka)
@@ -1037,9 +1091,9 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` none `, ` mean `, ` linear `
+Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
 
 <a id="m-evolution_coco-p-ecoco_window"></a>
 ### Window samples
@@ -1099,9 +1153,9 @@ Range: ` 0 ≤ evo_nfft ≤ 262144 `
 
 Each window removes its mean or fitted linear trend before spectral estimation.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` mean `, ` linear `
+Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
 <a id="m-evolution_fft-p-evo_frequency_ratio"></a>
 ### Maximum frequency ratio
@@ -1117,9 +1171,9 @@ Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
 
 Periodic Hann or rectangular taper, normalized by its squared-energy sum for PSD units.
 
-Default: ` hann `
+Default: Periodic Hann (` hann `)
 
-Values: ` hann `, ` rectangular `
+Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 
 Outputs: ` power_map `, ` mean_spectrum `
 
@@ -1161,9 +1215,9 @@ Range: ` 0 ≤ evo_nfft ≤ 262144 `
 
 Each window removes its mean or fitted linear trend before spectral estimation.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` mean `, ` linear `
+Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
 <a id="m-evolution_mtm-p-evo_frequency_ratio"></a>
 ### Maximum frequency ratio
@@ -1205,18 +1259,18 @@ Range: ` 0 ≤ psd_nfft ≤ 262144 `
 
 One-sided physical PSD normalized by the sum of squared window weights; periodic Hann by default.
 
-Default: ` hann `
+Default: Periodic Hann (` hann `)
 
-Values: ` hann `, ` rectangular `
+Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 
 <a id="m-fft_spectrum-p-psd_trend"></a>
 ### Segment detrending
 
 FFT detrends the full record; Welch detrends each segment before estimating its spectrum.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` mean `, ` linear `
+Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
 Outputs: ` spectrum `
 
@@ -1233,7 +1287,7 @@ Edit file-reading settings in the input panel. Displayed column numbers start at
 
 Selects the column delimiter or automatic detection. File-reading options are configured per file in the input panel.
 
-Values: ` auto `, ` comma `, ` tab `, ` whitespace `
+Values: Automatic (` auto `), Comma (` comma `), Tab (` tab `), Whitespace (` whitespace `)
 
 <a id="m-file_source-p-header"></a>
 ### First data line is header
@@ -1368,9 +1422,9 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
-Default: ` solar_longitude `
+Default: Solar longitude (` solar_longitude `)
 
-Values: ` solar_longitude `, ` calendar_365 `
+Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
 
 <a id="m-insolation_map-p-month_start"></a>
 ### Start month
@@ -1490,9 +1544,9 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
-Default: ` solar_longitude `
+Default: Solar longitude (` solar_longitude `)
 
-Values: ` solar_longitude `, ` calendar_365 `
+Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
 
 <a id="m-insolation_source-p-month_start"></a>
 ### Start month
@@ -1581,9 +1635,9 @@ Range: ` 0 ≤ target_age_ma ≤ 4000 `
 
 Obliquity and four climatic-precession components vary with age. Five eccentricity frequency envelopes are fixed approximations from Table 1.
 
-Default: ` obliquity `
+Default: Obliquity (` obliquity `)
 
-Values: ` obliquity `, ` p1 `, ` p2 `, ` p3 `, ` p4 `, ` e405 `, ` e95 `, ` e124 `, ` e99 `, ` e131 `
+Values: Obliquity (` obliquity `), Climatic precession P1 (` p1 `), Climatic precession P2 (` p2 `), Climatic precession P3 (` p3 `), Climatic precession P4 (` p4 `), Long eccentricity (~405 ka) (` e405 `), Eccentricity (~95 ka) (` e95 `), Eccentricity (~124 ka) (` e124 `), Eccentricity (~99 ka) (` e99 `), Eccentricity (~131 ka) (` e131 `)
 
 Outputs: ` target_period `, ` lunar_distance `, ` earth_day `, ` mean_obliquity `, ` axial_precession `
 
@@ -1814,9 +1868,9 @@ https://doi.org/10.1594/PANGAEA.132801
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
 
-Default: ` age `
+Default: Published age model (` age `)
 
-Values: ` age `, ` depth `
+Values: Published age model (` age `), Composite depth (` depth `)
 
 Outputs: ` series `
 
@@ -1833,9 +1887,9 @@ https://doi.org/10.1594/PANGAEA.60254
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
 
-Default: ` age `
+Default: Published age model (` age `)
 
-Values: ` age `, ` depth `
+Values: Published age model (` age `), Composite depth (` depth `)
 
 Outputs: ` series `
 
@@ -1852,9 +1906,9 @@ https://doi.org/10.1594/PANGAEA.60254
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
 
-Default: ` age `
+Default: Published age model (` age `)
 
-Values: ` age `, ` depth `
+Values: Published age model (` age `), Composite depth (` depth `)
 
 Outputs: ` series `
 
@@ -1871,9 +1925,9 @@ https://doi.org/10.1594/PANGAEA.743431
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
 
-Default: ` age `
+Default: Published age model (` age `)
 
-Values: ` age `, ` depth `
+Values: Published age model (` age `), Composite depth (` depth `)
 
 Outputs: ` series `
 
@@ -1890,9 +1944,9 @@ https://doi.org/10.1594/PANGAEA.743431
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
 
-Default: ` age `
+Default: Published age model (` age `)
 
-Values: ` age `, ` depth `
+Values: Published age model (` age `), Composite depth (` depth `)
 
 Outputs: ` series `
 
@@ -1984,18 +2038,18 @@ Sorts by X, merges duplicate X values and resamples at the specified interval. M
 
 Duplicate means exactly equal X, not repeated Y. Average combines Y; first/last refer to original input order.
 
-Default: ` average `
+Default: Average (` average `)
 
-Values: ` average `, ` first `, ` last `, ` error `
+Values: Average (` average `), Keep first Y (` first `), Keep last Y (` last `), Report error (` error `)
 
 <a id="m-preprocess-p-spacing_mode"></a>
 ### Spacing
 
 Keeps the cleaned sampling positions, or creates a regular grid from the mean, median, minimum, maximum or specified spacing of cleaned X values.
 
-Default: ` median `
+Default: Median interval (` median `)
 
-Values: ` none `, ` mean `, ` median `, ` min `, ` max `, ` fixed `
+Values: No resampling (` none `), Mean interval (` mean `), Median interval (` median `), Minimum interval (` min `), Maximum interval (` max `), Fixed interval (` fixed `)
 
 <a id="m-preprocess-p-spacing"></a>
 ### Fixed interval
@@ -2013,9 +2067,9 @@ Shown when: ` spacing_mode ` = ` fixed `
 
 Linear is the default. Cubic is a natural cubic spline; Akima is a local piecewise cubic method. No method is silently forced.
 
-Default: ` linear `
+Default: Linear (` linear `)
 
-Values: ` linear `, ` cubic `, ` akima `
+Values: Linear (` linear `), Natural cubic spline (` cubic `), Akima (` akima `)
 
 Outputs: ` series `
 
@@ -2118,9 +2172,9 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
-Default: ` solar_longitude `
+Default: Solar longitude (` solar_longitude `)
 
-Values: ` solar_longitude `, ` calendar_365 `
+Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
 
 <a id="m-seasonal_insolation-p-month_start"></a>
 ### Start month
@@ -2219,9 +2273,9 @@ Values: ` yr `, ` ka `, ` Ma `
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
 
-Default: ` unspecified `
+Default: Unspecified (` unspecified `)
 
-Values: ` unspecified `, ` BP1950 `, ` J2000 `, ` relative `
+Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 2000 (J2000) (` J2000 `), User-defined relative age (` relative `)
 
 <a id="m-sedrate_to_age-p-chrono_rate_unit"></a>
 ### Input rate unit
@@ -2244,11 +2298,11 @@ Range: ` -1000000000000 ≤ chrono_first_age ≤ 1000000000000 `
 <a id="m-sedrate_to_age-p-chrono_rate_rule"></a>
 ### Rate between samples
 
-Default left-constant: each interval uses Δt=Δz/r_left; final rate is validated but unused. Linear-rate mode integrates 1/r exactly for a linearly varying rate; it is not the reciprocal of a mean rate.
+Default left-constant: each interval uses its left-end sedimentation rate to calculate the age increment; the final rate is validated but unused. Linear-rate mode integrates the reciprocal of a linearly varying rate, not the reciprocal of a mean rate.
 
-Default: ` left `
+Default: Left-constant (` left `)
 
-Values: ` left `, ` linear_rate `
+Values: Left-constant (` left `), Linear with depth (` linear_rate `)
 
 Outputs: ` age_model `
 
@@ -2263,9 +2317,9 @@ Keeps or removes X/Y samples in a closed interval, preserving row order. No inte
 
 Keeps or removes samples within the interval. Both endpoints are included.
 
-Default: ` keep `
+Default: Keep interval (` keep `)
 
-Values: ` keep `, ` remove `
+Values: Keep interval (` keep `), Remove interval (` remove `)
 
 <a id="m-select_interval-p-interval_lower"></a>
 ### Lower X bound
@@ -2359,9 +2413,9 @@ Subtracts the mean from Y and divides by the selected standard deviation to obta
 
 Subtracts the mean and divides by the standard deviation: N−1 for sample SD, N for population SD. Constant series cannot be standardized.
 
-Default: ` sample `
+Default: Sample (N − 1) (` sample `)
 
-Values: ` sample `, ` population `
+Values: Sample (N − 1) (` sample `), Population (N) (` population `)
 
 Outputs: ` series `
 
@@ -2377,9 +2431,9 @@ Algorithm reference: AstroGeoFit 1.1 (GPL-3.0-or-later). Depth template: PANGAEA
 
 ODP 1260 uses 2679 original irregular depth positions, not measured Fe. Custom grid is uniform in depth.
 
-Default: ` odp1260 `
+Default: ODP 1260 depth template (2679) (` odp1260 `)
 
-Values: ` odp1260 `, ` uniform `
+Values: ODP 1260 depth template (2679) (` odp1260 `), Custom uniform depth (` uniform `)
 
 <a id="m-synthetic_orbital-p-synthetic_start_m"></a>
 ### Start depth (m)
@@ -2497,7 +2551,7 @@ Range: ` 0 ≤ upper_frequency ≤ 1000000000000 `
 <a id="m-taner_filter-p-rolloff_exponent"></a>
 ### Roll-off exponent q
 
-Uses c=10^q in the Acycle corrected-bandpass-v2 convention, with q=12 by default; this is not dB per octave.
+Controls the Taner filter band-edge decay parameter c=10^q, with q=12 by default; this is not dB per octave.
 
 Default: ` 12 `
 
@@ -2543,17 +2597,17 @@ Range: ` 0 ≤ psd_nfft ≤ 262144 `
 
 One-sided physical PSD normalized by the sum of squared window weights; periodic Hann by default.
 
-Default: ` hann `
+Default: Periodic Hann (` hann `)
 
-Values: ` hann `, ` rectangular `
+Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 
 <a id="m-welch_spectrum-p-psd_trend"></a>
 ### Segment detrending
 
 FFT detrends the full record; Welch detrends each segment before estimating its spectrum.
 
-Default: ` mean `
+Default: Remove mean (` mean `)
 
-Values: ` mean `, ` linear `
+Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
 Outputs: ` spectrum `

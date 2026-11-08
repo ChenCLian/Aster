@@ -1,0 +1,100 @@
+********* Start testing of Acceptance *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : Acceptance::initTestCase()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-light-1280)
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-light-1920)
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-dark-1280)
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-dark-1920)
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-light-1280)
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-light-1920)
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-dark-1280)
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-dark-1920)
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 255 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) [Aster import] column_controls_ms= 9
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+FAIL!  : Acceptance::workflowScreenMatrix(zh-light-1280) 'output->width()>=96' returned FALSE. (Output selector width=59)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 67 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(zh-light-1920)
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 160 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) [Aster import] column_controls_ms= 7
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+FAIL!  : Acceptance::workflowScreenMatrix(zh-dark-1280) 'output->width()>=96' returned FALSE. (Output selector width=59)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 166 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) [Aster import] column_controls_ms= 6
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(zh-dark-1920)
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 47 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 190
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 208
+FAIL!  : Acceptance::workflowScreenMatrix(en-light-1280) 'output->width()>=96' returned FALSE. (Output selector width=6)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 24 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+FAIL!  : Acceptance::workflowScreenMatrix(en-light-1920) 'output->width()>=96' returned FALSE. (Output selector width=86)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 29 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 190
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 208
+FAIL!  : Acceptance::workflowScreenMatrix(en-dark-1280) 'output->width()>=96' returned FALSE. (Output selector width=6)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 40 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+FAIL!  : Acceptance::workflowScreenMatrix(en-dark-1920) 'output->width()>=96' returned FALSE. (Output selector width=86)
+   Loc: [../../work/Aster_1.2.0/tools/acceptance/interaction_acceptance.cpp(139)]
+PASS   : Acceptance::cleanupTestCase()
+Totals: 12 passed, 6 failed, 0 skipped, 0 blacklisted, 75093ms
+********* Finished testing of Acceptance *********

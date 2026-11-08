@@ -100,9 +100,11 @@ EditResult WorkflowModel::commit(WorkflowDefinition candidate, NodeId affected, 
     if (!validation.ok()) return {validation.message(), {}, 0};
     for (auto& node : candidate.nodes)
         node.parameters = m_registry.normalize(node.method, node.parameters).parameters;
-    if (m_undo.size() == HistoryLimit) m_undo.removeFirst();
-    m_undo.push_back(m_definition);
-    m_redo.clear();
+    if (m_retainHistory) {
+        if (m_undo.size() == HistoryLimit) m_undo.removeFirst();
+        m_undo.push_back(m_definition);
+        m_redo.clear();
+    }
     m_definition = std::move(candidate);
     return {{}, affected, count};
 }

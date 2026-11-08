@@ -69,11 +69,12 @@ struct CurveStyle
 struct PlotStyle
 {
     QString title;
+    QString crossMetric = "coherence";
     double axisFontSize = 9.5, legendFontSize = 8.5, titleFontSize = 12;
     bool followTheme = true;
     QString backgroundImage;
     bool backgroundKeepAspect = true;
-    int colorGradient = 0; // scientific / grayscale / thermal / polar / spectrum
+    int colorGradient = 4; // blue-green-yellow / grayscale / thermal / polar / rainbow
     bool colorLog = false, colorManual = false, colorInterpolate = false;
     double colorLower = 0, colorUpper = 1;
     bool colorReverse = false, colorScaleVisible = true;

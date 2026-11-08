@@ -1,0 +1,114 @@
+{
+  "version": "1.2.0-alpha.13",
+  "date": "2026-11-07",
+  "status": "passed",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": [
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 781,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 72.495,
+      "log": "logs/aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 9.074,
+      "log": "logs/aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 10.62,
+      "log": "logs/aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "exit_code": 0,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "seconds": 10.336,
+      "log": "logs/aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "seconds": 23.928,
+      "log": "logs/aster_integration_tests.txt"
+    }
+  ],
+  "totals": {
+    "passed": 973,
+    "failed": 0,
+    "skipped": 0
+  },
+  "counting": "QtTest data rows, including initialization and cleanup; final target runs only, not summed with previous versions or diagnostic runs.",
+  "reproduced_before_fix": {
+    "log": "logs/reproduced.txt",
+    "expected_failures": 6,
+    "cases": [
+      "Closing a background page changes the selected subplot.",
+      "Deleted pending overlay/replacement can commit, for active and unloaded pages (four rows).",
+      "Clearing a checked list rebuilds the output model per item."
+    ]
+  },
+  "fixes": [
+    "Closing a background page retains the active page, selected subplot, live buffers and viewport.",
+    "Deleted pending references invalidate the entire candidate transaction, including already-finished I/O callbacks; unaffected committed plots remain.",
+    "Closing a subplot cancels its worker/queued work; completion also updates controls after cancellation.",
+    "Checked-output review closes before record/database changes, including a failed reload.",
+    "Bulk clear updates the model once; metadata references no longer repeatedly scan the same output list."
+  ],
+  "additional_coverage": [
+    "PNG export uses a captured reference/style snapshot while replacement and page changes proceed; pixels compared to an independently rendered captured reference.",
+    "Existing batch plot capacity/atomic rollback/family dedup, cross-spectrum and CWT presentation, manual styles, CSV/PNG/PDF, input preview and workflow integration regressions."
+  ],
+  "performance": {
+    "metadata_browser_1001_outputs_ms": 54,
+    "reference_scans_100x1001_ms": 105
+  },
+  "performance_scope": "Single-run metadata benchmark, not a universal latency guarantee. Invalid payloads prove the 1001-output browser does not decode data. Bulk-clear test counts model rebuilds (at most one). Inactive-page close verifies no unload/reload by PlotView identity. Existing large curve/grid/export/cancellation tests retained. No new algorithm throughput campaign.",
+  "unchanged": [
+    "Scientific algorithms and numerical budgets",
+    "Database schema and numeric payload formats",
+    "Workflow execution and pairing semantics",
+    "Local packaging/export folder rules and dependency configuration template"
+  ],
+  "reproduce": [
+    "Build Release with CONFIG+=help_reference. After changing VERSION, rerun qmake and rebuild version-bearing targets.",
+    "Run the five target executables listed in regression with QT_QPA_PLATFORM=offscreen and OPENBLAS_NUM_THREADS=1.",
+    "python tools/help_reference/generate.py --build <build> --check",
+    "Aster --version"
+  ],
+  "limits": [
+    "No Windows/MSVC or macOS native build/desktop acceptance in this environment.",
+    "Checked plotting outputs remain limited to one record; CSV is single-output export.",
+    "Figure pages/styles are session-local; no restart persistence added.",
+    "No binary packages or remote Release published."
+  ]
+}

@@ -1,4 +1,6 @@
-# Aster 1.1.1 验证记录
+# Aster 1.1.1 历史验证记录
+
+本页保留 1.1.1 的环境、范围与计数；当前开发版本见[验证入口](README.md)。
 
 [结构化记录](validation.json) · [发布说明](../RELEASE_NOTES.md)
 

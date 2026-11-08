@@ -1,0 +1,38 @@
+FE
+======================================================================
+ERROR: test_timeout_preserves_partial_log_and_continues (test_run_tests.RunnerTests.test_timeout_preserves_partial_log_and_continues)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_run_tests.py", line 66, in test_timeout_preserves_partial_log_and_continues
+    code, calls = self.invoke(['one', 'two'], run)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "SOURCE_ROOT/tools/release/test_run_tests.py", line 41, in invoke
+    runner.main()
+  File "SOURCE_ROOT/tools/release/run_tests.py", line 39, in main
+    result = subprocess.run([str(exe)], cwd=build, env=env, text=True,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1204, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "SOURCE_ROOT/tools/release/test_run_tests.py", line 64, in run
+    raise subprocess.TimeoutExpired(args, 900, output=b'PASS: early case\n')
+subprocess.TimeoutExpired: Command '['/tmp/tmpy8c8r6xo/bin/one']' timed out after 900 seconds
+
+======================================================================
+FAIL: test_missing_executable_is_recorded_and_remaining_targets_run (test_run_tests.RunnerTests.test_missing_executable_is_recorded_and_remaining_targets_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "SOURCE_ROOT/tools/release/test_run_tests.py", line 55, in test_missing_executable_is_recorded_and_remaining_targets_run
+    self.assertEqual(calls.call_count, 1)
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.006s
+
+FAILED (failures=1, errors=1)

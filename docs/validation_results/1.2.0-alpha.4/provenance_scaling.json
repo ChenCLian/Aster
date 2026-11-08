@@ -1,0 +1,57 @@
+{
+  "cases": [
+    {
+      "pairs": 4,
+      "before": {
+        "database_bytes": 172032,
+        "elapsed_ms": 20,
+        "max_pair_provenance_bytes": 7568,
+        "pair_provenance_bytes": 30272,
+        "pairs": 4
+      },
+      "after": {
+        "database_bytes": 155648,
+        "elapsed_ms": 20,
+        "max_pair_provenance_bytes": 3391,
+        "pair_provenance_bytes": 13564,
+        "pairs": 4
+      }
+    },
+    {
+      "pairs": 64,
+      "before": {
+        "database_bytes": 7086080,
+        "elapsed_ms": 185,
+        "max_pair_provenance_bytes": 92981,
+        "pair_provenance_bytes": 5950764,
+        "pairs": 64
+      },
+      "after": {
+        "database_bytes": 1359872,
+        "elapsed_ms": 117,
+        "max_pair_provenance_bytes": 3403,
+        "pair_provenance_bytes": 217712,
+        "pairs": 64
+      }
+    },
+    {
+      "pairs": 128,
+      "before": {
+        "database_bytes": 25722880,
+        "elapsed_ms": 679,
+        "max_pair_provenance_bytes": 184418,
+        "pair_provenance_bytes": 23605284,
+        "pairs": 128
+      },
+      "after": {
+        "database_bytes": 2805760,
+        "elapsed_ms": 201,
+        "max_pair_provenance_bytes": 3415,
+        "pair_provenance_bytes": 436240,
+        "pairs": 128
+      }
+    }
+  ],
+  "conditions": "Synthetic 512-sample inputs; 64-sample segments, overlap 32, concurrent jobs 4. One shared reference, ordinary sources and paired records included. Before=alpha.3; after=current test run.",
+  "interpretation": "Single-run local measurements, not hardware benchmarks or general dataset size guarantees. Database/provenance byte counts demonstrate removed duplication; wall times vary with host load."
+}

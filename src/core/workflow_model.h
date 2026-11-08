@@ -41,7 +41,9 @@ struct ChildPreview {
 // All edits are checked before commit; rejected edits have no side effects.
 class WorkflowModel {
 public:
-    explicit WorkflowModel(TaskRegistry registry) : m_registry(std::move(registry)) {}
+    // Compound editors own the history of graph, sources and groups together.
+    explicit WorkflowModel(TaskRegistry registry, bool retainHistory = true)
+        : m_registry(std::move(registry)), m_retainHistory(retainHistory) {}
     const WorkflowDefinition& definition() const { return m_definition; }
     const TaskRegistry& registry() const { return m_registry; }
     EditResult addRoot(const QString& method, GridPosition position, QJsonObject parameters = {});
@@ -64,6 +66,7 @@ private:
     TaskRegistry m_registry;
     WorkflowDefinition m_definition;
     QVector<WorkflowDefinition> m_undo, m_redo;
+    bool m_retainHistory = true;
     static constexpr qsizetype HistoryLimit = 100;
 };
 } // namespace aster

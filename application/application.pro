@@ -6,5 +6,6 @@ TARGET = aster_application
 DESTDIR = $$OUT_PWD/../lib
 INCLUDEPATH += $$PWD/../src
 win32-msvc:QMAKE_CXXFLAGS += /utf-8
-SOURCES += ../src/application/batch_runner.cpp
+SOURCES += ../src/application/batch_runner.cpp ../src/application/joint_batch_runner.cpp
+HEADERS += ../src/application/joint_batch_runner.h
 HEADERS += ../src/application/batch_runner.h ../src/application/execution_defaults.h

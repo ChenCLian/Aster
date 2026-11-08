@@ -1,0 +1,117 @@
+s...  downloading: https://example.org/s.tar
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+.  downloading: https://example.org/source.tar
+.....INCOMPLETE [unknown.so]: Runtime binary has no verified source owner; use the matching build environment or a supplement
+.Collecting brew-fixture 1.0_2: fixture-eb5e369231db963e.tar.gz
+.Collecting brew-fixture 1.0_2: fixture-eb5e369231db963e.tar.gz
+........Collecting fixture 1: same.tar.gz
+...Collecting fixture 1.0: fixture.tar.gz
+...Collecting vcpkg-gsl 1.0: gsl-1bb9b0d66318a448.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-1bb9b0d66318a448.tar.gz
+...INCOMPLETE [vcpkg-blas]: BLAS port contains missing or non-metadata files; cannot treat it as a routing port
+Collecting vcpkg-gsl 1.0: gsl-26204fd0e7094451.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: vcpkg.spdx.json
+Collecting vcpkg-gsl 1.0: gsl-26204fd0e7094451.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: LICENSE.txt
+Collecting vcpkg-gsl 1.0: gsl-26204fd0e7094451.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.INCOMPLETE [vcpkg-blas]: Cannot recover recipe/patches matching installed SPDX; restore the original vcpkg checkout or supply exact recipes
+Collecting vcpkg-gsl 1.0: gsl-26204fd0e7094451.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.INCOMPLETE [vcpkg-gsl]: Required installed metadata file is missing: copyright
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.Collecting vcpkg-gsl 1.0: gsl-26204fd0e7094451.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-26204fd0e7094451.tar.gz
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 404
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+.  metadata unavailable: https://ghfast.top/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Received an HTML page instead of source metadata)
+  metadata unavailable: https://gh-proxy.org/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Invalid Qt SHA-256 response)
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+....  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: IncompleteRead
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+.INCOMPLETE [qt/qtbase]: offline
+INCOMPLETE [qt/qtimageformats]: offline
+INCOMPLETE [qt/qtsvg]: offline
+INCOMPLETE [qt/qttranslations]: offline
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+.  reused verified local dependency source
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+INCOMPLETE [qt]: test failure
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Reused verified dependency materials offline: /tmp/tmpxqh1p21m/materials
+Upload all files from: /tmp/tmpxqh1p21m/materials/release-assets
+Reused verified dependency materials offline: /tmp/tmpxqh1p21m/materials
+Upload all files from: /tmp/tmpxqh1p21m/materials/release-assets
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+........................................
+----------------------------------------------------------------------
+Ran 106 tests in 1.428s
+
+OK (skipped=1)
+/tmp/tmpsvblss4c/export/Aster-source-export-1.1.1
+10 files; contents verified
+/tmp/tmplypnjge3/out/Aster-source-export-1.1.1
+10 files; contents verified

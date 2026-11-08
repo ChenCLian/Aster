@@ -1,0 +1,109 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.10",
+  "date": "2026-11-07",
+  "timezone": "UTC",
+  "scope": "Documentation and embedded help update on the unchanged alpha.10 implementation. No algorithm, parameter, budget, UI behavior or data-format changes.",
+  "status": "passed",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "rendering": "offscreen"
+  },
+  "changed_areas": [
+    "Current README, quick start, FAQ and bilingual operation guides",
+    "Consolidated release notes with dated alpha history separated",
+    "User-facing cross-spectrum method page embedded in Qt resources",
+    "Architecture, extension checklist, previews, table-mask storage and execution contracts",
+    "Build/release and per-platform dependency guidance, version-driven paths, source configuration template",
+    "Current versus retained validation records"
+  ],
+  "embedded_help": {
+    "build": "passed",
+    "compiled_resource_byte_matches": 48,
+    "focused_test_functions": 8,
+    "qttest_passed_including_init_cleanup": 10,
+    "failed": 0,
+    "skipped": 0,
+    "log": "documentation_help.txt",
+    "resource_probe_log": "documentation_resource_probe.txt",
+    "manual_render_check": "New method page and bilingual cross-spectrum guide anchors checked in light/dark themes; representative captures visually inspected"
+  },
+  "parameter_reference": {
+    "tasks": 54,
+    "parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "generation_check": "passed",
+    "generator_unit_tests_passed": 6,
+    "content_changed": false,
+    "logs": [
+      "documentation_reference.txt",
+      "documentation_generator_tests.txt"
+    ]
+  },
+  "documentation_deployment": {
+    "root_markdown_files": 7,
+    "local_links_checked": 37,
+    "status": "passed",
+    "scope": "stage_notices with a temporary Qt directory; documentation deployment only, no native binary or dependency-source collection"
+  },
+  "packaging_checks": {
+    "license_and_notice_tests": 2,
+    "source_and_package_layout_tests": 10,
+    "logs": [
+      "documentation_notice_tests.txt",
+      "documentation_packaging_tests.txt"
+    ],
+    "native_packaging_performed": false
+  },
+  "quick_start_example": {
+    "samples": 512,
+    "spacing": 0.25,
+    "period": 4,
+    "amplitude_a": 2,
+    "amplitude_b": 1,
+    "slope": 0,
+    "cross_spectrum_parameters": "current task defaults",
+    "verified_frequency": 0.25,
+    "coherence": 1,
+    "phase_degrees": 0,
+    "scope": "Actual SineSourceTask and CrossSpectrumTask invocation; a tutorial example, not a new comprehensive numerical benchmark"
+  },
+  "retained_evidence": {
+    "record": "linked_input_ui_checks.json",
+    "total_passed": 1976,
+    "rerun_in_documentation_review": false,
+    "historical_records_unchanged": true
+  },
+  "reproduce": [
+    "Build the root Aster.pro in Release mode with matching dependencies; re-link the desktop and UI tests after help resources change",
+    "python tools/help_reference/generate.py --build <build> --check",
+    "python -m unittest discover -s tools/help_reference -p \"test_*.py\"",
+    "python -m unittest discover -s tools/release -p \"test_license_packaging.py\"",
+    "python -m unittest discover -s tools/release -p \"test_packaging_layout.py\"",
+    "<build>/bin/aster_ui_tests settingsLinksAndKeyboardNavigation helpCatalogueCoverageAndContext helpLinksAndFallback helpLanguageAndChapterReuse helpReferenceVisibleLayout helpDirectoryLinks licenseNoticesOffline parameterHelpTracksSelectedNode"
+  ],
+  "limitations": [
+    "No native Windows/MSVC or macOS package acceptance performed",
+    "No remote Release upload or download availability validation",
+    "External links checked for source relevance where consulted, not comprehensive network availability",
+    "No new scientific error-rate calibration or broad algorithm regression in this documentation review",
+    "La2004/La2010 redistribution basis remains pending"
+  ],
+  "document_integrity": {
+    "markdown_files": 59,
+    "local_and_repository_links_checked": 430,
+    "anchors_checked": 133,
+    "embedded_resources": 48,
+    "external_links_not_availability_checked": 51,
+    "errors": [],
+    "personal_path_findings": [],
+    "intermediate_wording_findings": [],
+    "implementation_unchanged": true
+  }
+}

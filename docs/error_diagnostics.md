@@ -33,7 +33,7 @@ NodeResult.state 仍决定执行状态；NodeResult.error 保留简短兜底字�
 }
 ```
 
-执行器在失败／阻断／取消时补充方法、节点、运行标识和输入来源端口。RunEvent 携带同一 ErrorInfo，经现有 RunController 信号跨线程传递。ResultRepository 在 report 和 error 中保存诊断，使用 schema 3 和数值编码 v1。没有结构化内容的记录显示原错误字符串；旧导入和 X 检查错误提供兼容解释。
+执行器在失败／阻断／取消时补充方法、节点、运行标识和输入来源端口。RunEvent 携带同一 ErrorInfo，经现有 RunController 信号跨线程传递。ResultRepository 在 report 和 error 中保存诊断，使用 schema 3；普通数值载荷为 v1，带有效性掩码的表为 v2。没有结构化内容的记录显示原错误字符串；旧导入和 X 检查错误提供兼容解释。
 
 诊断只承载小型标量元信息：最多 64 个上下文字段，单个字符串最多 1024 字符、底层信息最多 4096 字符；不放数组、嵌套对象和数值数据块。计算输出通过只读 DataRef 传递。
 

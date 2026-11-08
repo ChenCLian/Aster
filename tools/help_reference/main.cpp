@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "processing/scientific_registry.h"
 #include <QCoreApplication>
+#include "aster_version.h"
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QTextStream>

@@ -3,6 +3,7 @@
 #include "ui/common/presentation.h"
 #include "ui/exports/figure_export.h"
 #include "ui/results/plot_view.h"
+#include "ui/results/plot_arrangement.h"
 #include "third_party/qcustomplot/qcustomplot.h"
 #include <QSaveFile>
 #include <QPdfWriter>
@@ -41,6 +42,42 @@ void freezeFonts(QCustomPlot *plot)
 }
 } // namespace
 
+QVector<QRect> figureCellRects(const QVector<FigureCell> &cells, QSize pixels)
+{
+    if (cells.isEmpty() || cells.size() > 4 || pixels.width() <= 0 || pixels.height() <= 0) return {};
+    QVector<QRectF> areas;
+    const bool defaults = std::all_of(cells.cbegin(), cells.cend(), [](const FigureCell &c) { return c.area.isNull(); });
+    if (defaults)
+    {
+        QVector<QUuid> ids;
+        for (int i = 0; i < cells.size(); ++i) ids.push_back(QUuid::createUuid());
+        const auto regions = PlotArrangement::defaults(ids).regions();
+        for (auto id : ids) areas.push_back(regions[id]);
+    }
+    else for (const auto &cell : cells) areas.push_back(cell.area);
+    double total = 0;
+    QVector<QRect> result;
+    for (int i = 0; i < areas.size(); ++i)
+    {
+        const auto &area = areas[i];
+        if (!std::isfinite(area.x()) || !std::isfinite(area.y()) ||
+            !std::isfinite(area.width()) || !std::isfinite(area.height()) ||
+            area.width() <= 0 || area.height() <= 0 || area.left() < 0 || area.top() < 0 ||
+            area.right() > 1.000000001 || area.bottom() > 1.000000001) return {};
+        for (int j = 0; j < i; ++j)
+        {
+            const auto overlap = area.intersected(areas[j]);
+            if (overlap.width() > 1e-9 && overlap.height() > 1e-9) return {};
+        }
+        total += area.width() * area.height();
+        const int left = qRound(area.left() * pixels.width()), top = qRound(area.top() * pixels.height());
+        const int right = qRound(area.right() * pixels.width()), bottom = qRound(area.bottom() * pixels.height());
+        if (right <= left || bottom <= top) return {};
+        result.push_back(QRect(left, top, right - left, bottom - top));
+    }
+    return std::abs(total - 1.) < 1e-8 ? result : QVector<QRect>();
+}
+
 QString validateFigureOptions(const FigureOptions &o)
 {
     if (o.path.trimmed().isEmpty())
@@ -68,25 +105,27 @@ QString renderFigure(const QVector<FigureCell> &cells, const QVector<NodeResult>
         return text("error.invalid_figure_layout");
     for (const auto &cell : cells)
     {
-        if (cell.references.isEmpty() || cell.references[0].kind == "Table")
+        if (cell.references.isEmpty() ||
+            (cell.references[0].kind == "Table" &&
+             cell.references[0].port != "cross_spectrum"))
             return text("error.tables_must_be_exported_as_csv");
         for (const auto &ref : cell.references)
             if (conflictsWithDatabase(o.path, {ref.databasePath}))
                 return text("error.cannot_overwrite_a_source_database");
     }
+    const auto rectangles = figureCellRects(cells, o.pixels);
+    if (rectangles.size() != cells.size()) return text("error.invalid_figure_layout");
     QSaveFile output(o.path);
     if (!output.open(QIODevice::WriteOnly))
         return output.errorString();
-    const int columns = cells.size() > 1 ? 2 : 1, rows = (cells.size() + columns - 1) / columns;
     auto paint = [&](QCPPainter &p) -> QString
     {
         p.fillRect(QRect(QPoint(), o.pixels), o.whitePaper ? Qt::white : cells[0].style.background);
         for (int i = 0; i < cells.size(); ++i)
         {
-            const int left = i % columns * o.pixels.width() / columns,
-                      right = (i % columns + 1) * o.pixels.width() / columns;
-            const int top = i / columns * o.pixels.height() / rows,
-                      bottom = (i / columns + 1) * o.pixels.height() / rows;
+            const auto rect = rectangles[i];
+            const int left = rect.x(), right = left + rect.width();
+            const int top = rect.y(), bottom = top + rect.height();
             const double scale = o.dpi / layoutDpi;
             const int logicalWidth = qRound((right - left) / scale),
                       logicalHeight = qRound((bottom - top) / scale);
@@ -97,9 +136,7 @@ QString renderFigure(const QVector<FigureCell> &cells, const QVector<NodeResult>
             const auto &cell = cells[i];
             auto style = cell.style;
             if (style.title.isEmpty())
-                style.title = QString("ID %1 · %2")
-                                  .arg(cell.references[0].recordId)
-                                  .arg(cell.references[0].port);
+                style.title = defaultPlotTitle(cell.references[0].recordId, cell.references[0].port);
             // Freeze the captured appearance. Export does not mutate the on-screen view.
             style.followTheme = false;
             if (o.whitePaper)

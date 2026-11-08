@@ -1,0 +1,95 @@
+{
+  "version": "1.2.0-beta.5",
+  "date": "2026-11-08",
+  "status": "local_clean_checkout_checks_passed_native_ci_pending",
+  "scope": "Git inclusion, qmake test-header declarations, release regression checks and an outdated UI search assertion; application src/config/resources unchanged.",
+  "incoming_log": {
+    "filename": "logs-linux-x64.zip",
+    "duplicate_filename": "logs-linux-x64(1).zip",
+    "identical_archives": true,
+    "sha256": "ac8e72792b1892d0eaeb7bbc319da9322ae2e59ee513009dc81e190c45a12430",
+    "commit": "3bf678ebe85975dca5e9f958df893dcab239506f",
+    "ref": "refs/tags/v1.2.0-beta5",
+    "environment": "Ubuntu 22.04 / GCC 11.4 / Qt 6.8.3 / Python 3.12.16",
+    "failure": "joint_ui_tests.cpp:31: missing ../linked_input_tests/ui_helpers.h",
+    "release_tooling_before_build": "111 tests, OK in supplied log"
+  },
+  "findings": [
+    {
+      "issue": "The handwritten shared test header matched ui_*.h in .gitignore",
+      "evidence": "Header exists in the cumulative source export and its manifest. A clean git add excludes it under the previous rules. The supplied CI checkout cannot include it.",
+      "fix": "Add a precise .gitignore exception; include the header in both consuming qmake project HEADERS lists; deliver the unchanged helper bytes again."
+    },
+    {
+      "issue": "Full linked-input test execution still expected a raw internal UUID to match a data search",
+      "evidence": "Application search was previously changed to displayed labels; this historical assertion was not updated.",
+      "fix": "Assert that the raw UUID has no match, the displayed name does match, hidden old selection stays unconfirmable, and a document edit closes the obsolete chooser. Application search behavior unchanged."
+    }
+  ],
+  "checks": {
+    "distribution_git_ignore_scan": {
+      "before": [
+        "linked_input_tests/ui_helpers.h"
+      ],
+      "after": []
+    },
+    "explicit_relative_cpp_include_scan": {
+      "missing": []
+    },
+    "new_regression_tests": [
+      "Source export -> Git add retains the shared header while generated UI headers stay ignored",
+      "Distributable C++ sources and qmake files do not match project ignore rules"
+    ],
+    "before_fix_regressions": "Both new source-tracking tests failed on the original .gitignore; passed after the exception.",
+    "release_tooling": {
+      "tests_run": 112,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "Homebrew Ruby query class requires Ruby, unavailable on this Linux host"
+    },
+    "clean_git_checkout": {
+      "files_checked_before_audit_addition": 1110,
+      "all_paths_retained": true,
+      "content_matches_except_declared_git_LF_normalization": true,
+      "compiled_targets": [
+        "aster_joint_ui_tests",
+        "aster_linked_input_tests"
+      ]
+    },
+    "qt_regressions": [
+      {
+        "target": "aster_joint_ui_tests",
+        "exit_code": 0,
+        "totals": [
+          [
+            "37",
+            "0",
+            "0"
+          ]
+        ]
+      },
+      {
+        "target": "aster_linked_input_tests",
+        "exit_code": 0,
+        "totals": [
+          [
+            "53",
+            "0",
+            "0"
+          ]
+        ]
+      }
+    ],
+    "qt_counts_note": "Counts include QtTest initialization and cleanup.",
+    "build_environment": "Linux x86_64 / Qt 6.8.2 / GCC 14.2; rebuilt both test targets from the clean Git checkout. Reused five libraries from the prior build after verifying application src bytes unchanged.",
+    "initial_qt_run": "joint_ui_tests 37 passed; linked_input_tests 52 passed, 1 failed at the obsolete raw UUID assertion. Final linked_input_tests run 53 passed, 0 failed."
+  },
+  "preceding_macos_fix": "macos_ci_checks_20261108.json",
+  "not_claimed": [
+    "Full native GitHub Actions build/package success",
+    "macOS native build or execution",
+    "A new full application or numerical stress-test run"
+  ],
+  "next_step": "Commit all patched files, including .gitignore and linked_input_tests/ui_helpers.h, then start a new workflow on the corrected commit."
+}

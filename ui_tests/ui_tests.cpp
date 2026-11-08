@@ -12,6 +12,8 @@
 #include "ui/common/numeric_editor.h"
 #include "ui/common/error_presenter.h"
 #include "ui/common/choice_editor.h"
+#include "ui/common/output_picker.h"
+#include "ui/common/popup_placement.h"
 #include "ui/panels/plot_style_editor.h"
 #include <QTabBar>
 #include <QToolTip>
@@ -23,6 +25,7 @@
 #include <QVBoxLayout>
 #include "../tests/support/workspace_fixture.h"
 #include <QtTest>
+#include <QTableView>
 #include <QtTest/qtestspontaneevent.h>
 #include <QApplication>
 #include <QListWidget>
@@ -43,6 +46,7 @@
 #include <QDropEvent>
 #include <QContextMenuEvent>
 #include <QTableWidget>
+#include <QTableView>
 #include <QTreeWidget>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -144,8 +148,15 @@ class UiTests : public QObject
     Q_OBJECT
     QList<QUrl> capturedHelpUrls;
   private slots:
+    void outputPopupPlacement();
+    void outputPickerInteraction_data();
+    void outputPickerInteraction();
+    void outputPickerFilteringAndCancellation();
+    void outputPickerWorkflowBinding();
+    void maskedTableDisplay();
     void captureHelpUrl(const QUrl &url) { capturedHelpUrls << url; }
     void settingsLinksAndKeyboardNavigation();
+    void plotDestinationSettings();
     void helpCatalogueCoverageAndContext();
     void helpLinksAndFallback();
     void helpLanguageAndChapterReuse();
@@ -183,6 +194,7 @@ class UiTests : public QObject
     void previewUsesTheSelectedParentPort();
     void generatedSourcePreviewFollowsBranch();
     void generatedSourcePreviewKeepsOutputChoice();
+    void generatedSourcePreviewCanvasRoundTrip();
     void generatedSourcePreviewHandlesTableOutputs();
     void generatedSourcePreviewSurvivesDownstreamFailure();
     void sourceCardFollowsSelectedBranch();
@@ -571,6 +583,33 @@ void UiTests::licenseNoticesOffline()
     ThemeManager::instance().apply(*qApp, "light");
 }
 
+void UiTests::plotDestinationSettings()
+{
+    QTemporaryDir dir;
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        QVERIFY(ThemeManager::instance().apply(*qApp, "light").isEmpty());
+        AppSettings values; values.databasePath = dir.filePath("settings-" + language + ".sqlite");
+        values.language = language;
+        SettingsDialog dialog(values); dialog.show();
+        auto *choice = dialog.findChild<QComboBox *>("settingsDefaultPlotTarget"); QVERIFY(choice);
+        QCOMPARE(choice->currentData().toBool(), true);
+        QVERIFY(dialog.width() < 560);
+        QVERIFY(dialog.rect().contains(QRect(choice->mapTo(&dialog, QPoint()), choice->size())));
+        const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+        if (!capture.isEmpty()) QVERIFY(dialog.grab().save(capture + "/settings_" + language + ".png"));
+        choice->setCurrentIndex(choice->findData(false));
+        dialog.findChild<QDialogButtonBox *>()->button(QDialogButtonBox::Ok)->click();
+        QTRY_COMPARE(dialog.result(), int(QDialog::Accepted));
+        QVERIFY(!dialog.values().defaultPlotNewPage);
+        auto config = dir.filePath("settings-" + language + ".ini");
+        QVERIFY(dialog.values().save(config).isEmpty());
+        SettingsDialog reopened(AppSettings::load(config));
+        QCOMPARE(reopened.findChild<QComboBox *>("settingsDefaultPlotTarget")->currentData().toBool(), false);
+    }
+    setLanguage("zh");
+}
 void UiTests::settingsLinksAndKeyboardNavigation()
 {
     setLanguage("zh");
@@ -1025,6 +1064,7 @@ void UiTests::fullWindowRunUsesEditedParameters()
     // recordLoaded does not imply that the directory query has completed.
     QTRY_COMPARE_WITH_TIMEOUT(window.results()->recordCount(), 3, 10000);
     QVERIFY(window.results()->recordId() > 0);
+    window.results()->selectStep(3, true);
     QTRY_VERIFY(window.results()->plotView()->plottedCount() > 0);
     ResultRepository repo;
     QVERIFY(repo.open(settings.databasePath).isEmpty());
@@ -1036,9 +1076,9 @@ void UiTests::fullWindowRunUsesEditedParameters()
             QCOMPARE(n.parameters["nw"].toInt(), 4);
     auto *steps = window.findChild<QTableWidget *>("resultSteps");
     QCOMPARE(steps->rowCount(), 6);
-    window.results()->selectStep(4);
+    window.results()->selectStep(4, true);
     QTRY_VERIFY(dataAs<GridData>(window.results()->plotView()->currentData()));
-    window.results()->selectStep(5);
+    window.results()->selectStep(5, true);
     QTRY_VERIFY(dataAs<TableData>(window.results()->plotView()->currentData()));
 }
 void UiTests::smallDesktopLayout()
@@ -1206,28 +1246,17 @@ void UiTests::nodeActionsAndFrequencyFilter()
     page.openRecord(id);
     QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
     QTRY_COMPARE(loaded.count(), 1);
-    auto *plot = page.findChild<QToolButton *>("plotNode_0");
-    auto *save = page.findChild<QToolButton *>("saveNode_0");
-    QVERIFY(plot);
-    QVERIFY(save);
-    QVERIFY(save->isEnabled());
-    QVERIFY(!save->menu()->actions().isEmpty());
-    plot->click();
-    QVERIFY(page.plotView()->hasPlot());
+    auto *outputs = page.findChild<QTableView *>("resultOutputs");
+    QVERIFY(outputs);
+    QVERIFY(!page.findChild<QToolButton *>("plotNode_0"));
+    QVERIFY(!page.findChild<QToolButton *>("saveNode_0"));
+    QTRY_VERIFY(page.plotView()->hasPlot()); // Record clicks now open their default output.
+    outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole);
+    page.findChild<QPushButton *>("plotCheckedOutputs")->click();
+    QTRY_VERIFY(page.plotView()->hasPlot());
     const auto csv = dir.filePath("node.csv");
     QSignalSpy exported(page.exporter(), &ExportController::finished);
-    QTimer::singleShot(0, &page,
-                       [&]
-                       {
-                           for (auto *widget : QApplication::topLevelWidgets())
-                               if (auto *dialog = qobject_cast<QFileDialog *>(widget))
-                               {
-                                   dialog->selectFile(csv);
-                                   QMetaObject::invokeMethod(dialog, "accept",
-                                                             Qt::QueuedConnection);
-                               }
-                       });
-    save->menu()->actions().first()->trigger();
+    QVERIFY(page.startCsvExport(csv));
     QTRY_COMPARE(exported.count(), 1);
     QVERIFY(exported.first()[1].toString().isEmpty());
     QFile output(csv);
@@ -1517,6 +1546,37 @@ void UiTests::generatedSourcePreviewKeepsOutputChoice()
     QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
     QCOMPARE(source->currentPort(), QString("axial_precession"));
 }
+void UiTests::generatedSourcePreviewCanvasRoundTrip()
+{
+    QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("source.sqlite");
+    MainWindow window(settings,false); window.resize(1600,950); window.show();
+    auto *doc=window.document();
+    const auto root=doc->addRoot("precession_tilt_source",{{"orbit_end_ka",100.}}).nodeId;
+    auto *panel=window.findChild<WorkflowPreviewPanel*>(); QVERIFY(panel);
+    auto *controller=panel->controller(); auto *source=generatedSourcePlot(*panel);
+    auto *output=panel->findChild<PlotView*>("nodePreviewPlot");
+    auto *ports=panel->findChild<QComboBox*>("previewOutput"); QVERIFY(source&&output&&ports);
+    window.canvas()->nodeSelected(root);
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+    ports->setCurrentIndex(ports->findData("obliquity"));
+    QCOMPARE(source->currentPort(),QString("obliquity"));
+    const auto tilt=doc->addChild(root,ChildSlot::Down,"mtm",{{"ar1",false},{"swa",false}},"obliquity").nodeId;
+    const auto prec=doc->addChild(root,ChildSlot::Right,"mtm",{{"ar1",false},{"swa",false}},"precession").nodeId;
+    QVERIFY(!tilt.isNull()&&!prec.isNull());
+    QSignalSpy edits(doc,&WorkflowDocument::changed);
+    for (const auto &selection : {qMakePair(tilt,QString("obliquity")),qMakePair(root,QString("obliquity")),
+                                 qMakePair(prec,QString("precession")),qMakePair(root,QString("obliquity"))}) {
+        window.canvas()->nodeSelected(selection.first);
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+        QCOMPARE(source->currentPort(),selection.second);
+        QCOMPARE(encodeData(source->currentData()).bytes,
+                 encodeData(controller->result()->original.outputs[selection.second]).bytes);
+        if(selection.first==root) QCOMPARE(output->currentPort(),QString("obliquity"));
+    }
+    QCOMPARE(edits.count(),0);
+    QCOMPARE(doc->node(tilt)->input->output,QString("obliquity"));
+    QCOMPARE(doc->node(prec)->input->output,QString("precession"));
+}
 void UiTests::generatedSourcePreviewSurvivesDownstreamFailure()
 {
     WorkflowDocument doc(makeScientificRegistry());
@@ -1562,7 +1622,7 @@ void UiTests::sourceCardFollowsSelectedBranch()
                                  qMakePair(deep, QString("obliquity"))})
     {
         canvas.setSelectedNode(selection.first);
-        QCOMPARE(sourceCardTooltip(canvas, root), methodLabel(descriptor) + "\n" +
+        QCOMPARE(sourceCardTooltip(canvas, root), "#1 · " + methodLabel(descriptor) + "\n" +
                  portLabel(descriptor, selection.second));
     }
     // No active branch: describe all available outputs instead of implying
@@ -1580,7 +1640,18 @@ void UiTests::sourceCardFollowsSelectedBranch()
     const auto child = doc.addChild(trend, ChildSlot::Down, "affine", {}, alternative).nodeId;
     QVERIFY(!child.isNull());
     canvas.setSelectedNode(child);
-    QCOMPARE(sourceCardTooltip(canvas, trend), methodLabel(transform) + "\n" + portLabel(transform, alternative));
+    QCOMPARE(sourceCardTooltip(canvas, trend), "#6 · " + methodLabel(transform) + "\n" +
+             portLabel(transform, alternative) + "\n" + text("ui.replace_node_hint"));
+    // The paired inputs bypass the placement parent's obliquity branch.
+    // Display only the two actual referenced ports, not that unused branch port.
+    const auto joint = doc.addChild(a, ChildSlot::Right, "cross_spectrum").nodeId;
+    QVERIFY(!joint.isNull());
+    const auto dataset = doc.datasets(root).front().id;
+    QVERIFY(doc.setPairs(joint, {{QUuid::createUuid(), "A/B",
+        {dataset, "axial_precession", root}, {dataset, "precession", root}}}).isEmpty());
+    canvas.setSelectedNode(joint);
+    QCOMPARE(sourceCardTooltip(canvas, root), "#1 · " + methodLabel(descriptor) + "\n" +
+        portLabel(descriptor, "axial_precession") + " · " + portLabel(descriptor, "precession"));
 }
 
 void UiTests::generatedSourcePreviewHandlesTableOutputs()
@@ -3114,4 +3185,221 @@ void UiTests::scientificParametersReachPreviewAndRun()
     const auto workflow = workflowFromJson(loaded.run.workflowSnapshot).definition;
     for (const auto &n : workflow.nodes)
         if (n.id == target) QVERIFY(n.parameters["factor"].toDouble() == 1e-15);
+}
+
+void UiTests::maskedTableDisplay() {
+    PlotView view;
+    view.showOutput(NodeResult::success({{"table",makeData(TableData{{"x","y"},{{0,0},{1,-45},{2,0}},{{1,0},{1,1},{1,1}}})}}),"table");
+    const auto tables=view.findChildren<QTableView*>();QVERIFY(!tables.isEmpty());
+    auto* model=tables.front()->model();QVERIFY(model);
+    QCOMPARE(model->data(model->index(0,1)).toString(),QString::fromUtf8("—"));
+    QCOMPARE(model->data(model->index(1,1)).toString(),QString("-45"));
+    QCOMPARE(model->data(model->index(2,1)).toString(),QString("0"));
+}
+
+void UiTests::outputPopupPlacement()
+{
+    for (const auto &bounds : {QRect(0, 0, 800, 600), QRect(-1600, -200, 900, 700),
+                               QRect(20, 30, 240, 180)})
+        for (const auto &point : {bounds.topLeft(), bounds.topRight(), bounds.bottomLeft(),
+                                  bounds.bottomRight(), bounds.center(), QPoint(9000, -9000)})
+            for (const auto &size : {QSize(360, 240), QSize(1600, 1200), QSize(40, 30)})
+            {
+                const auto geometry = popupGeometry(size, QRect(point, QSize(1, 1)), bounds);
+                QVERIFY(bounds.contains(geometry));
+                QCOMPARE(geometry.size(), size.boundedTo(bounds.size()));
+            }
+    const QRect bounds(0, 0, 800, 600), anchor(100, 100, 120, 40);
+    QCOMPARE(popupGeometry(QSize(360, 200), anchor, bounds).topLeft(), QPoint(100, 146));
+    const auto above = popupGeometry(QSize(360, 200), QRect(700, 550, 80, 40), bounds);
+    QVERIFY(above.bottom() < 550);
+    QCOMPARE(above.right(), bounds.right());
+    QWidget owner;
+    owner.resize(600, 400); owner.show();
+    QMenu menu(&owner);
+    menu.addAction("Fit data"); menu.addAction("Clear plot");
+    const auto edge = owner.mapToGlobal(owner.rect().bottomRight());
+    showMenuWithinWindow(&menu, &owner, QRect(edge, QSize(1, 1)));
+    QTRY_VERIFY(menu.isVisible());
+    QVERIFY(popupBounds(&owner, QRect(edge, QSize(1, 1))).contains(menu.geometry()));
+    QVERIFY(menu.font().pointSizeF() >= 11);
+    menu.close();
+}
+void UiTests::outputPickerInteraction_data()
+{
+    QTest::addColumn<QString>("language");
+    QTest::addColumn<QString>("theme");
+    for (const auto &language : {QString("zh"), QString("en")})
+        for (const auto &theme : {QString("light"), QString("dark")})
+            QTest::newRow(qPrintable(language + '-' + theme)) << language << theme;
+}
+void UiTests::outputPickerInteraction()
+{
+    QFETCH(QString, language); QFETCH(QString, theme);
+    setLanguage(language);
+    QVERIFY(ThemeManager::instance().apply(*qApp, theme).isEmpty());
+    QWidget owner;
+    owner.resize(680, 500); owner.show();
+    const auto label = language == "zh" ? QString::fromUtf8("去趋势序列") : QString("Detrended series");
+    QVector<OutputChoice> choices{{"detrended", label, true},
+        {"trend", language == "zh" ? QString::fromUtf8("拟合趋势曲线") : QString("Fitted trend curve"), false},
+        {"long", QString(180, QChar('X')), false}};
+    auto *picker = new OutputPicker(&owner, text("ui.choose_output_from").arg("LOWESS"),
+        text("ui.output_for_task").arg("MTM"), choices);
+    QSignalSpy chosen(picker, &OutputPicker::chosen);
+    const auto anchor = QRect(owner.mapToGlobal(owner.rect().bottomRight()), QSize(1, 1));
+    picker->openAt(anchor);
+    auto *list = picker->findChild<QListWidget *>("outputChoices");
+    QVERIFY(list && picker->isVisible());
+    QTRY_VERIFY(list->visualItemRect(list->item(0)).height() >= 36);
+    QVERIFY(popupBounds(&owner, anchor).contains(picker->geometry()));
+    QCOMPARE(list->item(0)->text(), label);
+    QVERIFY(list->item(0)->font().bold());
+    QVERIFY(!list->item(1)->font().bold());
+    QVERIFY(list->item(0)->toolTip().contains(text("ui.default_output")));
+    QCOMPARE(list->item(2)->toolTip(), choices[2].label);
+    QVERIFY(!picker->findChild<QLineEdit *>("outputSearch")->isVisible());
+    for (int row = 1; row < list->count(); ++row)
+    {
+        QCOMPARE(list->visualItemRect(list->item(row)).height(), list->visualItemRect(list->item(0)).height());
+        QCOMPARE(list->visualItemRect(list->item(row)).width(), list->visualItemRect(list->item(0)).width());
+    }
+    QCOMPARE(chosen.count(), 0);
+    const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if (!capture.isEmpty())
+    {
+        QDir().mkpath(capture);
+        QVERIFY(picker->grab().save(capture + "/output_picker_" + language + '_' + theme + ".png"));
+    }
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier,
+                      list->visualItemRect(list->item(1)).center());
+    QCOMPARE(chosen.count(), 1);
+    QCOMPARE(chosen.front().front().toString(), QString("trend"));
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    setLanguage("zh");
+    QVERIFY(ThemeManager::instance().apply(*qApp, "light").isEmpty());
+}
+void UiTests::outputPickerFilteringAndCancellation()
+{
+    QWidget owner; owner.resize(600, 480); owner.show();
+    QVector<OutputChoice> choices;
+    for (int i = 0; i < 1000; ++i)
+        choices.push_back({QString::number(i), QString("Output %1").arg(i), i == 0});
+    const QRect anchor(owner.mapToGlobal(QPoint(300, 200)), QSize(1, 1));
+    auto *picker = new OutputPicker(&owner, "Outputs", "Input for MTM", choices);
+    QSignalSpy chosen(picker, &OutputPicker::chosen);
+    picker->openAt(anchor);
+    auto *search = picker->findChild<QLineEdit *>("outputSearch");
+    auto *list = picker->findChild<QListWidget *>("outputChoices");
+    QVERIFY(search->isVisible());
+    QVERIFY(list->verticalScrollBar()->maximum() > 0);
+    QVERIFY(popupBounds(&owner, anchor).contains(picker->geometry()));
+    const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if (!capture.isEmpty()) QVERIFY(picker->grab().save(capture + "/output_picker_search.png"));
+    search->setText("not present");
+    QTest::keyClick(search, Qt::Key_Return);
+    QCOMPARE(chosen.count(), 0); QVERIFY(picker->isVisible());
+    search->setText("Output 997");
+    QCOMPARE(list->currentItem()->data(Qt::UserRole).toString(), QString("997"));
+    QTest::keyClick(search, Qt::Key_Return);
+    QCOMPARE(chosen.count(), 1);
+    QCOMPARE(chosen.front().front().toString(), QString("997"));
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    auto *cancel = new OutputPicker(&owner, "Outputs", "Input", choices);
+    QSignalSpy cancelledChoice(cancel, &OutputPicker::chosen);
+    cancel->openAt(anchor);
+    QTest::keyClick(cancel->findChild<QListWidget *>("outputChoices"), Qt::Key_Escape);
+    QCOMPARE(cancelledChoice.count(), 0); QVERIFY(!cancel->isVisible());
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    auto *moved = new OutputPicker(&owner, "Outputs", "Input", choices);
+    QSignalSpy movedChoice(moved, &OutputPicker::chosen);
+    moved->openAt(anchor); owner.resize(540, 420);
+    QVERIFY(!moved->isVisible()); QCOMPARE(movedChoice.count(), 0);
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    auto *outside = new OutputPicker(&owner, "Outputs", "Input", choices);
+    QSignalSpy outsideChoice(outside, &OutputPicker::chosen);
+    QPointer<OutputPicker> outsideGuard(outside);
+    outside->openAt(anchor);
+    const QPoint outsidePoint(1, 1);
+    QVERIFY(!outside->geometry().contains(owner.mapToGlobal(outsidePoint)));
+    QTest::mouseClick(owner.windowHandle(), Qt::LeftButton, Qt::NoModifier, outsidePoint);
+    QTRY_VERIFY(!outsideGuard || !outsideGuard->isVisible());
+    QCOMPARE(outsideChoice.count(), 0);
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    QPointer<OutputPicker> hiddenOwner = new OutputPicker(&owner, "Outputs", "Input", choices);
+    owner.hide();
+    hiddenOwner->openAt(anchor); // A queued open must not outlive its hidden owner.
+    QVERIFY(!hiddenOwner->isVisible());
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+void UiTests::outputPickerWorkflowBinding()
+{
+    QTemporaryDir dir; AppSettings settings;
+    settings.databasePath = dir.filePath("output-picker.sqlite");
+    MainWindow window(settings, false); window.resize(1300, 850); window.show();
+    auto *doc = window.document();
+    const auto root = doc->addRoot("sine_source").nodeId;
+    const auto lowess = doc->addChild(root, ChildSlot::Down, "detrend_lowess").nodeId;
+    window.canvas()->fitWorkflow();
+    window.activateWindow();
+    QTest::qWait(50); // Settle the deferred initial window/panel layout before opening a popup.
+    const auto original = workflowToJson(doc->model().definition());
+    // Follow the catalogue-menu path as well as the direct drag/drop path.
+    const auto anchor = window.canvas()->viewport()->mapToGlobal(QPoint(10, 10));
+    window.canvas()->slotActivated(lowess, ChildSlot::Down, anchor);
+    QMenu *taskMenu = nullptr;
+    for (auto *menu : window.findChildren<QMenu *>("taskPicker"))
+        if (menu->isVisible()) taskMenu = menu;
+    QVERIFY(taskMenu);
+    auto *action = findAction(taskMenu, "mtm"); QVERIFY(action);
+    // Use QMenu's real activation path, which dismisses the cascade before
+    // triggering the selected action (calling QAction::trigger does not).
+    auto *leaf = qobject_cast<QMenu *>(action->parent()); QVERIFY(leaf);
+    QVector<QMenu *> chain;
+    for (auto *menu = leaf; menu != taskMenu; menu = qobject_cast<QMenu *>(menu->parentWidget()))
+    {
+        QVERIFY(menu);
+        chain.prepend(menu);
+    }
+    auto *current = taskMenu;
+    for (auto *next : chain)
+    {
+        current->setActiveAction(next->menuAction());
+        QTest::keyClick(current, Qt::Key_Right);
+        QTRY_VERIFY(next->isVisible());
+        current = next;
+    }
+    leaf->setActiveAction(action);
+    QTest::keyClick(leaf, Qt::Key_Return);
+    QPointer<OutputPicker> picker = window.findChild<OutputPicker *>(); QVERIFY(picker);
+    QTRY_VERIFY(picker && picker->isVisible());
+    auto *list = picker->findChild<QListWidget *>("outputChoices");
+    QVERIFY(list && list->count() >= 2);
+    QCOMPARE(workflowToJson(doc->model().definition()), original);
+    int trendRow = -1;
+    for (int row = 0; row < list->count(); ++row)
+        if (list->item(row)->data(Qt::UserRole).toString() == "trend") trendRow = row;
+    QVERIFY(trendRow >= 0); list->setCurrentRow(trendRow);
+    QTest::keyClick(list, Qt::Key_Return);
+    QCOMPARE(doc->model().definition().nodes.size(), 3);
+    const auto added = doc->model().definition().nodes.last();
+    QCOMPARE(added.method, QString("mtm"));
+    QCOMPARE(added.input->parent, lowess);
+    QCOMPARE(added.input->output, QString("trend"));
+    QVERIFY(doc->undo().ok());
+    QCOMPARE(workflowToJson(doc->model().definition()), original);
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    window.canvas()->methodDropped("mtm", lowess, ChildSlot::Down);
+    QPointer<OutputPicker> cancel = window.findChild<OutputPicker *>(); QVERIFY(cancel);
+    QTRY_VERIFY(cancel && cancel->isVisible());
+    QTest::keyClick(cancel->findChild<QListWidget *>("outputChoices"), Qt::Key_Escape);
+    QCOMPARE(workflowToJson(doc->model().definition()), original);
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    // Deletion before the deferred popup must not resurrect it or create a stale child.
+    window.canvas()->methodDropped("mtm", lowess, ChildSlot::Down);
+    QPointer<OutputPicker> pending = window.findChild<OutputPicker *>(); QVERIFY(pending);
+    QVERIFY(doc->removeSubtree(lowess).ok());
+    QCoreApplication::processEvents();
+    QVERIFY(!pending || !pending->isVisible());
+    QCOMPARE(doc->model().definition().nodes.size(), 1);
 }

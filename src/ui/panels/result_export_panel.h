@@ -26,7 +26,6 @@ class ResultExportPanel : public QWidget
     void exportFigureRequested();
     void reuseRequested();
     void cancelRequested();
-    void outputActivated();
   private:
     void updateActions();
     QComboBox *m_ports;

@@ -1,5 +1,7 @@
 # Aster 任务分类
 
+适用版本：Aster 1.2.0-beta.5。
+
 任务目录由注册描述生成。下表说明分类原则；实际可用任务与可见性以当前注册表为准。
 
 分类只有一个来源：`src/processing/task_categories.h` 中的 `ASTER_TASK_CATEGORIES`。任务的 `descriptor().category` 引用对应枚举。界面按描述构造目录，分类调整不改变方法 ID、数据库端口、算法版本或任务树连接。
@@ -22,7 +24,7 @@
 | 数据处理 | 趋势 | 线性去趋势 `linear_detrend`；LOWESS 去趋势 `detrend_lowess` |
 | 数据处理 | 平滑 | 移动平均 `moving_average`；Savitzky–Golay `savitzky_golay` |
 | 数据处理 | 滤波 | Gaussian `gaussian_filter`；Taner `taner_filter`；Butterworth 低通 `butterworth_lowpass`；高通 `butterworth_highpass` |
-| 分析 | 频谱 → 功率谱 | MTM `mtm`；FFT `fft_spectrum`；Welch `welch_spectrum`；Lomb–Scargle `lomb_scargle` |
+| 分析 | 频谱 → 功率谱 | MTM `mtm`；FFT `fft_spectrum`；Welch `welch_spectrum`；Welch 交叉谱 `cross_spectrum`（显式 A/B 双输入）；Lomb–Scargle `lomb_scargle` |
 | 分析 | 频谱 → 显著性检验 | AR1 全局检验 `ar1_global` |
 | 分析 | 时频 → 小波 | CWT `cwt` |
 | 分析 | 时频 → 演化谱 | 演化 FFT `evolution_fft`；演化 MTM `evolution_mtm` |
@@ -53,4 +55,4 @@ auto d = task_detail::seriesTransform("My filter",
 
 ## 验证
 
-任务目录与画布菜单共享注册分类。当前数值与交互回归见 [验证记录](validation.md)。单击展开分类，双击或拖动任务将其加入画布。
+任务目录与画布菜单共享注册分类。当前数值与交互回归见 [验证记录](validation_current.md)。单击展开分类，双击或拖动任务将其加入画布。

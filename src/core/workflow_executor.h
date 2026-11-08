@@ -17,9 +17,11 @@ struct RunRequest {
     NodeId root;
     SourceItem source;
 };
+class BatchSnapshot;
 struct RunPlan {
     QVector<RunRequest> requests;
     ValidationResult validation;
+    QVector<std::shared_ptr<const BatchSnapshot>> batches{};
 };
 using SourceSelection = QMap<NodeId, QVector<SourceItem>>;
 // Expands each bound input root once per selected dataset. Unbound generators

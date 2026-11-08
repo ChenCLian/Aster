@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.1.1",
+  "version": "1.2.0-beta.5",
   "update_mode": "public_github_release_check_and_browser_download",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -36,9 +36,18 @@
     "COPYRIGHT.md",
     "SOURCE_CODE.md",
     "docs/LICENSE_GUIDE_ZH.md",
-    "docs/dependency_materials_zh.md"
+    "docs/dependency_materials_zh.md",
+    "docs/methods/cross_spectrum.md",
+    "docs/validation_current.md",
+    "docs/history/release_audit_1.2.0_alpha10.md",
+    "docs/history/acceptance_1.2.0_alpha20.md",
+    "docs/development/documentation.md",
+    "docs/development/plotting.md",
+    "docs/development/workflow_preview.md",
+    "docs/methods/cwt.md"
   ],
   "release_checks": [
+    "Exact compiled application version, including prerelease suffix, matches source VERSION, release tag and package label",
     "Native build and regression tests for each published platform and architecture",
     "Clean-host startup, fonts, database read/write, numerical workflow and export",
     "macOS deployment target, architecture, signing and Gatekeeper behavior",
@@ -49,11 +58,19 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "record": "docs/validation.json",
-    "summary": "docs/validation.md",
-    "logs": "docs/validation_results/release",
+    "record": "docs/validation_results/1.2.0-beta.5/interaction_checks.json",
+    "summary": "docs/validation_current.md",
+    "logs": "docs/validation_results/1.2.0-beta.5",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Current documentation checks, latest algorithm/UI regression and historical packaging/platform evidence have separate scopes and logs. Final native packages and remote downloads require release-specific acceptance."
+    "scope": "Focused UI regression: automatic/manual overlay axes, expanded and collapsed output layout, compact A/B preview and recovery from long errors, display labels and PNG titles. Native Linux/X11 small-data interaction plus QtTest offscreen. F4 explicit-add behavior retained; numerical algorithms, limits and data formats unchanged.",
+    "previous_version_record": "docs/validation.json",
+    "previous_version_summary": "docs/validation.md",
+    "preceding_development_record": "docs/validation_results/1.2.0-alpha.21/probe_checks.json",
+    "maintainer_acceptance": {
+      "status": "reported_temporarily_passed",
+      "date": "2026-11-07",
+      "scope": "Local acceptance reported by the maintainer; no new cross-platform or final-binary logs supplied."
+    }
   },
   "help": {
     "local": "compiled Qt resources",
@@ -86,5 +103,57 @@
       "data_redistribution": "La2004/La2010 basis requires confirmation; see docs/third_party.md"
     },
     "dependency_collector": "tools/release/collect_dependency_materials.py"
+  },
+  "release_channel": "beta",
+  "development": {
+    "feature": "paired Welch cross-spectral analysis across ordinary branches and source roots",
+    "stage": "beta_validation",
+    "framework": "1.2.0 feature scope available; platform-specific final package checks remain separate",
+    "desktop_feature_available": true,
+    "remaining": [
+      "Native title dragging, divider resizing and high-DPI layout acceptance",
+      "Windows/MSVC, macOS and final Linux native package acceptance",
+      "Final package, matching source and dependency-material publication checks"
+    ],
+    "scope": "Desktop and APIs: explicit ordinary-node references across branches/source roots in one workspace; no pair-after-pair or live saved-batch links.",
+    "record": "docs/development/cross_spectrum_interfaces.md",
+    "cross_node_ui_available": true,
+    "out_of_scope": [
+      "Structural rewrites directly involving joint nodes",
+      "Pairing outputs of joint nodes or their descendants",
+      "Live links to separately saved runs and arbitrary DAG editing"
+    ]
+  },
+  "data_payload_versions": {
+    "legacy": 1,
+    "masked_tables": 2
+  },
+  "documentation_review": {
+    "date": "2026-11-08",
+    "version": "1.2.0-beta.5",
+    "status": "passed_with_platform_limits",
+    "record": "docs/validation_results/1.2.0-beta.5/version_documentation_audit_20261108.json",
+    "embedded_help_rebuild_required": true,
+    "algorithm_or_limit_changes": false,
+    "scope": "Current documentation and build/package full-version identity; user Windows package requires rebuild and native verification."
+  },
+  "release_tooling_review": {
+    "date": "2026-11-08",
+    "version": "1.2.0-beta.5",
+    "status": "real_homebrew_bottle_source_notice_collection_verified_native_archive_pending",
+    "record": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json",
+    "application_code_changed": false,
+    "preceding_record": "docs/validation_results/1.2.0-beta.5/homebrew_materials_checks_20261108.json"
+  },
+  "plot_interaction_review": {
+    "date": "2026-11-08",
+    "version": "1.2.0-beta.5",
+    "status": "macos_arm64_native_regression_passed_linux_reported_passed",
+    "record": "docs/validation_results/1.2.0-beta.5/viewport_ci_checks_20261108.json",
+    "application_code_changed": true,
+    "application_rebuild_required": true,
+    "algorithm_or_limit_changes": false,
+    "preceding_record": "docs/validation_results/1.2.0-beta.5/shared_test_header_checks_20261108.json",
+    "latest_native_evidence": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json"
   }
 }

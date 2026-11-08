@@ -6,6 +6,8 @@
 #include <QPointer>
 #include "io/database/result_repository.h"
 #include "io/exports/export_path.h"
+#include "processing/cross_spectrum_task.h"
+#include "ui/services/plot_data_loader.h"
 namespace aster::ui
 {
 ExportController::~ExportController()
@@ -52,6 +54,13 @@ bool ExportController::launch(DataRef data, OutputReference reference, const QSt
                     if (!loaded.ok())
                         return;
                     data = loaded.data;
+                    if (reference.port == "cross_spectrum")
+                    {
+                        auto csv = crossSpectrumCsvData(loadCrossSpectrumOutput(reference));
+                        result->error = csv.error;
+                        if (!csv.error.isEmpty()) return;
+                        data = csv.data;
+                    }
                 }
                 *result =
                     exportDataCsv(data, path, cancel, [this](int n) { emit progressChanged(n); });

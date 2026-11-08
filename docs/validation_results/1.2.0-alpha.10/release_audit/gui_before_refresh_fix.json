@@ -1,0 +1,47 @@
+[
+  {
+    "count": 512,
+    "database_bytes": 43671552,
+    "heartbeat_ticks": 26,
+    "maximum_event_loop_gap_ms": 201,
+    "mode": "gui",
+    "peak_rss_kib": 130124,
+    "records": 1025,
+    "run_ms": 1240,
+    "setup_ms": 671,
+    "total_ms": 1939,
+    "repeat": 1,
+    "exit_code": 0,
+    "log": "benchmark-gui-512-1.txt"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43597824,
+    "heartbeat_ticks": 17,
+    "maximum_event_loop_gap_ms": 1731,
+    "mode": "gui",
+    "peak_rss_kib": 130604,
+    "records": 1025,
+    "run_ms": 2460,
+    "setup_ms": 616,
+    "total_ms": 3102,
+    "repeat": 2,
+    "exit_code": 0,
+    "log": "benchmark-gui-512-2.txt"
+  },
+  {
+    "count": 512,
+    "database_bytes": 43528192,
+    "heartbeat_ticks": 12,
+    "maximum_event_loop_gap_ms": 1745,
+    "mode": "gui",
+    "peak_rss_kib": 131528,
+    "records": 1025,
+    "run_ms": 3188,
+    "setup_ms": 900,
+    "total_ms": 4120,
+    "repeat": 3,
+    "exit_code": 0,
+    "log": "benchmark-gui-512-3.txt"
+  }
+]

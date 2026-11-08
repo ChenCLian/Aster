@@ -561,13 +561,75 @@ puts JSON.generate({name: f.name, version: f.pkg_version.to_s, sources: sources,
 
 def same_brew_recipe(left, right):
     # Homebrew removes the bottle stanza when saving a built keg's formula.
-    # Only that stanza is ignored; source URLs, checksums and patches must match.
-    pattern = rb'  bottle do.+?end\n\n?'
-    return re.sub(pattern, b'', left, flags=re.S) == re.sub(pattern, b'', right, flags=re.S)
+    # GNU ftpmirror URLs have also dropped the redundant /gnu prefix without
+    # rebuilding bottles. Normalize only literal url/mirror directive prefixes;
+    # archive paths, hashes, patches and all other recipe content still match.
+    def normalized(data):
+        data = re.sub(rb'  bottle do.+?end\n\n?', b'', data, flags=re.S)
+        return re.sub(rb'^(\s*(?:url|mirror) ")https://ftpmirror\.gnu\.org/gnu/'
+                      rb'([^"\s?#]+)(")', rb'\1https://ftpmirror.gnu.org/\2\3',
+                      data, flags=re.M)
+    return normalized(left) == normalized(right)
 
 
-def brew_local_patch(recipe, receipt, relative):
-    """Recover a patch from the installed keg or its exact recorded tap revision."""
+def brew_api_patch(recipe, relative, snapshot):
+    """Recover missing API-install metadata, only for an identical keg formula.
+
+    Bottle receipts can have a null tap_git_head when homebrew/core is not
+    checked out. The API is a candidate, not an authority for an older keg:
+    require its full package version and checksummed, pinned formula to match.
+    Never use HEAD, a different formula, or an unchecked patch as a fallback.
+    """
+    if not snapshot:
+        name = recipe.stem
+        url = 'https://formulae.brew.sh/api/formula/' + urllib.parse.quote(name, safe='') + '.json'
+        try:
+            info = json.loads(read_url(url))
+        except (ValueError, UnicodeError) as error:
+            raise MaterialError('Homebrew API returned invalid formula metadata') from error
+        if (not isinstance(info, dict)
+                or not isinstance(info.get('versions'), dict)
+                or not isinstance(info.get('ruby_source_checksum'), dict)
+                or not isinstance(info.get('local_patch_checksums'), dict)
+                or type(info.get('revision')) is not int or info['revision'] < 0):
+            raise MaterialError('Homebrew API formula metadata is incomplete')
+        version = str(info['versions'].get('stable', ''))
+        if info['revision']:
+            version += '_' + str(info['revision'])
+        if (info.get('name') != name or info.get('tap') != 'homebrew/core'
+                or version != recipe.parent.parent.name):
+            raise MaterialError('Homebrew API formula version differs from the installed keg; restore its original local patches')
+        revision = info.get('tap_git_head') or ''
+        path = info.get('ruby_source_path') or ''
+        checksum = info.get('ruby_source_checksum', {}).get('sha256') or ''
+        if (not isinstance(revision, str) or not re.fullmatch(r'[0-9a-fA-F]{40}', revision)
+                or path not in (f'Formula/{name[0]}/{name}.rb', f'Formula/{name}.rb')
+                or not isinstance(checksum, str) or not re.fullmatch(r'[0-9a-fA-F]{64}', checksum)):
+            raise MaterialError('Homebrew API lacks a pinned, checksummed formula for local patch recovery')
+        base = 'https://raw.githubusercontent.com/Homebrew/homebrew-core/' + revision + '/'
+        remote = read_url(base + path)
+        if hashlib.sha256(remote).hexdigest() != checksum.lower():
+            raise MaterialError('Homebrew API formula checksum mismatch')
+        if not same_brew_recipe(remote, recipe.read_bytes()):
+            raise MaterialError('Homebrew API formula does not match the installed formula; restore its original local patches')
+        snapshot.update(api_url=url, name=name, version=version, tap_git_head=revision,
+                        ruby_source_path=path, ruby_source_sha256=checksum.lower(),
+                        installed_formula_sha256=hashlib.sha256(recipe.read_bytes()).hexdigest(),
+                        formula_comparison='ignore-bottle-stanza-and-gnu-ftpmirror-prefix-only',
+                        local_patch_checksums=info.get('local_patch_checksums') or {})
+    expected = snapshot['local_patch_checksums'].get(relative) or ''
+    if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-fA-F]{64}', expected):
+        raise MaterialError('Homebrew API lacks a checksum for the requested local patch')
+    url = ('https://raw.githubusercontent.com/Homebrew/homebrew-core/'
+           + snapshot['tap_git_head'] + '/' + relative)
+    data = read_url(url)
+    if hashlib.sha256(data).hexdigest() != expected.lower():
+        raise MaterialError('Homebrew local patch checksum mismatch')
+    return data, url
+
+
+def brew_local_patch(recipe, receipt, relative, api_snapshot=None):
+    """Prefer installed files/recorded revisions; verify API recovery if absent."""
     relative = member_path(relative)
     if not relative.parts or relative.parts[0] != 'Patches':
         raise MaterialError('Unsupported Homebrew local patch path; expected Patches/')
@@ -590,6 +652,9 @@ def brew_local_patch(recipe, receipt, relative):
     for i, part in enumerate(original.parts):
         if part == 'api-source' and len(original.parts) > i + 3:
             revision = revision or original.parts[i + 3]
+    if source.get('tap') == 'homebrew/core' and not revision:
+        return brew_api_patch(recipe, relative.as_posix(),
+                              api_snapshot if api_snapshot is not None else {})
     if source.get('tap') != 'homebrew/core' or not re.fullmatch(r'[0-9a-fA-F]{40}', revision):
         raise MaterialError('Local Homebrew patch requires the installed patch or an exact recorded homebrew/core revision')
     base = 'https://raw.githubusercontent.com/Homebrew/homebrew-core/' + revision + '/'
@@ -611,12 +676,13 @@ def brew_local_patch(recipe, receipt, relative):
 
 
 def save_brew_patches(collection, component, recipe, receipt, metadata):
+    api_snapshot = {}
     for index, item in enumerate(metadata.get('patches', [])):
         if item['kind'] == 'external':
             continue  # Downloaded and verified as a source asset below.
         if item['kind'] == 'local':
             relative = member_path(item['path']).as_posix()
-            data, origin = brew_local_patch(recipe, receipt, relative)
+            data, origin = brew_local_patch(recipe, receipt, relative, api_snapshot)
         elif item['kind'] == 'embedded':
             relative = f'embedded-patches/{index:03d}.patch'
             data = base64.b64decode(item.pop('data'), validate=True)
@@ -627,6 +693,9 @@ def save_brew_patches(collection, component, recipe, receipt, metadata):
             raise MaterialError('Homebrew patch is empty')
         collection.save_record(component, relative, data)
         item.update(path=relative, sha256=hashlib.sha256(data).hexdigest(), origin=origin)
+    if api_snapshot:
+        collection.save_record(component, 'local-patch-recovery.json',
+                               json.dumps(api_snapshot, indent=2).encode())
 
 
 def brew_sources(collection, binaries, owners):

@@ -59,3 +59,7 @@ La2004 与 La2010 的随附 README 记录了作者、版权和使用方法，但
 ## 合成轨道代理信号
 
 基于轨道代理信号正演参考实现与 AstroGeoFit 1.1（Copyright 2025 CNRS, Lead author J. Laskar），GPL-3.0-or-later。完整许可位于 licenses/。深度模板来自 PANGAEA.817206（Westerhold & Röhl, 2013），CC BY 3.0；详细归属及移植边界见 resources/synthetic/NOTICE.md。
+
+## 交叉谱真实数据参考
+
+`cross_spectrum_tests/fixtures/real_reference.json` 使用内置 ODP 846、ODP 926 记录生成重采样序列及数值核对结果；原数据及插值衍生数据保留 CC BY 3.0 归属。来源、DOI、转换说明和软件版本见[参考数据说明](../cross_spectrum_tests/fixtures/README.md)，完整来源哈希和引文保留在 JSON 内。验证脚本使用 NumPy/SciPy；它们不是应用运行依赖。

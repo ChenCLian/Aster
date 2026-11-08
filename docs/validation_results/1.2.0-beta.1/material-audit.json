@@ -1,0 +1,22 @@
+{
+  "markdown_files_checked": 60,
+  "relative_links_checked": 431,
+  "missing_links": [],
+  "unresolved_anchors": [],
+  "qrc_entries": 61,
+  "missing_qrc_entries": [],
+  "unchanged_from_alpha21": {
+    "src": true,
+    "resources": true,
+    "analysis_tests": true,
+    "batch_tests": true,
+    "cross_spectrum_tests": true,
+    "style_export_tests": true,
+    "ui_tests": true,
+    "workspace_tests": true,
+    "update_tests": true,
+    "licenses": true
+  },
+  "historical_evidence_files_preserved": 421,
+  "historical_evidence_byte_identical": true
+}

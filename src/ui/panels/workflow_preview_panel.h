@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QWidget>
 class QLabel; class QComboBox; class QProgressBar; class QToolButton;
-class QShowEvent; class QHideEvent;
+class QShowEvent; class QHideEvent; class QResizeEvent; class QBoxLayout;
 namespace aster::ui
 {
 class FilePreviewPanel; class PlotView; class StyleNote;
@@ -21,6 +21,7 @@ class WorkflowPreviewPanel : public QWidget
   protected:
     void showEvent(QShowEvent *event) override;
     void hideEvent(QHideEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
   private:
     void updateState();
     void showOutput();
@@ -31,9 +32,11 @@ class WorkflowPreviewPanel : public QWidget
     PlotView *m_generated, *m_resultPlot;
     QLabel *m_method, *m_file, *m_sourceHeading;
     StyleNote *m_status, *m_outputHint;
-    QComboBox *m_outputs;
+    QComboBox *m_outputs, *m_pairInput;
     QProgressBar *m_progress;
     QToolButton *m_fit, *m_legend, *m_retry;
+    QBoxLayout *m_tools;
+    QWidget *m_actions;
     bool m_suspended = false;
     std::shared_ptr<const WorkflowPreviewResult> m_displayed;
     QHash<NodeId, QString> m_outputSelections;

@@ -7,11 +7,16 @@
 #include <QScopedValueRollback>
 #include <QSignalBlocker>
 #include "ui/results/plot_view.h"
+#include "ui/results/plot_preset.h"
 #include "ui/results/grid_contours.h"
 #include "ui/results/contour_plottable.h"
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
 #include "third_party/qcustomplot/qcustomplot.h"
 #include <QVBoxLayout>
+#include "ui/common/choice_editor.h"
+#include "processing/cross_spectrum_task.h"
+#include "ui/services/plot_data_loader.h"
 #include <QStackedWidget>
 #include <QTableView>
 #include <QHeaderView>
@@ -56,7 +61,9 @@ class NumericalTableModel : public QAbstractTableModel
         if (!d || !i.isValid() || i.row() >= d->rows.size() || i.column() >= d->columns.size())
             return {};
         if (role == Qt::DisplayRole)
-            return QString::number(d->rows[i.row()][i.column()], 'g', 10);
+            return d->isDefined(i.row(), i.column())
+                       ? QString::number(d->rows[i.row()][i.column()], 'g', 10)
+                       : QString::fromUtf8("—");
         if (role == Qt::TextAlignmentRole)
             return int(Qt::AlignRight | Qt::AlignVCenter);
         return {};
@@ -122,42 +129,11 @@ QString axisLabel(const AxisInfo &a)
 {
     return a.unit.isEmpty() ? a.name : a.name + " (" + a.unit + ")";
 }
-QPen penFor(const QString &port, double width, const QColor &main)
-{
-    if (port == "spectrum" || port == "series" || port == "detrended")
-        return QPen(main, width);
-    if (port == "trend" || port == "ar1_smoothed")
-        return QPen(themeColor("purpleCurve"), 1.5, Qt::DashDotLine);
-    if (port == "mc_family_threshold")
-        return QPen(themeColor("purpleCurve"), 1.8, Qt::DashLine);
-    bool ar1 = port.startsWith("ar1");
-    QColor c = themeColor(ar1 ? "secondaryCurve" : "tertiaryCurve");
-    if (port.contains("background"))
-        return QPen(c, 1.9, ar1 ? Qt::SolidLine : Qt::DashLine);
-    if (port.startsWith("fdr"))
-        return QPen(themeColor("purpleCurve"), 1.1, Qt::DashDotDotLine);
-    if (port.endsWith("999"))
-        c = c.darker(130);
-    else if (port.endsWith("90"))
-        c = c.lighter(135);
-    return QPen(c, 1.25, ar1 ? Qt::DashLine : Qt::DotLine);
-}
 bool increasing(const QVector<double> &values)
 {
     return values.size() >= 2 &&
            std::adjacent_find(values.begin(), values.end(),
                               [](double a, double b) { return b <= a; }) == values.end();
-}
-bool geometricAxis(const QVector<double> &values)
-{
-    if (!increasing(values) || values.front() <= 0)
-        return false;
-    const double delta = std::log2(values[1]) - std::log2(values[0]);
-    for (qsizetype i = 2; i < values.size(); ++i)
-        if (std::abs(std::log2(values[i]) - std::log2(values[i - 1]) - delta) >
-            std::abs(delta) * 1e-6)
-            return false;
-    return true;
 }
 qsizetype nearest(const QVector<double> &values, double coordinate)
 {
@@ -192,6 +168,21 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
+    m_crossMetric = new ChoiceEditor; m_crossMetric->setObjectName("crossMetric");
+    for (const auto &key : {"coherence", "cross_magnitude", "phase_degrees", "cross_real", "cross_imaginary", "auto_a", "auto_b", "table"})
+        m_crossMetric->addItem(text((QString("cross.")+key).toUtf8().constData()), key);
+    m_crossMetric->hide(); layout->addWidget(m_crossMetric);
+    connect(m_crossMetric, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+        if (!isCrossSpectrum()) return;
+        m_defaults = defaults();
+        auto next = m_style;
+        next.crossMetric = m_defaults.crossMetric;
+        next.y.label = m_defaults.y.label;
+        next.y.manualRange = false; next.y.logarithmic = false;
+        next.curves[m_port].name = m_defaults.curves[m_port].name;
+        m_style = next;
+        draw(); emit outputChanged(); emit styleChanged();
+    });
     m_stack = new QStackedWidget;
     layout->addWidget(m_stack);
     m_empty = new QLabel(text("ui.select_a_record_to_explore_its_plots_and_steps"));
@@ -228,10 +219,15 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
             });
     for (auto *axis : {m_plot->xAxis, m_plot->yAxis})
         connect(axis, qOverload<const QCPRange &>(&QCPAxis::rangeChanged), this,
-                [this]
+                [this, axis]
                 {
-                    if (!m_rendering && m_reference.valid())
-                        m_viewportTimer.start();
+                    if (!m_rendering && hasPlot())
+                    {
+                        // Only unguarded range changes are user zoom/pan gestures.
+                        // Rendering, fitting and asynchronous refinement are guarded.
+                        (axis == keyAxis() ? m_style.x : m_style.y).manualRange = true;
+                        if (m_reference.valid()) m_viewportTimer.start();
+                    }
                 });
     m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     m_plot->setNoAntialiasingOnDrag(true);
@@ -243,7 +239,7 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
             {
                 if (!hasPlot())
                     return;
-                auto next = styleWithViewport();
+                auto next = styleForReload();
                 auto defaultsNow = defaults();
                 if (next.followTheme)
                     for (auto i = next.curves.begin(); i != next.curves.end(); ++i)
@@ -303,93 +299,30 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
                                                          m_plot->toPixmap());
                                              });
                 copy->setEnabled(plottedCount() > 0);
-                menu->addAction(text("ui.clear_plot"), this, [this] { clear(); });
-                menu->popup(m_plot->mapToGlobal(pos));
+                menu->addAction(text("ui.clear_plot"), this, &PlotView::clearByUser);
+                showMenuWithinWindow(menu, this, QRect(m_plot->mapToGlobal(pos), QSize(1, 1)));
             });
 }
 PlotStyle PlotView::defaults() const
 {
-    PlotStyle style;
-    style.background = themeColor("plot");
-    for (auto *a : {&style.x, &style.y})
-    {
-        a->axisColor = themeColor("axis");
-        a->gridColor = themeColor("grid");
-        a->subGridColor = themeColor("subGrid");
-    }
-    if (const auto *d = dataAs<SeriesData>(m_data))
-    {
-        style.x.label = axisLabel(d->xAxis);
-        style.y.label = axisLabel(d->yAxis);
-    }
-    else if (const auto *d = dataAs<SpectrumData>(m_data))
-    {
-        style.x.label = axisLabel(d->frequencyAxis);
-        style.y.label = axisLabel(d->powerAxis);
-    }
-    else if (const auto *d = dataAs<GridData>(m_data))
-    {
-        style.x.label = axisLabel(d->xAxis);
-        style.y.label = axisLabel(d->yAxis);
-        style.y.logarithmic = geometricAxis(d->y);
-    }
-    for (auto it = m_result.outputs.begin(); it != m_result.outputs.end(); ++it)
-    {
-        bool include =
-            it.key() == m_port && !dataAs<TableData>(m_data) && !dataAs<GridData>(m_data);
-        if (dataAs<SpectrumData>(m_data))
-            include = compatibleCurveAxes(m_data, it.value()) || it.key() == "peaks";
-        if (dataAs<SeriesData>(m_data))
-            include = compatibleCurveAxes(m_data, it.value());
-        if (dataAs<GridData>(m_data))
-            include = it.key() == "coi" && dataAs<SeriesData>(it.value());
-        if (!include)
-            continue;
-        CurveStyle c;
-        c.name = m_result.report.value(it.key()).toString(portLabel(it.key()));
-        auto pen = penFor(it.key(), 2., themeColor("curve"));
-        c.color = pen.color();
-        c.width = pen.widthF();
-        c.pen = pen.style();
-        c.visible = it.key().startsWith("overlay_") || it.key() == m_port || it.key() == "coi" ||
-                    (m_port == "spectrum" &&
-                     QStringList{"ar1_background", "ar1_95", "swa_background", "swa_95", "mc_background", "mc_family_threshold"}.contains(
-                         it.key()));
-        if (it.key() == m_port)
-        {
-            c.color = themeColor("curve");
-            c.width = 2.;
-            c.pen = Qt::SolidLine;
-        }
-        if (it.key().startsWith("overlay_"))
-        {
-            const QColor colors[] = {themeColor("secondaryCurve"), themeColor("tertiaryCurve"),
-                                     themeColor("purpleCurve"), themeColor("pinkCurve")};
-            c.color = colors[it.key().section('_', 1).toInt() % 4];
-            c.width = 1.8;
-        }
-        if (it.key() == "coi")
-        {
-            c.name = text("ui.coi");
-            c.color = themeColor("axis");
-            c.width = 1.4;
-            c.pen = Qt::DashLine;
-        }
-        if (it.key() == "peaks")
-        {
-            c.visible = m_port == "spectrum";
-            c.color = themeColor("secondaryCurve");
-            c.line = false;
-            c.marker = MarkerStyle::Circle;
-        }
-        c.themeDefaultColor = c.color;
-        style.curves.insert(it.key(), c);
-    }
-    return style;
+    return plotPreset(m_result, m_port, m_crossMetric->currentData().toString());
+}
+bool PlotView::isCrossSpectrum() const
+{
+    return m_port == "cross_spectrum" && m_result.report["cross_spectrum_schema"].toInt() == 1 && dataAs<TableData>(m_data);
+}
+bool PlotView::crossPositive(bool x, const QString &metric) const
+{
+    const auto *t = dataAs<TableData>(m_data);
+    if (!isCrossSpectrum() || !t) return false;
+    const auto c = x ? 0 : t->columns.indexOf(metric.isEmpty() ? m_style.crossMetric : metric);
+    if (c < 0) return false;
+    for (qsizetype r=0;r<t->rows.size();++r) if (t->isDefined(r,c) && t->rows[r][c]>0) return true;
+    return false;
 }
 bool PlotView::hasPlot() const
 {
-    return m_data && !dataAs<TableData>(m_data) && m_plot->plottableCount() > 0;
+    return m_data && (!dataAs<TableData>(m_data) || (isCrossSpectrum() && m_style.crossMetric != "table")) && m_plot->plottableCount() > 0;
 }
 namespace
 {
@@ -407,13 +340,13 @@ bool positiveCoordinates(const DataRef &data, bool x)
 } // namespace
 bool PlotView::canLogX() const
 {
-    return !dataAs<GridData>(m_data) && positiveCoordinates(m_data, true);
+    return crossPositive(true) || (!dataAs<GridData>(m_data) && positiveCoordinates(m_data, true));
 }
 bool PlotView::canLogY() const
 {
     if (const auto *grid = dataAs<GridData>(m_data))
         return increasing(grid->y) && grid->y.front() > 0;
-    return positiveCoordinates(m_data, false);
+    return crossPositive(false) || positiveCoordinates(m_data, false);
 }
 double PlotView::displayedY(double y) const
 {
@@ -443,11 +376,17 @@ void PlotView::showOutput(const NodeResult &result, const QString &port, const Q
     m_fullBounds = result.report["bounds"].toArray();
     m_port = port;
     m_data = result.outputs.value(port);
+    m_crossMetric->setVisible(isCrossSpectrum());
     const auto invalid = validateData(m_data);
     if (!invalid.isEmpty())
     {
         clear(invalid);
         return;
+    }
+    if (isCrossSpectrum())
+    {
+        const auto checked = crossSpectrumCsvData(result);
+        if (!checked.error.isEmpty()) { clear(checked.error); return; }
     }
     m_viewKey = viewKey;
     m_defaults = defaults();
@@ -477,12 +416,19 @@ void PlotView::showOutput(const NodeResult &result, const QString &port, const Q
     draw();
     if (saved && hasPlot())
     {
-        keyAxis()->setRange(saved->xLow, saved->xHigh);
-        valueAxis()->setRange(displayedY(saved->yLow), displayedY(saved->yHigh));
+        if (saved->style.x.manualRange) keyAxis()->setRange(saved->xLow, saved->xHigh);
+        if (saved->style.y.manualRange)
+            valueAxis()->setRange(displayedY(saved->yLow), displayedY(saved->yHigh));
         m_plot->replot(QCustomPlot::rpQueuedReplot);
     }
     emit outputChanged();
     emit styleChanged();
+}
+void PlotView::clearByUser()
+{
+    clear();
+    m_views.clear();
+    emit clearedByUser();
 }
 void PlotView::clear(const QString &message)
 {
@@ -504,6 +450,7 @@ void PlotView::clear(const QString &message)
     m_reference = {};
     m_data.reset();
     m_result = {};
+    m_crossMetric->hide();
     m_fullBounds = {};
     m_port.clear();
     m_style = {};
@@ -553,8 +500,10 @@ QString PlotView::heatmapStatus() const
 QString PlotView::applyStyle(const PlotStyle &style)
 {
     QScopedValueRollback<bool> rendering(m_rendering, true);
-    if (!hasPlot())
+    if (!hasPlot() && !isCrossSpectrum())
         return text("ui.no_plot_to_edit");
+    if (isCrossSpectrum() && m_crossMetric->findData(style.crossMetric) < 0)
+        return "Unknown cross-spectrum metric";
     if (!style.background.isValid() || style.curves.keys() != m_defaults.curves.keys())
         return text("ui.style_does_not_match_the_current_output");
     if (int(style.legendPosition) < 0 || int(style.legendPosition) > 3)
@@ -585,7 +534,9 @@ QString PlotView::applyStyle(const PlotStyle &style)
              !QCPRange::validRange(a.lower, a.upper) || (a.logarithmic && a.lower <= 0)))
             return text("ui.axis_limits_must_be_finite_and_ordered_logarithmic_limits_mu");
     }
-    if ((style.x.logarithmic && !canLogX()) || (style.y.logarithmic && !canLogY()))
+    // Validate the incoming metric when restoring/exporting a captured style.
+    const bool logYSupported = isCrossSpectrum() ? crossPositive(false, style.crossMetric) : canLogY();
+    if ((style.x.logarithmic && !canLogX()) || (style.y.logarithmic && !logYSupported))
         return text("ui.this_output_does_not_support_the_selected_logarithmic_axis");
     for (const auto &c : style.curves)
     {
@@ -629,10 +580,11 @@ QString PlotView::applyStyle(const PlotStyle &style)
     }
     const auto old = m_style;
     m_probe->dismiss();
-    const bool scaleChanged = old.swapXY != style.swapXY ||
+    const bool scaleChanged = old.crossMetric != style.crossMetric || old.swapXY != style.swapXY ||
                               old.x.logarithmic != style.x.logarithmic ||
                               old.y.logarithmic != style.y.logarithmic;
     m_style = style;
+    if (isCrossSpectrum()) { QSignalBlocker block(m_crossMetric); m_crossMetric->setCurrentIndex(m_crossMetric->findData(style.crossMetric)); }
     // Explicit canvas/axis colors detach the theme; toggling the application theme
     // passes unchanged style values and therefore keeps following it.
     if (style.background != old.background || style.x.axisColor != old.x.axisColor ||
@@ -704,8 +656,24 @@ PlotRequest PlotView::plotRequest(int width, int height) const
         std::swap(request.columns, request.rows);
     return request;
 }
+QString PlotView::resolutionDescription() const
+{
+    if (!m_data) return {};
+    const auto samples = m_result.report["plot_samples"].toObject().value(m_port).toObject();
+    if (dataAs<GridData>(m_data) && !samples.isEmpty())
+    {
+        const auto display = QString("%1 × %2").arg(samples["display_columns"].toInt()).arg(samples["display_rows"].toInt());
+        const auto original = QString("%1 × %2").arg(samples["view_columns"].toInt()).arg(samples["view_rows"].toInt());
+        return samples["reduced"].toBool() ? text("ui.plot_resolution_grid").arg(display, original)
+                                           : text("ui.plot_resolution_original").arg(original);
+    }
+    return text(m_result.report["display_reduced"].toBool() ? "ui.plot_resolution_reduced" : "ui.plot_resolution_complete");
+}
 void PlotView::refreshOutput(const NodeResult &result)
 {
+    // A newer gesture may still be in the debounce interval when an older
+    // read completes. Rebuilding the view must not consume that pending read.
+    const bool pendingViewport = m_viewportTimer.isActive();
     const auto previousStyle = m_style;
     const auto current = styleWithViewport();
     const auto bounds = m_fullBounds;
@@ -714,7 +682,18 @@ void PlotView::refreshOutput(const NodeResult &result)
     const auto key = m_viewKey, port = m_port;
     {
         QSignalBlocker block(this);
-        showOutput(result, port, key);
+        auto refined = result;
+        auto samples = refined.report["plot_samples"].toObject();
+        const auto originalSamples = m_result.report["plot_samples"].toObject();
+        for (auto it = samples.begin(); it != samples.end(); ++it)
+        {
+            auto sample = it.value().toObject();
+            const auto colors = originalSamples.value(it.key()).toObject().value("color_bounds");
+            if (colors.isArray()) sample["color_bounds"] = colors;
+            it.value() = sample;
+        }
+        refined.report["plot_samples"] = samples;
+        showOutput(refined, port, key);
         m_fullBounds = bounds;
         if (outputBounds.isObject()) m_result.report["output_bounds"] = outputBounds;
         applyStyle(current);
@@ -723,6 +702,7 @@ void PlotView::refreshOutput(const NodeResult &result)
         m_reference = reference;
         m_viewportTimer.stop();
     }
+    if (pendingViewport) m_viewportTimer.start();
     // Update mapping diagnostics without resetting unfinished text fields.
     emit displayDataChanged();
 }
@@ -744,12 +724,21 @@ PlotStyle PlotView::styleWithViewport() const
     }
     return style;
 }
+PlotStyle PlotView::styleForReload() const
+{
+    auto style = styleWithViewport();
+    style.x.manualRange = m_style.x.manualRange;
+    style.y.manualRange = m_style.y.manualRange;
+    return style;
+}
 void PlotView::resetStyle()
 {
     if (hasPlot())
     {
         m_style = m_defaults;
         draw();
+        // Resetting the axes can expose data outside the last loaded window.
+        m_viewportTimer.start();
         emit styleChanged();
     }
 }
@@ -854,7 +843,22 @@ void PlotView::fitRanges()
         m_plot->rescaleAxes(true);
         keyAxis()->scaleRange(1.03);
         valueAxis()->scaleRange(1.08);
+        if (isCrossSpectrum() && !m_style.y.logarithmic)
+        {
+            if (m_style.crossMetric == "coherence") valueAxis()->setRange(0, 1);
+            if (m_style.crossMetric == "phase_degrees") valueAxis()->setRange(-180, 180);
+        }
     }
+}
+void PlotView::fitAutomaticAxes()
+{
+    if (!hasPlot()) return;
+    QScopedValueRollback<bool> rendering(m_rendering, true);
+    const auto x = keyAxis()->range(), y = valueAxis()->range();
+    fitRanges();
+    if (m_style.x.manualRange) keyAxis()->setRange(x);
+    if (m_style.y.manualRange) valueAxis()->setRange(y);
+    m_plot->replot(QCustomPlot::rpQueuedReplot);
 }
 void PlotView::fit()
 {
@@ -1071,6 +1075,8 @@ void PlotView::applyAppearance()
 }
 void PlotView::draw()
 {
+    if (isCrossSpectrum())
+    { QSignalBlocker block(m_crossMetric); m_crossMetric->setCurrentIndex(m_crossMetric->findData(m_style.crossMetric)); }
     m_probe->dismiss();
     QScopedValueRollback<bool> rendering(m_rendering, true);
     m_contour = nullptr;
@@ -1086,9 +1092,14 @@ void PlotView::draw()
         m_stack->setCurrentWidget(m_empty);
         return;
     }
-    if (dataAs<TableData>(m_data))
+    if (dataAs<TableData>(m_data) && (!isCrossSpectrum() || m_style.crossMetric == "table"))
     {
-        m_tableModel->setDataRef(m_data);
+        if (isCrossSpectrum())
+        {
+            const auto csv = crossSpectrumCsvData(m_result);
+            m_tableModel->setDataRef(csv.error.isEmpty() ? csv.data : m_data);
+        }
+        else m_tableModel->setDataRef(m_data);
         m_stack->setCurrentWidget(m_table);
         return;
     }
@@ -1145,6 +1156,13 @@ void PlotView::draw()
                 if (value > 0) { m_positiveMin = std::min(m_positiveMin,value); m_positiveMax = std::max(m_positiveMax,value); }
                 else ++m_nonPositiveCells;
             }
+        const auto colors = m_result.report["plot_samples"].toObject().value(m_port).toObject()["color_bounds"].toArray();
+        if (colors.size() == 3)
+        {
+            m_colorMin = colors[0].toDouble(); m_colorMax = colors[1].toDouble();
+            m_positiveMax = std::max(0., m_colorMax);
+            m_positiveMin = colors[2].toDouble();
+        }
         // A saved log style may be revisited on a viewport with no positive samples.
         // Keep the setting, render transparent cells, and report the empty mapping.
         if (m_positiveMax <= 0) { m_positiveMin = 1; }
@@ -1208,7 +1226,28 @@ void PlotView::draw()
             valueAxis()->setScaleType(QCPAxis::stLogarithmic);
             valueAxis()->setTicker(QSharedPointer<QCPAxisTickerLog>(new QCPAxisTickerLog));
         }
-        for (auto it = m_result.outputs.begin(); it != m_result.outputs.end(); ++it)
+        if (isCrossSpectrum())
+        {
+            const auto curves = crossSpectrumCurves(m_result, m_style.crossMetric);
+            if (!curves.error.isEmpty() || curves.paths.isEmpty())
+            {
+                m_empty->setText(curves.error.isEmpty() ? text("ui.cross_undefined") : curves.error);
+                m_stack->setCurrentWidget(m_empty); return;
+            }
+            QVector<double> x, y;
+            for (const auto &path : curves.paths)
+            {
+                if (!x.isEmpty()) { x << (x.back() + path.x.front())/2; y << qQNaN(); }
+                for (qsizetype i=0;i<path.x.size();++i)
+                {
+                    x << path.x[i];
+                    y << ((m_style.x.logarithmic && path.x[i]<=0) || (m_style.y.logarithmic && path.y[i]<=0) ? qQNaN() : path.y[i]);
+                }
+            }
+            auto *graph = m_plot->addGraph(keyAxis(), valueAxis());
+            graph->setProperty("outputKey", m_port); graph->setData(x,y); graph->setAdaptiveSampling(true);
+        }
+        else for (auto it = m_result.outputs.begin(); it != m_result.outputs.end(); ++it)
         {
             if (!m_style.curves.contains(it.key()))
                 continue;
@@ -1272,10 +1311,8 @@ void PlotView::draw()
 std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
 {
     if (!hasPlot()) return {};
-    auto number = [](double v) { return QString::number(v, 'g', 12); };
-    auto line = [&](const QString &name, double v) { return name + ": " + number(v); };
     auto note = [&] { return m_result.report["display_reduced"].toBool()
-        ? "\n" + text("ui.probe_reduced") : QString(); };
+        ? text("ui.probe_reduced") : QString(); };
     if (const auto *grid = dataAs<GridData>(m_data))
     {
         for (int i = 0; i < m_plot->plottableCount(); ++i)
@@ -1293,9 +1330,9 @@ std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
             map->data()->cellToCoord(c, r, &k, &v);
             const auto ix = nearest(grid->x, k), iy = nearest(grid->y, originalY(v));
             return ProbeSample{map->coordsToPixels(k, v), portLabel(m_port),
-                line(axisLabel(grid->xAxis), grid->x[ix]) + "\n" +
-                line(axisLabel(grid->yAxis), grid->y[iy]) + "\n" +
-                line(axisLabel(grid->valueAxis), z) + note()};
+                {{axisLabel(grid->xAxis), grid->x[ix]},
+                 {axisLabel(grid->yAxis), grid->y[iy]},
+                 {axisLabel(grid->valueAxis), z}}, note(), std::nullopt};
         }
         return {};
     }
@@ -1320,17 +1357,18 @@ std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
             const bool peak = graph->property("outputKey").toString() == "peaks";
             if (d > distance || (best && d == distance && !peak)) continue;
             distance = d;
-            QString detail = line(keyAxis()->label().isEmpty() ? "X" : keyAxis()->label(), it->key) + "\n" +
-                line(valueAxis()->label().isEmpty() ? "Y" : valueAxis()->label(), it->value);
+            QVector<ProbeValue> values{
+                {keyAxis()->label().isEmpty() ? "X" : keyAxis()->label(), it->key},
+                {valueAxis()->label().isEmpty() ? "Y" : valueAxis()->label(), it->value}};
             if (const auto *spectrum = dataAs<SpectrumData>(m_data);
                 spectrum && it->key > 0 && std::isfinite(1.0 / it->key))
             {
                 const auto frequencyUnit = spectrum->frequencyAxis.unit.trimmed();
                 const auto periodUnit = frequencyUnit.startsWith("1/") ? frequencyUnit.mid(2) :
                     (frequencyUnit.isEmpty() ? QString() : "1/(" + frequencyUnit + ")");
-                detail += "\n" + line(axisLabel({text("ui.probe_period"), periodUnit}), 1.0 / it->key);
+                values.push_back({axisLabel({text("ui.probe_period"), periodUnit}), 1.0 / it->key});
             }
-            best = ProbeSample{pixel, graph->name(), detail + note()};
+            best = ProbeSample{pixel, graph->name(), values, note(), graph->pen()};
         }
     }
     return best;
@@ -1338,6 +1376,7 @@ std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
 QMenu *PlotView::curveMenu(QWidget *owner)
 {
     auto *menu = new QMenu(owner);
+    configureMenu(menu);
     menu->setAttribute(Qt::WA_DeleteOnClose);
     const auto generation = m_generation;
     for (auto it = m_style.curves.begin(); it != m_style.curves.end(); ++it)
@@ -1370,8 +1409,18 @@ QString PlotView::exportCsv(const QString &path) const
         auto error = repo.open(m_reference.databasePath, false);
         if (!error.isEmpty())
             return error;
+        if (m_reference.port == "cross_spectrum")
+        {
+            auto csv = crossSpectrumCsvData(loadCrossSpectrumOutput(m_reference));
+            return csv.error.isEmpty() ? exportDataCsv(csv.data, path).error : csv.error;
+        }
         auto output = repo.loadOutput(m_reference);
         return output.ok() ? exportDataCsv(output.data, path).error : output.error;
+    }
+    if (isCrossSpectrum())
+    {
+        auto csv = crossSpectrumCsvData(m_result);
+        return csv.error.isEmpty() ? exportDataCsv(csv.data, path).error : csv.error;
     }
     return exportDataCsv(m_data, path).error;
 }

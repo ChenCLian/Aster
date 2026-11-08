@@ -6,6 +6,7 @@
 #include "io/database/plot_request.h"
 #include "io/database/output_reference.h"
 #include <QSize>
+#include <QRectF>
 namespace aster::ui
 {
 struct FigureCell
@@ -13,6 +14,8 @@ struct FigureCell
     QVector<OutputReference> references;
     PlotStyle style;
     PlotRequest request;
+    // Normalized page rectangle; null requests the default arrangement.
+    QRectF area{};
 };
 struct FigureOptions
 {
@@ -27,6 +30,7 @@ struct FigureOptions
     int dpi = 200;
     bool whitePaper = true;
 };
+QVector<QRect> figureCellRects(const QVector<FigureCell> &cells, QSize pixels);
 QString validateFigureOptions(const FigureOptions &options);
 QString renderFigure(const QVector<FigureCell> &cells, const QVector<NodeResult> &data,
                      const FigureOptions &options);

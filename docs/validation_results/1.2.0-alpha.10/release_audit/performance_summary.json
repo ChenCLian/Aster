@@ -1,0 +1,63 @@
+{
+  "dialog_1000_construct_ms": {
+    "median": 315,
+    "minimum": 264,
+    "maximum": 1588,
+    "samples": 3
+  },
+  "dialog_9999_construct_ms": {
+    "median": 1009,
+    "minimum": 354,
+    "maximum": 1112,
+    "samples": 3
+  },
+  "baseline_dialog_9999_construct_ms": {
+    "median": 13574,
+    "minimum": 13566,
+    "maximum": 22488,
+    "samples": 3
+  },
+  "dialog_9999_speedup_median": 13.452923686818632,
+  "numeric_1000000_compute_ms": {
+    "median": 263,
+    "minimum": 254,
+    "maximum": 342,
+    "samples": 3
+  },
+  "cancel_1000000_response_ms": {
+    "median": 2,
+    "minimum": 1,
+    "maximum": 14,
+    "samples": 5
+  },
+  "gui_512_run_ms": {
+    "median": 1226,
+    "minimum": 939,
+    "maximum": 1310,
+    "samples": 3
+  },
+  "gui_512_maximum_event_loop_gap_ms": {
+    "median": 25,
+    "minimum": 25,
+    "maximum": 41,
+    "samples": 3
+  },
+  "gui_512_peak_rss_kib": {
+    "median": 127608,
+    "minimum": 127032,
+    "maximum": 127724,
+    "samples": 3
+  },
+  "plot_1000000_peak_rss_kib": {
+    "median": 118028,
+    "minimum": 117452,
+    "maximum": 118056,
+    "samples": 3
+  },
+  "linked_9999_prepare_ms": {
+    "median": 326,
+    "minimum": 326,
+    "maximum": 326,
+    "samples": 1
+  }
+}

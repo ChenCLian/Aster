@@ -89,10 +89,11 @@ jobs:
             python3 --version
             qmake -v
             qmake -query QT_INSTALL_PREFIX
+            make --version
             c++ --version
           } 2>&1 | tee build-release/ci-logs/environment.log
-      - name: Check license packaging
-        run: python3 -m unittest discover -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/license-tests.log
+      - name: Check release tooling
+        run: python3 -m unittest discover -v -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/license-tests.log
       - name: Configure
         run: |
           cd build-release
@@ -152,5 +153,8 @@ jobs:
             build-release/ci-logs/
             build-release/test-results/
             dist/dependency-materials/*/report.json
+            dist/dependency-materials/*/records/recipes/brew-*/*.rb
+            dist/dependency-materials/*/records/recipes/brew-*/INSTALL_RECEIPT.json
+            dist/dependency-materials/*/records/recipes/brew-*/local-patch-recovery.json
           if-no-files-found: ignore
           retention-days: 30

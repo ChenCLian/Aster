@@ -1,0 +1,132 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.1",
+  "date": "2026-11-06",
+  "stage": "same-batch execution framework",
+  "environment": {
+    "os": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "gui_test_platform": "offscreen"
+  },
+  "desktop_build": "passed",
+  "application_version": "Aster_Workspace 1.2.0-alpha.1",
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 761,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "qt_test_totals": {
+    "passed": 1765,
+    "failed": 0,
+    "skipped": 0
+  },
+  "address_and_undefined_behavior_sanitizers": {
+    "passed": 68,
+    "failed": 0,
+    "leak_detection": false,
+    "note": "LeakSanitizer cannot run in the ptrace-constrained execution environment; no leak-clean claim is made."
+  },
+  "release_tool_tests": {
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0
+  },
+  "help_generator_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "generated_parameter_references": {
+    "tasks": 53,
+    "parameters": 228,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "status": "current; only version header changed"
+  },
+  "help_resource_tests": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "six help functions plus QtTest setup and teardown, after rebuilding the versioned parameter resources"
+  },
+  "compatibility": {
+    "scientific_algorithm_sources_unchanged": true,
+    "local_configuration_unchanged": true,
+    "original_workflow_graph_format_unchanged": true,
+    "database_schema_unchanged": true
+  },
+  "fixed_regression": "A shared reference placed last is promoted before waiting pair inputs exhaust the intermediate cache; tested with 40 datasets, 39 pairs and one worker.",
+  "limitations": [
+    "Cross-spectrum numerical implementation is not present.",
+    "Grouping editor, paired preview, database and CSV integration are not present.",
+    "Windows and macOS native builds have not been run for this development version.",
+    "Source-file byte snapshots are not supplied by the batch manifest.",
+    "Cache budget does not bound total process memory."
+  ],
+  "build_warnings": "Existing QtTest deprecated QVERIFY_EXCEPTION_THROWN macro warnings; no added input-field initializer warnings in the final rebuild.",
+  "logs": "Local workspace paths replaced with placeholders; test statuses and totals preserved."
+}

@@ -1,0 +1,145 @@
+{
+  "version": "1.2.0-beta.2",
+  "date": "2026-11-07",
+  "status": "passed",
+  "baseline": "1.2.0-beta.1 complete source export",
+  "scope": "Portable startup wording, localized UI labels/tooltips, CWT method guide, reference-software attribution, localized parameter-reference generation, embedded help and version consistency. Scientific code changes only one error-message string; parameters, defaults, numerical implementation and data formats are unchanged.",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen"
+  },
+  "checks": {
+    "version_consistency": {
+      "passed": 2,
+      "log": "version-tests.log"
+    },
+    "reference_generator": {
+      "passed": 7,
+      "log": "generator-tests.log",
+      "new_coverage": "Localized choice/default labels with original stored values, fallback and Markdown escaping."
+    },
+    "notice_packaging": {
+      "passed": 2,
+      "log": "notice-tests.log",
+      "scope": "Notice preservation and resource inclusion; not a new license or dependency-source completeness audit."
+    },
+    "embedded_help": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "count_includes": "QtTest initTestCase and cleanupTestCase",
+      "log": "embedded-help-tests.txt",
+      "coverage": [
+        "Bilingual catalogue and parameter topics",
+        "Local links and fallback",
+        "Language switching and chapter reuse",
+        "Reference layout",
+        "Directory links",
+        "Selected-node help"
+      ]
+    },
+    "parameter_reference": {
+      "tasks": 54,
+      "parameters": 233,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "log": "parameter-reference.log"
+    },
+    "application_version": {
+      "output": "Aster_Workspace 1.2.0-beta.2",
+      "log": "application-version.log"
+    },
+    "shell_packaging_syntax": {
+      "linux": "bash -n passed",
+      "macos": "bash -n passed",
+      "windows": "Not executed; only START_HERE text changed, deployment logic checked against baseline."
+    },
+    "links_resources_and_continuity": {
+      "markdown_files_checked": 61,
+      "relative_links_checked": 451,
+      "missing_links": [],
+      "unresolved_anchors": [],
+      "qrc_entries": 62,
+      "missing_qrc_entries": [],
+      "unchanged_from_beta1": {
+        "src/math": true,
+        "src/ui": true,
+        "src/io": true,
+        "src/core": true,
+        "analysis_tests": true,
+        "batch_tests": true,
+        "cross_spectrum_tests": true,
+        "style_export_tests": true,
+        "ui_tests": true,
+        "workspace_tests": true,
+        "update_tests": true,
+        "licenses": true
+      },
+      "historical_evidence_files_preserved": 430,
+      "historical_evidence_byte_identical": true,
+      "source_changes": [
+        "src/processing/wavelet_task.cpp"
+      ],
+      "sole_source_change_is_error_message": true,
+      "parameter_descriptors_defaults_and_stored_keys_unchanged": true,
+      "packaging_logic_unchanged_except_startup_text": {
+        "tools/release/package_windows.ps1": true,
+        "tools/release/package_linux.sh": true,
+        "tools/release/package_macos.sh": true
+      },
+      "i18n": {
+        "zh": {
+          "keys_unchanged": true,
+          "changed_labels": [
+            "choice.method.acycle_cwt",
+            "choice.method.torrence_compo",
+            "parameterhelp.rolloff_exponent",
+            "parameterhelp.chrono_rate_rule",
+            "parameterhelp.cycle_first_age_mode",
+            "warning.coco_target",
+            "parameterhelp.coco_null_peaks",
+            "parameterhelp.method"
+          ],
+          "acycle_in_display_values": []
+        },
+        "en": {
+          "keys_unchanged": true,
+          "changed_labels": [
+            "choice.method.acycle_cwt",
+            "choice.method.torrence_compo",
+            "parameterhelp.rolloff_exponent",
+            "parameterhelp.chrono_rate_rule",
+            "parameterhelp.cycle_first_age_mode",
+            "warning.coco_target",
+            "parameterhelp.coco_null_peaks",
+            "parameterhelp.method"
+          ],
+          "acycle_in_display_values": []
+        }
+      }
+    },
+    "source_export": {
+      "tool": "tools/release/package_source.py",
+      "integrity_record": "PACKAGE_MANIFEST.json"
+    }
+  },
+  "removed_or_moved_project_files": [],
+  "numerical_or_stress_tests_rerun": false,
+  "retained_evidence": {
+    "previous_documentation": "../1.2.0-beta.1/documentation_checks.json",
+    "readout": "../1.2.0-alpha.21/probe_checks.json",
+    "interactive_acceptance": "../1.2.0-alpha.20/acceptance_checks.json",
+    "full_regression": "../1.2.0-alpha.19/plot_layout_checks.json"
+  },
+  "native_acceptance_complete": false,
+  "limitations": [
+    "Offscreen help checks do not replace native final-package acceptance.",
+    "No runtime-bundling changes: Windows may require the Microsoft Visual C++ runtime; Linux requires compatible system graphics libraries and fonts.",
+    "La2004/La2010 redistribution basis retains its recorded pending status."
+  ]
+}

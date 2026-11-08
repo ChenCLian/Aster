@@ -27,6 +27,7 @@ class SourcePanel : public QWidget
     void syncPreviewInput();
   signals:
     void importRequested();
+    void editRejected(QString error);
     void sourceRequested();
     void readinessChanged(bool ready);
     void previewInputChanged(QString path, QJsonObject options, bool ready);

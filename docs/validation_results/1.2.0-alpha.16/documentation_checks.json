@@ -1,0 +1,22 @@
+{
+  "version": "1.2.0-alpha.16",
+  "date": "2026-11-07",
+  "status": "passed",
+  "checks": {
+    "markdown_files": 60,
+    "local_and_repository_links_checked": 454,
+    "anchors_checked": 133,
+    "embedded_resources": 48,
+    "external_links_not_availability_checked": 51,
+    "errors": [],
+    "personal_path_findings": [],
+    "intermediate_wording_findings": []
+  },
+  "generated_reference": {
+    "tasks": 54,
+    "parameters": 233,
+    "check": "passed"
+  },
+  "embedded_help": "rebuilt",
+  "scope": "Bilingual grouping, sampling, refinement/status, source/display boundary, release version consistency and local links/resources. External URLs not revalidated."
+}

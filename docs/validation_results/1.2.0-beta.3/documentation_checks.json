@@ -1,0 +1,157 @@
+{
+  "version": "1.2.0-beta.3",
+  "date": "2026-11-08",
+  "status": "passed",
+  "baseline": "1.2.0-beta.2 complete source export",
+  "scope": "User-facing startup and operation wording, bilingual diagnostics and help, duplicate/malformed documentation cleanup, version consistency and source-export checks. Scientific code, UI interaction logic, defaults, limits and data formats are unchanged.",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform_plugin": "offscreen"
+  },
+  "checks": {
+    "version_consistency": {
+      "passed": 2,
+      "log": "version-tests.log"
+    },
+    "reference_generator": {
+      "passed": 7,
+      "log": "generator-tests.log"
+    },
+    "notice_packaging": {
+      "passed": 2,
+      "log": "notice-tests.log",
+      "scope": "Notice preservation and resource inclusion; not a new license or dependency-source completeness audit."
+    },
+    "embedded_help": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "count_includes": "QtTest initTestCase and cleanupTestCase",
+      "log": "embedded-help-tests.txt",
+      "coverage": [
+        "Bilingual catalogue and parameter topics",
+        "Local links and fallback",
+        "Language switching and chapter reuse",
+        "Reference layout",
+        "Directory links",
+        "Selected-node help"
+      ]
+    },
+    "parameter_reference": {
+      "tasks": 54,
+      "parameters": 233,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "log": "parameter-reference.log"
+    },
+    "application_version": {
+      "output": "Aster_Workspace 1.2.0-beta.3",
+      "log": "application-version.log"
+    },
+    "shell_packaging_syntax": {
+      "linux": "bash -n passed",
+      "macos": "bash -n passed",
+      "windows": "Not executed; only START_HERE text changed, deployment logic checked against baseline."
+    },
+    "links_resources_and_continuity": {
+      "markdown_files_checked": 61,
+      "relative_links_checked": 452,
+      "missing_links": [],
+      "unresolved_anchors": [],
+      "qrc_entries": 62,
+      "missing_qrc_entries": [],
+      "unchanged_from_beta2": {
+        "src/math": true,
+        "src/ui": true,
+        "src/io": true,
+        "src/core": true,
+        "analysis_tests": true,
+        "batch_tests": true,
+        "cross_spectrum_tests": true,
+        "style_export_tests": true,
+        "ui_tests": true,
+        "workspace_tests": true,
+        "update_tests": true,
+        "licenses": true
+      },
+      "historical_evidence_files_preserved": 438,
+      "historical_evidence_byte_identical": true,
+      "source_changes": [],
+      "all_source_byte_identical": true,
+      "parameter_descriptors_defaults_and_stored_keys_unchanged": true,
+      "packaging_logic_unchanged_except_startup_text": {
+        "tools/release/package_windows.ps1": true,
+        "tools/release/package_linux.sh": true,
+        "tools/release/package_macos.sh": true
+      },
+      "i18n": {
+        "zh": {
+          "keys_unchanged": true,
+          "changed_labels": [
+            "ui.changes_apply_to_this_output_of_this_record_and_are_kept_for",
+            "diagnostic.FILE_LINE_LIMIT.suggestion",
+            "diagnostic.FILE_ROW_LIMIT.suggestion",
+            "diagnostic.RESAMPLE_COORDINATE_RESOLUTION.suggestion",
+            "diagnostic.COCO_NO_SCORE.suggestion",
+            "parameterhelp.method",
+            "ui.overlay_incompatible_detail"
+          ],
+          "placeholders_unchanged": true
+        },
+        "en": {
+          "keys_unchanged": true,
+          "changed_labels": [
+            "ui.changes_apply_to_this_output_of_this_record_and_are_kept_for",
+            "diagnostic.FILE_LINE_LIMIT.suggestion",
+            "diagnostic.FILE_ROW_LIMIT.suggestion",
+            "diagnostic.RESAMPLE_COORDINATE_RESOLUTION.suggestion",
+            "diagnostic.COCO_NO_SCORE.suggestion",
+            "parameterhelp.method"
+          ],
+          "placeholders_unchanged": true
+        }
+      },
+      "user_document_structure": {
+        "files": [
+          "README.md",
+          "QUICK_START.md",
+          "FAQ.md",
+          "RELEASE_NOTES.md",
+          "docs/USER_GUIDE.md",
+          "docs/USER_GUIDE_EN.md",
+          "docs/ui/plotting.md"
+        ],
+        "malformed_headings": [],
+        "duplicate_headings": []
+      },
+      "startup_comparisons_removed": true
+    },
+    "source_export": {
+      "tool": "tools/release/package_source.py",
+      "integrity_record": "PACKAGE_MANIFEST.json"
+    }
+  },
+  "removed_or_moved_project_files": [],
+  "numerical_or_stress_tests_rerun": false,
+  "retained_evidence": {
+    "previous_documentation": "../1.2.0-beta.2/documentation_checks.json",
+    "readout": "../1.2.0-alpha.21/probe_checks.json",
+    "interactive_acceptance": "../1.2.0-alpha.20/acceptance_checks.json",
+    "full_regression": "../1.2.0-alpha.19/plot_layout_checks.json"
+  },
+  "native_acceptance_complete": false,
+  "limitations": [
+    "Offscreen help tests do not replace native final-package acceptance.",
+    "Windows may require the Microsoft Visual C++ runtime; Linux requires compatible system libraries and fonts.",
+    "La2004/La2010 redistribution basis retains its recorded pending status."
+  ],
+  "scope_exclusions": [
+    "No new numerical, stress or native-platform tests; prior evidence retains its original version and scope.",
+    "No deployment-logic or dependency-bundling changes; packaging edits affect START_HERE text only."
+  ]
+}

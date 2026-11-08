@@ -5,6 +5,7 @@
 #include "ui/panels/record_filter_panel.h"
 #include "ui/services/record_directory_service.h"
 #include "ui/common/presentation.h"
+#include "ui/common/popup_placement.h"
 #include <QListWidget>
 #include <QLabel>
 #include <QLineEdit>
@@ -42,6 +43,8 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     layout->setSpacing(8);
     auto *title = new QLabel(text("ui.result_directory"));
     title->setObjectName("SectionTitle");
+    title->setWordWrap(true);
+    title->setMinimumWidth(0);
     auto *heading = new QHBoxLayout;
     heading->addWidget(title, 1);
     m_database = new QToolButton;
@@ -49,6 +52,7 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     m_database->setText(text("ui.database_operations"));
     m_database->setPopupMode(QToolButton::InstantPopup);
     auto *databaseMenu = new QMenu(m_database);
+    configureMenu(databaseMenu);
     auto *mergeAction = databaseMenu->addAction(text("ui.database_merge"), this,
                                                 &RecordDirectoryPanel::mergeDatabaseFile);
     mergeAction->setObjectName("mergeDatabaseAction");
@@ -304,7 +308,8 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                                            this, &RecordDirectoryPanel::deleteSelection);
                 edit->setEnabled(!m_busy && m_mutationsEnabled);
                 del->setEnabled(!m_busy && !m_filterPending && m_mutationsEnabled);
-                menu.exec(m_list->viewport()->mapToGlobal(pos));
+                menu.exec(menuPopupPosition(&menu, this,
+                    QRect(m_list->viewport()->mapToGlobal(pos), QSize(1, 1))));
             });
     updateActions();
 }

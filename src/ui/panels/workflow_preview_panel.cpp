@@ -18,8 +18,47 @@
 #include <QFileInfo>
 #include <QShowEvent>
 #include <QHideEvent>
+#include <QResizeEvent>
+#include <QPainter>
+#include <QStyleOption>
 namespace aster::ui
 {
+namespace
+{
+// Two explicit lines, never a path-dependent paragraph. QLabel retains the
+// full accessible text; painting elides each line and the tooltip holds detail.
+class PreviewSourceHeading final : public QLabel
+{
+  public:
+    PreviewSourceHeading() { setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed); }
+    QSize sizeHint() const override { return {0, 2 * fontMetrics().lineSpacing() + 2}; }
+    QSize minimumSizeHint() const override { return sizeHint(); }
+  protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        QStyleOption option; option.initFrom(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
+        const auto lines = text().split('\n');
+        auto row = contentsRect(); row.setHeight(fontMetrics().lineSpacing());
+        for (int i = 0; i < std::min(2, int(lines.size())); ++i)
+        {
+            style()->drawItemText(&painter, row, Qt::AlignLeft | Qt::AlignVCenter,
+                palette(), isEnabled(), fontMetrics().elidedText(lines[i], Qt::ElideMiddle, row.width()), foregroundRole());
+            row.translate(0, row.height());
+        }
+    }
+};
+void compactPreview(PlotView *view)
+{
+    if (!view->hasPlot()) return;
+    auto style = view->style();
+    style.axisFontSize = 8; style.legendFontSize = 7.5;
+    style.x.tickCount = style.y.tickCount = 4;
+    view->applyStyle(style);
+}
+}
+
 WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *parent)
     : QWidget(parent), m_document(doc), m_controller(new WorkflowPreviewController(doc, this))
 {
@@ -34,12 +73,16 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     auto *tl = new QVBoxLayout(top); tl->setContentsMargins(0, 0, 0, 0);
     m_original = new FilePreviewPanel;
     tl->addWidget(m_original);
-    m_sourceHeading = new QLabel; m_sourceHeading->setObjectName("PreviewMethod");
+    m_sourceHeading = new PreviewSourceHeading; m_sourceHeading->setObjectName("PreviewMethod");
     m_sourceHeading->setWordWrap(true); m_sourceHeading->setTextFormat(Qt::PlainText);
-    m_sourceHeading->setMinimumWidth(0); m_sourceHeading->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    m_sourceHeading->setMinimumWidth(0); m_sourceHeading->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     tl->addWidget(m_sourceHeading); m_sourceHeading->hide();
-    m_generated = new PlotView; m_generated->setMinimumSize(0, 0);
-    tl->addWidget(m_generated); m_generated->hide();
+    m_pairInput = new ChoiceEditor; m_pairInput->setObjectName("pairInputPreview");
+    m_pairInput->addItems({"A", "B"}); tl->addWidget(m_pairInput); m_pairInput->hide();
+    connect(m_pairInput, qOverload<int>(&QComboBox::currentIndexChanged), this, &WorkflowPreviewPanel::showSourceOutput);
+    m_generated = new PlotView; m_generated->setObjectName("sourcePreviewPlot");
+    m_generated->setMinimumSize(0, 150);
+    tl->addWidget(m_generated, 1); m_generated->hide();
     split->addWidget(top);
     auto *bottom = new QWidget; bottom->setMinimumHeight(230);
     auto *bl = new QVBoxLayout(bottom); bl->setContentsMargins(0, 0, 0, 0); bl->setSpacing(6);
@@ -55,17 +98,21 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     m_file->setObjectName("previewInputIdentity"); m_file->setMinimumWidth(0);
     m_file->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); info->addWidget(m_file);
     bl->addWidget(bar);
-    auto *tools = new QHBoxLayout;
+    m_tools = new QBoxLayout(QBoxLayout::LeftToRight);
     m_outputs = new ChoiceEditor; m_outputs->setObjectName("previewOutput");
     m_outputs->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_outputs->setMinimumContentsLength(6); m_outputs->setMinimumWidth(0);
     m_outputs->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-    m_outputs->setToolTip(text("ui.preview_outputs_hint")); tools->addWidget(m_outputs, 1);
-    m_fit = new QToolButton; m_fit->setText(text("ui.fit")); tools->addWidget(m_fit);
+    m_outputs->setToolTip(text("ui.preview_outputs_hint")); m_tools->addWidget(m_outputs, 1);
+    m_actions = new QWidget;
+    auto *actions = new QHBoxLayout(m_actions);
+    actions->setContentsMargins(0, 0, 0, 0);
+    m_fit = new QToolButton; m_fit->setText(text("ui.fit")); actions->addWidget(m_fit);
     m_legend = new QToolButton; m_legend->setText(text("ui.preview_legend"));
-    m_legend->setCheckable(true); tools->addWidget(m_legend);
-    m_retry = new QToolButton; m_retry->setText(text("ui.preview_refresh")); tools->addWidget(m_retry);
-    bl->addLayout(tools);
+    m_legend->setCheckable(true); actions->addWidget(m_legend);
+    m_retry = new QToolButton; m_retry->setText(text("ui.preview_refresh")); actions->addWidget(m_retry);
+    m_tools->addWidget(m_actions);
+    bl->addLayout(m_tools);
     m_progress = new QProgressBar; m_progress->setRange(0, 0); m_progress->setTextVisible(false);
     m_progress->setFixedHeight(4); bl->addWidget(m_progress);
     m_status = new StyleNote; m_status->setWordWrap(true); m_status->setObjectName("Muted");
@@ -73,6 +120,9 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     m_status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); bl->addWidget(m_status);
     m_resultPlot = new PlotView; m_resultPlot->setObjectName("nodePreviewPlot");
     m_resultPlot->setMinimumSize(0, 0); bl->addWidget(m_resultPlot, 1);
+    connect(m_resultPlot, &PlotView::outputChanged, this, [this] {
+        m_fit->setEnabled(m_resultPlot->hasPlot()); m_legend->setEnabled(m_resultPlot->hasPlot());
+    });
     m_outputHint = new StyleNote(text("ui.preview_reduced")); m_outputHint->setWordWrap(true);
     m_outputHint->setObjectName("Muted"); m_outputHint->setMinimumWidth(0);
     m_outputHint->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); bl->addWidget(m_outputHint);
@@ -93,6 +143,15 @@ void WorkflowPreviewPanel::showEvent(QShowEvent *event)
 { QWidget::showEvent(event); m_controller->setActive(!m_suspended); }
 void WorkflowPreviewPanel::hideEvent(QHideEvent *event)
 { m_controller->setActive(false); QWidget::hideEvent(event); }
+void WorkflowPreviewPanel::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    // Keep the output choice usable when the sidebar is narrow or translated
+    // buttons are long. Reuse the same controls so focus/selection is preserved.
+    const bool stacked = width() - 16 < m_actions->minimumSizeHint().width() + 120 + m_tools->spacing();
+    m_tools->setDirection(stacked ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
+    m_tools->setStretch(0, stacked ? 0 : 1);
+}
 void WorkflowPreviewPanel::updateState()
 {
     for (auto it = m_outputSelections.begin(); it != m_outputSelections.end();)
@@ -113,7 +172,9 @@ void WorkflowPreviewPanel::updateState()
         if (!root->input) break;
         root = m_document->node(root->input->parent);
     }
-    const bool file = !root || root->method == "file_source";
+    const bool paired = !m_document->pairNodeFor(m_controller->node()).isNull();
+    m_pairInput->setVisible(paired);
+    const bool file = !paired && (!root || root->method == "file_source");
     m_original->setVisible(file); m_generated->setVisible(!file);
     m_sourceHeading->setVisible(!file);
     m_sourceHeading->setText(text("ui.preview_source_data") + " · " + names.value(0));
@@ -124,6 +185,7 @@ void WorkflowPreviewPanel::updateState()
     m_progress->setVisible(state == State::Running || state == State::Waiting);
     m_retry->setEnabled(node && state != State::Running && state != State::Waiting);
     const auto current = m_controller->result();
+    if (paired && current) m_file->setText(current->pairLabel);
     if (file && current && current != m_displayed) m_original->setWorkflowSource(current->original);
     if (state != State::Ready || !current)
     {
@@ -188,6 +250,22 @@ void WorkflowPreviewPanel::showOutput()
 void WorkflowPreviewPanel::showSourceOutput()
 {
     const auto *root = m_document->node(m_controller->node());
+    const auto currentPair = m_controller->result();
+    if (!m_document->pairNodeFor(m_controller->node()).isNull())
+    {
+        const bool b = m_pairInput->currentIndex() == 1;
+        m_sourceHeading->setText(text("ui.pair_input") + (b ? " B" : " A") +
+            (currentPair ? "\n" + (b ? currentPair->displayB : currentPair->displayA) : QString()));
+        m_sourceHeading->setToolTip(currentPair ? (b ? currentPair->labelB : currentPair->labelA) : QString());
+        const auto input = currentPair ? (b ? currentPair->second : currentPair->original) : NodeResult{};
+        if (input.state == NodeState::Succeeded && input.outputs.value("series"))
+        {
+            m_generated->showOutput(input, "series");
+            compactPreview(m_generated);
+        }
+        else m_generated->clear(text("ui.preview_independent_source"));
+        return;
+    }
     QString port = m_outputs->currentData().toString();
     // Follow the selected branch back to its first edge. A grandchild's own
     // input port belongs to its immediate parent, not necessarily the source.
@@ -207,6 +285,7 @@ void WorkflowPreviewPanel::showSourceOutput()
     if (entry->descriptor.outputs.size() > 1 && !port.isEmpty())
         heading += "\n" + portLabel(entry->descriptor, port);
     m_sourceHeading->setText(heading);
+    m_sourceHeading->setToolTip(heading);
     const auto current = m_controller->result();
     if (!current || current->original.state != NodeState::Succeeded ||
         !current->original.outputs.contains(port))
@@ -219,6 +298,9 @@ void WorkflowPreviewPanel::showSourceOutput()
     // user switches the selected analysis node's output for display.
     if (m_generated->currentData() != current->original.outputs.value(port) ||
         m_generated->currentPort() != port)
+    {
         m_generated->showOutput(current->original, port);
+        compactPreview(m_generated);
+    }
 }
 }

@@ -31,7 +31,9 @@ class PlotStyleEditor : public QWidget
     bool apply();
 
   private:
+    void syncOutputAvailability();
     void refreshDisplayInfo();
+    void syncViewportRanges();
     void scheduleApply(int delayMs = 0);
     void connectLiveControls();
     void storeAxis();
@@ -42,6 +44,7 @@ class PlotStyleEditor : public QWidget
     PlotStyle m_draft;
     bool m_loading = false;
     bool m_applying = false;
+    bool m_rangeEdited[2] = {false, false};
     QTimer m_liveTimer;
     int m_axisIndex = 0;
     QString m_curveKey;

@@ -1,0 +1,226 @@
+{
+  "version": "1.2.0-alpha.20",
+  "base_version": "1.2.0-alpha.19",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "platform": "offscreen",
+    "openblas_threads": 1
+  },
+  "regression": {
+    "interaction_acceptance": {
+      "log": "logs/acceptance-final-v2.txt",
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 165294
+    },
+    "cross_spectrum_selected": {
+      "log": "logs/cross-regression.txt",
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 31
+    },
+    "workspace_selected": {
+      "log": "logs/workspace-regression-final.txt",
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 2736
+    },
+    "ui_selected": {
+      "log": "logs/ui-regression-final-v2.txt",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 12838
+    }
+  },
+  "normal_qttest_total": 94,
+  "counting": "Selected affected cases plus the new optional acceptance executable. QtTest init/cleanup and data rows included. Repeated runs, sanitizer reruns and historical full suites are not added to this number.",
+  "matrix": {
+    "result_screens": 8,
+    "workflow_screens": 8,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "initial_sizes": [
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "result_resize": [
+      1024,
+      700
+    ],
+    "general_parameter_methods": 53,
+    "parameter_combinations": 4,
+    "parameter_widths": [
+      200,
+      320
+    ]
+  },
+  "data": {
+    "maximum_single_series": 4096,
+    "primary_plot_fixture_total_input": 9856,
+    "workflow_fixture": [
+      3,
+      512
+    ],
+    "sine_pair": [
+      256,
+      256
+    ],
+    "derived_cwt_grid": [
+      4096,
+      95
+    ],
+    "new_monte_carlo_runs": 0
+  },
+  "behavior_verified": [
+    "Visible node/data search; no-match invalidates hidden selection",
+    "Short sine-pair diagnostics, keyboard editing, undo/redo while preview pending, exact preview/direct table equality",
+    "Stable page/cell identities through 180 mixed add/overlay/replace/move/swap/delete/reopen/style/resize operations",
+    "Stale popup owner lifetime, inactive view release, quiet-state read counts",
+    "Ordinary and dense legends stay inside axes after resizing; hide/show restores minimum size without changing fonts",
+    "Generated-source and downstream preview identity, independent per-file import options, parameter round-trip and layouts",
+    "Captured export destination, title drag cancellation, incompatible overlay preserves target, default plot destination preference"
+  ],
+  "interaction_metrics": [
+    {
+      "seed": 19,
+      "operations": 60,
+      "elapsed_ms": 41658,
+      "rss_kib": [
+        152600,
+        152628,
+        152628,
+        152464,
+        152464,
+        153240
+      ],
+      "read_completions": 167
+    },
+    {
+      "seed": 2026,
+      "operations": 60,
+      "elapsed_ms": 39012,
+      "rss_kib": [
+        153484,
+        153484,
+        153484,
+        153484,
+        153480,
+        153480
+      ],
+      "read_completions": 140
+    },
+    {
+      "seed": 73,
+      "operations": 60,
+      "elapsed_ms": 39803,
+      "rss_kib": [
+        149512,
+        149512,
+        149512,
+        150156,
+        150904,
+        154380
+      ],
+      "read_completions": 151
+    }
+  ],
+  "sanitizer": {
+    "log": "logs/asan-ubsan-final.txt",
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 144149,
+    "flags": "-O1 -g1 -fsanitize=address,undefined -fno-omit-frame-pointer",
+    "options": "ASAN_OPTIONS=detect_leaks=0:halt_on_error=1; UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1",
+    "application_modules_rebuilt": true,
+    "external_system_libraries_instrumented": false,
+    "leak_scanner_enabled": false,
+    "reason": "LeakSanitizer ptrace limitation in this environment; RSS/object-lifetime observations are not a leak-free guarantee.",
+    "interaction_metrics": [
+      {
+        "seed": 19,
+        "operations": 60,
+        "elapsed_ms": 45578,
+        "rss_kib": [
+          698104,
+          696924,
+          724792,
+          713608,
+          699868,
+          723420
+        ],
+        "read_completions": 168
+      },
+      {
+        "seed": 2026,
+        "operations": 60,
+        "elapsed_ms": 41453,
+        "rss_kib": [
+          720080,
+          735136,
+          717552,
+          717436,
+          716840,
+          714860
+        ],
+        "read_completions": 141
+      },
+      {
+        "seed": 73,
+        "operations": 60,
+        "elapsed_ms": 44227,
+        "rss_kib": [
+          723904,
+          713424,
+          721996,
+          736036,
+          743368,
+          719420
+        ],
+        "read_completions": 150
+      }
+    ]
+  },
+  "performance_scope": "Includes explicit waits, painting and deferred reads; normal and sanitizer runs overlap, so elapsed times are exercise durations, not standalone throughput or latency benchmarks. RSS includes caches. No unbounded growth or idle read loop observed in this bounded exercise.",
+  "reused": {
+    "version": "1.2.0-alpha.19",
+    "full_regression_passed": 2043,
+    "executables": 12,
+    "record": "../1.2.0-alpha.19/plot_layout_checks.json",
+    "monte_carlo": "CocoAnalysisAudit::odpLargeMonteCarlo narrow-scan/default-scan: 20000 simulations; unchanged mathematical implementation, not repeated."
+  },
+  "unchanged": [
+    "Numerical estimators and scientific budgets",
+    "Database schema/payloads",
+    "Plot recipes, preset defaults and sampling loader",
+    "Release/dependency scripts",
+    "Historical validation evidence"
+  ],
+  "remaining": [
+    "Windows/MSVC and macOS native builds and mouse/keyboard/drag/scale checks",
+    "Linux native window-manager and clean-host acceptance",
+    "High-DPI, multiple monitors and long-session testing",
+    "Final matching binary/source/dependency publication checks"
+  ]
+}

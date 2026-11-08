@@ -1,0 +1,54 @@
+********* Start testing of StyleExportTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : StyleExportTests::initTestCase()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-light) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(zh-light)
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(zh-dark) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(zh-dark)
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-light) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(en-light)
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::probeCompactReadout(en-dark) This plugin does not support raise()
+PASS   : StyleExportTests::probeCompactReadout(en-dark)
+QWARN  : StyleExportTests::firstPresentationWithoutInteraction() This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::firstPresentationWithoutInteraction() This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::firstPresentationWithoutInteraction()
+QWARN  : StyleExportTests::heatmapInitialAvailability(visible-load) This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::heatmapInitialAvailability(visible-load)
+QWARN  : StyleExportTests::heatmapInitialAvailability(hidden-load) This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::heatmapInitialAvailability(hidden-load)
+PASS   : StyleExportTests::heatmapDefaultOrientationAndPalette()
+QWARN  : StyleExportTests::cwtDatabaseFamilyAndExport() This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::cwtDatabaseFamilyAndExport() This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::cwtDatabaseFamilyAndExport()
+PASS   : StyleExportTests::stylePreservesZoomAndData()
+PASS   : StyleExportTests::invalidStyleIsAtomic()
+PASS   : StyleExportTests::logarithmicAndReversedAxes()
+PASS   : StyleExportTests::gridLimitsUseOriginalCoordinates()
+PASS   : StyleExportTests::waveletCellsCoiAndExportCoordinates()
+PASS   : StyleExportTests::styleCacheIsolatesAndReleasesData()
+QINFO  : StyleExportTests::resultsPageStyleIntegration(new_page) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 15 columns= 2 ok= true
+QINFO  : StyleExportTests::resultsPageStyleIntegration(new_page) [Aster import] column_controls_ms= 0
+QINFO  : StyleExportTests::resultsPageStyleIntegration(new_page) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 2 ok= true
+QINFO  : StyleExportTests::resultsPageStyleIntegration(new_page) [Aster import] column_controls_ms= 0
+PASS   : StyleExportTests::resultsPageStyleIntegration(new_page)
+QINFO  : StyleExportTests::resultsPageStyleIntegration(current_page) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 11 columns= 2 ok= true
+QINFO  : StyleExportTests::resultsPageStyleIntegration(current_page) [Aster import] column_controls_ms= 0
+QINFO  : StyleExportTests::resultsPageStyleIntegration(current_page) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 2 ok= true
+QINFO  : StyleExportTests::resultsPageStyleIntegration(current_page) [Aster import] column_controls_ms= 0
+PASS   : StyleExportTests::resultsPageStyleIntegration(current_page)
+QWARN  : StyleExportTests::narrowInspectorLayout() This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::narrowInspectorLayout()
+QWARN  : StyleExportTests::canvasLabelsHaveCompactVisibleGeometry() This plugin does not support propagateSizeHints()
+QWARN  : StyleExportTests::canvasLabelsHaveCompactVisibleGeometry() This plugin does not support propagateSizeHints()
+PASS   : StyleExportTests::canvasLabelsHaveCompactVisibleGeometry()
+PASS   : StyleExportTests::cleanupTestCase()
+Totals: 21 passed, 0 failed, 0 skipped, 0 blacklisted, 2967ms
+********* Finished testing of StyleExportTests *********

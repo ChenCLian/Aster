@@ -4,6 +4,7 @@
 #include <QtTest>
 #include <QApplication>
 #include <QTemporaryDir>
+#include <QSettings>
 #include <QJsonDocument>
 #include <QImageReader>
 #include <QSqlQuery>
@@ -18,6 +19,8 @@
 #include "ui/common/app_settings.h"
 #include "ui/common/presentation.h"
 #include "ui/exports/figure_export_controller.h"
+#include "ui/services/plot_data_loader.h"
+#include <limits>
 #include "third_party/qcustomplot/qcustomplot.h"
 using namespace aster;
 using namespace aster::ui;
@@ -69,6 +72,7 @@ class WorkspaceServicesTests : public QObject
     void extendedStylesAndThemePreserveCustomCurves();
     void inactivePagesFollowTheme();
     void heatmapScaleAndBackground();
+    void figureArrangementSnapshotAndValidation();
     void figurePngPdfAndAtomicFailure();
     void figureControllerSnapshotAndCancellation();
     void figureCompletionBeforeRestart();
@@ -78,24 +82,35 @@ void WorkspaceServicesTests::settingsRoundTripAndValidation()
     QTemporaryDir dir;
     auto path = dir.filePath("nested/settings.ini");
     AppSettings s;
+    QVERIFY(s.defaultPlotNewPage);
+    QVERIFY(AppSettings::load(path).defaultPlotNewPage);
     s.databasePath = dir.filePath("数据/results.sqlite");
     s.language = "en";
     s.theme = "dark";
     s.concurrency = 7;
+    s.defaultPlotNewPage = false;
     QVERIFY2(s.save(path).isEmpty(), qPrintable(s.save(path)));
     auto loaded = AppSettings::load(path);
     QCOMPARE(loaded.databasePath, s.databasePath);
     QCOMPARE(loaded.language, s.language);
     QCOMPARE(loaded.theme, s.theme);
     QCOMPARE(loaded.concurrency, 7);
+    QVERIFY(!loaded.defaultPlotNewPage);
     s.language = "xx";
     s.theme = "bad";
     s.concurrency = 999;
+    s.defaultPlotNewPage = true;
     QVERIFY(s.save(path).isEmpty());
     loaded = AppSettings::load(path);
     QCOMPARE(loaded.language, QString("zh"));
     QCOMPARE(loaded.theme, QString("light"));
     QCOMPARE(loaded.concurrency, 32);
+    QVERIFY(loaded.defaultPlotNewPage);
+    {
+        QSettings legacy(path, QSettings::IniFormat);
+        legacy.setValue("plotting/defaultTarget", "invalid");
+    }
+    QVERIFY(AppSettings::load(path).defaultPlotNewPage);
     QVERIFY(!s.save(dir.path()).isEmpty());
 }
 void WorkspaceServicesTests::catalogsAndThemes()
@@ -471,3 +486,69 @@ int runWorkspaceServicesTests(int argc, char **argv)
     return QTest::qExec(&tests, argc, argv);
 }
 #include "workspace_services_tests.moc"
+
+void WorkspaceServicesTests::figureArrangementSnapshotAndValidation()
+{
+    QTemporaryDir dir; const auto path = dir.filePath("layout.sqlite");
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    const auto ref = save(repo, path, run(signal(100000)));
+    PlotView view; view.showOutput(repo.loadPlotPreview(ref, {}), "series");
+    const FigureCell base{{ref}, view.styleWithViewport(), view.plotRequest()};
+    QVector<FigureCell> cells{base, base, base};
+    const QSize size(1500, 1000);
+    auto rectangles = figureCellRects(cells, size);
+    QCOMPARE(rectangles, QVector<QRect>({QRect(0, 0, 750, 500), QRect(750, 0, 750, 500), QRect(0, 500, 1500, 500)}));
+    cells[0].area = QRectF(0, 0, 1, .6);
+    cells[1].area = QRectF(0, .6, .35, .4);
+    cells[2].area = QRectF(.35, .6, .65, .4);
+    rectangles = figureCellRects(cells, size);
+    QCOMPARE(rectangles, QVector<QRect>({QRect(0, 0, 1500, 600), QRect(0, 600, 525, 400), QRect(525, 600, 975, 400)}));
+    const QVector<QColor> colors{QColor("#ffe0e0"), QColor("#d8f5dc"), QColor("#dbe9ff")};
+    QVector<NodeResult> data;
+    for (int i = 0; i < cells.size(); ++i)
+    {
+        cells[i].style.followTheme = false;
+        cells[i].style.background = colors[i];
+        cells[i].style.title = QString("Layout %1").arg(i + 1);
+        auto request = cells[i].request;
+        request.columns = rectangles[i].width(); request.rows = rectangles[i].height();
+        data.push_back(loadPlotData(cells[i].references, request, {}));
+        QCOMPARE(data.back().state, NodeState::Succeeded);
+    }
+    FigureOptions options; options.pixels = size; options.dpi = 96; options.whitePaper = false;
+    options.path = dir.filePath("expected.png");
+    QVERIFY(renderFigure(cells, data, options).isEmpty());
+    QImage expected(options.path); QVERIFY(!expected.isNull());
+    for (int i = 0; i < rectangles.size(); ++i)
+        QCOMPARE(expected.pixelColor(rectangles[i].topLeft() + QPoint(3, 3)), colors[i]);
+    FigureExportController controller; QSignalSpy done(&controller, &FigureExportController::finished);
+    options.path = dir.filePath("snapshot.png");
+    QVERIFY(controller.start(cells, options));
+    auto snapshot = cells;
+    cells[0].area = QRectF(0, 0, .5, 1); // Later UI edits cannot alter an in-flight export.
+    QTRY_VERIFY_WITH_TIMEOUT(!controller.busy(), 10000);
+    QCOMPARE(done.count(), 1);
+    QVERIFY2(done[0][1].toString().isEmpty(), qPrintable(done[0][1].toString()));
+    QCOMPARE(QImage(options.path), expected);
+    options.path = dir.filePath("layout.pdf"); options.format = FigureOptions::Format::Pdf;
+    QVERIFY(renderFigure(snapshot, data, options).isEmpty());
+    QFile file(options.path); QVERIFY(file.open(QIODevice::ReadOnly)); const auto original = file.readAll(); file.close();
+    QVERIFY(original.startsWith("%PDF-"));
+    // Reject overlapping, incomplete, non-finite and mixed implicit/explicit layouts atomically.
+    for (const auto &area : {QRectF(0, 0, 1, 1), QRectF(), QRectF(0, 0, 1, .5),
+                            QRectF(0, 0, std::numeric_limits<double>::infinity(), .6)})
+    {
+        auto bad = snapshot; bad[0].area = area;
+        QVERIFY(figureCellRects(bad, size).isEmpty());
+        QVERIFY(!renderFigure(bad, data, options).isEmpty());
+        QVERIFY(!controller.start(bad, options));
+        QVERIFY(file.open(QIODevice::ReadOnly)); QCOMPARE(file.readAll(), original); file.close();
+    }
+    options.dpi = 0; QVERIFY(!controller.start(snapshot, options));
+    const auto capture = qEnvironmentVariable("ASTER_CAPTURE_DIR");
+    if (!capture.isEmpty())
+    {
+        QVERIFY(QFile::copy(dir.filePath("expected.png"), capture + "/layout_export.png"));
+        QVERIFY(QFile::copy(dir.filePath("layout.pdf"), capture + "/layout_export.pdf"));
+    }
+}

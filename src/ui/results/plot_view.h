@@ -17,6 +17,7 @@ class QCPColorScale;
 class QCPTextElement;
 class QStackedWidget;
 class QTableView;
+class QComboBox;
 class QLabel;
 class QMenu;
 namespace aster::ui
@@ -30,11 +31,15 @@ class PlotView : public QWidget
     explicit PlotView(QWidget *parent = nullptr);
     void showOutput(const NodeResult &result, const QString &port, const QString &viewKey = {});
     void clear(const QString &message = {});
+    void clearByUser();
     void setOutputReference(const OutputReference &reference)
     {
         m_reference = reference;
     }
+    void scheduleRefinement() { m_viewportTimer.start(); }
+    QString resolutionDescription() const;
     void fit();
+    void fitAutomaticAxes();
     void refreshOutput(const NodeResult &result);
     PlotRequest plotRequest(int width = 0, int height = 0) const;
     QCustomPlot *plotWidget() const
@@ -52,6 +57,8 @@ class PlotView : public QWidget
     QString applyStyle(const PlotStyle &style);
     void resetStyle();
     PlotStyle styleWithViewport() const;
+    // Preserve automatic axes when reloading data; exports freeze both ranges.
+    PlotStyle styleForReload() const;
     bool canLogX() const;
     bool canLogY() const;
     bool hasPlot() const;
@@ -80,6 +87,7 @@ class PlotView : public QWidget
     void viewportChanged();
     void styleChanged();
     void outputChanged();
+    void clearedByUser(); // Explicit clear command, never a load or error state.
     void displayDataChanged(); // Zoom refinement; preserve unfinished style edits.
 
   protected:
@@ -92,6 +100,9 @@ class PlotView : public QWidget
         double xLow, xHigh, yLow, yHigh;
     };
     PlotStyle defaults() const;
+    bool isCrossSpectrum() const;
+    bool crossPositive(bool x, const QString &metric = {}) const;
+    QComboBox *m_crossMetric;
     QCPAxis *keyAxis() const;
     QCPAxis *valueAxis() const;
     void rememberView();

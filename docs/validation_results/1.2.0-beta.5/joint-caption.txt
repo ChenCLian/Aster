@@ -1,0 +1,9 @@
+********* Start testing of JointUiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : JointUiTests::initTestCase()
+QWARN  : JointUiTests::longJointSourceCaptionKeepsPlotSpace() This plugin does not support propagateSizeHints()
+QWARN  : JointUiTests::longJointSourceCaptionKeepsPlotSpace() This plugin does not support propagateSizeHints()
+PASS   : JointUiTests::longJointSourceCaptionKeepsPlotSpace()
+PASS   : JointUiTests::cleanupTestCase()
+Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 819ms
+********* Finished testing of JointUiTests *********

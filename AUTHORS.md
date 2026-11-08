@@ -27,4 +27,4 @@ Aster 原创贡献：Copyright (C) 2026 ZiJie Chen。软件整体以 GPL-3.0-onl
 
 ## 建议引用方式
 
-陈子杰. Aster，版本 1.1.1. https://github.com/ChenCLian/Aster 。引用具体分析时，请同时注明所使用的算法论文与数据来源。
+陈子杰. Aster，版本 `实际使用版本`. https://github.com/ChenCLian/Aster 。引用具体分析时，请同时注明所使用的算法论文与数据来源。

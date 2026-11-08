@@ -1,0 +1,182 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.2",
+  "date": "2026-11-06",
+  "stage": "Welch cross-spectrum numerical core, paired Task and result payload adapters",
+  "environment": {
+    "os": "Linux x86_64 (Debian 13)",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "gui_test_platform": "offscreen"
+  },
+  "desktop_build": "passed",
+  "application_version": "Aster_Workspace 1.2.0-alpha.2",
+  "regression": [
+    {
+      "target": "aster_core_tests",
+      "exit_code": 0,
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_batch_tests",
+      "exit_code": 0,
+      "passed": 68,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_analysis_tests",
+      "exit_code": 0,
+      "passed": 694,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21
+    },
+    {
+      "target": "aster_cross_spectrum_tests",
+      "exit_code": 0,
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_ui_tests",
+      "exit_code": 0,
+      "passed": 762,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_style_export_tests",
+      "exit_code": 0,
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_workspace_tests",
+      "exit_code": 0,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "target": "aster_integration_tests",
+      "exit_code": 0,
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "target": "aster_update_tests",
+      "exit_code": 0,
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "qt_test_totals": {
+    "passed": 1836,
+    "failed": 0,
+    "skipped": 0
+  },
+  "independent_reference": {
+    "cases": 16,
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "functions": [
+      "csd",
+      "welch",
+      "coherence"
+    ],
+    "parameters": "Explicit window arrays, detrending, segment length, overlap, FFT length, mean averaging and density scaling.",
+    "direct_dft_check": true,
+    "analytic_known_phase_check": true,
+    "comparison": "Spectral component tolerance 3e-11*max(abs(reference),peak*1e-3)+1e-300; complex components use cross-magnitude peak. Coherence tolerance 2e-10 and circular phase tolerance 2e-8 degrees at cross-magnitude > peak*1e-12. Exact zero inputs are checked separately."
+  },
+  "address_and_undefined_behavior_sanitizers": {
+    "passed": 70,
+    "failed": 0,
+    "leak_detection": false,
+    "scope": [
+      "cross-spectrum numeric core",
+      "paired task and result adapters",
+      "data validation",
+      "batch coordinator",
+      "payload codec",
+      "bounded database plot reader",
+      "CSV export",
+      "preview reduction",
+      "new test suite"
+    ],
+    "limitations": "Other linked legacy modules and external Qt/numerical libraries are not instrumented. LeakSanitizer is disabled in this ptrace-constrained environment; no leak-clean claim."
+  },
+  "release_tool_tests": {
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0
+  },
+  "help_generator_tests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "generated_parameter_references": {
+    "tasks": 53,
+    "parameters": 228,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "status": "current; new internal cross-spectrum task intentionally absent from public catalogue"
+  },
+  "compatibility": {
+    "existing_scientific_algorithm_sources_unchanged": true,
+    "local_configuration_unchanged": true,
+    "workflow_graph_format_unchanged": true,
+    "database_schema_unchanged": true,
+    "legacy_payload_bytes_unchanged": true,
+    "new_masked_table_payload_version": 2,
+    "old_application_can_read_masked_tables": false
+  },
+  "fixed_regression": {
+    "issue": "A finite but extremely large discarded tail affected normalization of complete segments.",
+    "before": "Dedicated regression reproduced zeroed estimates.",
+    "after": "Tail is validated but excluded from the scaling magnitude; full cross-spectrum, autospectra and validity equal the prefix-only computation."
+  },
+  "interface_coverage": [
+    "actual paired task through same-batch scheduler",
+    "A/B order and immutable selected-source provenance",
+    "shared reference and invalid pair isolation",
+    "explicit coordinate/unit/name validation",
+    "masked Table validation and binary round-trip",
+    "legacy v1 bytes",
+    "truncated or malformed new payload rejection",
+    "SQLite save/load and bounded preview",
+    "database merge",
+    "CSV undefined cells and per-column units",
+    "preview mask cropping",
+    "separate curve paths across undefined cells and phase wraps",
+    "reject cropped tables at curve/CSV adapter boundaries",
+    "mask bytes included in intermediate cache budget",
+    "single-input public catalogue unchanged"
+  ],
+  "limitations": [
+    "Desktop grouping editor, dataset identity persistence and paired preview controller are not connected.",
+    "Pair-level record assembly/save entry and final curve UI are not connected; payload persistence tests do not prove these application flows.",
+    "No significance test, MTM cross-spectrum, cross-wavelet or implicit alignment.",
+    "Windows and macOS native builds have not been run."
+  ],
+  "build_warnings": "Final changed numerical/task/test compilation has no warnings. The clean full build retains existing third-party C unused-parameter and QtTest deprecated-macro warnings.",
+  "logs": "Local workspace and temporary paths replaced with placeholders; statuses and totals preserved."
+}

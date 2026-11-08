@@ -6,7 +6,10 @@ SPDX-License-Identifier: GPL-3.0-only
 import base64
 import hashlib
 import json
+import re
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -16,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import dependency_common as common
 import dependency_providers as providers
 import package_source
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class PackagingLayoutTests(unittest.TestCase):
@@ -69,6 +74,58 @@ class PackagingLayoutTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, 'outside the source tree'):
                 package_source.main()
         self.assertFalse((root / 'copy').exists())
+
+    def test_relative_source_includes_are_present(self):
+        # Check referenced paths, not only existing files: an omitted header
+        # must fail before CI spends time compiling the desktop application.
+        missing = []
+        for source in sorted(ROOT.rglob('*')):
+            if (not source.is_file() or source.suffix not in ('.cpp', '.h')
+                    or not package_source.included(source)):
+                continue
+            text = source.read_text(encoding='utf-8', errors='replace')
+            for name in re.findall(r'^\s*#\s*include\s*"(\.{1,2}/[^"\n]+)"',
+                                   text, re.MULTILINE):
+                if not (source.parent / name).is_file():
+                    missing.append(f'{source.relative_to(ROOT).as_posix()}: {name}')
+        self.assertEqual(missing, [], 'Missing relative source includes: ' + '; '.join(missing))
+
+    @unittest.skipUnless(shutil.which('git'), 'Git is required for source tracking checks')
+    def test_shared_test_header_survives_export_and_git_add(self):
+        root = self.source_tree()
+        helper = 'tests/support/joint_input_helpers.h'
+        for name in ('.gitignore', helper):
+            target = root / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((ROOT / name).read_bytes())
+        out = self.base / 'export'
+        with patch.object(package_source, 'ROOT', root), patch.object(
+                sys, 'argv', ['export', '--output', str(out)]):
+            package_source.main()
+        dest = out / 'Aster-source-export-1.1.1'
+        subprocess.run(['git', 'init', '-q', str(dest)], check=True, capture_output=True)
+        subprocess.run(['git', '-C', str(dest), 'add', '--all'], check=True, capture_output=True)
+        result = subprocess.run(['git', '-C', str(dest), 'ls-files', '--error-unmatch', helper],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((dest / helper).read_bytes(), (ROOT / helper).read_bytes())
+        ignored = subprocess.run(['git', '-C', str(dest), 'check-ignore', '--no-index',
+                                  'ui_generated.h', 'build-release/ui_generated.h'],
+                                 capture_output=True, text=True)
+        self.assertEqual(ignored.stdout.splitlines(),
+                         ['ui_generated.h', 'build-release/ui_generated.h'])
+
+    @unittest.skipUnless(shutil.which('git'), 'Git is required for source tracking checks')
+    def test_distributable_cpp_sources_are_not_ignored(self):
+        repo = self.base / 'tracking'
+        subprocess.run(['git', 'init', '-q', str(repo)], check=True, capture_output=True)
+        shutil.copyfile(ROOT / '.gitignore', repo / '.gitignore')
+        names = sorted(p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*')
+                       if p.is_file() and p.suffix in ('.cpp', '.h', '.pro', '.pri')
+                       and package_source.included(p))
+        result = subprocess.run(['git', '-C', str(repo), 'check-ignore', '--no-index', '--stdin'],
+                                input='\n'.join(names) + '\n', capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
     def project_alias(self, root):
         alias = self.base / 'project-link'

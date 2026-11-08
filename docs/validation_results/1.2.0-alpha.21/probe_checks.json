@@ -1,0 +1,72 @@
+{
+  "version": "1.2.0-alpha.21",
+  "base_version": "1.2.0-alpha.20",
+  "date": "2026-11-07",
+  "status": "passed_with_native_platform_limits",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "platform": "offscreen"
+  },
+  "changes": [
+    "Suppress plot and axis tooltips while a readout is open",
+    "Content-aware width and aligned numeric fields; copy action in header",
+    "Curve color/line swatch and matching point marker; prefer placement clear of selected point and legend",
+    "8 significant digits on screen; max_digits10 numeric snapshot on copy"
+  ],
+  "regression": [
+    {
+      "log": "logs/probe-regression-final.txt",
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "log": "logs/probe-150.txt",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "log": "logs/probe-200.txt",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "counting": "17 final related regression results, including four language/theme rows and QtTest init/cleanup; scale reruns are listed separately, not additional independent coverage.",
+  "scale_factors": [
+    1,
+    1.5,
+    2
+  ],
+  "languages": [
+    "zh",
+    "en"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "verified": [
+    "Curve and grid coordinates with reversed/swapped/log axes",
+    "Masked heatmap cells do not expose an invalid readout",
+    "Copy round-trips the selected double value without display truncation",
+    "Long labels remain plain text and visible numeric fields fit a compact plot",
+    "Escape, close, pan, range change, data clear and tiny plot lifetime handling",
+    "Readout absent from figure export and no readout-triggered database reload",
+    "Existing zoom, grid mapping, defaults, invalid style and stale menu regressions"
+  ],
+  "limitations": [
+    "Native Windows/macOS tooltip placement, system clipboard and multi-monitor DPI behavior still require local acceptance",
+    "No new algorithm stress suite or sanitizer run; this change is restricted to coordinate readout UI",
+    "Readings still use displayed samples, not an arbitrary original-data query"
+  ],
+  "lineage": "Working tree matched the immutable alpha.20 source export before editing; no prior files removed; all unrelated src files and historical validation evidence preserved.",
+  "changed_source_files": [
+    "src/ui/results/plot_probe.cpp",
+    "src/ui/results/plot_probe.h",
+    "src/ui/results/plot_view.cpp"
+  ]
+}

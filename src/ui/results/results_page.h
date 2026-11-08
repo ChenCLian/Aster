@@ -10,6 +10,9 @@
 #include "core/task_registry.h"
 #include <QWidget>
 class QTableWidget;
+class QTableView;
+class QStandardItemModel;
+class QAction;
 class QLabel;
 class QComboBox;
 class QCheckBox;
@@ -66,7 +69,9 @@ class ResultsPage : public QWidget
         return m_figureExporter;
     }
     bool startCsvExport(const QString &path);
-    void selectStep(int row, bool display = true);
+    void selectStep(int row, bool display = false);
+    QVector<OutputReference> checkedOutputs() const;
+    void plotChecked(PlotWorkspace::Target target);
     QSplitter *splitter() const
     {
         return m_splitter;
@@ -77,12 +82,25 @@ class ResultsPage : public QWidget
     void databaseBusyChanged(bool busy);
     void databaseMutationBusyChanged(bool busy);
     void recordLoaded(qint64 id);
+    void recordChanging();
     void sourceRequested(aster::OutputReference reference);
 
   private:
-    void exportNode(NodeId id, QString port);
+    QVector<OutputInfo> orderedOutputs(NodeId node) const;
+    QHash<NodeId, QString> m_primaryPorts;
+    QHash<NodeId, QString> m_nodeMethods;
+    void rebuildOutputs();
+    void inspectChecked();
+    QTableView *m_outputs;
+    QStandardItemModel *m_outputModel;
+    QMap<QString, OutputReference> m_checked;
+    QToolButton *m_checkedButton;
+    QPushButton *m_plotChecked, *m_overlayChecked;
+    QAction *m_replaceAction, *m_pageAction;
+    QLabel *m_destination;
     RecordDirectoryPanel *m_directory;
     bool m_directoryBusy = false, m_directoryMutating = false;
+    bool m_defaultPlotOnLoad = false;
     void showRecord(qint64 id, std::shared_ptr<const LoadResult> result);
     void showPort();
     void showErrorDetails();
@@ -90,8 +108,8 @@ class ResultsPage : public QWidget
     void updateOutputActions();
     OutputReference selectedOutput() const;
     void syncPlotSelection(const OutputReference &reference);
-    OutputReference m_focusReference;
     OutputReference reference(NodeId node, const QString &port) const;
+    OutputReference reference(NodeId node, const OutputInfo &output) const;
     PlotWorkspace *m_workspace;
     PlotStyleEditor *m_styleEditor;
     QString m_path;

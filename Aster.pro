@@ -2,19 +2,24 @@ TEMPLATE = subdirs
 CONFIG += ordered
 CONFIG -= debug_and_release debug_and_release_target
 
-SUBDIRS += core tests
+SUBDIRS += core tests batch_tests
 tests.depends = core
+batch_tests.depends = core
 !contains(CONFIG, core_only) {
-    SUBDIRS += io science application analysis_tests
+    SUBDIRS += io science application analysis_tests cross_spectrum_tests
     io.depends = core
     science.depends = core io
     application.depends = core io
     analysis_tests.depends = core io science application
+    cross_spectrum_tests.depends = core io science
 }
 !contains(CONFIG, core_only):!contains(CONFIG, no_gui) {
-    SUBDIRS += desktop_ui desktop ui_tests style_export_tests workspace_tests integration_tests update_tests
+    SUBDIRS += desktop_ui desktop ui_tests joint_ui_tests rewrite_tests linked_input_tests style_export_tests workspace_tests integration_tests update_tests
     desktop_ui.depends = core io application
     desktop.depends = desktop_ui application science io core
+    joint_ui_tests.depends = desktop_ui application science io core
+    linked_input_tests.depends = desktop_ui application science io core
+    rewrite_tests.depends = desktop_ui application science io core
     ui_tests.depends = desktop_ui application science io core
     style_export_tests.depends = desktop_ui application science io core
     workspace_tests.depends = desktop_ui application science io core
@@ -37,7 +42,7 @@ contains(CONFIG, calibration):!contains(CONFIG, core_only) {
 
 DISTFILES += LICENSE COPYRIGHT.md SOURCE_CODE.md licenses/GPL-3.0.txt licenses/AstroGeoFit_LICENSE.txt
 DISTFILES += README.md AUTHORS.md RELEASE_NOTES.md PACKAGE_STATUS.json PACKAGE_MANIFEST.json .clang-format VERSION .gitignore
-DISTFILES += config/version.pri
+DISTFILES += config/version.pri config/aster_version.h.in
 DISTFILES += config/local.pri.example config/scientific_dependencies.pri config/link_modules.pri
 DISTFILES += config/numeric_backend.pri science/numeric_backend_sources.pri
 DISTFILES += $$files($$PWD/docs/*.md, true) $$files($$PWD/docs/*.json, true)

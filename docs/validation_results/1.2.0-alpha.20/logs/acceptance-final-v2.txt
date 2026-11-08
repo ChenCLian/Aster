@@ -1,0 +1,211 @@
+********* Start testing of Acceptance *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : Acceptance::initTestCase()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-light-1280)
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-light-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-light-1920)
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-dark-1280)
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(zh-dark-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(zh-dark-1920)
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-light-1280)
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-light-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-light-1920)
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1280) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-dark-1280)
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::resultScreenMatrix(en-dark-1920) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::resultScreenMatrix(en-dark-1920)
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 33 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+PASS   : Acceptance::workflowScreenMatrix(zh-light-1280)
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 27 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(zh-light-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(zh-light-1920)
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 32 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+PASS   : Acceptance::workflowScreenMatrix(zh-dark-1280)
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 31 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) [Aster import] column_controls_ms= 2
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(zh-dark-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(zh-dark-1920)
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 27 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+PASS   : Acceptance::workflowScreenMatrix(en-light-1280)
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 17 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(en-light-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(en-light-1920)
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 22 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) HORIZONTAL_FIT aster::ui::ParameterEditor 158 158
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1280) HORIZONTAL_FIT aster::ui::FileOptionsEditor 188 188
+PASS   : Acceptance::workflowScreenMatrix(en-dark-1280)
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 21 columns= 2 ok= true
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) [Aster import] column_controls_ms= 0
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) HORIZONTAL_FIT aster::ui::ParameterEditor 218 218
+QINFO  : Acceptance::workflowScreenMatrix(en-dark-1920) HORIZONTAL_FIT aster::ui::FileOptionsEditor 238 238
+PASS   : Acceptance::workflowScreenMatrix(en-dark-1920)
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::mixedPlotOperations(19) MIXED 19 operations 60 elapsed_ms 41658 rss_kib_samples QList(152600, 152628, 152628, 152464, 152464, 153240) completions 167
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(19) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::mixedPlotOperations(19)
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::mixedPlotOperations(2026) MIXED 2026 operations 60 elapsed_ms 39012 rss_kib_samples QList(153484, 153484, 153484, 153484, 153480, 153480) completions 140
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(2026) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::mixedPlotOperations(2026)
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::mixedPlotOperations(73) MIXED 73 operations 60 elapsed_ms 39803 rss_kib_samples QList(149512, 149512, 149512, 150156, 150904, 154380) completions 151
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::mixedPlotOperations(73) This plugin does not support propagateSizeHints()
+PASS   : Acceptance::mixedPlotOperations(73)
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support raise()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support grabbing the keyboard
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::staleContextMenuDoesNotTouchNewPage() This plugin does not support propagateSizeHints()
+PASS   : Acceptance::staleContextMenuDoesNotTouchNewPage()
+QWARN  : Acceptance::parameterCatalogFits(zh-200) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::parameterCatalogFits(zh-200) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::parameterCatalogFits(zh-200) PARAMETER_CATALOG "zh" 200 methods 53
+PASS   : Acceptance::parameterCatalogFits(zh-200)
+QWARN  : Acceptance::parameterCatalogFits(zh-320) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::parameterCatalogFits(zh-320) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::parameterCatalogFits(zh-320) PARAMETER_CATALOG "zh" 320 methods 53
+PASS   : Acceptance::parameterCatalogFits(zh-320)
+QWARN  : Acceptance::parameterCatalogFits(en-200) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::parameterCatalogFits(en-200) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::parameterCatalogFits(en-200) PARAMETER_CATALOG "en" 200 methods 53
+PASS   : Acceptance::parameterCatalogFits(en-200)
+QWARN  : Acceptance::parameterCatalogFits(en-320) This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::parameterCatalogFits(en-320) This plugin does not support propagateSizeHints()
+QINFO  : Acceptance::parameterCatalogFits(en-320) PARAMETER_CATALOG "en" 320 methods 53
+PASS   : Acceptance::parameterCatalogFits(en-320)
+QWARN  : Acceptance::denseLegendStaysInsideAxes() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::denseLegendStaysInsideAxes() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::denseLegendStaysInsideAxes() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::denseLegendStaysInsideAxes() This plugin does not support propagateSizeHints()
+PASS   : Acceptance::denseLegendStaysInsideAxes()
+QWARN  : Acceptance::jointSearchUsesVisibleNames() This plugin does not support propagateSizeHints()
+QWARN  : Acceptance::jointSearchUsesVisibleNames() This plugin does not support raise()
+PASS   : Acceptance::jointSearchUsesVisibleNames()
+QWARN  : Acceptance::shortSinePairExplainsSegmentsAndRecovers() This plugin does not support propagateSizeHints()
+PASS   : Acceptance::shortSinePairExplainsSegmentsAndRecovers()
+PASS   : Acceptance::cleanupTestCase()
+Totals: 29 passed, 0 failed, 0 skipped, 0 blacklisted, 165294ms
+********* Finished testing of Acceptance *********

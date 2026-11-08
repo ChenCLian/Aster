@@ -1,0 +1,78 @@
+make: Entering directory 'BUILD_ROOT'
+cd core/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/core/core.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/core'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/core'
+cd tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/tests/tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/tests'
+cd batch_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/batch_tests/batch_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/batch_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/batch_tests'
+cd io/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/io/io.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/io'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/io'
+cd science/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/science/science.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/science'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/science'
+cd application/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/application/application.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/application'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/application'
+cd analysis_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/analysis_tests/analysis_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/analysis_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/analysis_tests'
+cd cross_spectrum_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/cross_spectrum_tests/cross_spectrum_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/cross_spectrum_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/cross_spectrum_tests'
+cd desktop_ui/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/desktop_ui/desktop_ui.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/desktop_ui'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/desktop_ui'
+cd desktop/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/desktop/desktop.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/desktop'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/desktop'
+cd ui_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/ui_tests/ui_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/ui_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/ui_tests'
+cd joint_ui_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/joint_ui_tests/joint_ui_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/joint_ui_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/joint_ui_tests'
+cd rewrite_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/rewrite_tests/rewrite_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/rewrite_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/rewrite_tests'
+cd linked_input_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/linked_input_tests/linked_input_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/linked_input_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/linked_input_tests'
+cd style_export_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/style_export_tests/style_export_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/style_export_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/style_export_tests'
+cd workspace_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/workspace_tests/workspace_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/workspace_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/workspace_tests'
+cd integration_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/integration_tests/integration_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/integration_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/integration_tests'
+cd update_tests/ && ( test -e Makefile || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile SOURCE_ROOT/update_tests/update_tests.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile 
+make[1]: Entering directory 'BUILD_ROOT/update_tests'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/update_tests'
+cd tools/help_reference/ && ( test -e Makefile.catalog || VALIDATION_WORK/edit-stage2/toolchain/usr/lib/qt6/bin/qmake -o Makefile.catalog SOURCE_ROOT/tools/help_reference/catalog.pro CONFIG+=release CONFIG+=help_reference GSL_PREFIX=VALIDATION_WORK/edit-stage2/toolchain/usr GSL_LIB_DIR=VALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu OPENBLAS_ROOT=VALIDATION_WORK/edit-stage2/toolchain/usr INCLUDEPATH+=VALIDATION_WORK/edit-stage2/toolchain/usr/include LIBS+=-LVALIDATION_WORK/edit-stage2/toolchain/usr/lib/x86_64-linux-gnu/openblas-pthread ) && make -f Makefile.catalog 
+make[1]: Entering directory 'BUILD_ROOT/tools/help_reference'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory 'BUILD_ROOT/tools/help_reference'
+make: Leaving directory 'BUILD_ROOT'

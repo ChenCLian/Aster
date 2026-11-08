@@ -16,9 +16,16 @@ class StyleNote : public QLabel
   public:
     explicit StyleNote(const QString &text = {}) : QLabel(text)
     { setWordWrap(true); setMinimumWidth(0); setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum); }
-    void setText(const QString &text) { QLabel::setText(text); fitHeight(); }
+    void setText(const QString &text) { QLabel::setText(text); setMinimumHeight(0); fitHeight(); }
   protected:
-    void resizeEvent(QResizeEvent *event) override { QLabel::resizeEvent(event); fitHeight(); }
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QLabel::resizeEvent(event);
+        // heightForWidth is bounded by the previous minimum. Let a shorter
+        // message or wider column release the height of an earlier long note.
+        if (event->oldSize().width() != event->size().width()) setMinimumHeight(0);
+        fitHeight();
+    }
   private:
     void fitHeight() { if (width()>0) setMinimumHeight(std::max(0,heightForWidth(width()))); }
 };

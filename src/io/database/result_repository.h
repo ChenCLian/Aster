@@ -88,6 +88,8 @@ class ResultRepository
     QString remove(qint64 recordId);
     LoadResult load(qint64 recordId, bool metadataOnly = false) const;
     OutputLoad loadOutput(const OutputReference &reference) const;
+    // Scientific metadata only; no numerical BLOBs and no saved visual style.
+    NodeResult loadPlotMetadata(const OutputReference &reference) const;
     // Selected plot family only, bounded before BLOB decoding. No unrelated nodes.
     NodeResult loadPlot(const OutputReference &reference, qint64 budget = 128 * 1024 * 1024) const;
 

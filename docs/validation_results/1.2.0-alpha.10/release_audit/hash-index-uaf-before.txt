@@ -1,0 +1,117 @@
+********* Start testing of RewriteTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : RewriteTests::initTestCase()
+PASS   : RewriteTests::insertSlots(0)
+PASS   : RewriteTests::insertSlots(1)
+PASS   : RewriteTests::insertSlots(2)
+PASS   : RewriteTests::replaceMultipleOutputs()
+PASS   : RewriteTests::replaceLeafChangesOutputKind()
+PASS   : RewriteTests::rejectsInvalidRequests(0)
+PASS   : RewriteTests::rejectsInvalidRequests(1)
+PASS   : RewriteTests::rejectsInvalidRequests(2)
+PASS   : RewriteTests::rejectsInvalidRequests(3)
+PASS   : RewriteTests::rejectsInvalidRequests(4)
+PASS   : RewriteTests::rejectsInvalidRequests(5)
+PASS   : RewriteTests::rejectsInvalidRequests(6)
+PASS   : RewriteTests::rejectsInvalidRequests(7)
+PASS   : RewriteTests::rejectsInvalidRequests(8)
+PASS   : RewriteTests::staleLockedAndCancel()
+PASS   : RewriteTests::layoutFallbackAndBlocked()
+PASS   : RewriteTests::jointBoundaries()
+=================================================================
+==1269==ERROR: AddressSanitizer: heap-use-after-free on address 0x51b00007d870 at pc 0x5623ad492262 bp 0x7ffe2357da60 sp 0x7ffe2357da58
+READ of size 16 at 0x51b00007d870 thread T0
+    #0 0x5623ad492261 in Index ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:68
+    #1 0x5623ad49dcee in aster::WorkflowEditor::validateBindings(aster::WorkflowEditState const&) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:108
+    #2 0x5623ad4ab1c7 in aster::WorkflowEditor::prepare(aster::WorkflowEditDraft) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:96
+    #3 0x5623ad4adb1f in aster::WorkflowEditor::apply(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:229
+    #4 0x5623ab8dfcdd in aster::ui::WorkflowDocument::applyEdit(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:70
+    #5 0x5623ab8f7477 in aster::ui::WorkflowDocument::editGraph(std::function<aster::EditResult (aster::WorkflowModel&)> const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:91
+    #6 0x5623ab8f85c4 in aster::ui::WorkflowDocument::replaceDefinition(aster::WorkflowDefinition const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:433
+    #7 0x5623ab4baeec in RewriteTests::largeSubtreeAndLimit() (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x644ceec) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+    #8 0x5623ab4209b5 in RewriteTests::qt_static_metacall(QObject*, QMetaObject::Call, int, void**) rewrite_tests.moc:184
+    #9 0x7f7d60b96aed in QMetaMethodInvoker::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a5aed) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #10 0x7f7d60b975c8 in QMetaMethod::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a65c8) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #11 0x7f7d611e917d  (<TOOLCHAIN>/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2917d) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #12 0x7f7d611ebaa2  (<TOOLCHAIN>/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2baa2) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #13 0x7f7d611f784f in QTest::qRun() (<TOOLCHAIN>/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x3784f) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #14 0x7f7d611eeefe in QTest::qExec(QObject*, int, char**) (<TOOLCHAIN>/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2eefe) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #15 0x5623ab41996f in main ../../../work/Aster_1.2.0/rewrite_tests/rewrite_tests.cpp:281
+    #16 0x7f7d5fe90ca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: 5e5b51f4c39af9ac589408c1dc432ba390a273cc)
+    #17 0x7f7d5fe90d64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: 5e5b51f4c39af9ac589408c1dc432ba390a273cc)
+    #18 0x5623ab4117c0 in _start (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x63a37c0) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+
+0x51b00007d870 is located 1520 bytes inside of 1536-byte region [0x51b00007d280,0x51b00007d880)
+freed by thread T0 here:
+    #0 0x7f7d64d872e8 in operator delete[](void*) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:155
+    #1 0x5623ab960aa3 in QHashPrivate::Span<QHashPrivate::Node<QUuid, QUuid> >::addStorage() ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:410
+    #2 0x5623ab962a8a in QHashPrivate::Span<QHashPrivate::Node<QUuid, QUuid> >::insert(unsigned long) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:284
+    #3 0x5623ab962a8a in QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::Bucket::insert() const ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:512
+    #4 0x5623ab962a8a in QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::InsertionResult QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::findOrInsert<QUuid>(QUuid const&) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:735
+    #5 0x5623ab9650a9 in QUuid& QHash<QUuid, QUuid>::operatorIndexImpl<QUuid>(QUuid const&) (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x68f70a9) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+    #6 0x5623ad491f65 in QHash<QUuid, QUuid>::operator[](QUuid const&) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:1089
+    #7 0x5623ad491f65 in Index ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:68
+    #8 0x5623ad49dcee in aster::WorkflowEditor::validateBindings(aster::WorkflowEditState const&) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:108
+    #9 0x5623ad4ab1c7 in aster::WorkflowEditor::prepare(aster::WorkflowEditDraft) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:96
+    #10 0x5623ad4adb1f in aster::WorkflowEditor::apply(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:229
+    #11 0x5623ab8dfcdd in aster::ui::WorkflowDocument::applyEdit(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:70
+    #12 0x5623ab8f7477 in aster::ui::WorkflowDocument::editGraph(std::function<aster::EditResult (aster::WorkflowModel&)> const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:91
+    #13 0x5623ab8f85c4 in aster::ui::WorkflowDocument::replaceDefinition(aster::WorkflowDefinition const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:433
+    #14 0x5623ab4baeec in RewriteTests::largeSubtreeAndLimit() (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x644ceec) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+    #15 0x5623ab4209b5 in RewriteTests::qt_static_metacall(QObject*, QMetaObject::Call, int, void**) rewrite_tests.moc:184
+    #16 0x7f7d60b96aed in QMetaMethodInvoker::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a5aed) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #17 0x7f7d60b975c8 in QMetaMethod::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a65c8) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+
+previously allocated by thread T0 here:
+    #0 0x7f7d64d868d8 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:98
+    #1 0x5623ab96070e in QHashPrivate::Span<QHashPrivate::Node<QUuid, QUuid> >::addStorage() ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:395
+    #2 0x5623ab962a8a in QHashPrivate::Span<QHashPrivate::Node<QUuid, QUuid> >::insert(unsigned long) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:284
+    #3 0x5623ab962a8a in QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::Bucket::insert() const ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:512
+    #4 0x5623ab962a8a in QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::InsertionResult QHashPrivate::Data<QHashPrivate::Node<QUuid, QUuid> >::findOrInsert<QUuid>(QUuid const&) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:735
+    #5 0x5623ab9650a9 in QUuid& QHash<QUuid, QUuid>::operatorIndexImpl<QUuid>(QUuid const&) (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x68f70a9) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+    #6 0x5623ad4905a7 in QHash<QUuid, QUuid>::operator[](QUuid const&) ../../../toolchain/usr/include/x86_64-linux-gnu/qt6/QtCore/qhash.h:1089
+    #7 0x5623ad4905a7 in Index ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:62
+    #8 0x5623ad49dcee in aster::WorkflowEditor::validateBindings(aster::WorkflowEditState const&) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:108
+    #9 0x5623ad4ab1c7 in aster::WorkflowEditor::prepare(aster::WorkflowEditDraft) const ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:96
+    #10 0x5623ad4adb1f in aster::WorkflowEditor::apply(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:229
+    #11 0x5623ab8dfcdd in aster::ui::WorkflowDocument::applyEdit(aster::WorkflowEditDraft) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:70
+    #12 0x5623ab8f7477 in aster::ui::WorkflowDocument::editGraph(std::function<aster::EditResult (aster::WorkflowModel&)> const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:91
+    #13 0x5623ab8f85c4 in aster::ui::WorkflowDocument::replaceDefinition(aster::WorkflowDefinition const&) ../../../work/Aster_1.2.0/src/ui/workflow/workflow_document.cpp:433
+    #14 0x5623ab4baeec in RewriteTests::largeSubtreeAndLimit() (<SANITIZED_BUILD>/bin/aster_rewrite_tests+0x644ceec) (BuildId: faf6a6b748270e54d01666ea3d4000102244de0f)
+    #15 0x5623ab4209b5 in RewriteTests::qt_static_metacall(QObject*, QMetaObject::Call, int, void**) rewrite_tests.moc:184
+    #16 0x7f7d60b96aed in QMetaMethodInvoker::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a5aed) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #17 0x7f7d60b975c8 in QMetaMethod::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a65c8) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+
+SUMMARY: AddressSanitizer: heap-use-after-free ../../../work/Aster_1.2.0/src/core/workflow_editor.cpp:68 in Index
+Shadow bytes around the buggy address:
+  0x51b00007d580: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b00007d600: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b00007d680: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b00007d700: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51b00007d780: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x51b00007d800: fd fd fd fd fd fd fd fd fd fd fd fd fd fd[fd]fd
+  0x51b00007d880: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b00007d900: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b00007d980: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b00007da00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51b00007da80: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1269==ABORTING

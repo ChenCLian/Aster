@@ -17,6 +17,8 @@
 #include <QTableWidget>
 #include <QLabel>
 #include <QMenu>
+#include "ui/common/output_picker.h"
+#include <QListWidget>
 #include <QMouseEvent>
 #include <QToolButton>
 #include <QCheckBox>
@@ -627,21 +629,25 @@ void InteractionSafetyTests::detrendOutputMenuKeepsExplicitPortBinding()
     window.show();
     const auto root = window.document()->addRoot("file_source").nodeId;
     const auto trend = window.document()->addChild(root, ChildSlot::Down, "detrend_lowess").nodeId;
+    QTest::qWait(50);
     window.canvas()->methodDropped("mtm", trend, ChildSlot::Down);
-    QMenu *menu = nullptr;
-    for (auto *candidate : window.findChildren<QMenu *>())
-        if (candidate->isVisible()) menu = candidate;
-    QVERIFY(menu);
-    QAction *detrended = nullptr;
+    QPointer<OutputPicker> picker = window.findChild<OutputPicker *>();
+    QVERIFY(picker);
+    QTRY_VERIFY(picker && picker->isVisible());
+    auto *list = picker->findChild<QListWidget *>("outputChoices");
+    QVERIFY(list);
+    QListWidgetItem *detrended = nullptr;
     bool fitted = false;
-    for (auto *action : menu->actions())
+    for (int row = 0; row < list->count(); ++row)
     {
-        if (action->text().contains("usual choice")) detrended = action;
-        if (action->text().contains("fitted trend curve")) fitted = true;
+        auto *item = list->item(row);
+        QVERIFY(!item->text().contains("usual choice"));
+        if (item->data(Qt::UserRole).toString() == "detrended") detrended = item;
+        if (item->text().contains("fitted trend curve")) fitted = true;
     }
-    QVERIFY(detrended && fitted);
-    detrended->trigger();
-    menu->close();
+    QVERIFY(detrended && detrended->font().bold() && fitted);
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier,
+                      list->visualItemRect(detrended).center());
     const auto &node = window.document()->model().definition().nodes.last();
     QCOMPARE(node.method, QString("mtm"));
     QCOMPARE(node.input->output, QString("detrended"));
@@ -686,7 +692,7 @@ void InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover()
     QCOMPARE(failed.run.nodes[lowess].state, NodeState::Blocked);
     QCOMPARE(failed.run.nodes[mtm].state, NodeState::Blocked);
     QCOMPARE(failed.run.nodes[root].report["input_error"].toObject()["line"].toInt(), 2);
-    window.results()->selectStep(2);
+    window.results()->selectStep(2, true);
     auto *notice = window.findChild<QLabel *>("StepError");
     QVERIFY(notice && notice->isVisible());
     QVERIFY(notice->text().contains("First failed step"));
@@ -697,7 +703,9 @@ void InteractionSafetyTests::invalidFileIsReportedAndCorrectColumnsRecover()
     QTRY_VERIFY(sources->readyToRun());
     QCOMPARE(preview->item(0, 2)->text(), QString("0.5"));
     window.startRun();
-    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && window.results()->recordId() != failedId, 10000);
+    // The asynchronous result loader clears the ID while the new record is loading.
+    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && window.results()->recordId() > 0 &&
+                            window.results()->recordId() != failedId, 10000);
     const auto passed = repo.load(window.results()->recordId());
     QVERIFY(passed.ok());
     QCOMPARE(passed.run.state, RunState::Succeeded);
@@ -725,19 +733,19 @@ void InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot()
     QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && window.results()->recordId() > 0, 10000);
     auto *results = window.results();
     const auto failedId = results->recordId();
-    results->selectStep(0);
+    results->selectStep(0, true);
     QTRY_VERIFY(results->plotView()->hasPlot());
     auto *csv = window.findChild<QPushButton *>("exportCsv");
     auto *reuse = window.findChild<QPushButton *>("reuseOutput");
     QVERIFY(csv->isEnabled() && reuse->isEnabled());
-    results->selectStep(1);
+    results->selectStep(1, true);
     QVERIFY(results->plotView()->hasPlot()); // Retained, explicitly labelled source plot.
     QVERIFY(!csv->isEnabled() && !reuse->isEnabled());
     QVERIFY(window.findChild<QPushButton *>("exportPng")->isEnabled());
     QVERIFY(!results->startCsvExport(dir.filePath("wrong_output.csv")));
     QVERIFY(!QFile::exists(dir.filePath("wrong_output.csv")));
     QVERIFY(window.findChild<QLabel *>("StepError")->text().contains("descending values"));
-    results->selectStep(0);
+    results->selectStep(0, true);
     QSignalSpy finished(results->exporter(), &ExportController::finished);
     QVERIFY(results->startCsvExport(dir.filePath("source.csv")));
     QTRY_COMPARE(finished.size(), 1);
@@ -751,7 +759,8 @@ void InteractionSafetyTests::failedStepCannotExportOrReuseAnOlderPlot()
     document->setFiles(input, {path});
     QTRY_VERIFY(window.findChild<SourcePanel *>()->readyToRun());
     window.startRun();
-    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && results->recordId() != failedId, 10000);
+    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy() && results->recordId() > 0 &&
+                            results->recordId() != failedId, 10000);
     ResultRepository repo;
     QVERIFY(repo.open(settings.databasePath).isEmpty());
     const auto result = repo.load(results->recordId());
@@ -832,7 +841,7 @@ void InteractionSafetyTests::diagnosticSignalStorageAndDetails()
     QCOMPARE(saved.run.nodes[mtm].state, NodeState::Blocked);
     QCOMPARE(saved.run.nodes[mtm].diagnostic().context["cause_node_id"].toString(), lowess.toString(QUuid::WithoutBraces));
     QVERIFY(!saved.run.executionOrder.contains(mtm));
-    window.results()->selectStep(2);
+    window.results()->selectStep(2, true);
     auto *button = window.findChild<QPushButton *>("viewErrorDetails");
     QVERIFY(button && button->isVisible());
     bool dialogOpened = false;
@@ -852,7 +861,7 @@ void InteractionSafetyTests::diagnosticSignalStorageAndDetails()
     QVERIFY(copied.contains("INPUT_X_DUPLICATE"));
     QVERIFY(copied.contains("13"));
     QVERIFY(copied.contains(path.section('/', -1)));
-    window.results()->selectStep(0);
+    window.results()->selectStep(0, true);
     QVERIFY(!button->isVisible());
     // File diagnostics preserve the real physical line separately from algorithm point indexes.
     const auto badFile = dir.filePath("invalid.csv");

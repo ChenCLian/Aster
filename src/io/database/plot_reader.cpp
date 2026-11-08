@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "io/database/plot_reader.h"
+#include "io/database/grid_sampling.h"
 #include <QDataStream>
 #include <QIODevice>
 #include <QSqlQuery>
@@ -216,7 +217,8 @@ NodeResult readPlotBlob(QSqlDatabase db, qint64 rowId, const QString &kind,
         quint16 version;
         quint8 type;
         s >> magic >> version >> type;
-        require(magic == DataFormat::magic && version == DataFormat::version,
+        require(magic == DataFormat::magic && (version == DataFormat::version ||
+                (version == DataFormat::maskedTableVersion && type == 4)),
                 "Unknown plot encoding");
         require(type >= 1 && type <= 4 &&
                     QStringList{"Series", "Spectrum", "Grid", "Table"}[type - 1] == kind,
@@ -232,6 +234,7 @@ NodeResult readPlotBlob(QSqlDatabase db, qint64 rowId, const QString &kind,
         DataRef data;
         bool reduced = false;
         QJsonArray bounds;
+        QJsonObject samples;
         if (type == 1 || type == 2)
         {
             auto xa = axis(s), ya = axis(s);
@@ -339,57 +342,13 @@ NodeResult readPlotBlob(QSqlDatabase db, qint64 rowId, const QString &kind,
                     "Invalid grid lengths");
             auto cx = interval(b, x, request.window, request.xLower, request.xUpper),
                  ry = interval(b, y, request.window, request.yLower, request.yUpper);
-            GridData g;
-            g.xAxis = xa;
-            g.yAxis = ya;
-            g.valueAxis = va;
-            g.columns = std::min<qint64>(width, cx.second - cx.first);
-            g.rows = std::min<qint64>(height, ry.second - ry.first);
-            // The product is independently capped, even at high export DPI.
-            while (g.columns * g.rows > PlotLimits::maxHeatmapCells)
-            {
-                g.columns = (g.columns + 1) / 2;
-                g.rows = (g.rows + 1) / 2;
-            }
-            g.x.resize(g.columns);
-            g.y.resize(g.rows);
-            g.values.resize(g.columns * g.rows);
-            auto cspan = cx.second - cx.first, rspan = ry.second - ry.first;
-            for (qsizetype c = 0; c < g.columns; ++c)
-                g.x[c] =
-                    x.at(b, cx.first + (g.columns == 1 ? 0 : c * (cspan - 1) / (g.columns - 1)));
-            for (qsizetype r = 0; r < g.rows; ++r)
-            {
-                if (cancel.isCancelled())
-                    return NodeResult::cancelled();
-                g.y[r] = y.at(b, ry.first + (g.rows == 1 ? 0 : r * (rspan - 1) / (g.rows - 1)));
-                if (request.gridSampleCoordinates)
-                {
-                    const auto sr = ry.first + (g.rows == 1 ? 0 : r * (rspan-1) / (g.rows-1));
-                    for (qsizetype c = 0; c < g.columns; ++c)
-                    {
-                        const auto sc = cx.first + (g.columns == 1 ? 0 : c * (cspan-1) / (g.columns-1));
-                        g.values[r*g.columns+c] = v.at(b, sr*cols+sc);
-                    }
-                    continue;
-                }
-                QVector<bool> assigned(g.columns, false);
-                for (auto sr = ry.first + r * rspan / g.rows;
-                     sr < ry.first + (r + 1) * rspan / g.rows; ++sr)
-                    for (auto sc = cx.first; sc < cx.second; ++sc)
-                    {
-                        const auto c =
-                            std::min<qint64>(g.columns - 1, (sc - cx.first) * g.columns / cspan);
-                        auto value = v.at(b, sr * cols + sc);
-                        auto &peak = g.values[r * g.columns + c];
-                        if (!assigned[c] || std::abs(value) > std::abs(peak))
-                        {
-                            peak = value;
-                            assigned[c] = true;
-                        }
-                    }
-            }
-            reduced = g.rows < rspan || g.columns < cspan;
+            auto sampled = grid_display::sample(cols, rows,
+                [&](qsizetype i) { return x.at(b, i); }, [&](qsizetype i) { return y.at(b, i); },
+                [&](qsizetype i) { return v.at(b, i); }, cx, ry, width, height, cancel, !request.window);
+            auto &g = sampled.grid;
+            g.xAxis = xa; g.yAxis = ya; g.valueAxis = va;
+            samples = sampled.statistics;
+            reduced = samples["reduced"].toBool();
             bounds = QJsonArray{x.at(b, 0), x.at(b, cols - 1), y.at(b, 0), y.at(b, rows - 1)};
             data = makeData(std::move(g));
         }
@@ -415,6 +374,11 @@ NodeResult readPlotBlob(QSqlDatabase db, qint64 rowId, const QString &kind,
                 for (quint32 c = 0; c < cols; ++c)
                     row.push_back(a.at(b, c));
                 t.rows.push_back(row);
+                if (version == DataFormat::maskedTableVersion) {
+                    QVector<quint8> mask(cols);
+                    for (auto& flag : mask) s >> flag;
+                    t.defined.push_back(std::move(mask));
+                }
             }
             data = makeData(std::move(t));
         }
@@ -426,7 +390,7 @@ NodeResult readPlotBlob(QSqlDatabase db, qint64 rowId, const QString &kind,
             return NodeResult::failure(error);
         return NodeResult::success(
             {{"data", data}},
-            {{"display_reduced", reduced}, {"bounds", bounds}, {"bytes_read", double(b.bytes)}});
+            {{"display_reduced", reduced}, {"bounds", bounds}, {"bytes_read", double(b.bytes)}, {"samples", samples}});
     }
     catch (const std::exception &e)
     {

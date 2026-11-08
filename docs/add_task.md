@@ -1,5 +1,7 @@
 # Aster：添加一种任务
 
+适用版本：Aster 1.2.0-beta.5。
+
 最短的实际样例是 `src/processing/affine_task.h/.cpp`。它展示了统一接口、独立参数、只读上游和具名输出。新增任务仍需要自己的计算实现；宏负责消除分散的注册代码。
 
 ## 1. 独立文件与统一接口
@@ -69,9 +71,9 @@ return NodeResult::success(
 
 ## UI 开发者的接口
 
-读取 `registry.descriptors()` 得到多级任务目录及参数声明。拖入前调用 `model.previewChild(...)`；实际放入调用 `model.addChild(...)`，失败显示 error。删除前调用 `removalPreview()` 得到影响数量；确认后调用 `removeSubtree()`，撤销调用 `undo()`。
+读取 `registry.descriptors()` 得到多级任务目录及参数声明。结构预检可用 `model.previewChild(...)` 或改写检查接口；实际添加、删除、插入、替换、源绑定和配对变更统一通过 `WorkflowDocument` / `WorkflowEditor` 提交。不要直接改桌面文档内部的模型，否则会绕过源绑定、配对、修订号和统一撤销历史。删除前检查影响范围，插入/替换前明确端口映射。
 
-运行时使用 `model.freeze()` 和 `prepareRuns()`，不要把 WorkflowModel 本身交给 worker。若仅运行单个根，也可以明确构造一个 RunRequest。每个请求对应结果目录中的一条数据库记录。
+桌面运行使用 `WorkflowDocument::plan()` 冻结图、来源和配对，不把 WorkflowModel 本身交给 worker。普通路径通过 `prepareRuns()` 产生请求；含联合输入的关联根使用 `prepareLinkedBatch()` 生成批次计划。普通记录按数据保存，联合记录按配对保存，并保留实际双方来源。
 
 科学算法只计算并返回具名输出，不在每个 Task 中重复写库。BatchRunner 与 ResultRepository 已统一承担保存；具体协议和 UI 对接见 [工作流契约](architecture.md)。
 
@@ -87,7 +89,7 @@ return NodeResult::success(
 
 ## 绘图和导出适配
 
-新增常规 Series/Spectrum 输出会由 PlotView 的样式构造自动纳入当前步骤的曲线选择范围；Grid 与 Table 保留专用显示。特殊领域叠加仍在绘图适配中按输出语义明确处理（例如 peaks、coi）。不要把颜色、可见性等样式添加为算法参数。
+常规 Series/Spectrum、Grid 与 Table 使用对应的绘图或表格适配。输出组合通过 `plot_recipe.h` 按稳定方法和端口标识声明，默认样式由 `plotPreset` 生成；无配方的输出不应仅因类型兼容而自动合并。新组合须核对自动投图、手动投图、预览及导出。颜色、可见性等显示设置不作为算法参数，也不写入数值结果。
 
 四类 DataRef 均已支持后台 CSV。只有增加新的 DataObject 种类或改变数值形状契约时，才需要相应扩展 `io/exports/csv_export`。增加普通算法无需修改导出控制器。
 
@@ -97,9 +99,8 @@ return NodeResult::success(
 - 新来源选择器可调用 `WorkflowDocument::setSources(rootId, QVector<SourceItem>)`。运行计划按 descriptor.requiresSourceBinding 自动收集；boundDataKind 存在时接口会检查内存输入类型。纯生成器不用绑定，不受文件选择影响。
 - 多选文本参数的 `choices` 是稳定程序值，例如 `fixed`。资源中的 `choice.spacing_mode.fixed` 为显示文字；ParameterEditor 始终返回 itemData 中的稳定值。
 - `method.<方法键>`、`parameter.<参数键>`、`category.<分类名>`、`port.<端口键>` 是现有翻译入口；缺失时回退到描述文本或稳定键。原始来源字段和科学数据列名不要为切换语言改名。
-- 输入仍是一份 DataRef。如果将来需要双输入关联或汇合任务，需要另设计输入绑定模型，不能仅在数学类中增加第二个输入参数。
+- 普通任务使用 `TaskInput.data`。双输入任务声明 `TaskDescriptor.pairedInput=true`，A/B 分别通过 `data` 和 `second` 接收，由 `prepareBatch`（同父节点）或 `prepareLinkedBatch`（显式跨节点）验证配对并交给 `BatchWorkflowExecutor` 调度。双输入任务不得交给原单数据执行入口，也不得自行读取其他节点的全局结果。桌面“管理配对”已支持同工作区普通支路和不同源根节点；不支持联合输出再次配对。接口与边界见[联合分析开发说明](development/batch_joint_analysis.md)。
 - C++ 算法通过源码实现、注册和重新编译接入。常规扩展无需修改工作流执行器或主窗口。
-
 
 ## 结构化报错
 

@@ -105,6 +105,13 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
     threads->setToolTip(text("ui.concurrent_input_help"));
     threads->setValue(m_values.concurrency);
     form->addRow(text("ui.concurrent_input_runs"), threads);
+    auto *plotTarget = new ChoiceEditor;
+    plotTarget->setObjectName("settingsDefaultPlotTarget");
+    plotTarget->addItem(text("ui.default_plot_new_page"), true);
+    plotTarget->addItem(text("ui.default_plot_current_page"), false);
+    plotTarget->setCurrentIndex(plotTarget->findData(m_values.defaultPlotNewPage));
+    plotTarget->setToolTip(text("ui.default_plot_target_help"));
+    form->addRow(text("ui.default_plot_target"), plotTarget);
     auto *divider = new QFrame;
     divider->setObjectName("settingsDivider");
     divider->setFixedHeight(1);
@@ -152,7 +159,7 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
     auto *databaseCheck = new RecordDirectoryService(this);
     connect(this, &QDialog::finished, databaseCheck, &RecordDirectoryService::invalidate);
     connect(databaseCheck, &RecordDirectoryService::listed, this,
-            [this, buttons, path, browse, language, theme, threads](RecordList records, QStringList, int)
+            [this, buttons, path, browse, language, theme, threads, plotTarget](RecordList records, QStringList, int)
             {
                 buttons->setEnabled(true);
                 path->setEnabled(true);
@@ -160,6 +167,7 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
                 language->setEnabled(true);
                 theme->setEnabled(true);
                 threads->setEnabled(true);
+                plotTarget->setEnabled(true);
                 if (!records.error.isEmpty())
                 {
                     QMessageBox::warning(this, text("ui.database_unavailable"), records.error);
@@ -169,7 +177,7 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
                 accept();
             });
     connect(buttons, &QDialogButtonBox::accepted, this,
-            [this, buttons, path, browse, databaseCheck, language, theme, threads]
+            [this, buttons, path, browse, databaseCheck, language, theme, threads, plotTarget]
             {
                 buttons->setEnabled(false);
                 path->setEnabled(false);
@@ -186,9 +194,11 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
                 m_values.language = language->currentData().toString();
                 m_values.theme = theme->currentData().toString();
                 m_values.concurrency = threads->value();
+                m_values.defaultPlotNewPage = plotTarget->currentData().toBool();
                 language->setEnabled(false);
                 theme->setEnabled(false);
                 threads->setEnabled(false);
+                plotTarget->setEnabled(false);
                 databaseCheck->query(path->text().trimmed(), {}, 0);
             });
 }

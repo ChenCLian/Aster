@@ -214,12 +214,13 @@ SaveReceipt ResultRepository::saveImpl(const RunResult &run)
     QSqlQuery insert(m_db);
     insert.prepare("INSERT INTO "
                    "aster_runs(run_uuid,root_uuid,state,source_label,provenance,snapshot,started_"
-                   "utc,finished_utc,observer_warnings) VALUES(?,?,?,?,?,?,?,?,?)");
+                   "utc,finished_utc,observer_warnings,display_name) VALUES(?,?,?,?,?,?,?,?,?,?)");
     for (const auto &v : QVariantList{
              uuid(run.runId), uuid(run.root), runStateName(run.state),
              run.sourceLabel.isNull() ? QString("") : run.sourceLabel, json(run.provenance),
              json(run.workflowSnapshot), run.startedAt.toUTC().toString(Qt::ISODateWithMs),
-             run.finishedAt.toUTC().toString(Qt::ISODateWithMs), json(run.observerWarnings)})
+             run.finishedAt.toUTC().toString(Qt::ISODateWithMs), json(run.observerWarnings),
+             run.provenance.contains("batch_pair") ? run.sourceLabel : QString("")})
         insert.addBindValue(v);
     if (!insert.exec())
         return fail(insert.lastError().text());
@@ -583,6 +584,23 @@ OutputLoad ResultRepository::loadOutput(const OutputReference &ref) const
         return {{}, "Stored output kind mismatch"};
     return {d.data, {}};
 }
+NodeResult ResultRepository::loadPlotMetadata(const OutputReference &ref) const
+{
+    const auto threadError = checkThread();
+    if (!threadError.isEmpty()) return NodeResult::failure(threadError);
+    if (!ref.valid()) return NodeResult::failure("Invalid plot reference");
+    QSqlQuery query(m_db);
+    query.prepare("SELECT n.method,n.report FROM aster_nodes n JOIN aster_runs r ON r.id=n.run_id "
+                  "WHERE r.id=? AND r.run_uuid=? AND n.node_uuid=?");
+    query.addBindValue(ref.recordId); query.addBindValue(uuid(ref.runId)); query.addBindValue(uuid(ref.nodeId));
+    if (!query.exec()) return NodeResult::failure(query.lastError().text());
+    if (!query.next()) return NodeResult::failure("Source output no longer exists, or database identity has changed");
+    QString error;
+    auto report = object(query.value(1).toString(), error);
+    if (!error.isEmpty()) return NodeResult::failure(error);
+    report["plot_method"] = query.value(0).toString();
+    return NodeResult::success({}, report);
+}
 NodeResult ResultRepository::loadPlot(const OutputReference &ref, qint64 budget) const
 {
     const auto error = checkThread();
@@ -626,7 +644,9 @@ NodeResult ResultRepository::loadPlot(const OutputReference &ref, qint64 budget)
     }
     if (!outputs.contains(ref.port))
         return NodeResult::failure("Output not found");
-    return NodeResult::success(outputs);
+    auto result = loadPlotMetadata(ref);
+    if (result.state == NodeState::Succeeded) result.outputs = std::move(outputs);
+    return result;
 }
 NodeResult ResultRepository::loadPlotPreview(const OutputReference &ref, const PlotRequest &request,
                                              const CancellationToken &cancel) const
@@ -663,11 +683,19 @@ NodeResult ResultRepository::loadPlotPreview(const OutputReference &ref, const P
     };
     QVector<Item> items;
     while (q.next())
-        items.push_back({q.value(0).toLongLong(), q.value(1).toString(), q.value(2).toString()});
+    {
+        if (cancel.isCancelled()) return NodeResult::cancelled();
+        const auto port = q.value(1).toString(), kind = q.value(2).toString();
+        if (port != ref.port && (!request.includeFamily || !plotFamily(ref, port, kind)))
+            continue;
+        // Bound the requested figure family, not unrelated outputs in the node.
+        if (items.size() >= PlotLimits::maxFamilyOutputs)
+            return NodeResult::failure("Too many outputs in one plot family");
+        items.push_back({q.value(0).toLongLong(), port, kind});
+    }
     q.finish();
-    NodeResult result = NodeResult::success({});
-    if (items.size() > PlotLimits::maxFamilyOutputs)
-        return NodeResult::failure("Too many outputs in one plot family");
+    NodeResult result = loadPlotMetadata(ref);
+    if (result.state != NodeState::Succeeded) return result;
     auto boundedRequest = request;
     boundedRequest.columns =
         std::min(boundedRequest.columns,
@@ -683,13 +711,13 @@ NodeResult ResultRepository::loadPlotPreview(const OutputReference &ref, const P
         if (!plotFamily(ref, i.port, i.kind))
             continue;
         auto outputRequest = boundedRequest;
-        // Threshold boundaries need samples at their stated coordinates. Taking a
-        // block maximum would expand significant regions into non-significant cells.
-        outputRequest.gridSampleCoordinates = i.port == "significance_ratio";
         auto part = readPlotBlob(db, i.id, i.kind, outputRequest, cancel);
         if (part.state != NodeState::Succeeded)
             return part;
         result.outputs[i.port] = part.outputs.value("data");
+        auto samples = result.report["plot_samples"].toObject();
+        samples[i.port] = part.report["samples"];
+        result.report["plot_samples"] = samples;
         if (part.report["display_reduced"].toBool())
             result.report["display_reduced"] = true;
         result.report["bytes_read"] =

@@ -1,0 +1,159 @@
+{
+  "project": "Aster",
+  "version": "1.2.0-alpha.6",
+  "baseline": "1.2.0-alpha.5",
+  "date": "2026-11-07",
+  "timezone": "UTC",
+  "scope": "Output-port chooser, popup placement, menu typography and adjacent layout regression",
+  "environment": {
+    "os": "Linux x86_64, Debian 13",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "Release",
+    "rendering": "offscreen",
+    "openblas_threads": 1
+  },
+  "build": {
+    "status": "passed",
+    "type": "Fresh out-of-tree build followed by incremental rebuilds of final changes",
+    "application_version": "Aster_Workspace 1.2.0-alpha.6"
+  },
+  "regression_tests": [
+    {
+      "target": "aster_ui_tests",
+      "passed": 780,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_ui_tests.txt"
+    },
+    {
+      "target": "aster_joint_ui_tests",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_joint_ui_tests.txt"
+    },
+    {
+      "target": "aster_style_export_tests",
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_style_export_tests.txt"
+    },
+    {
+      "target": "aster_workspace_tests",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_workspace_tests.txt"
+    },
+    {
+      "target": "aster_integration_tests",
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4,
+      "log": "aster_integration_tests.txt"
+    },
+    {
+      "target": "aster_update_tests",
+      "passed": 50,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "aster_update_tests.txt"
+    }
+  ],
+  "total_passed": 996,
+  "total_failed": 0,
+  "additional_checks": {
+    "help_generator_tests": 6,
+    "license_packaging_tests": 2,
+    "parameter_reference_tasks": 54,
+    "parameter_reference_parameters": 233,
+    "languages": [
+      "zh",
+      "en"
+    ]
+  },
+  "popup_scaling_checks": [
+    {
+      "scale_factor": "1",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "popup-targeted-final.txt"
+    },
+    {
+      "scale_factor": "1.25",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "popup-dpi-1.25.txt"
+    },
+    {
+      "scale_factor": "1.5",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "popup-dpi-1.5.txt"
+    },
+    {
+      "scale_factor": "2",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1,
+      "log": "popup-dpi-2.txt"
+    }
+  ],
+  "popup_coverage": [
+    "Uniform item geometry and bold default label in both languages and themes",
+    "Long labels with tooltips; 1000 choices with filtering, scrolling and empty-search handling",
+    "Mouse and keyboard confirmation; Escape and click-outside cancellation without graph mutation",
+    "Real cascading-menu keyboard activation followed by explicit non-default port selection",
+    "Undo restores the original workflow; pending chooser cannot survive source-node deletion",
+    "Owner movement/resizing closes a visible chooser; hidden owner cannot open a pending chooser",
+    "Geometry inside logical owner/screen bounds, including synthetic negative monitor coordinates"
+  ],
+  "layout_review": {
+    "fixed": [
+      "Output chooser anchored to source node instead of last submenu cursor position",
+      "Queued cascade focus loss no longer dismisses the next output chooser",
+      "Shared menu typography and explicit root-menu placement",
+      "Result-directory title wrapping and language-aware step-status column width"
+    ],
+    "also_checked": [
+      "Settings links and keyboard navigation",
+      "Pair dialog",
+      "Result plot/export sidebar",
+      "Source/import and preview panels",
+      "Small desktop layout",
+      "Light and dark themes"
+    ],
+    "visual_platform": "Linux offscreen render captures",
+    "screenshots_shipped": false
+  },
+  "compatibility": {
+    "database_schema": 3,
+    "masked_table_payload": 2,
+    "cross_spectrum_method": 2,
+    "algorithms_parameters_and_budgets_unchanged": true,
+    "local_pri_unchanged": true
+  },
+  "limits": [
+    "No native Windows or macOS execution; native popup focus, screen transitions and input require acceptance checks.",
+    "Negative monitor coordinates are pure geometry tests, not a physical multi-monitor session.",
+    "QMenu cascading submenus and button menus retain Qt screen-boundary behavior; strict owner containment applies to OutputPicker.",
+    "Algorithm suites were not rerun in this UI-only batch; alpha.4 numerical and alpha.5 performance records retain their original scope.",
+    "Cross-node joint inputs and transactional node insertion/replacement are not implemented in this batch."
+  ],
+  "log_policy": "Only final successful regression outputs are included; workspace and temporary paths are sanitized."
+}
