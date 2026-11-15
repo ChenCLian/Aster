@@ -1,0 +1,112 @@
+{
+  "version": "1.3.0-alpha.2",
+  "date": "2026-11-14",
+  "base_version": "1.3.0-alpha.1",
+  "base_source_sha256": "87510a7d9fdc263b13a040cf83169ee186233003a1981b19009e01024174e112",
+  "environment": {
+    "os": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2.0",
+    "configuration": "release",
+    "automated_platform": "offscreen",
+    "native_desktop": "X11/Xfwm4, 1364 x 1024",
+    "blas_threads": 1
+  },
+  "qt_tests": {
+    "passed": 1000,
+    "failed": 0,
+    "suites": [
+      {
+        "name": "ui",
+        "passed": 832,
+        "failed": 0,
+        "skipped": 0,
+        "log": "ui.log",
+        "sha256": "312bda5553cdb387a3d1cdd0f26b7294fda80fcd7cde86c7b7de64e29b632c82"
+      },
+      {
+        "name": "workspace",
+        "passed": 83,
+        "failed": 0,
+        "skipped": 0,
+        "log": "workspace.log",
+        "sha256": "afcab93725a466ca0ebb75820ab88d924787759447364c42a6cba1e789d4d528"
+      },
+      {
+        "name": "integration",
+        "passed": 85,
+        "failed": 0,
+        "skipped": 0,
+        "log": "integration.log",
+        "sha256": "1597fe5769dfc997a0fd30433984ebf8809c1d4145704f79ecc4b5f6fc2a6d1e"
+      },
+      {
+        "name": "targeted",
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "log": "targeted.log",
+        "sha256": "2731fd89cc1b0fbf035bfe9e60a6c9b31b61fcd8beed247c990bfccc6143428a"
+      }
+    ],
+    "counting": "Primary total sums ui/workspace/integration only, including QtTest init/cleanup. Targeted run repeats selected cases and is supplemental."
+  },
+  "new_regressions": [
+    "movedInputKeepsNavigationAndHistory",
+    "outlierLegendUsesDisplayLabels"
+  ],
+  "findings_fixed": [
+    "Moving datasets could leave the old canvas node selected while the source list switched trees, producing a disabled parameter editor or empty preview. Select the destination root and scroll it into view without changing zoom.",
+    "Undo/redo after a move could lose the selected task or choose a different input. Follow the existing dataset identity across history and preserve the moved input when the destination already contains other files.",
+    "Flush pending node edits before creating the move dialog so its revision and copied settings are current.",
+    "Outlier plots exposed internal port names in their legends. Use localized output names for original, processed and selected-outlier series."
+  ],
+  "native_desktop": {
+    "status": "passed_for_listed_scenarios_after_fixes",
+    "fixtures": {
+      "files": 3,
+      "points_per_file": 128,
+      "columns": [
+        3,
+        2,
+        3
+      ],
+      "signal": "Sine with one isolated positive spike per input"
+    },
+    "initial_acceptance": [
+      "Set Y to the third column; batch application applies to two compatible files and skips the two-column file without changing its settings.",
+      "Edit one dataset threshold; switching inputs preserves independent values.",
+      "Keep a selected outlier on B; apply the node rule to all; A retains its own spike decision.",
+      "Run and save all three small inputs; inspect processed/original and outlier overlays."
+    ],
+    "post_fix_retest": [
+      "Edit B threshold to 1.5 and immediately open Move; copy processing steps into a new tree.",
+      "Observe new root selected and scrolled into view, B selected in the source list, and copied threshold still 1.5.",
+      "Select copied child; Undo returns to original root and keeps B, Redo returns to destination root and keeps B.",
+      "Inspect Chinese legend: original series, selected outliers and processed series.",
+      "Move B into original tree containing A/C; observe B remains selected even though it is appended after the existing files.",
+      "Undo and Redo that existing-tree move; the data selection and canvas follow B.",
+      "Select destination processing node and observe its own threshold 3, matching the documented existing-tree rule.",
+      "Wait for preview completion and close the application normally."
+    ],
+    "timing_note": "Native retest and 1000-case suite used final application-code fixes before the version-only/docs update. Final rebuilt binary is checked separately below.",
+    "limits": "Linux observations do not establish Windows/MSVC or macOS native behavior or final package readiness."
+  },
+  "final_build": {
+    "status": "passed",
+    "application_version": "Aster_Workspace 1.3.0-alpha.2",
+    "application_sha256": "bf6906c34946d0a6c671718684907b9bc76baf63aefbc261e292332cbe178717",
+    "supplemental_tests": {
+      "passed": 10,
+      "failed": 0,
+      "scope": "Two navigation/legend regressions and six embedded-help checks plus init/cleanup after final version and resource rebuild.",
+      "log": "final-embedded-help-and-navigation.log",
+      "sha256": "dd0ffdaad8aad555659ca21f24a09b2da55fcc808c3fa880e460e41202fcc1ed"
+    }
+  },
+  "limits": [
+    "No renewed large-data memory stress or Monte Carlo calibration.",
+    "No numerical algorithm, workflow schema or runtime dependency changes in this follow-up.",
+    "Windows/MSVC and macOS final source builds and distribution packages remain unverified."
+  ]
+}

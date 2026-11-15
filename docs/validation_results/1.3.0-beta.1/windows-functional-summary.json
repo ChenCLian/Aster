@@ -1,0 +1,504 @@
+{
+  "exit_code": 0,
+  "requested_cycles": 100,
+  "metrics": [
+    {
+      "delimiter": ",",
+      "file_bytes": 10187892,
+      "probe_ms": 0.3302,
+      "read_ms": 459.65,
+      "rows": 1000000,
+      "rss_kib": -1,
+      "test": "large_file"
+    },
+    {
+      "delimiter": "\t",
+      "file_bytes": 10187892,
+      "probe_ms": 0.2768,
+      "read_ms": 453.7487,
+      "rows": 1000000,
+      "rss_kib": -1,
+      "test": "large_file"
+    },
+    {
+      "delimiter": " ",
+      "file_bytes": 10187892,
+      "probe_ms": 0.3698,
+      "read_ms": 792.5295,
+      "rows": 1000000,
+      "rss_kib": -1,
+      "test": "large_file"
+    },
+    {
+      "cancel_preserved_existing": true,
+      "export_ms": 573.8343,
+      "roundtrip_hash_equal": true,
+      "rows": 1000000,
+      "test": "export_atomicity"
+    },
+    {
+      "fresh_read_ok": true,
+      "repetitions": 30,
+      "response_ms": [
+        0.060100000000000264,
+        0.1639000000000017,
+        0.46799999999999997,
+        0.15839999999999854,
+        0.17130000000000045,
+        0.10529999999999973,
+        0.18880000000000052,
+        0.15249999999999986,
+        0.14220000000000077,
+        0.12950000000000017,
+        0.1333000000000002,
+        0.10500000000000043,
+        0.1647999999999996,
+        0.10679999999999978,
+        0.1498000000000026,
+        0.12809999999999988,
+        0.14719999999999978,
+        0.21999999999999886,
+        0.11489999999999867,
+        0.12880000000000003,
+        0.11679999999999957,
+        0.12570000000000192,
+        0.24730000000000096,
+        0.10069999999999979,
+        0.15470000000000006,
+        0.1471,
+        0.13309999999999889,
+        0.26940000000000097,
+        0.13790000000000013,
+        0.1189
+      ],
+      "test": "read_cancel"
+    },
+    {
+      "injected_failure": "SQLite output INSERT abort",
+      "no_partial_rows": true,
+      "old_record_preserved": true,
+      "retry_hashes_equal": true,
+      "test": "save_rollback_retry"
+    },
+    {
+      "cycles": 5,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 10,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 15,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 20,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 25,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 30,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 35,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 40,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 45,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 50,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 55,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 60,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 65,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 70,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 75,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 80,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 85,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 90,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 95,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 100,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cancel_then_rerun": 20,
+      "connections_and_windows_restored": true,
+      "cycle_ms": [
+        970.7216,
+        522.2968,
+        533.2788,
+        529.6437,
+        530.1408,
+        598.1434,
+        523.5564,
+        519.2298,
+        535.9181,
+        596.172,
+        609.9104,
+        534.0229,
+        537.7629,
+        542.1019,
+        543.9998,
+        608.43,
+        549.7262,
+        546.1709,
+        561.6793,
+        549.5716,
+        629.9983,
+        593.8817,
+        545.8022,
+        535.7729,
+        554.0193,
+        639.6573,
+        540.6712,
+        582.9891,
+        525.0618,
+        517.9563,
+        604.845,
+        535.4067,
+        517.1029,
+        524.1168,
+        517.6358,
+        609.875,
+        580.8237,
+        530.344,
+        529.9922,
+        595.7257,
+        614.8537,
+        521.4763,
+        531.5748,
+        528.7474,
+        527.2004,
+        603.6358,
+        527.6207,
+        580.0533,
+        530.4874,
+        641.5996,
+        602.4078,
+        523.6291,
+        530.857,
+        516.0223,
+        535.3006,
+        600.1158,
+        537.4607,
+        531.7737,
+        528.8321,
+        615.9284,
+        652.5059,
+        541.4458,
+        557.8743,
+        593.9567,
+        550.2701,
+        608.6638,
+        585.836,
+        527.0088,
+        538.8204,
+        592.9799,
+        608.2388,
+        536.1774,
+        543.2585,
+        541.7122,
+        587.4097,
+        607.2945,
+        545.8907,
+        592.7616,
+        531.6647,
+        537.3372,
+        594.5102,
+        587.021,
+        534.9431,
+        578.224,
+        577.8367,
+        599.357,
+        527.9844,
+        578.1624,
+        527.6175,
+        535.0445,
+        601.9701,
+        531.0028,
+        548.7096,
+        539.1677,
+        589.2207,
+        616.2274,
+        540.9242,
+        527.8854,
+        596.4235,
+        546.7217
+      ],
+      "cycles": 100,
+      "live_heap_every_5_cycles_bytes": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "rss_every_5_cycles_kib": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "test": "desktop_lifecycle"
+    },
+    {
+      "sample": {
+        "cycle": 10,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 20,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 30,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 40,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 50,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 60,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 70,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 80,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 90,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 100,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "after_close_heap_bytes": -1,
+      "after_close_rss_kib": -1,
+      "cycles": 100,
+      "memory_samples": [
+        {
+          "cycle": 10,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 20,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 30,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 40,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 50,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 60,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 70,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 80,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 90,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 100,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        }
+      ],
+      "plot_pages_reused": true,
+      "saved_records": 100,
+      "test": "same_window"
+    }
+  ],
+  "qt_totals": [
+    {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "leak_detector_unavailable": false
+}

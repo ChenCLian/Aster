@@ -1,0 +1,43 @@
+{
+  "version": "1.3.0-alpha.7",
+  "date": "2026-11-15",
+  "status": "tooling_and_build_checks_passed",
+  "scope": "Release-version automation and document synchronization; application C++ sources unchanged from the preceding release.",
+  "release_tools": {
+    "tests_run": 139,
+    "result": "OK",
+    "skipped_scope": "Homebrew Ruby query class: Ruby unavailable on this Linux host",
+    "log": "release-tool-tests.log"
+  },
+  "final_version_sync_regression": {
+    "tests": 13,
+    "passed": 13,
+    "log": "version-tool-tests.log"
+  },
+  "real_qmake_incremental_version_test": {
+    "passed": true,
+    "log": "version-build-test.log"
+  },
+  "application_update_tests": {
+    "passed": 51,
+    "failed": 0,
+    "skipped": 0,
+    "log": "update-tests.log"
+  },
+  "help_generator_tests": {
+    "passed": 7,
+    "log": "help-tests.log"
+  },
+  "build": {
+    "platform": "Linux / Qt 6.8.2 / GCC 14.2",
+    "release": "passed",
+    "compiled_version": "Aster_Workspace 1.3.0-alpha.7"
+  },
+  "document_body_check": "README, FAQ and both user guides differ from preceding release only by version tokens. All application src/ files byte-identical.",
+  "previous_record": "docs/validation_results/1.3.0-alpha.6/checks.json",
+  "limits": [
+    "No new full scientific/UI/sanitizer suite: application sources unchanged; preceding results remain evidence for their own version.",
+    "Windows and macOS native build not performed",
+    "No remote release published"
+  ]
+}

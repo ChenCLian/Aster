@@ -116,8 +116,25 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     layout->addLayout(selectionBar);
     m_delete = new QPushButton(text("ui.delete_checked"));
     m_delete->setObjectName("deleteCheckedRecords");
-    layout->addWidget(m_delete);
+    auto *fileActions = new QHBoxLayout;
+    fileActions->setSpacing(5);
+    fileActions->addWidget(m_delete, 1);
+    m_exportNames = new QPushButton(text("ui.export_record_names"));
+    m_exportNames->setObjectName("exportRecordNames");
+    m_exportNames->setToolTip(text("ui.export_record_names_hint"));
+    fileActions->addWidget(m_exportNames, 1);
+    layout->addLayout(fileActions);
     m_service = new RecordDirectoryService(this);
+    connect(m_exportNames, &QPushButton::clicked, this, &RecordDirectoryPanel::exportFileNames);
+    connect(m_service, &RecordDirectoryService::namesExported, this,
+            [this](const QString &file, qint64 count, const QString &error) {
+                const auto detail = error.isEmpty()
+                    ? text("ui.export_record_names_done").arg(count).arg(file)
+                    : text("ui.export_record_names_failed").arg(error);
+                emit message(detail);
+                if (error.isEmpty()) QMessageBox::information(this, text("ui.export_record_names"), detail);
+                else QMessageBox::warning(this, text("ui.export_record_names"), detail);
+            });
     connect(m_service, &RecordDirectoryService::transferProgress, this,
             [this](const QString &stage, qint64 done, qint64 total)
             {
@@ -436,6 +453,7 @@ void RecordDirectoryPanel::updateActions()
     m_unselect->setEnabled(ready && m_filterValid && m_matching > 0);
     m_clear->setEnabled(ready && !m_checked.isEmpty());
     m_delete->setEnabled(ready && m_filterValid && m_mutationsEnabled && !m_checked.isEmpty());
+    m_exportNames->setEnabled(ready && m_filterValid);
     m_count->setText(
         m_busy ? text("ui.directory_loading")
                : (m_hasMore ? text("ui.records_loaded_more") : text("ui.records_loaded_all"))
@@ -443,6 +461,19 @@ void RecordDirectoryPanel::updateActions()
     m_selection->setText(text("ui.records_checked_count")
                              .arg(m_checked.size())
                              .arg(std::max<qint64>(0, m_checked.size() - m_matching)));
+}
+void RecordDirectoryPanel::exportFileNames()
+{
+    const auto source = m_path;
+    const auto selectedFilter = filter();
+    QFileDialog dialog(this, text("ui.export_record_names"));
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter("CSV (*.csv)");
+    dialog.setDefaultSuffix("csv");
+    dialog.selectFile(QString("Aster_file_index_%1.csv")
+        .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss")));
+    if (dialog.exec() != QDialog::Accepted || dialog.selectedFiles().isEmpty()) return;
+    m_service->exportNames(source, selectedFilter, dialog.selectedFiles().front());
 }
 void RecordDirectoryPanel::fetchIfNeeded()
 {

@@ -9,6 +9,7 @@
 #include <QPen>
 #include <functional>
 #include <optional>
+#include <QTimer>
 class QCustomPlot;
 class QFrame;
 class QLabel;
@@ -29,26 +30,40 @@ struct ProbeSample
     QVector<ProbeValue> values;
     QString note;
     std::optional<QPen> pen;
+    QString key; // Stable output key; never a pointer into a resampled graph.
+    QPointF coordinates; // Original coordinates, before log/swap display transforms.
 };
 class PlotProbe final : public QObject
 {
+    Q_OBJECT
   public:
     using Picker = std::function<std::optional<ProbeSample>(QPointF)>;
-    PlotProbe(QCustomPlot *plot, Picker picker);
+    using Projector = std::function<std::optional<QPointF>(const ProbeSample &)>;
+    PlotProbe(QCustomPlot *plot, Picker picker, Projector projector);
+    ~PlotProbe() override;
     void dismiss();
+    bool hasBubbles() const { return !m_entries.isEmpty(); }
+    void refresh();
+  signals:
+    void changed();
   protected:
     bool eventFilter(QObject *object, QEvent *event) override;
   private:
+    struct Entry;
     void inspect(QPointF point);
+    void populate(Entry &entry);
+    void relayout(Entry &entry);
+    void place(Entry &entry);
+    void close(Entry *entry);
     QCustomPlot *m_plot;
     Picker m_picker;
-    QFrame *m_bubble, *m_marker;
-    QLabel *m_title, *m_swatch;
-    QWidget *m_details;
-    QScrollArea *m_scroll;
-    QString m_copyText;
+    Projector m_projector;
+    QVector<Entry *> m_entries;
+    Entry *m_active = nullptr, *m_dragging = nullptr;
     QPointF m_pressed;
+    QPoint m_dragOffset;
     bool m_pressValid = false, m_dragged = false;
+    QTimer m_refresh;
 };
 }
 #endif

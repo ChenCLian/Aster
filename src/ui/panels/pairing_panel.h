@@ -14,6 +14,8 @@ class PairingPanel : public QWidget
     explicit PairingPanel(WorkflowDocument *, QWidget *parent = nullptr);
     void selectNode(NodeId);
     void refresh();
+    QUuid currentPair() const;
+    QString currentLabel() const;
   signals:
     void pairSelected(QUuid);
 

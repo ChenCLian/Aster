@@ -82,6 +82,19 @@ PlotView *PlotWorkspace::currentView() const
                 return c.view;
     return m_empty;
 }
+void PlotWorkspace::clearPageBubbles()
+{
+    if (m_active >= 0 && m_active < m_pages.size())
+        for (auto &cell : m_pages[m_active].cells) if (cell.view) cell.view->clearBubbles();
+    emit bubblesChanged();
+}
+bool PlotWorkspace::hasPageBubbles() const
+{
+    if (m_active >= 0 && m_active < m_pages.size())
+        for (const auto &cell : m_pages[m_active].cells)
+            if (cell.view && cell.view->hasBubbles()) return true;
+    return false;
+}
 OutputReference PlotWorkspace::currentReference() const
 {
     if (m_active >= 0 && m_active < m_pages.size())
@@ -350,6 +363,7 @@ void PlotWorkspace::build()
                 if (view->minimumSize() != minimum) view->setMinimumSize(minimum);
             });
         };
+        connect(c.view, &PlotView::bubblesChanged, this, &PlotWorkspace::bubblesChanged);
         connect(c.view, &PlotView::outputChanged, c.view, fitLegend);
         connect(c.view, &PlotView::styleChanged, c.view, fitLegend);
         // Axis margins settle during replot and can change after a resize.

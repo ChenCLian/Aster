@@ -26,6 +26,7 @@ class PlotStyleEditor : public QWidget
     Q_OBJECT
   public:
     explicit PlotStyleEditor(PlotView *view, QWidget *parent = nullptr);
+    ~PlotStyleEditor() override;
     void reload();
     void setView(PlotView *view);
     bool apply();

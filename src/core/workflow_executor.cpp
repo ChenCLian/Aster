@@ -104,7 +104,10 @@ RunResult WorkflowExecutor::run(const RunRequest &request, EventSink sink,
     };
     if (!request.workflow)
         return invalid(QStringLiteral("Null workflow snapshot"));
-    const auto &definition = request.workflow->definition();
+    auto definition = request.workflow->definition();
+    auto item = QUuid(request.source.provenance["dataset_id"].toString());
+    if (item.isNull()) item = request.root; // Generated roots have one stable dataset.
+    for (auto &node : definition.nodes) node = resolvedNode(std::move(node),item);
     const auto &registry = request.workflow->registry();
     const auto *root = findNode(definition, request.root);
     if (!root || root->input)

@@ -76,6 +76,7 @@ struct PlotStyle
     bool backgroundKeepAspect = true;
     int colorGradient = 4; // blue-green-yellow / grayscale / thermal / polar / rainbow
     bool colorLog = false, colorManual = false, colorInterpolate = false;
+    bool colorAmplitude = false; // Display sqrt(power); stored data/probes/CSV remain power.
     double colorLower = 0, colorUpper = 1;
     bool colorReverse = false, colorScaleVisible = true;
     int colorLevels = 256;

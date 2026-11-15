@@ -34,6 +34,9 @@ RunPlan prepareNodePreview(const WorkflowModel &model, NodeId target, NodeId sou
     if (!entry) { invalid.validation.add("preview", "Unknown source method"); return invalid; }
     if (entry->descriptor.requiresSourceBinding && (sourceRoot != root.id || source.label.isEmpty()))
     { invalid.validation.add("preview", "Select an input belonging to this source"); return invalid; }
+    auto item = entry->descriptor.requiresSourceBinding ? QUuid(source.provenance["dataset_id"].toString()) : root.id;
+    if (item.isNull()) item = root.id;
+    for (auto &node : path.nodes) node = resolvedNode(std::move(node),item);
     WorkflowModel scoped(model.registry());
     const auto edit = scoped.replaceDefinition(std::move(path));
     if (!edit.ok()) { invalid.validation.add("preview", edit.error); return invalid; }

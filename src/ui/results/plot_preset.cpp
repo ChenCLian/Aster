@@ -67,6 +67,8 @@ PlotStyle plotPreset(const NodeResult &result, const QString &port, const QStrin
     }
     else if (const auto *d = dataAs<GridData>(data))
     {
+        style.colorAmplitude = port == "power_map" && result.report["map_display_amplitude"].toBool();
+        style.colorInterpolate = style.colorAmplitude;
         style.x.label = axisLabel(d->xAxis);
         style.y.label = axisLabel(d->yAxis);
         const auto samples = result.report["plot_samples"].toObject().value(port).toObject();
@@ -132,6 +134,13 @@ PlotStyle plotPreset(const NodeResult &result, const QString &port, const QStrin
             c.color = themeColor("secondaryCurve");
             c.line = false;
             c.marker = MarkerStyle::Circle;
+        }
+        if (result.report.contains("outlier_input_fingerprint") && (port == "series" || port == "original" || port == "outliers"))
+        {
+            if (it.key() == "series" || it.key() == "original" || it.key() == "outliers")
+                c.name = text(("output.outlier_handling." + it.key()).toUtf8().constData());
+            if (it.key() == "original") { c.visible = true; c.color = themeColor("axis"); c.pen = Qt::DashLine; c.width = 1; }
+            if (it.key() == "outliers") { c.visible = true; c.line = false; c.marker = MarkerStyle::Circle; c.markerSize = 7; c.color = themeColor("secondaryCurve"); }
         }
         c.themeDefaultColor = c.color;
         style.curves.insert(it.key(), c);

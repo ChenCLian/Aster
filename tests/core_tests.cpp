@@ -58,6 +58,8 @@ private slots:
     void compoundNoopPreservesRedo();
     void compoundLockRejectsAllEdits();
     void compoundHistoryLimit();
+    void compoundHistoryMemoryBudget();
+    void removedDataReleasedAfterHistoryEviction();
     void largeCompoundEdit();
     void registryCatalogueAndDefaults();
     void rejectBadParameters();
@@ -840,6 +842,60 @@ void CoreTests::compoundHistoryLimit()
     QCOMPARE(count, int(WorkflowEditor::HistoryLimit));
     while (f.editor.canRedo()) QVERIFY(f.editor.redo().ok());
     QCOMPARE(f.editor.state().grouping.value(f.pair)[0].label, QString("109"));
+}
+void CoreTests::compoundHistoryMemoryBudget()
+{
+    EditFixture f;
+    for (int i = 0; i < 40; ++i) {
+        auto draft = f.editor.beginEdit();
+        draft.state.sources[f.root][0].provenance["large_note"] = QString(1024*1024, QChar('a'+i%20));
+        QVERIFY(f.editor.apply(std::move(draft)).ok());
+        QVERIFY(f.editor.historyEstimatedBytes() <= WorkflowEditor::HistoryByteLimit);
+    }
+    int undoCount = 0;
+    while (f.editor.canUndo()) {
+        QVERIFY(f.editor.undo().ok()); ++undoCount;
+        QVERIFY(f.editor.historyEstimatedBytes() <= WorkflowEditor::HistoryByteLimit);
+    }
+    QVERIFY(undoCount > 0); QVERIFY(undoCount < 40);
+    while (f.editor.canRedo()) {
+        QVERIFY(f.editor.redo().ok());
+        QVERIFY(f.editor.historyEstimatedBytes() <= WorkflowEditor::HistoryByteLimit);
+    }
+}
+void CoreTests::removedDataReleasedAfterHistoryEviction()
+{
+    WorkflowEditor editor(makeBuiltinRegistry());
+    WorkflowModel model(makeBuiltinRegistry(), false);
+    const auto root = model.addRoot("input_series", {0,0}).nodeId;
+    const auto child = model.addChild(root,ChildSlot::Down,"affine").nodeId;
+    const auto dataset = QUuid::createUuid();
+    std::weak_ptr<const DataObject> weak;
+    {
+        auto data = series(); weak = data;
+        auto draft = editor.beginEdit(); draft.state.definition = model.definition();
+        draft.state.definition.nodes[1].parameterOverrides[dataset] = {{"factor",7}};
+        draft.state.sources[root] = {{"test",data,{{"dataset_id",dataset.toString()}}}};
+        QVERIFY(editor.apply(std::move(draft)).ok());
+    }
+    {
+        auto draft = editor.beginEdit(); draft.state = {};
+        QVERIFY(editor.apply(std::move(draft)).ok());
+    }
+    QVERIFY(editor.state().definition.nodes.isEmpty());
+    QVERIFY(!weak.expired()); // Intentional ownership by undo, not a leak.
+    QVERIFY(editor.undo().ok());
+    QCOMPARE(effectiveParameters(editor.state().definition.nodes[1],dataset)["factor"].toDouble(),7.);
+    QCOMPARE(editor.state().definition.nodes[1].id,child);
+    QVERIFY(editor.redo().ok());
+    WorkflowModel generated(makeBuiltinRegistry(), false);
+    generated.addRoot("sine_source", {0,0});
+    for(int i=0;i<=WorkflowEditor::HistoryLimit;++i) {
+        auto draft=editor.beginEdit(); draft.state.definition=generated.definition();
+        draft.state.definition.nodes[0].parameters["amplitude"]=i+1.;
+        QVERIFY(editor.apply(std::move(draft)).ok());
+    }
+    QVERIFY(weak.expired());
 }
 void CoreTests::largeCompoundEdit()
 {

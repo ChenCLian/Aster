@@ -26,6 +26,8 @@ class WorkflowDocument : public QObject
     EditResult addChild(const NodeId &parent, ChildSlot slot, const QString &method,
                         QJsonObject params = {}, QString output = {});
     EditResult setParameters(const NodeId &id, const QJsonObject &parameters);
+    EditResult setScopedParameters(NodeId id, QUuid item, const QJsonObject &parameters, bool all = false);
+    EditResult moveDatasets(NodeId sourceRoot, NodeId targetRoot, const QVector<QUuid> &items, bool copySteps);
     EditResult removeSubtree(const NodeId &id);
     EditResult undo();
     EditResult redo();

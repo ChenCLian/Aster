@@ -1,10 +1,45 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.2.0-beta.7。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.3.0-beta.1。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.2.0-beta.7` 对应 `v1.2.0-beta.7`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.0-beta.1` 对应 `v1.3.0-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+
+### 小更新：一条命令同步
+
+Python 3.10+ 即可运行，无需额外依赖。在源码根目录执行：
+
+```sh
+python tools/release/update_version.py <新版本号> --notes "修复少量情况下的界面刷新问题。"
+```
+
+只输入一次完整版本号（不带 `v`）。脚本将更新 `VERSION`、当前文档中的版本标识、打包示例和 `PACKAGE_STATUS.json`；README、FAQ、使用手册的正文沿用。`RELEASE_NOTES.md` 重新生成标题并使用你提供的一句说明，小修复无需写成长篇。旧发布说明和旧更新审查归档到 `docs/history/releases/<旧版本>/`。
+
+先看修改范围、再执行也可以：
+
+```sh
+python tools/release/update_version.py <新版本号> --notes "维护更新。" --dry-run
+python tools/release/update_version.py --check
+```
+
+`--dry-run` 不写文件；`--check` 只检查版本与文档引用，不表示应用测试通过。现有 CI 的发布工具单元测试会自动检查同一规则。版本号须递增，支持正式版和 SemVer 预发布号。
+
+### 大更新：同步版本后补正文
+
+仍使用同一命令，然后手动补充发生变化的 README、FAQ、使用手册等。较长的发布说明可单独写成 UTF-8 文本（只写正文，标题自动生成）：
+
+```sh
+python tools/release/update_version.py <新版本号> --notes-file ../release-body.md
+```
+
+脚本不会推断新功能、兼容性或科学含义，也不需要每次逐份重写无变化的文档。默认扫描根目录和 `docs/` 下的 Markdown；范围与必要标题由 `tools/release/version_policy.json` 控制，该文件不存第二份版本号。历史、验证记录及开发变更日志保留原版本。当前文档中需要保留的历史叙述可放在 `<!-- version-sync: off -->` 与 `<!-- version-sync: on -->` 之间；历史记录链接自动保留。
+
+第三方库、数据库结构版本及程序方法版本不会跟随应用版本批量修改。正式版本号可能与第三方版本相同，脚本仅在 Aster 名称及明确版本声明中同步这种数字。
+
+### 换号后的构建与验证
+
+脚本为新版本建立“待验证”记录，保留旧验证记录的链接；不会把旧版通过数量转记到新版。版本检查通过后，按改动范围运行测试并填写实际验证记录。运行 `qmake` 并重新构建，程序版本和内置帮助才会更新；只运行脚本不会修改已有 EXE。下面的构建、部署和打包流程不变。
 
 软件通过公开 GitHub Releases 检查版本，显示说明并打开下载页。更新采用完整程序包手动安装。正式版通道排除预发布版；需要测试预发布时，在更新窗口选择包含预发布版的通道。
 
@@ -18,7 +53,7 @@
 
 工作流 `.github/workflows/build-desktop.yml` 在原生 Linux/macOS runner 上编译、测试和打包。可从任意系统的浏览器触发，不要求维护者本机运行 macOS 或 Linux。
 
-1. 完成参数参考生成与校验（见下文），提交待发布源码并推送到 GitHub。
+1. 完成参数参考生成与校验（见下文），提交待发布源码并推送到 GitHub。工作流先核对 `VERSION`、带 `v` 前缀的发布标签示例、当前文档和验收记录；不一致会在安装依赖前停止。
 2. 打开 **Actions → Build desktop packages → Run workflow**，选择待构建分支。
 3. 确认 `linux-x64`、`macos-arm64`、`macos-x86_64` 三个任务的构建、文档同步检查、回归和打包步骤通过。
 4. 下载运行页面底部的 Artifacts。`Aster-<版本>-<平台>.zip` 或 `.tar.gz` 是可直接上传 Release 的程序包，无外层 ZIP；工作流通过 `actions/upload-artifact@v7` 的 `archive: false` 原样上传。`dependency-materials-*` 仍是多个依赖附件的运输 ZIP，解开后上传其中的源包和记录 ZIP；`logs-*` 为诊断日志。
@@ -91,6 +126,8 @@ bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 di
 # Linux x64
 bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist
 ```
+
+打包后的启动和数值后端探测会清除开发环境的 Qt 插件路径；macOS 还清除动态库覆盖路径。这样可减少开发机依赖掩盖缺失文件的情况，但仍需在干净主机实际使用验收。
 
 Linux/macOS 脚本保留单层原生归档，不生成 `.sha256`。归档保存执行权限、符号链接和 macOS 应用结构；不要将展开后的目录交给 Actions 默认 ZIP 上传再当作程序包。
 
@@ -192,7 +229,7 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 ## 创建 GitHub Release
 
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
-2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.2.0-beta.7`，标题填写 `Aster 1.2.0-beta.7`。
+2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.3.0-beta.1`，标题填写 `Aster 1.3.0-beta.1`。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
 4. 上传程序包和各平台 `release-assets/` 中的全部文件，无需上传独立 `.sha256`。Windows 目录由维护者压缩；Actions 的程序归档直接上传，依赖材料构件先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
 5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。

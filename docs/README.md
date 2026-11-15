@@ -1,6 +1,6 @@
 # 文档索引
 
-适用版本：Aster 1.2.0-beta.7。
+适用版本：Aster 1.3.0-beta.1。
 
 [项目介绍](../README.md) · [快速开始](../QUICK_START.md) · [常见问题](../FAQ.md)
 

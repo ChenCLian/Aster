@@ -107,26 +107,19 @@ FileOptionsEditor::FileOptionsEditor(QWidget *parent) : QWidget(parent)
     m_previewHint->setTextFormat(Qt::PlainText);
     contentLayout->addWidget(m_previewHint);
     contentLayout->addStretch();
-    m_apply = new QPushButton(text("ui.apply_to_this_file"));
-    m_apply->setObjectName("applyFileOptions");
-    m_apply->setToolTip(text("ui.apply_column_unit_edits_before_running"));
-    m_applySelection = new QPushButton(text("ui.apply_to_selected_files"));
-    m_applySelection->setToolTip(text("ui.apply_column_indices_each_file_is_validated_when_read"));
-    layout->addWidget(m_apply);
-    layout->addWidget(m_applySelection);
-    connect(m_apply, &QPushButton::clicked, this,
-            [this] { emit applyRequested(options(), false); });
-    connect(m_applySelection, &QPushButton::clicked, this,
-            [this] { emit applyRequested(options(), true); });
+    m_commitTimer.setSingleShot(true); m_commitTimer.setInterval(220);
+    connect(&m_commitTimer, &QTimer::timeout, this, [this] { notifyPreviewInput(); });
     for (auto *box : {m_delimiter, m_header})
         connect(box, qOverload<int>(&QComboBox::activated), this,
                 [this]
                 {
+                    markDirty();
                     applyFileOptions(options(), m_options);
                     requestProbe();
                 });
     const auto checkColumns = [this]
     {
+        markDirty();
         const bool valid = m_x->currentIndex() >= 0 && m_y->currentIndex() >= 0;
         if (valid && m_header->currentData().toInt() == -1 && m_probe.ok())
         {
@@ -136,22 +129,28 @@ FileOptionsEditor::FileOptionsEditor(QWidget *parent) : QWidget(parent)
             requestProbe();
             return;
         }
-        m_apply->setEnabled(valid);
-        m_applySelection->setEnabled(valid);
+
         refreshPreview();
         emit readinessChanged(ready());
         notifyPreviewInput();
     };
     connect(m_x, qOverload<int>(&QComboBox::currentIndexChanged), this, checkColumns);
     connect(m_y, qOverload<int>(&QComboBox::currentIndexChanged), this, checkColumns);
-    connect(m_skip, &QCheckBox::toggled, this, [this] { refreshPreview(); notifyPreviewInput(); });
-    connect(m_xUnit, &QLineEdit::textChanged, this, &FileOptionsEditor::notifyPreviewInput);
-    connect(m_yUnit, &QLineEdit::textChanged, this, &FileOptionsEditor::notifyPreviewInput);
+    connect(m_skip, &QCheckBox::toggled, this, [this] { markDirty(); refreshPreview(); notifyPreviewInput(); });
+    for (auto *unit : {m_xUnit, m_yUnit}) {
+        connect(unit, &QLineEdit::textChanged, this, [this] { markDirty(); m_commitTimer.start(); });
+        connect(unit, &QLineEdit::editingFinished, this, [this] { flushEdits(); notifyPreviewInput(); });
+    }
     connect(&ThemeManager::instance(), &ThemeManager::changed, this, &FileOptionsEditor::refreshPreview);
     setFile({}, {});
 }
 FileOptionsEditor::~FileOptionsEditor()
 {
+    // Focus loss during QWidget teardown must not call flushEdits() after
+    // the editor's timer, options and path members have been destroyed.
+    m_commitTimer.stop();
+    for (auto *child : findChildren<QObject *>())
+        disconnect(child, nullptr, this, nullptr);
     if (m_worker)
     {
         m_worker->wait();
@@ -180,8 +179,25 @@ QJsonObject FileOptionsEditor::options() const
     o.skipInvalidRows = m_skip->isChecked();
     return fileOptionsToJson(o);
 }
+void FileOptionsEditor::markDirty()
+{
+    if (!m_dirty) emit editStarted();
+    m_dirty = true;
+}
+void FileOptionsEditor::flushEdits()
+{
+    m_commitTimer.stop();
+    if (!m_dirty || m_path.isEmpty()) return;
+    const auto value = options();
+    SeriesFileOptions parsed;
+    if (!applyFileOptions(value, parsed).isEmpty()) return;
+    m_dirty = false;
+    m_loadedOptions = value; // A synchronous document notification must not re-probe this edit.
+    emit optionsEdited(m_path, value);
+}
 void FileOptionsEditor::notifyPreviewInput()
 {
+    if (!m_commitTimer.isActive()) flushEdits();
     emit previewInputChanged(m_path, options(), ready());
 }
 void FileOptionsEditor::setFile(QString path, QJsonObject value)
@@ -190,6 +206,8 @@ void FileOptionsEditor::setFile(QString path, QJsonObject value)
     // restart a completed preview for the same persisted configuration.
     if (m_initialized && path == m_path && value == m_loadedOptions)
         return;
+    flushEdits();
+    m_dirty = false;
     m_initialized = true;
     m_loadedOptions = value;
     m_path = path;
@@ -208,8 +226,7 @@ void FileOptionsEditor::setFile(QString path, QJsonObject value)
 void FileOptionsEditor::requestProbe()
 {
     ++m_generation;
-    m_apply->setEnabled(false);
-    m_applySelection->setEnabled(false);
+
     emit readinessChanged(false);
     {
         QSignalBlocker xBlock(m_x), yBlock(m_y);
@@ -268,8 +285,7 @@ void FileOptionsEditor::startProbe()
                         text("ui.columns") + QString::number(probe.columns.size()) +
                         (probe.header ? text("ui.header_e65875") : text("ui.no_header_67bb2e")));
                     const bool valid = m_x->currentIndex() >= 0 && m_y->currentIndex() >= 0;
-                    m_apply->setEnabled(valid);
-                    m_applySelection->setEnabled(valid);
+
                     if (!valid)
                         m_info->setText(text("ui.configured_column_is_missing_select_x_y"));
                     refreshPreview();

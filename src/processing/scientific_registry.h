@@ -33,6 +33,8 @@
     X(evolution_mtm, EvolutionMtmTask) \
     X(select_interval, SelectIntervalTask) \
     X(demean, DemeanTask) \
+    X(outlier_handling, OutlierTask) \
+    X(value_transform, ValueTransformTask) \
     X(standardize, StandardizeTask) \
     X(sampling_check, SamplingCheckTask) \
     X(moving_average, MovingAverageTask) \

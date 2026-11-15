@@ -1,0 +1,133 @@
+{
+  "version": "1.3.0-alpha.4",
+  "date": "2026-11-15",
+  "baseline": "User attachment Aster-source-1.3.0-alpha.3(2).zip; all 1163 manifest entries verified",
+  "build": {
+    "platform": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "mode": "Release",
+    "status": "passed",
+    "dependencies": "Qt6, GSL 2.8, OpenBLAS 0.3.29, bundled PocketFFT; local dependency setup excluded from delivery"
+  },
+  "startup": {
+    "version": "Aster_Workspace 1.3.0-alpha.4",
+    "numeric_backend": "verified",
+    "offscreen_event_loop": "started and stayed alive until intentional 5-second timeout (exit 124)",
+    "native_desktop": "not verified for this build; desktop showed another workspace instance, excluded from evidence"
+  },
+  "regression": [
+    {
+      "log": "core.txt",
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "batch.txt",
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "analysis.txt",
+      "passed": 698,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 21
+    },
+    {
+      "log": "cross.txt",
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_ui.txt",
+      "passed": 833,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_joint_ui.txt",
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_rewrite.txt",
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_linked_input.txt",
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_style_export.txt",
+      "passed": 55,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_workspace.txt",
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    },
+    {
+      "log": "gui_integration.txt",
+      "passed": 85,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 4
+    },
+    {
+      "log": "gui_update.txt",
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "suites": 1
+    }
+  ],
+  "regression_totals": {
+    "passed": 2139,
+    "failed": 0,
+    "skipped": 0,
+    "count_note": "QtTest totals include data rows and init/cleanup; sanitizer reruns and independent comparisons are separate"
+  },
+  "memory": {
+    "ASan_UBSan": "core 66 + batch 69 passed; detect_leaks=0",
+    "LeakSanitizer": "Cannot perform exit scan in this environment: fatal ptrace compatibility error; no global leak-free claim",
+    "lifetime": "weak reference expires after removed source is evicted from undo history; per-data parameters restored on undo",
+    "history": "100 combined undo/redo entries and conservative 64 MiB metadata estimate; shared numeric buffers excluded, not a process RSS cap"
+  },
+  "peak_comparison": {
+    "cases": 900,
+    "passed": true,
+    "reference": "SciPy 1.17.0"
+  },
+  "limits": [
+    "Windows/MSVC and macOS not executed",
+    "No new large scientific stress/calibration study",
+    "Missing-gap processing remains intentionally postponed"
+  ],
+  "export_dialog": {
+    "passed": 3,
+    "failed": 0,
+    "log": "export-dialog.txt",
+    "scope": "button position, save chooser path, no checked records required, resulting CSV; 1 case plus init/cleanup"
+  }
+}

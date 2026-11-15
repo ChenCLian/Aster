@@ -39,7 +39,13 @@ struct NodeDefinition {
     int methodVersion = 1;
     QJsonObject parameters;
     std::optional<InputBinding> input;
+    // Implicitly shared JSON differences, keyed by stable dataset/pair identity.
+    // parameters is the initial / last explicitly broadcast configuration.
+    QMap<QUuid, QJsonObject> parameterOverrides;
 };
+QJsonObject effectiveParameters(const NodeDefinition &node, const QUuid &item);
+NodeDefinition resolvedNode(NodeDefinition node, const QUuid &item);
+
 struct WorkflowDefinition {
     QVector<NodeDefinition> nodes;  // Creation order; stable sibling execution order.
     QMap<NodeId, GridPosition> layout;

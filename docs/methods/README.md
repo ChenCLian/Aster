@@ -21,3 +21,5 @@
 ## 参考软件对照
 
 - [与 Acycle 的方法对照与验证范围](acycle_compatibility.md)
+
+- [异常值识别、处理与数值变换](outliers_and_transforms.md)

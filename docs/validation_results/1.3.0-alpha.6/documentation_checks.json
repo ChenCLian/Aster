@@ -1,0 +1,12 @@
+{
+  "version": "1.3.0-alpha.6",
+  "documentation": {
+    "status": "passed",
+    "current_version_tests": 4,
+    "help_generator_tests": 7,
+    "task_catalogue": "56 tasks / 259 parameters",
+    "generated_references": "Chinese and English synchronized and checked",
+    "input_selection_help": "Both language anchors embedded, UI navigation tested",
+    "current_docs": "Version headers, import behavior, scopes, spectral settings and remaining boundaries updated"
+  }
+}

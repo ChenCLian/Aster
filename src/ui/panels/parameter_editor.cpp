@@ -11,6 +11,7 @@
 #include "ui/help/help_dialog.h"
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QPainter>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -20,14 +21,28 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QFrame>
 #include <QFileDialog>
 #include <QPointer>
+#include <QSignalBlocker>
 #include <algorithm>
 namespace aster::ui
 {
 namespace
 {
 constexpr int parameterRightMargin = 5;
+class ScopeLabel final : public QLabel {
+public:
+    QSize sizeHint() const override { return {0,fontMetrics().lineSpacing()+4}; }
+    QSize minimumSizeHint() const override { return sizeHint(); }
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QPainter painter(this);
+        painter.setPen(palette().color(QPalette::WindowText));
+        painter.drawText(contentsRect(),Qt::AlignLeft|Qt::AlignVCenter,
+                         fontMetrics().elidedText(text(),Qt::ElideMiddle,contentsRect().width()));
+    }
+};
 class ParameterScrollArea : public QScrollArea
 {
   public:
@@ -143,6 +158,34 @@ ParameterEditor::ParameterEditor(QWidget *p) : QWidget(p)
     m_error->setWordWrap(true);
     m_error->hide();
     layout->addWidget(m_error);
+    m_scopeFooter = new QWidget;
+    m_scopeFooter->setObjectName("parameterScopeFooter");
+    auto *footer = new QVBoxLayout(m_scopeFooter);
+    footer->setContentsMargins(0,6,0,0); footer->setSpacing(6);
+    auto *separator = new QFrame;
+    separator->setObjectName("parameterScopeSeparator");
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    separator->setLineWidth(2);
+    footer->addWidget(separator);
+    auto *scopeTitle = new QLabel(text("ui.node_scope_title"));
+    scopeTitle->setObjectName("SectionTitle");
+    scopeTitle->setWordWrap(true);
+    footer->addWidget(scopeTitle);
+    m_scopeLabel = new ScopeLabel; m_scopeLabel->setObjectName("parameterScopeLabel");
+    m_scopeLabel->setTextFormat(Qt::PlainText);
+    m_scopeLabel->setMinimumWidth(0); m_scopeLabel->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Preferred);
+    footer->addWidget(m_scopeLabel);
+    auto *scopeHint = new QLabel(text("ui.node_scope_hint"));
+    scopeHint->setObjectName("Muted");
+    scopeHint->setWordWrap(true);
+    footer->addWidget(scopeHint);
+    m_applyAll = new QPushButton(text("ui.apply_node_all"));
+    m_applyAll->setObjectName("applyNodeAllData");
+    m_applyAll->setToolTip(text("ui.apply_node_all_hint"));
+    footer->addWidget(m_applyAll);
+    layout->addWidget(m_scopeFooter); m_scopeFooter->hide();
+    connect(m_applyAll,&QPushButton::clicked,this,&ParameterEditor::applyAllRequested);
     m_commit.setSingleShot(true); m_commit.setInterval(260);
     connect(&m_commit, &QTimer::timeout, this, &ParameterEditor::applyRequested);
     connect(&ThemeManager::instance(), &ThemeManager::changed, this, [this] {
@@ -151,6 +194,16 @@ ParameterEditor::ParameterEditor(QWidget *p) : QWidget(p)
             if(!name.isEmpty())label->setPixmap(parameterIcon(name).pixmap(20,20));
         }
     });
+}
+void ParameterEditor::setScope(const QString &label, bool paired, bool editable, bool canApplyAll)
+{
+    m_scopeFooter->setVisible(!m_id.isNull());
+    m_scopeLabel->setText(text(paired ? "ui.current_pair_scope" : "ui.current_data_scope").arg(label));
+    m_scopeLabel->setToolTip(m_scopeLabel->text());
+    m_scopeLabel->setAccessibleName(m_scopeLabel->text());
+    m_form->parentWidget()->setEnabled(editable);
+    m_applyAll->setText(text(paired ? "ui.apply_node_all_pairs" : "ui.apply_node_all"));
+    m_applyAll->setEnabled(editable && canApplyAll);
 }
 ParameterEditor::~ParameterEditor()
 {
@@ -162,9 +215,11 @@ ParameterEditor::~ParameterEditor()
 void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
 {
     m_fields.clear();
+    m_hiddenParameters = {};
     m_rows.clear();m_specs.clear();
     while(auto* item=m_form->takeAt(0)) {delete item->widget();delete item;}
     m_id = n ? n->id : NodeId{};
+    if (!n) m_scopeFooter->hide();
     m_method = n ? n->method : QString{};
     m_dirty = false;
     m_error->hide();
@@ -203,8 +258,31 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         m_form->addWidget(label);
     }
     QString lastGroup;
+    if (d.key == "evolution_fft") {
+        auto *preset = new QPushButton(text("ui.acycle_lah_preset"));
+        preset->setObjectName("acycleLahPreset");
+        preset->setToolTip(text("ui.acycle_lah_preset_hint"));
+        m_form->addWidget(preset);
+        connect(preset, &QPushButton::clicked, this, [this] {
+            const QJsonObject values{{"evo_window_mode", "span_percent"}, {"evo_window_percent", 20},
+                {"evo_step_mode", "overlap"}, {"evo_overlap_percent", 99.2},
+                {"evo_fft_mode", "multiple"}, {"evo_padding", 4},
+                {"evo_trend", "linear"}, {"evo_taper", "rectangular"},
+                {"evo_normalize", true}, {"evo_amplitude", true}};
+            for (auto it = values.begin(); it != values.end(); ++it) {
+                auto *field = m_fields.value(it.key());
+                const QSignalBlocker block(field);
+                if (auto *box = qobject_cast<QComboBox *>(field)) box->setCurrentIndex(box->findData(it.value().toString()));
+                else if (auto *box = qobject_cast<QCheckBox *>(field)) box->setChecked(it.value().toBool());
+                else if (auto *box = qobject_cast<QSpinBox *>(field)) box->setValue(it.value().toInt());
+                else if (auto *box = qobject_cast<QDoubleSpinBox *>(field)) box->setValue(it.value().toDouble());
+            }
+            m_dirty = true; updateVisibility(); m_commit.start(); emit edited();
+        });
+    }
     for (const auto &p : d.parameters)
     {
+        if (p.editorHidden) { m_hiddenParameters[p.key] = n->parameters.value(p.key).isUndefined() ? p.defaultValue : n->parameters.value(p.key); continue; }
         QWidget *field = nullptr;
         const auto value =
             n->parameters.contains(p.key) ? n->parameters.value(p.key) : p.defaultValue;
@@ -373,7 +451,7 @@ void ParameterEditor::updateVisibility()
 }
 QJsonObject ParameterEditor::parameters() const
 {
-    QJsonObject out;
+    QJsonObject out = m_hiddenParameters;
     for (auto it = m_fields.begin(); it != m_fields.end(); ++it)
     {
         auto *w = it.value();

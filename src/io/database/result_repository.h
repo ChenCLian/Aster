@@ -79,6 +79,9 @@ class ResultRepository
     RecordList list(const RecordFilter &filter, int limit = 100, int offset = 0) const;
     // Stable descending-ID pagination: inserting new runs cannot shift later pages.
     RecordList listBefore(const RecordFilter &filter, int limit = 100, qint64 beforeId = 0) const;
+    // Stream all matching ID/source names, independent of UI pagination.
+    QString exportRecordNames(const RecordFilter &filter, const QString &path,
+                              qint64 *written = nullptr, const CancellationToken &cancel = {}) const;
     RecordSelectionState identities(const RecordFilter &filter) const;
     RecordSelectionState selectionState(const RecordIdentities &selected, const RecordFilter &filter);
     RecordRemoval remove(const RecordIdentities &selected);

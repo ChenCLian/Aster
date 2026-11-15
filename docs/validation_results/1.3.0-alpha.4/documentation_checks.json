@@ -1,0 +1,9 @@
+{
+  "version": "1.3.0-alpha.4",
+  "documentation": {
+    "multibubble_instructions": "corrected quick start and Chinese/English user guides",
+    "history_budget": "documented 100 entries and estimated 64 MiB metadata budget",
+    "file_index": "documented current filter, includes unloaded rows",
+    "version_headers": "updated current documents; historical reports retained"
+  }
+}

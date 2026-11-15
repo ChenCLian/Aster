@@ -4,9 +4,11 @@
 #define ASTER_UI_SOURCE_PANEL_H
 #include "ui/workflow/workflow_document.h"
 #include <QWidget>
+#include <QQueue>
 class QComboBox;
 class QListWidget;
 class QLabel;
+class QThread;
 namespace aster::ui
 {
 class FileOptionsEditor;
@@ -16,9 +18,13 @@ class SourcePanel : public QWidget
     Q_OBJECT
   public:
     explicit SourcePanel(WorkflowDocument *document, QWidget *parent = nullptr);
+    ~SourcePanel() override;
     void refresh();
     void selectRoot(NodeId root);
+    void selectDataset(NodeId root, QUuid dataset);
+    void moveSelectedDatasets();
     NodeId root() const;
+    SourceItem currentSource() const;
     void addFiles(const QStringList &files);
     void setFileState(NodeId root, const QString &path, SourceFileState state);
     void clearFileStates();
@@ -26,7 +32,10 @@ class SourcePanel : public QWidget
     bool readyToRun() const;
     void syncPreviewInput();
   signals:
+    void batchOptionsFinished(QStringList applied, QStringList skipped);
     void importRequested();
+    void moveInputsRequested();
+    void inputsMoved(NodeId destinationRoot);
     void editRejected(QString error);
     void sourceRequested();
     void readinessChanged(bool ready);
@@ -39,6 +48,22 @@ class SourcePanel : public QWidget
 
   private:
     void showFileOptions();
+    struct OptionsEdit {
+        NodeId root;
+        QStringList paths;
+        QMap<QString, QJsonObject> before;
+        QMap<QString, QUuid> identities;
+        QJsonObject options;
+    };
+    void captureOptionsSelection();
+    void startOptionsEdit();
+    void updateSelectionHint();
+    OptionsEdit m_optionsEdit;
+    QQueue<OptionsEdit> m_optionsQueue;
+    NodeId m_optionsRoot;
+    bool m_committingOptions = false;
+    QThread *m_optionsWorker = nullptr;
+    CancellationToken m_optionsCancel;
     void notifyPreviewSource();
     FileOptionsEditor *m_options;
     QHash<QString, SourceFileState> m_states;
@@ -46,6 +71,7 @@ class SourcePanel : public QWidget
     QComboBox *m_roots;
     QListWidget *m_files;
     QLabel *m_count;
+    QLabel *m_selectionHint;
 };
 } // namespace aster::ui
 #endif

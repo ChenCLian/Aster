@@ -10,6 +10,7 @@
 #include "processing/basic_signal_tasks.h"
 #include "processing/evolutionary_tasks.h"
 #include "processing/series_utility_tasks.h"
+#include "processing/outlier_tasks.h"
 #include "processing/scientific_registry.h"
 #include "processing/astronomy_source_tasks.h"
 #include "processing/filter_tasks.h"

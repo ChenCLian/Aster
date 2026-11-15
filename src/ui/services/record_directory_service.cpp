@@ -3,6 +3,7 @@
 #include "ui/common/presentation.h"
 #include "ui/services/record_directory_service.h"
 #include <QThread>
+#include <QPointer>
 namespace aster::ui
 {
 RecordDirectoryService::~RecordDirectoryService()
@@ -53,44 +54,61 @@ void RecordDirectoryService::removeMany(QString path, RecordIdentities selected)
 }
 void RecordDirectoryService::merge(QString destination, QString source)
 {
-    m_transferCancel = CancellationToken{};
     Request request{Kind::Merge, destination, {}, 0, 0, {}, {}, 0};
     request.transferPath = source;
-    request.cancellation = m_transferCancel;
     enqueue(request);
 }
 void RecordDirectoryService::backup(QString source, QString newFile)
 {
-    m_transferCancel = CancellationToken{};
     Request request{Kind::Backup, source, {}, 0, 0, {}, {}, 0};
     request.transferPath = newFile;
-    request.cancellation = m_transferCancel;
     enqueue(request);
 }
 void RecordDirectoryService::cancelTransfer()
 {
     m_transferCancel.cancel();
     for (const auto &request : m_queue)
-        if (request.kind == Kind::Merge || request.kind == Kind::Backup)
+        if (request.kind == Kind::Merge || request.kind == Kind::Backup || request.kind == Kind::ExportNames)
             request.cancellation.cancel();
+}
+void RecordDirectoryService::exportNames(QString source, RecordFilter filter, QString newFile)
+{
+    Request request{Kind::ExportNames, source, filter, 0, 0, {}, {}, 0};
+    request.transferPath = newFile;
+    enqueue(request);
 }
 void RecordDirectoryService::enqueue(Request request)
 {
     const bool write = request.kind == Kind::Edit || request.kind == Kind::Remove ||
                        request.kind == Kind::RemoveMany || request.kind == Kind::Merge ||
                        request.kind == Kind::Backup;
+    const bool begin = !m_busy;
+    m_busy = true;
+    m_queue.enqueue(request);
+    QPointer<RecordDirectoryService> self(this);
     if (write && ++m_pendingWrites == 1)
         emit mutationBusyChanged(true);
-    m_queue.enqueue(request);
-    if (!m_worker)
+    if (!self) return;
+    if (begin)
     {
         emit busyChanged(true);
+        if (!self) return;
         start();
     }
 }
 void RecordDirectoryService::start()
 {
+    // Observers may invalidate the queued query while handling busyChanged.
+    if (m_queue.isEmpty())
+    {
+        m_busy = false;
+        emit busyChanged(false);
+        return;
+    }
     const auto request = m_queue.dequeue();
+    // Track the running request. Enqueuing another transfer must not replace
+    // the token that cancelTransfer() and the destructor need to cancel.
+    m_transferCancel = request.cancellation;
     auto list = std::make_shared<RecordList>();
     auto units = std::make_shared<QStringList>();
     auto selection = std::make_shared<RecordSelectionState>();
@@ -116,7 +134,10 @@ void RecordDirectoryService::start()
                 list->error = repo.open(request.path, request.kind == Kind::Query);
                 if (!list->error.isEmpty())
                     return;
-                if (request.kind == Kind::Query)
+                if (request.kind == Kind::ExportNames)
+                    list->error = repo.exportRecordNames(request.filter, request.transferPath,
+                                                         &selection->matching, request.cancellation);
+                else if (request.kind == Kind::Query)
                 {
                     *list = repo.listBefore(request.filter, 100, request.beforeId);
                     if (list->error.isEmpty())
@@ -155,6 +176,7 @@ void RecordDirectoryService::start()
             [this, request, list, units, selection, removal, transfer]
             {
                 auto *worker = m_worker;
+                QPointer<RecordDirectoryService> self(this);
                 // Keep m_worker set while notifying observers; enqueued work starts once.
                 if (request.kind == Kind::Query)
                 {
@@ -162,9 +184,13 @@ void RecordDirectoryService::start()
                     {
                         if (list->error.isEmpty())
                             emit selectionInspected(*selection);
-                        emit listed(*list, *units, request.beforeId);
+                        if (!self) return;
+                        if (request.generation == m_generation)
+                            emit listed(*list, *units, request.beforeId);
                     }
                 }
+                else if (request.kind == Kind::ExportNames)
+                    emit namesExported(request.transferPath, selection->matching, list->error);
                 else if (request.kind == Kind::Select)
                 {
                     selection->error = list->error;
@@ -185,17 +211,22 @@ void RecordDirectoryService::start()
                 else
                     emit edited(request.path, request.id, request.kind == Kind::Remove,
                                 list->error);
+                if (!self) return;
                 const bool write = request.kind == Kind::Edit || request.kind == Kind::Remove ||
                                    request.kind == Kind::RemoveMany ||
                                    request.kind == Kind::Merge || request.kind == Kind::Backup;
                 if (write && --m_pendingWrites == 0)
                     emit mutationBusyChanged(false);
+                if (!self) return;
                 m_worker = nullptr;
                 worker->deleteLater();
                 if (!m_queue.isEmpty())
                     start();
                 else
+                {
+                    m_busy = false;
                     emit busyChanged(false);
+                }
             });
     m_worker->start();
 }

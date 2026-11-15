@@ -61,7 +61,11 @@ class MainWindow : public QMainWindow
 
   private:
     bool flushParameters();
+    void refreshParameterScope(bool force = false);
+    QUuid m_editorItem;
+    bool m_updatingEditor = false;
     void selectNode(NodeId id);
+    void stepHistory(bool redo);
     void sourceMenu(QPoint position);
     void childMenu(NodeId parent, ChildSlot slot, QPoint position);
     void addTask(QString method, NodeId parent, ChildSlot slot);

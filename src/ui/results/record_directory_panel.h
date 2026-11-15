@@ -51,6 +51,7 @@ class RecordDirectoryPanel final : public QWidget
     void clearChecks();
     void mergeDatabaseFile();
     void backupDatabaseFile();
+    void exportFileNames();
     void showTransferProgress();
     void toggleCheck(QListWidgetItem *item);
     void deleteRecords(RecordIdentities records);
@@ -63,7 +64,7 @@ class RecordDirectoryPanel final : public QWidget
     QLabel *m_count, *m_selection;
     QToolButton *m_database;
     QProgressDialog *m_transferProgress = nullptr;
-    QPushButton *m_delete, *m_clear, *m_select, *m_unselect;
+    QPushButton *m_delete, *m_clear, *m_select, *m_unselect, *m_exportNames;
     QString m_path;
     RecordIdentities m_checked;
     qint64 m_current = 0, m_cursor = 0, m_matching = 0, m_pressedCheck = 0;

@@ -1,0 +1,17 @@
+{
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "logical_cpus": 9,
+  "memory": "MemTotal:       10206468 kB",
+  "qt": "6.8.2",
+  "compiler": "GCC 14.2",
+  "build": "Release -O2",
+  "OPENBLAS_NUM_THREADS": 1,
+  "ui_backend": "Qt offscreen",
+  "file_fixture": "four data rows per file; file creation excluded from import timing",
+  "measurement_limits": [
+    "Single-host before/after samples, not cross-machine promises",
+    "Event-loop lateness is timer jitter including import setup, not end-to-end native input latency",
+    "Current RSS on Linux and process peak RSS are not leak detector results"
+  ]
+}

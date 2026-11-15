@@ -89,3 +89,6 @@ DISTFILES += ../resources/synthetic/NOTICE.md ../resources/synthetic/SOURCE_PANG
 
 SOURCES += ../src/math/spectrum/cross_spectrum.cpp ../src/processing/cross_spectrum_task.cpp
 HEADERS += ../src/math/spectrum/cross_spectrum.h ../src/processing/cross_spectrum_task.h
+
+SOURCES += ../src/processing/outlier_tasks.cpp
+HEADERS += ../src/processing/outlier_tasks.h

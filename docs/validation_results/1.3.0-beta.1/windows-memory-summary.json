@@ -1,0 +1,740 @@
+{
+  "runner_version": "2.0",
+  "suite": "memory",
+  "requested_cycles": 200,
+  "same_window_cycles": 100,
+  "exit_code": 0,
+  "timed_out": false,
+  "interrupted": false,
+  "launch_error": null,
+  "functional_status": "passed",
+  "memory_collection_status": "collected",
+  "qt_totals": [
+    {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "missing_pass_results": [],
+  "metric_parse_errors": [],
+  "runtime_diagnostics": [],
+  "leak_detection": {
+    "status": "not_verified",
+    "note": "Process sampling is not a leak detector. No success is inferred from absent errors."
+  },
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "python": "3.15.2",
+    "python_bits": 64,
+    "qt_platform_requested": "native default"
+  },
+  "executable": {
+    "name": "aster_stability_checks.exe",
+    "sha256": "5c3d06f6b5e39e9e7952035f219ebd8d86651031f4cc333c2de33042d0ec19c3"
+  },
+  "metrics": [
+    {
+      "cycles": 5,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 10,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 15,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 20,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 25,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 30,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 35,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 40,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 45,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 50,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 55,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 60,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 65,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 70,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 75,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 80,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 85,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 90,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 95,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 100,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 105,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 110,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 115,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 120,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 125,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 130,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 135,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 140,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 145,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 150,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 155,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 160,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 165,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 170,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 175,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 180,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 185,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 190,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 195,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cycles": 200,
+      "live_heap_bytes": -1,
+      "rss_kib": -1,
+      "test": "lifecycle_progress"
+    },
+    {
+      "cancel_then_rerun": 40,
+      "connections_and_windows_restored": true,
+      "cycle_ms": [
+        1006.8559,
+        547.1738,
+        545.6396,
+        534.6956,
+        532.515,
+        676.2103,
+        597.8488,
+        536.3543,
+        538.9589,
+        541.3277,
+        599.224,
+        558.9345,
+        545.4812,
+        542.3205,
+        537.2883,
+        619.266,
+        550.2018,
+        594.9248,
+        546.3217,
+        546.2398,
+        634.3425,
+        548.113,
+        537.6512,
+        599.6365,
+        517.1725,
+        607.3352,
+        534.3326,
+        541.4897,
+        532.9885,
+        536.8518,
+        678.4054,
+        589.9659,
+        528.513,
+        596.0054,
+        536.6565,
+        600.9368,
+        542.4862,
+        590.3533,
+        539.2598,
+        581.1882,
+        606.5792,
+        541.8091,
+        590.8032,
+        532.3073,
+        535.2767,
+        601.0872,
+        536.9899,
+        537.549,
+        586.4864,
+        542.1374,
+        616.0949,
+        535.5384,
+        582.83,
+        544.7294,
+        536.0164,
+        620.3655,
+        532.4256,
+        535.6807,
+        534.3228,
+        530.4732,
+        593.1539,
+        528.9539,
+        521.022,
+        537.8232,
+        522.1947,
+        611.2593,
+        529.9815,
+        545.1633,
+        539.7816,
+        540.3124,
+        596.1746,
+        531.8646,
+        533.9834,
+        539.882,
+        542.7554,
+        726.3901,
+        539.4275,
+        588.0816,
+        525.363,
+        529.2435,
+        610.6712,
+        540.7215,
+        527.9934,
+        542.7674,
+        589.0173,
+        614.0773,
+        528.9322,
+        521.4706,
+        536.5463,
+        586.9322,
+        593.5792,
+        577.5995,
+        527.7113,
+        542.2606,
+        537.2882,
+        615.191,
+        531.9435,
+        513.6186,
+        528.708,
+        591.2477,
+        607.8907,
+        542.7672,
+        524.7374,
+        540.2016,
+        589.4397,
+        613.1278,
+        531.0877,
+        536.2368,
+        529.9748,
+        533.9269,
+        608.1764,
+        588.8423,
+        536.5745,
+        532.8149,
+        536.719,
+        615.9259,
+        534.9199,
+        594.8523,
+        533.7975,
+        539.3316,
+        606.6048,
+        538.7453,
+        531.8523,
+        537.1239,
+        583.6069,
+        622.8508,
+        531.223,
+        525.4433,
+        522.0931,
+        536.2217,
+        641.3553,
+        526.7993,
+        592.6294,
+        534.2249,
+        542.3259,
+        613.5569,
+        540.699,
+        545.55,
+        524.953,
+        597.964,
+        671.9343,
+        534.3048,
+        525.7205,
+        587.7716,
+        607.9595,
+        662.6826,
+        533.6478,
+        617.7269,
+        535.393,
+        529.3565,
+        613.2098,
+        532.0719,
+        577.0217,
+        524.0262,
+        535.5716,
+        656.9072,
+        594.9942,
+        594.5083,
+        575.3286,
+        542.3202,
+        611.7092,
+        532.6923,
+        527.9001,
+        528.4275,
+        583.1282,
+        648.4422,
+        529.0013,
+        531.5871,
+        514.5646,
+        579.6489,
+        601.5876,
+        540.417,
+        531.0672,
+        523.4433,
+        582.9524,
+        608.1951,
+        542.8217,
+        591.7441,
+        581.2724,
+        537.8171,
+        600.3491,
+        537.3829,
+        526.3061,
+        532.1856,
+        539.9066,
+        594.1072,
+        525.1029,
+        539.3127,
+        536.8533,
+        574.9361,
+        637.3375,
+        547.0657,
+        537.6131,
+        588.9069,
+        543.4756,
+        608.1084,
+        538.7744,
+        531.2584,
+        534.9985,
+        533.5033
+      ],
+      "cycles": 200,
+      "live_heap_every_5_cycles_bytes": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "rss_every_5_cycles_kib": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "test": "desktop_lifecycle"
+    },
+    {
+      "sample": {
+        "cycle": 10,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 20,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 30,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 40,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 50,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 60,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 70,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 80,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 90,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "sample": {
+        "cycle": 100,
+        "live_heap_bytes": -1,
+        "rss_kib": -1
+      },
+      "test": "same_window_progress"
+    },
+    {
+      "after_close_heap_bytes": -1,
+      "after_close_rss_kib": -1,
+      "cycles": 100,
+      "memory_samples": [
+        {
+          "cycle": 10,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 20,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 30,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 40,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 50,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 60,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 70,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 80,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 90,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        },
+        {
+          "cycle": 100,
+          "live_heap_bytes": -1,
+          "rss_kib": -1
+        }
+      ],
+      "plot_pages_reused": true,
+      "saved_records": 100,
+      "test": "same_window"
+    }
+  ],
+  "process_memory_summary": {
+    "status": "collected",
+    "sample_count": 685,
+    "sampling_errors": [],
+    "interpretation": "Trend evidence only; no automatic leak-free verdict. Compare the same workload phase.",
+    "working_set_bytes": {
+      "status": "collected",
+      "first": 3211264,
+      "last": 207847424,
+      "maximum_observed": 212242432
+    },
+    "private_commit_bytes": {
+      "status": "collected",
+      "first": 634880,
+      "last": 133742592,
+      "maximum_observed": 138108928
+    },
+    "handle_count": {
+      "status": "collected",
+      "first": 28,
+      "last": 1157,
+      "maximum_observed": 1167
+    }
+  },
+  "memory_values_source": "process_memory.json. Old EXE metric fields of -1 are unsupported and are not used as measurements.",
+  "manual_acceptance": {
+    "status": "pending",
+    "checklist": "MANUAL_CHECKLIST.txt"
+  },
+  "elapsed_seconds": 127.867
+}

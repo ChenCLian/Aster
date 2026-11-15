@@ -37,6 +37,14 @@ class WorkflowPreviewController : public QObject
     State state() const { return m_state; }
     NodeId node() const { return m_node; }
     QString sourceLabel() const { return m_source.label; }
+    QUuid parameterScope() const {
+        if (!m_document->pairNodeFor(m_node).isNull()) return m_pair;
+        const auto root=m_document->rootFor(m_node);
+        const auto *node=m_document->node(root);
+        if (node && !m_document->model().registry().find(node->method)->descriptor.requiresSourceBinding) return root;
+        const auto id=QUuid(m_source.provenance["dataset_id"].toString());
+        return id.isNull() ? m_document->rootFor(m_node) : id;
+    }
     bool busy() const { return m_worker != nullptr; }
     std::shared_ptr<const WorkflowPreviewResult> result() const { return m_result; }
     QString message() const { return m_message; }

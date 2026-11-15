@@ -1,0 +1,5 @@
+portable
+LAPACK DSTEVR LP64; OpenBLAS 0.3.29 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY Cooperlake MAX_THREADS=128
+PocketFFT (one thread)
+Threads per call: 1
+Serialized LAPACK calls: 0

@@ -17,6 +17,8 @@
 #include "io/files/series_file_reader.h"
 #include "io/database/data_codec.h"
 #include "math/spectrum/mtm_spectrum.h"
+#include "math/statistics/significance.h"
+#include "io/exports/csv_export.h"
 #include "third_party/lowess/Lowess.h"
 #include "third_party/wavelib/wavelib.h"
 #include "spectral_audit.h"
@@ -122,6 +124,8 @@ class AnalysisTests : public QObject
     void lowessMeanAndRobustness();
     void mtmMatchesScipy();
     void mtmPeakAndIntegral();
+    void mtmPeakTestCodes();
+    void outlierHandlingAndTransforms();
     void mtmShortConstantAndCutoff();
     void mtmAbsoluteFrequencyLimit();
     void mtmTinyCutoffAndWorkspace();
@@ -147,7 +151,7 @@ class AnalysisTests : public QObject
 void AnalysisTests::scientificCatalogue()
 {
     const auto r = makeScientificRegistry();
-    QCOMPARE(r.descriptors().size(), 54);
+    QCOMPARE(r.descriptors().size(), 56);
     QVERIFY(r.find("cross_spectrum"));
     QVERIFY(r.find("cross_spectrum")->descriptor.pairedInput);
     QVERIFY(r.find("cross_spectrum")->descriptor.catalogVisible);
@@ -486,6 +490,38 @@ void AnalysisTests::mtmPeakAndIntegral()
     QVERIFY(!dataAs<TableData>(r.outputs["peaks"])->rows.isEmpty());
     QVERIFY(!r.report["ar1_available"].toBool());
 }
+void AnalysisTests::mtmPeakTestCodes()
+{
+    const auto disabled=execute("mtm",signal(256),{{"ar1",false},{"swa",false}});
+    const auto *missing=dataAs<TableData>(disabled.outputs["peaks"]); QVERIFY(missing && !missing->rows.isEmpty());
+    QCOMPARE(missing->columns, QStringList({"frequency","period","power","prominence","width_bins",
+        "passes_ar1_95","passes_swa_95","passes_fdr_05"}));
+    for (const auto &row:missing->rows) for (int c=5;c<8;++c) QCOMPARE(row[c],-1.0);
+    const auto full=execute("mtm",signal(256));
+    const auto cropped=execute("mtm",signal(256),{{"frequency_max",.08}});
+    const auto *all=dataAs<TableData>(full.outputs["peaks"]); QVERIFY(all);
+    const auto *part=dataAs<TableData>(cropped.outputs["peaks"]); QVERIFY(part);
+    QVERIFY(full.report["fdr_evaluated"].toBool());
+    for (const auto &row:all->rows) for (int c=5;c<8;++c) QVERIFY(row[c]==0 || row[c]==1);
+    for (const auto &row:part->rows) QVERIFY(all->rows.contains(row));
+    // Successful FDR with no discoveries is zero; a masked bin is not evaluated.
+    std::vector<double> flat(64,1), frequency(64);
+    for (int i=0;i<64;++i) frequency[i]=i/128.0;
+    SpectrumInference inference; inference.acycle=true; inference.tested.assign(64,true); inference.tested[0]=false;
+    const auto noDiscovery=FDR_TEST(flat,frequency,2,inference);
+    QVERIFY(noDiscovery.fdrConf.clfdr5.empty()); QCOMPARE(noDiscovery.passesFdr05[0],-1);
+    for (size_t i=1;i<64;++i) QCOMPARE(noDiscovery.passesFdr05[i],0);
+    flat[23]=100; const auto discovery=FDR_TEST(flat,frequency,2,inference);
+    QCOMPARE(discovery.passesFdr05[23],1);
+    const auto encoded=encodeData(disabled.outputs["peaks"]); QVERIFY(encoded.ok());
+    const auto decoded=decodeData(encoded.bytes); QVERIFY(decoded.ok());
+    QCOMPARE(dataAs<TableData>(decoded.data)->rows,missing->rows);
+    QTemporaryDir dir; const auto path=dir.filePath("peaks.csv");
+    QVERIFY(exportDataCsv(decoded.data,path).error.isEmpty());
+    QFile csv(path); QVERIFY(csv.open(QIODevice::ReadOnly)); const auto bytes=csv.readAll();
+    QVERIFY(bytes.contains("passes_fdr_05")); QVERIFY(bytes.contains(",-1,-1,-1"));
+    QVERIFY(!bytes.contains("ar1_95_available"));
+}
 void AnalysisTests::mtmShortConstantAndCutoff()
 {
     const auto shortRun = execute("mtm", signal(8), {{"nw", 1}});
@@ -497,6 +533,7 @@ void AnalysisTests::mtmShortConstantAndCutoff()
     const auto zero = execute("mtm", makeData(constant), {{"ar1", true}});
     QCOMPARE(zero.state, NodeState::Succeeded);
     QVERIFY(!zero.outputs.contains("ar1_background"));
+    QVERIFY(dataAs<TableData>(zero.outputs["peaks"])->rows.isEmpty());
     for (auto p : dataAs<SpectrumData>(zero.outputs["spectrum"])->power)
         QCOMPARE(p, 0.);
     const auto cut = execute("mtm", signal(100), {{"fmax_ratio", .317}, {"swa", false}});
@@ -1182,3 +1219,51 @@ int main(int argc, char** argv)
     return first | second | runWaveletAudit(argc, argv) | runTransferAudit(argc, argv) | runMtmSimulationAudit(argc, argv) | runAcycleAlignmentAudit(argc, argv) | runBackendAudit(argc, argv) | runAr1GlobalAudit(argc, argv) | runAstronomyAudit(argc, argv) | runSeasonalAudit(argc, argv) | runFilterAudit(argc, argv) | runOrbitalTablesAudit(argc,argv) | runEvolutionAudit(argc,argv) | runBasicSignalAudit(argc,argv) | runSpectralExtensionAudit(argc,argv) | runChronologyAudit(argc,argv) | runCycleTuningAudit(argc,argv) | runCocoAudit(argc,argv) | runCocoAnalysisAudit(argc,argv) | runOdpExamplesAudit(argc,argv) | runSyntheticAudit(argc,argv);
 }
 #include "analysis_tests.moc"
+
+void AnalysisTests::outlierHandlingAndTransforms()
+{
+    SeriesData data{{0,1,2,3,4,5,6},{2,2,2,90,2,2,2},{"Depth","m"},{"Signal","ppm"}};
+    const auto input=makeData(data);
+    auto marked=execute("outlier_handling",input,{{"outlier_window",3}});
+    QVERIFY2(marked.state==NodeState::Succeeded,qPrintable(marked.error));
+    QCOMPARE(dataAs<SeriesData>(marked.outputs["series"])->y,data.y);
+    QCOMPARE(dataAs<SeriesData>(marked.outputs["outliers"])->x,QVector<double>{3});
+    QCOMPARE(marked.outputs["original"],input);
+    auto excluded=execute("outlier_handling",input,{{"outlier_window",3},{"outlier_action","exclude"}});
+    QCOMPARE(dataAs<SeriesData>(excluded.outputs["series"])->x,QVector<double>({0,1,2,4,5,6}));
+    const auto *audit=dataAs<TableData>(excluded.outputs["outlier_audit"]);
+    QCOMPARE(audit->rows.size(),7); QCOMPARE(audit->rows[3][6],1.0); QCOMPARE(audit->rows[3][3],-1.0);
+    const auto replaced=execute("outlier_handling",input,{{"outlier_window",3},{"outlier_action","median"}});
+    QCOMPARE(dataAs<SeriesData>(replaced.outputs["series"])->y,QVector<double>(7,2));
+    QCOMPARE(dataAs<SeriesData>(input)->y,data.y);
+    const auto overrides=QString::fromUtf8(QJsonDocument(QJsonObject{
+        {"fingerprint",marked.report["outlier_input_fingerprint"]},{"points",QJsonObject{{"3",false},{"0",true}}}
+    }).toJson(QJsonDocument::Compact));
+    auto manual=execute("outlier_handling",input,{{"outlier_window",3},{"point_overrides",overrides}});
+    QCOMPARE(dataAs<SeriesData>(manual.outputs["series"])->x,QVector<double>({1,2,3,4,5,6}));
+    QCOMPARE(manual.report["selected_count"].toInt(),1);
+    data.y[3]=91;
+    auto stale=execute("outlier_handling",makeData(data),{{"outlier_window",3},{"point_overrides",overrides}});
+    QVERIFY(stale.report["stale_decisions_ignored"].toBool());
+    QCOMPARE(stale.report["excluded_count"].toInt(),0);
+    QCOMPARE(execute("outlier_handling",input,{{"outlier_window",4}}).state,NodeState::Failed);
+    QCOMPARE(execute("outlier_handling",input,{{"outlier_method","bounds"},{"outlier_lower",10},{"outlier_upper",100},{"outlier_action","exclude"}}).state,NodeState::Succeeded);
+    QCOMPARE(execute("outlier_handling",input,{{"outlier_method","bounds"},{"outlier_lower",100},{"outlier_upper",200},{"outlier_action","exclude"}}).state,NodeState::Failed);
+    const auto global=execute("outlier_handling",input,{{"outlier_method","mad"}});
+    QCOMPARE(global.report["selected_count"].toInt(),1);
+    for(const auto &method : {"ln","log10","asinh","tanh"}) {
+        const auto result=execute("value_transform",input,{{"value_transform",method},{"transform_scale",2}});
+        QVERIFY2(result.state==NodeState::Succeeded,qPrintable(result.error));
+        const auto *out=dataAs<SeriesData>(result.outputs["series"]);
+        QCOMPARE(out->x,data.x); QCOMPARE(out->yAxis.unit,QString("1"));
+        const double expected=QString(method)=="ln" ? std::log(45.) : QString(method)=="log10" ? std::log10(45.) : QString(method)=="asinh" ? std::asinh(45.) : std::tanh(45.);
+        QVERIFY(std::abs(out->y[3]-expected)<1e-12);
+    }
+    data.y={-1e308,-2,0,2,1e308,1,1};
+    for(const auto &method : {"asinh","tanh"}) {
+        const auto result=execute("value_transform",makeData(data),{{"value_transform",method},{"transform_scale",1e-100}});
+        QVERIFY2(result.state==NodeState::Succeeded,qPrintable(result.error));
+        for(auto value:dataAs<SeriesData>(result.outputs["series"])->y) QVERIFY(std::isfinite(value));
+    }
+    QCOMPARE(execute("value_transform",makeData(data),{{"value_transform","ln"}}).state,NodeState::Failed);
+}

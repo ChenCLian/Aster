@@ -4,7 +4,7 @@
 
 [使用手册](../USER_GUIDE.md) · [科学方法](../methods/README.md) · [English](task_parameters_en.md)
 
-本参考对应 Aster 1.2.0-beta.7 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
+本参考对应 Aster 1.3.0-beta.1 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
 
 选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。
 
@@ -51,6 +51,7 @@
 - [ODP 926B · 碳同位素 δ13C](#m-odp926_d13c)
 - [ODP 926B · 亮度 L\*](#m-odp926_lightness)
 - [La2004 轨道曲线](#m-orbital_source)
+- [异常值识别与处理](#m-outlier_handling)
 - [PT-ZB18a 倾角与岁差](#m-precession_tilt_source)
 - [整理与重采样](#m-preprocess)
 - [采样与间隔检查](#m-sampling_check)
@@ -63,6 +64,7 @@
 - [标准化（Z-score）](#m-standardize)
 - [合成轨道代理信号](#m-synthetic_orbital)
 - [Taner 带通与包络](#m-taner_filter)
+- [数值变换](#m-value_transform)
 - [Welch 功率谱](#m-welch_spectrum)
 
 <a id="m-affine"></a>
@@ -1121,6 +1123,26 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 完整滑动窗口内的单边功率谱密度。X 须严格递增且等间距。可选择逐窗最大功率归一化，默认关闭；不计算显著性。
 
+<a id="m-evolution_fft-p-evo_window_mode"></a>
+### 窗口定义
+
+按点数或输入坐标跨度百分比定义。旧流程默认仍使用点数。
+
+默认值: 点数 (` samples `)
+
+可选值: 点数 (` samples `), 输入跨度百分比 (` span_percent `)
+
+<a id="m-evolution_fft-p-evo_window_percent"></a>
+### 窗口 / 输入跨度（%）
+
+窗口点数 L=round((N−1)×百分比/100)。至少 8 点；短数据应增大比例，不自动扩窗。实际端点跨度为 (L−1)×Δx。
+
+默认值: ` 20 `
+
+范围: ` 0.01 ≤ evo_window_percent ≤ 100 `
+
+显示条件: ` evo_window_mode ` = ` span_percent `
+
 <a id="m-evolution_fft-p-evo_window"></a>
 ### 窗口点数
 
@@ -1129,6 +1151,28 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 默认值: ` 128 `
 
 范围: ` 8 ≤ evo_window ≤ 262144 `
+
+显示条件: ` evo_window_mode ` = ` samples `
+
+<a id="m-evolution_fft-p-evo_step_mode"></a>
+### 步长定义
+
+可直接输入移动点数，也可按相邻窗口重叠率换算。
+
+默认值: 点数 (` samples `)
+
+可选值: 点数 (` samples `), 重叠率 (` overlap `)
+
+<a id="m-evolution_fft-p-evo_overlap_percent"></a>
+### 窗口重叠率（%）
+
+步长 S=max(1,round(L×(1−重叠率/100)))；报告记录取整后的实际重叠率。高重叠使图像更连续，但相邻窗口并非独立观测。
+
+默认值: ` 99.2 `
+
+范围: ` 0 ≤ evo_overlap_percent ≤ 99.99 `
+
+显示条件: ` evo_step_mode ` = ` overlap `
 
 <a id="m-evolution_fft-p-evo_step"></a>
 ### 移动步长（点）
@@ -1139,6 +1183,28 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 范围: ` 1 ≤ evo_step ≤ 262144 `
 
+显示条件: ` evo_step_mode ` = ` samples `
+
+<a id="m-evolution_fft-p-evo_fft_mode"></a>
+### FFT 长度定义
+
+可直接输入 FFT 点数，或指定窗口点数的倍数。
+
+默认值: 指定 FFT 点数 (` length `)
+
+可选值: 指定 FFT 点数 (` length `), 窗口点数倍数 (` multiple `)
+
+<a id="m-evolution_fft-p-evo_padding"></a>
+### FFT / 窗口点数倍数
+
+FFT 点数=窗口点数×倍数。补零只加密频率网格，不提高真实频率分辨能力。仍受内存与计算预算限制。
+
+默认值: ` 4 `
+
+范围: ` 1 ≤ evo_padding ≤ 32 `
+
+显示条件: ` evo_fft_mode ` = ` multiple `
+
 <a id="m-evolution_fft-p-evo_nfft"></a>
 ### FFT 点数
 
@@ -1147,6 +1213,8 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 默认值: ` 0 `
 
 范围: ` 0 ≤ evo_nfft ≤ 262144 `
+
+显示条件: ` evo_fft_mode ` = ` length `
 
 <a id="m-evolution_fft-p-evo_trend"></a>
 ### 窗口内去趋势
@@ -1182,6 +1250,13 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 默认值: ` false `
 
+<a id="m-evolution_fft-p-evo_amplitude"></a>
+### 热图默认使用振幅显示
+
+热图以功率平方根并平滑显示。逐窗归一化后为相对振幅，否则为功率谱密度的平方根，不是原信号振幅。数据库、CSV、探针及窗口平均谱保持功率；可在热图样式中切换。
+
+默认值: ` false `
+
 <a id="m-evolution_fft-p-evo_taper"></a>
 ### FFT 窗函数
 
@@ -1199,6 +1274,26 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 完整滑动窗口内的自适应 MTM 功率谱。可选择逐窗最大功率归一化，默认关闭。热图描述功率随位置的变化，不提供全图显著性检验。
 
+<a id="m-evolution_mtm-p-evo_window_mode"></a>
+### 窗口定义
+
+按点数或输入坐标跨度百分比定义。旧流程默认仍使用点数。
+
+默认值: 点数 (` samples `)
+
+可选值: 点数 (` samples `), 输入跨度百分比 (` span_percent `)
+
+<a id="m-evolution_mtm-p-evo_window_percent"></a>
+### 窗口 / 输入跨度（%）
+
+窗口点数 L=round((N−1)×百分比/100)。至少 8 点；短数据应增大比例，不自动扩窗。实际端点跨度为 (L−1)×Δx。
+
+默认值: ` 20 `
+
+范围: ` 0.01 ≤ evo_window_percent ≤ 100 `
+
+显示条件: ` evo_window_mode ` = ` span_percent `
+
 <a id="m-evolution_mtm-p-evo_window"></a>
 ### 窗口点数
 
@@ -1207,6 +1302,28 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 默认值: ` 128 `
 
 范围: ` 8 ≤ evo_window ≤ 262144 `
+
+显示条件: ` evo_window_mode ` = ` samples `
+
+<a id="m-evolution_mtm-p-evo_step_mode"></a>
+### 步长定义
+
+可直接输入移动点数，也可按相邻窗口重叠率换算。
+
+默认值: 点数 (` samples `)
+
+可选值: 点数 (` samples `), 重叠率 (` overlap `)
+
+<a id="m-evolution_mtm-p-evo_overlap_percent"></a>
+### 窗口重叠率（%）
+
+步长 S=max(1,round(L×(1−重叠率/100)))；报告记录取整后的实际重叠率。高重叠使图像更连续，但相邻窗口并非独立观测。
+
+默认值: ` 99.2 `
+
+范围: ` 0 ≤ evo_overlap_percent ≤ 99.99 `
+
+显示条件: ` evo_step_mode ` = ` overlap `
 
 <a id="m-evolution_mtm-p-evo_step"></a>
 ### 移动步长（点）
@@ -1217,6 +1334,28 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 
 范围: ` 1 ≤ evo_step ≤ 262144 `
 
+显示条件: ` evo_step_mode ` = ` samples `
+
+<a id="m-evolution_mtm-p-evo_fft_mode"></a>
+### FFT 长度定义
+
+可直接输入 FFT 点数，或指定窗口点数的倍数。
+
+默认值: 指定 FFT 点数 (` length `)
+
+可选值: 指定 FFT 点数 (` length `), 窗口点数倍数 (` multiple `)
+
+<a id="m-evolution_mtm-p-evo_padding"></a>
+### FFT / 窗口点数倍数
+
+FFT 点数=窗口点数×倍数。补零只加密频率网格，不提高真实频率分辨能力。仍受内存与计算预算限制。
+
+默认值: ` 4 `
+
+范围: ` 1 ≤ evo_padding ≤ 32 `
+
+显示条件: ` evo_fft_mode ` = ` multiple `
+
 <a id="m-evolution_mtm-p-evo_nfft"></a>
 ### FFT 点数
 
@@ -1225,6 +1364,8 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 默认值: ` 0 `
 
 范围: ` 0 ≤ evo_nfft ≤ 262144 `
+
+显示条件: ` evo_fft_mode ` = ` length `
 
 <a id="m-evolution_mtm-p-evo_trend"></a>
 ### 窗口内去趋势
@@ -1257,6 +1398,13 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 ### 逐窗归一化
 
 默认关闭，保留原始功率谱密度。开启后，每窗功率除以该窗完整单边频谱的最大功率；全零窗口保持为零。热图与各窗口平均谱均变为无量纲相对功率，便于比较周期结构，但不再保留窗口之间的绝对功率差异。频率上限只裁剪输出，不改变归一化基准。
+
+默认值: ` false `
+
+<a id="m-evolution_mtm-p-evo_amplitude"></a>
+### 热图默认使用振幅显示
+
+热图以功率平方根并平滑显示。逐窗归一化后为相对振幅，否则为功率谱密度的平方根，不是原信号振幅。数据库、CSV、探针及窗口平均谱保持功率；可在热图样式中切换。
 
 默认值: ` false `
 
@@ -1694,7 +1842,7 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 <a id="m-mtm"></a>
 ## MTM 频谱分析
 
-多窗功率谱估计，输入须等间隔。峰值表描述局部峰，AR1/SWA 阈值与 FDR 曲线需按各自统计假设解释。
+多窗功率谱估计，输入须等间隔。AR1 95% 和 SWA 95% 是各频率的近似阈值，不是整个频谱的全局检验。FDR q=0.05 使用带宽相关修正；拟合背景下实际误报率不保证为 5%。峰值表判定：1＝通过，0＝未通过，-1＝未评估或不可用。局部峰不等同于显著周期。
 
 <a id="m-mtm-p-nw"></a>
 ### 时宽带宽积 NW
@@ -2016,6 +2164,74 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 范围: ` 0.001 ≤ age_step_ka ≤ 50000 `
 
 输出: ` eccentricity `, ` obliquity `, ` precession `
+
+
+<a id="m-outlier_handling"></a>
+## 异常值识别与处理
+
+使用 Hampel 局部中位数、全局 MAD 或 Y 值范围识别异常点。默认仅标记，不更改数值。可明确选择排除或替换为局部中位数；原始文件不变。
+MAD 判据为 |y−中位数| > 阈值倍数 × 1.4826 × MAD；MAD 为 0 时标记偏离中位数的点。识别结果只是筛选依据，地质事件产生的真实极值可能被标记。窗口按相邻采样点计数，不跨越缺测区间作特殊推断。
+在本节点的预览曲线上右键可保留、排除或恢复单个点的自动判定。逐点决定只属于当前数据；输入改变后旧决定不再生效。处理记录中 action：0 保留、1 排除、2 替换；score 的 -1 表示未计算，排除点的 result_value 为 -1，须结合 action 解读。排除不补点，后续要求等间隔的任务可能需要明确重采样。
+
+<a id="m-outlier_handling-p-outlier_method"></a>
+### 识别方法
+
+Hampel 适合局部尖峰；全局 MAD 比较整条序列，可能把趋势或不同地层段误识别；指定范围使用 Y 的原始单位。
+
+默认值: Hampel 局部识别 (` hampel `)
+
+可选值: Hampel 局部识别 (` hampel `), 全局 MAD 识别 (` mad `), 指定数值范围 (` bounds `)
+
+<a id="m-outlier_handling-p-outlier_window"></a>
+### 局部窗口（点）
+
+奇数窗口，至少 3 点。边界使用可用的邻近点。Hampel 识别和中位数替换使用此窗口；窗口过小可能把真实短周期信号当作异常。
+
+默认值: ` 11 `
+
+范围: ` 3 ≤ outlier_window ≤ 1001 `
+
+<a id="m-outlier_handling-p-outlier_threshold"></a>
+### MAD 阈值倍数
+
+相对 1.4826 × MAD 的倍数；默认 3。MAD 为 0 时标记偏离中位数的点；范围法不使用此参数。
+
+默认值: ` 3 `
+
+范围: ` 0.1 ≤ outlier_threshold ≤ 1000 `
+
+<a id="m-outlier_handling-p-outlier_lower"></a>
+### Y 下限
+
+小于此值的点被标记；边界值保留。单位与 Y 相同。
+
+默认值: ` -1e+100 `
+
+范围: ` -1e+100 ≤ outlier_lower ≤ 1e+100 `
+
+显示条件: ` outlier_method ` = ` bounds `
+
+<a id="m-outlier_handling-p-outlier_upper"></a>
+### Y 上限
+
+大于此值的点被标记；边界值保留。单位与 Y 相同。
+
+默认值: ` 1e+100 `
+
+范围: ` -1e+100 ≤ outlier_upper ≤ 1e+100 `
+
+显示条件: ` outlier_method ` = ` bounds `
+
+<a id="m-outlier_handling-p-outlier_action"></a>
+### 识别后的操作
+
+默认仅标记。排除会移除对应 X/Y 点，不自动补值；替换使用原始局部窗口的中位数。两者都保存逐点记录。手动保留/排除的决定优先。
+
+默认值: 仅标记 (` mark `)
+
+可选值: 仅标记 (` mark `), 排除识别点 (` exclude `), 替换为局部中位数 (` median `)
+
+输出: ` series `, ` original `, ` outliers `, ` outlier_audit `
 
 
 <a id="m-precession_tilt_source"></a>
@@ -2590,6 +2806,33 @@ clean 方差为 1，noise 方差为 1/SNR；最终 proxy 对两者之和再标�
 范围: ` 0.001 ≤ rolloff_exponent ≤ 20 `
 
 输出: ` filtered `, ` envelope `, ` filter_response `
+
+
+<a id="m-value_transform"></a>
+## 数值变换
+
+对每个 Y 计算 ln(y/s)、log10(y/s)、asinh(y/s) 或 tanh(y/s)，s 为正的尺度参数，X 不变，输出无量纲。对数要求全部 Y > 0，不会自动加常数。asinh 支持正、负、零值并压缩大幅值；tanh 将值压缩到 −1 至 1，强极值会接近饱和。
+这些函数改变幅值含义和后续统计结果，不负责判定异常值，也不补缺测区间。请记录变换和尺度参数，并与原始序列对照。
+
+<a id="m-value_transform-p-value_transform"></a>
+### 变换函数
+
+对数用于严格正值；asinh 可用于有正负值的序列；tanh 有界但会饱和。变换不等于异常值剔除。
+
+默认值: 反双曲正弦 asinh (` asinh `)
+
+可选值: 自然对数 ln (` ln `), 常用对数 log10 (` log10 `), 反双曲正弦 asinh (` asinh `), 双曲正切 tanh (` tanh `)
+
+<a id="m-value_transform-p-transform_scale"></a>
+### 尺度参数
+
+正数，单位与输入 Y 相同。先计算 y/s 再应用函数；输出无量纲。尺度应按研究目的指定，不自动估计。
+
+默认值: ` 1 `
+
+范围: ` 1e-100 ≤ transform_scale ≤ 1e+100 `
+
+输出: ` series `
 
 
 <a id="m-welch_spectrum"></a>

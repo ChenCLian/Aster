@@ -68,6 +68,13 @@ void SpectralAudit::relativeProminenceAndRoundoff()
     const double plateau[]{0,2,2,2,0,0,0};
     QCOMPARE(spectrum::findSpectrumPeakIndices(7,plateau),std::vector<int>({2}));
     const double flat[]{1,1,1,1}; QVERIFY(spectrum::findSpectrumPeaks(4,flat).empty());
+    const double zeros[]{0,0,0}; QVERIFY(spectrum::findSpectrumPeaks(3,zeros).empty());
+    const double zeroHeight[]{-1,0,-1};
+    const auto zeroPeak=spectrum::findSpectrumPeaks(3,zeroHeight);
+    QCOMPARE(zeroPeak.size(),size_t(1)); QCOMPARE(zeroPeak[0].height,0.);
+    QCOMPARE(zeroPeak[0].prominence,1.); // Valid in signed/log-valued input: do not alter it.
+    const double dcOnly[]{4,0,0}; QVERIFY(spectrum::findSpectrumPeaks(3,dcOnly).empty());
+    QVERIFY(spectrum::findSpectrumPeaks(0,nullptr).empty());
     const double roundoff[]{1,1+std::numeric_limits<double>::epsilon(),1};
     QVERIFY(spectrum::findSpectrumPeaks(3,roundoff).empty());
     spectrum::PeakOptions invalid; invalid.relativeProminence=-.01;

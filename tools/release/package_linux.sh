@@ -101,8 +101,8 @@ The official build targets Ubuntu 22.04 or newer; other distributions need testi
 Updates: Settings > Check for updates opens the public release page.
 Close Aster before using a new package. Keep your database and settings separately.
 EOF
-env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --version
-env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --numeric-backend
+env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --version
+env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --numeric-backend
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=xcb \
   xvfb-run -a "$stage/AppRun" --version
 tar -C "$output" -czf "$output/$name.tar.gz" "$name"

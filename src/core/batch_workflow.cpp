@@ -103,7 +103,7 @@ ExecutedJob executeJob(const BatchSnapshot& plan, const NodeDefinition& node,
             if (!error.isEmpty()) { out.result = NodeResult::failure(error); return out; }
         }
         QString error;
-        auto task = registry.create(node.method, node.parameters, &error);
+        auto task = registry.create(node.method, effectiveParameters(node,job.item), &error);
         if (!task) { out.result = NodeResult::failure(makeError(ErrorCode::ParameterInvalid, {}, error)); return out; }
         event(NodeState::Running, -1, {});
         if (cancel.isCancelled()) { out.result = NodeResult::cancelled(); return out; }
@@ -323,12 +323,16 @@ QJsonObject BatchSnapshot::manifest(QUuid item) const
         std::sort(selected.begin(),selected.end());
     }
     QSet<NodeId> included;
+    QMap<NodeId,QSet<QUuid>> usedScopes;
+    QMap<NodeId,const NodeDefinition*> definitions;
+    for (const auto &node : m_workflow->definition().nodes) definitions[node.id]=&node;
     QSet<qsizetype> sourceIndices;
     BatchGrouping groups;
     QJsonArray datasets, jobs;
     for (const auto index : selected) {
         const auto& job = m_jobs[index];
         included.insert(job.node);
+        usedScopes[job.node].insert(job.item);
         if (job.inputs.isEmpty()) sourceIndices.insert(m_datasetIndices.value(job.item));
         QJsonArray inputs;
         for (const auto& dep : job.inputs) {
@@ -342,7 +346,8 @@ QJsonObject BatchSnapshot::manifest(QUuid item) const
                 {m_jobs[b.producer].item,b.port,m_linked ? m_jobs[b.producer].node : NodeId{}}});
         }
         jobs.append(QJsonObject{{"node", idText(job.node)}, {"item", idText(job.item)},
-                               {"label", job.label}, {"inputs", inputs}, {"provenance", job.provenance}});
+                               {"label", job.label}, {"inputs", inputs}, {"provenance", job.provenance},
+                               {"parameters", effectiveParameters(*definitions.value(job.node),job.item)}});
     }
     auto orderedSources=sourceIndices.values();std::sort(orderedSources.begin(),orderedSources.end());
     for (const auto index : orderedSources) {
@@ -365,7 +370,10 @@ QJsonObject BatchSnapshot::manifest(QUuid item) const
     }
     WorkflowDefinition scoped;
     for (const auto& node : m_workflow->definition().nodes) if (included.contains(node.id)) {
-        scoped.nodes.push_back(node); scoped.layout.insert(node.id, m_workflow->definition().layout.value(node.id));
+        auto filtered = node;
+        for (auto it=filtered.parameterOverrides.begin(); it!=filtered.parameterOverrides.end(); )
+            if (!usedScopes.value(node.id).contains(it.key())) it=filtered.parameterOverrides.erase(it); else ++it;
+        scoped.nodes.push_back(filtered); scoped.layout.insert(node.id, m_workflow->definition().layout.value(node.id));
     }
     auto manifestRoot=m_root;
     if (m_linked && !included.contains(manifestRoot))

@@ -49,6 +49,16 @@ QString WorkflowDocument::setSources(const NodeId &root, QVector<SourceItem> ite
         item.provenance["dataset_id"] = id.toString(QUuid::WithoutBraces);
     }
     auto draft = beginEdit();
+    QSet<QUuid> removed;
+    for (const auto &item : sources().value(root)) {
+        const QUuid oldId(item.provenance["dataset_id"].toString());
+        if (!ids.contains(oldId)) removed.insert(oldId);
+    }
+    if (!removed.isEmpty()) {
+        const TreeIndex index(draft.state.definition);
+        for (auto &target : draft.state.definition.nodes) if (index.roots.value(target.id)==root)
+            for (const auto &item : removed) target.parameterOverrides.remove(item);
+    }
     draft.state.sources[root] = std::move(items);
     return applyEdit(std::move(draft)).error;
 }
@@ -108,6 +118,104 @@ EditResult WorkflowDocument::addChild(const NodeId &p, ChildSlot s, const QStrin
 EditResult WorkflowDocument::setParameters(const NodeId &id, const QJsonObject &p)
 {
     return editGraph([&](WorkflowModel &candidate) { return candidate.setParameters(id, p); });
+}
+// The caller may pass node()->id. Publishing the edit replaces that node's
+// storage, so keep the identifier by value until the result has been returned.
+EditResult WorkflowDocument::setScopedParameters(NodeId id, QUuid item, const QJsonObject &parameters, bool all)
+{
+    const auto *original = node(id);
+    if (!original) return {"Unknown node",{},0};
+    const auto normalized = model().registry().normalize(original->method,parameters);
+    if (!normalized.validation.ok()) return {normalized.validation.message(),{},0};
+    if (!all) {
+        bool found = false;
+        const auto joint = pairNodeFor(id);
+        if (!joint.isNull()) {
+            for (const auto &pair : grouping().value(joint)) found |= pair.id==item;
+        } else for (const auto &dataset : datasets(id)) found |= dataset.id==item;
+        if (!found) return {"Select a dataset or pair belonging to this node",{},0};
+    }
+    auto draft = beginEdit();
+    for (auto &target : draft.state.definition.nodes) if (target.id==id) {
+        if (all) {
+            QMap<QUuid,QJsonObject> preserved;
+            for (const auto &spec : model().registry().find(target.method)->descriptor.parameters)
+                if (spec.perDatasetOnly)
+                    for (auto it=target.parameterOverrides.cbegin();it!=target.parameterOverrides.cend();++it) {
+                        const auto value=effectiveParameters(target,it.key()).value(spec.key);
+                        if (value!=spec.defaultValue) preserved[it.key()][spec.key]=value;
+                    }
+            target.parameters=normalized.parameters;
+            for (const auto &spec : model().registry().find(target.method)->descriptor.parameters)
+                if (spec.perDatasetOnly) target.parameters[spec.key]=spec.defaultValue;
+            target.parameterOverrides=preserved;
+        }
+        else {
+            QJsonObject difference;
+            for (auto it=normalized.parameters.begin();it!=normalized.parameters.end();++it)
+                if (target.parameters.value(it.key())!=it.value()) difference[it.key()]=it.value();
+            if (difference.isEmpty()) target.parameterOverrides.remove(item);
+            else target.parameterOverrides[item]=difference;
+        }
+    }
+    const auto result=applyEdit(std::move(draft));
+    return {result.error,id,result.changed()?1:0};
+}
+EditResult WorkflowDocument::moveDatasets(NodeId sourceRoot, NodeId targetRoot,
+                                                const QVector<QUuid> &items, bool copySteps)
+{
+    const auto *source=node(sourceRoot);
+    if (!source || source->input || source->method!="file_source" || sourceRoot==targetRoot || items.isEmpty())
+        return {"Choose file datasets and a different destination tree",{},0};
+    const QSet<QUuid> selected(items.begin(),items.end());
+    if (selected.size()!=items.size() || selected.contains(QUuid{})) return {"Invalid dataset selection",{},0};
+    auto draft=beginEdit();
+    QVector<SourceItem> moved, retained;
+    for (const auto &item : draft.state.sources.value(sourceRoot))
+        (selected.contains(QUuid(item.provenance["dataset_id"].toString())) ? moved : retained).push_back(item);
+    if (moved.size()!=selected.size()) return {"Dataset selection changed",{},0};
+    const TreeIndex index(draft.state.definition);
+    if (!targetRoot.isNull()) {
+        const auto *target=node(targetRoot);
+        if (!target || target->input || target->method!="file_source") return {"Destination must be a file tree",{},0};
+        for (const auto &existing : draft.state.sources.value(targetRoot))
+            for (const auto &item : moved)
+                if (existing.provenance["dataset_id"]==item.provenance["dataset_id"] ||
+                    existing.provenance["path"]==item.provenance["path"])
+                    return {"Destination already contains a selected file",{},0};
+    } else {
+        QVector<NodeDefinition> copies;
+        QMap<NodeId,NodeId> mapping;
+        int right=0, left=draft.state.definition.layout.value(sourceRoot).column;
+        for (auto it=draft.state.definition.layout.begin();it!=draft.state.definition.layout.end();++it)
+            right=std::max(right,it->column);
+        for (const auto &n : draft.state.definition.nodes)
+            if (n.id==sourceRoot || (copySteps && index.roots.value(n.id)==sourceRoot)) {
+                copies.push_back(n); mapping[n.id]=QUuid::createUuid();
+                left=std::min(left,draft.state.definition.layout.value(n.id).column);
+            }
+        targetRoot=mapping.value(sourceRoot);
+        for (auto copy : copies) {
+            const auto oldId=copy.id; copy.id=mapping.value(oldId);
+            if (copy.input) copy.input->parent=mapping.value(copy.input->parent);
+            for (auto it=copy.parameterOverrides.begin();it!=copy.parameterOverrides.end();)
+                if (!selected.contains(it.key())) it=copy.parameterOverrides.erase(it); else ++it;
+            const auto oldPosition=draft.state.definition.layout.value(oldId);
+            const GridPosition position{oldPosition.column+right+4-left,oldPosition.row};
+            if (!validPosition(position)) return {"No space for the destination tree",{},0};
+            draft.state.definition.nodes.push_back(copy);
+            draft.state.definition.layout[copy.id]=position;
+        }
+        // Processing steps are copied; pair bindings remain explicit in the
+        // original tree and must be configured separately in the copied tree.
+    }
+    for (auto &n : draft.state.definition.nodes)
+        if (index.roots.value(n.id)==sourceRoot || index.roots.value(n.id)==targetRoot)
+            for (const auto &id : selected) n.parameterOverrides.remove(id);
+    draft.state.sources[sourceRoot]=retained;
+    draft.state.sources[targetRoot]+=moved;
+    const auto result=applyEdit(std::move(draft));
+    return {result.error,targetRoot,result.ok()?moved.size():0};
 }
 EditResult WorkflowDocument::removeSubtree(const NodeId &id)
 {
@@ -267,6 +375,13 @@ QString WorkflowDocument::setPairs(NodeId id, QVector<BatchPair> pairs)
     if (!n || !n->input || !model().registry().find(n->method)->descriptor.pairedInput)
         return "Select a paired analysis node";
     auto draft = beginEdit();
+    QSet<QUuid> retained;
+    for (const auto &pair : pairs) retained.insert(pair.id);
+    QSet<QUuid> removed;
+    for (const auto &pair : grouping().value(id)) if (!retained.contains(pair.id)) removed.insert(pair.id);
+    if (!removed.isEmpty())
+        for (auto &target : draft.state.definition.nodes) if (pairNodeFor(target.id)==id)
+            for (const auto &item : removed) target.parameterOverrides.remove(item);
     draft.state.grouping[id] = std::move(pairs);
     return applyEdit(std::move(draft)).error;
 }

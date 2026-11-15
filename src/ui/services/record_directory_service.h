@@ -22,6 +22,7 @@ class RecordDirectoryService : public QObject
     void removeMany(QString path, RecordIdentities selected);
     void merge(QString destination, QString source);
     void backup(QString source, QString newFile);
+    void exportNames(QString source, RecordFilter filter, QString newFile);
     void cancelTransfer();
     void invalidate();
     void resetContext();
@@ -33,6 +34,7 @@ class RecordDirectoryService : public QObject
     void removed(QString path, aster::RecordRemoval result);
     void transferred(QString path, aster::DatabaseTransferResult result, bool merge);
     void transferProgress(QString stage, qint64 completed, qint64 total);
+    void namesExported(QString file, qint64 count, QString error);
     void busyChanged(bool busy);
     void mutationBusyChanged(bool busy);
 
@@ -45,7 +47,8 @@ class RecordDirectoryService : public QObject
         Select,
         RemoveMany,
         Merge,
-        Backup
+        Backup,
+        ExportNames
     };
     struct Request
     {
@@ -66,6 +69,7 @@ class RecordDirectoryService : public QObject
     void start();
     QQueue<Request> m_queue;
     QThread *m_worker = nullptr;
+    bool m_busy = false;
     int m_pendingWrites = 0;
     quint64 m_generation = 0, m_context = 0;
     CancellationToken m_transferCancel;

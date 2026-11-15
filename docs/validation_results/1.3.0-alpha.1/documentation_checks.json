@@ -1,0 +1,32 @@
+{
+  "version": "1.3.0-alpha.1",
+  "date": "2026-11-14",
+  "documentation": {
+    "scope": [
+      "Current version labels and executable --version",
+      "Chinese and English task references: 56 tasks, 245 visible parameters; internal point decisions excluded",
+      "Per-data/pair parameter semantics, one-node broadcast, import column-position matching and incompatible-file skipping",
+      "Bubble motion, hidden/restored reads, fixed screen size, limits and clearing",
+      "Outlier methods, transforms, audit columns, input fingerprint and no raw-file replacement",
+      "MTM AR1/SWA/FDR three-state codes and old result compatibility",
+      "Workflow JSON schema 1/2 compatibility; existing historical evidence unchanged"
+    ],
+    "generated_reference": "tools/help_reference/generate.py --build ../aster-ux-build",
+    "help_generator_unit_tests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "source_export": "package_source.py regenerates a per-file SHA-256 manifest; no local toolchain, build products or user databases belong in the export.",
+    "current_version_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "release_tool_tests": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0
+    },
+    "embedded_help_rebuild": "Completed; six help methods plus init/cleanup passed after the final resource rebuild."
+  },
+  "platform_limits": "Native Windows/MSVC and macOS builds and final distribution packages have not been validated for this version."
+}

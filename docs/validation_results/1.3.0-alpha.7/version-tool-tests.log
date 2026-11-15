@@ -1,0 +1,18 @@
+test_all_current_docs_reject_stale_prerelease_text (test_current_version.CurrentVersionTests.test_all_current_docs_reject_stale_prerelease_text) ... ok
+test_current_document_headers_match_version (test_current_version.CurrentVersionTests.test_current_document_headers_match_version) ... ok
+test_documentation_review_has_its_own_matching_record (test_current_version.CurrentVersionTests.test_documentation_review_has_its_own_matching_record) ... ok
+test_release_commands_do_not_use_an_old_candidate (test_current_version.CurrentVersionTests.test_release_commands_do_not_use_an_old_candidate) ... ok
+test_check_and_preflight_reject_stale_header_or_metadata (test_update_version.VersionUpdateTests.test_check_and_preflight_reject_stale_header_or_metadata) ... ok
+test_cli_dry_run_and_notes_file (test_update_version.VersionUpdateTests.test_cli_dry_run_and_notes_file) ... ok
+test_empty_notes_and_historical_collisions_leave_everything_untouched (test_update_version.VersionUpdateTests.test_empty_notes_and_historical_collisions_leave_everything_untouched) ... ok
+test_rollback_and_stale_plan (test_update_version.VersionUpdateTests.test_rollback_and_stale_plan) ... ok
+test_semver_order_and_invalid_versions (test_update_version.VersionUpdateTests.test_semver_order_and_invalid_versions) ... ok
+test_small_bump_preserves_body_dependencies_and_evidence (test_update_version.VersionUpdateTests.test_small_bump_preserves_body_dependencies_and_evidence) ... ok
+test_stable_release_and_following_patch_bump (test_update_version.VersionUpdateTests.test_stable_release_and_following_patch_bump) ... ok
+test_symlink_not_written (test_update_version.VersionUpdateTests.test_symlink_not_written) ... ok
+test_token_boundaries_links_protection_and_stable_versions (test_update_version.VersionUpdateTests.test_token_boundaries_links_protection_and_stable_versions) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.093s
+
+OK

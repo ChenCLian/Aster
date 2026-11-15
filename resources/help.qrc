@@ -22,6 +22,7 @@
     <file alias="docs/reference/task_parameters_en.md">../docs/reference/task_parameters_en.md</file>
     <file alias="docs/error_diagnostics.md">../docs/error_diagnostics.md</file>
     <file alias="docs/third_party.md">../docs/third_party.md</file>
+    <file alias="docs/methods/outliers_and_transforms.md">../docs/methods/outliers_and_transforms.md</file>
     <file alias="docs/methods/README.md">../docs/methods/README.md</file>
     <file alias="docs/methods/acycle_compatibility.md">../docs/methods/acycle_compatibility.md</file>
     <file alias="docs/methods/cwt.md">../docs/methods/cwt.md</file>

@@ -19,27 +19,146 @@
 #include <limits>
 #include <algorithm>
 #include <utility>
+#include <array>
 namespace aster::ui
 {
-PlotProbe::PlotProbe(QCustomPlot *plot, Picker picker)
-    : QObject(plot), m_plot(plot), m_picker(std::move(picker))
+struct PlotProbe::Entry
 {
-    m_bubble = new QFrame(plot);
-    m_bubble->setObjectName("plotProbeBubble");
-    auto *layout = new QVBoxLayout(m_bubble);
+    ProbeSample sample;
+    QFrame *bubble = nullptr, *marker = nullptr;
+    QLabel *title = nullptr, *swatch = nullptr;
+    QWidget *details = nullptr;
+    QScrollArea *scroll = nullptr;
+    QString copyText;
+    std::optional<QPoint> manualOffset;
+    QSize layoutViewport;
+};
+PlotProbe::PlotProbe(QCustomPlot *plot, Picker picker, Projector projector)
+    : QObject(plot), m_plot(plot), m_picker(std::move(picker)), m_projector(std::move(projector))
+{
+    m_refresh.setSingleShot(true);
+    m_refresh.setInterval(0);
+    connect(&m_refresh, &QTimer::timeout, this, &PlotProbe::refresh);
+    connect(plot, &QCustomPlot::afterReplot, this, [this] { m_refresh.start(); });
+    plot->installEventFilter(this);
+    auto *escape = new QShortcut(QKeySequence(Qt::Key_Escape), plot);
+    escape->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(escape, &QShortcut::activated, this, [this] { if (m_active) close(m_active); });
+}
+PlotProbe::~PlotProbe()
+{
+    // Never notify owners while the plot/widget hierarchy is being destroyed.
+    blockSignals(true);
+    m_plot->removeEventFilter(this);
+    dismiss();
+}
+void PlotProbe::dismiss()
+{
+    m_refresh.stop();
+    if (m_entries.isEmpty()) return;
+    const bool wasBlocked = blockSignals(true);
+    while (!m_entries.isEmpty()) close(m_entries.back());
+    blockSignals(wasBlocked);
+    emit changed();
+}
+void PlotProbe::close(Entry *entry)
+{
+    m_entries.removeOne(entry);
+    if (m_dragging == entry) m_dragging = nullptr;
+    if (m_active == entry) m_active = m_entries.isEmpty() ? nullptr : m_entries.back();
+    entry->bubble->hide(); entry->marker->hide();
+    // A deferred widget deletion must not leave callbacks to a freed Entry.
+    for (auto *button : entry->bubble->findChildren<QToolButton *>())
+        disconnect(button, nullptr, this, nullptr);
+    entry->bubble->deleteLater(); entry->marker->deleteLater();
+    delete entry;
+    emit changed();
+}
+void PlotProbe::refresh()
+{
+    for (auto *entry : m_entries) place(*entry);
+}
+bool PlotProbe::eventFilter(QObject *object, QEvent *event)
+{
+    if (object != m_plot) {
+        auto found = std::find_if(m_entries.begin(), m_entries.end(), [object](Entry *e) {
+            return object == e->bubble || object == e->title || object == e->swatch;
+        });
+        if (found == m_entries.end()) return false;
+        auto *entry = *found;
+        if (event->type() == QEvent::MouseButtonPress) {
+            auto *mouse = static_cast<QMouseEvent *>(event);
+            if (mouse->button() == Qt::LeftButton) {
+                m_active = m_dragging = entry;
+                m_dragOffset = m_plot->mapFromGlobal(mouse->globalPosition().toPoint()) - entry->bubble->pos();
+                entry->bubble->raise(); return true;
+            }
+        } else if (event->type() == QEvent::MouseMove && m_dragging == entry) {
+            auto *mouse = static_cast<QMouseEvent *>(event);
+            entry->manualOffset = m_plot->mapFromGlobal(mouse->globalPosition().toPoint()) - m_dragOffset - entry->sample.pixel.toPoint();
+            place(*entry); return true;
+        } else if (event->type() == QEvent::MouseButtonRelease && m_dragging == entry) {
+            m_dragging = nullptr; return true;
+        }
+        return false;
+    }
+    if (event->type() == QEvent::ToolTip && hasBubbles()) {
+        QToolTip::hideText(); event->accept(); return true;
+    }
+    if (event->type() == QEvent::MouseButtonPress) {
+        QToolTip::hideText();
+        auto *mouse = static_cast<QMouseEvent *>(event);
+        m_pressValid = mouse->button() == Qt::LeftButton;
+        m_pressed = mouse->position(); m_dragged = false;
+    } else if (event->type() == QEvent::MouseMove && m_pressValid) {
+        if ((static_cast<QMouseEvent *>(event)->position() - m_pressed).manhattanLength() >= QApplication::startDragDistance()) m_dragged = true;
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        auto *mouse = static_cast<QMouseEvent *>(event);
+        const bool click = m_pressValid && !m_dragged && mouse->button() == Qt::LeftButton &&
+            (mouse->position() - m_pressed).manhattanLength() < QApplication::startDragDistance();
+        m_pressValid = false;
+        if (click) inspect(mouse->position());
+    } else if (event->type() == QEvent::Resize || event->type() == QEvent::Show) {
+        m_refresh.start();
+    } else if (event->type() == QEvent::Wheel || event->type() == QEvent::Hide) m_pressValid = false;
+    return false;
+}
+void PlotProbe::inspect(QPointF point)
+{
+    QToolTip::hideText();
+    if (!m_plot->axisRect()->rect().contains(point.toPoint()) ||
+        (m_plot->legend->visible() && m_plot->legend->outerRect().contains(point.toPoint()))) return;
+    const auto sample = m_picker(point);
+    if (!sample) return; // Blank clicks never remove pinned readings.
+    for (auto *entry : m_entries) {
+        if (entry->sample.key == sample->key && entry->sample.coordinates == sample->coordinates) {
+            entry->sample = *sample; populate(*entry); place(*entry);
+            m_active = entry; entry->bubble->raise(); return;
+        }
+    }
+    if (m_entries.size()>=128) {
+        QToolTip::showText(m_plot->mapToGlobal(point.toPoint()),text("ui.probe_limit"),m_plot);
+        return;
+    }
+    auto *created = new Entry;
+    auto &entry = *created;
+    entry.sample = *sample;
+    entry.bubble = new QFrame(m_plot);
+    entry.bubble->setObjectName("plotProbeBubble");
+    auto *layout = new QVBoxLayout(entry.bubble);
     layout->setContentsMargins(10, 7, 10, 8);
     layout->setSpacing(6);
     auto *header = new QHBoxLayout;
     header->setSpacing(6);
-    m_swatch = new QLabel;
-    m_swatch->setObjectName("plotProbeSwatch");
-    m_swatch->setFixedSize(20, 14);
-    header->addWidget(m_swatch);
-    m_title = new QLabel;
-    m_title->setObjectName("plotProbeTitle");
-    m_title->setTextFormat(Qt::PlainText);
-    m_title->setMinimumWidth(0);
-    header->addWidget(m_title, 1);
+    entry.swatch = new QLabel;
+    entry.swatch->setObjectName("plotProbeSwatch");
+    entry.swatch->setFixedSize(20, 14);
+    header->addWidget(entry.swatch);
+    entry.title = new QLabel;
+    entry.title->setObjectName("plotProbeTitle");
+    entry.title->setTextFormat(Qt::PlainText);
+    entry.title->setMinimumWidth(0);
+    header->addWidget(entry.title, 1);
     auto *copy = new QToolButton;
     copy->setObjectName("copyPlotProbe");
     copy->setText(text("ui.probe_copy_short"));
@@ -51,96 +170,45 @@ PlotProbe::PlotProbe(QCustomPlot *plot, Picker picker)
     close->setText(QString::fromUtf8("×"));
     close->setAccessibleName(text("ui.probe_close"));
     close->setToolTip(text("ui.probe_close"));
+    close->setFixedSize(28, 28);
+    auto closeFont = close->font(); closeFont.setPointSizeF(16); close->setFont(closeFont);
     header->addWidget(close);
     layout->addLayout(header);
-    m_details = new QWidget;
-    m_details->setObjectName("plotProbeDetails");
-    auto *fields = new QGridLayout(m_details);
+    entry.details = new QWidget;
+    entry.details->setObjectName("plotProbeDetails");
+    auto *fields = new QGridLayout(entry.details);
     fields->setContentsMargins(0, 0, 0, 0);
     fields->setHorizontalSpacing(12);
     fields->setVerticalSpacing(4);
     fields->setColumnStretch(0, 1);
-    m_scroll = new QScrollArea;
-    m_scroll->setFrameShape(QFrame::NoFrame);
-    m_scroll->setWidgetResizable(true);
-    m_scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_scroll->setWidget(m_details);
-    layout->addWidget(m_scroll);
-    connect(copy, &QToolButton::clicked, this, [this] {
-        QApplication::clipboard()->setText(m_copyText);
+    entry.scroll = new QScrollArea;
+    entry.scroll->setFrameShape(QFrame::NoFrame);
+    entry.scroll->setWidgetResizable(true);
+    entry.scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    entry.scroll->setWidget(entry.details);
+    layout->addWidget(entry.scroll);
+    entry.marker = new QFrame(m_plot);
+    entry.marker->setObjectName("plotProbeMarker");
+    entry.marker->setAttribute(Qt::WA_TransparentForMouseEvents);
+    entry.marker->setFixedSize(12, 12);
+    for (QObject *target : std::array<QObject *, 3>{entry.bubble, entry.title, entry.swatch}) target->installEventFilter(this);
+    connect(copy, &QToolButton::clicked, this, [this, created] {
+        if (m_entries.contains(created)) QApplication::clipboard()->setText(created->copyText);
     });
-    connect(close, &QToolButton::clicked, this, [this] { dismiss(); });
-    auto *escape = new QShortcut(QKeySequence(Qt::Key_Escape), plot);
-    escape->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(escape, &QShortcut::activated, this, [this] { dismiss(); });
-    m_marker = new QFrame(plot);
-    m_marker->setObjectName("plotProbeMarker");
-    m_marker->setAttribute(Qt::WA_TransparentForMouseEvents);
-    m_marker->setFixedSize(12, 12);
-    dismiss();
-    plot->installEventFilter(this);
-    // Range changes cover wheel, drag, fit and programmatic changes. No stale anchor.
-    for (auto *axis : {plot->xAxis, plot->yAxis})
-        connect(axis, qOverload<const QCPRange &>(&QCPAxis::rangeChanged), this,
-                [this] { dismiss(); });
+    connect(close, &QToolButton::clicked, this, [this, created] {
+        if (m_entries.contains(created)) this->close(created);
+    });
+    m_entries.push_back(created); m_active = created;
+    populate(entry); place(entry); entry.bubble->raise(); emit changed();
 }
-void PlotProbe::dismiss()
+void PlotProbe::populate(Entry &entry)
 {
-    m_bubble->hide();
-    m_marker->hide();
-}
-bool PlotProbe::eventFilter(QObject *object, QEvent *event)
-{
-    if (object != m_plot) return false;
-    if (event->type() == QEvent::ToolTip && m_bubble->isVisible())
-    {
-        QToolTip::hideText();
-        event->accept();
-        return true; // Neither plot nor axis help may cover an active readout.
-    }
-    if (event->type() == QEvent::MouseButtonPress)
-    {
-        QToolTip::hideText();
-        auto *mouse = static_cast<QMouseEvent *>(event);
-        m_pressValid = mouse->button() == Qt::LeftButton;
-        m_pressed = mouse->position();
-        m_dragged = false;
-        if (!m_pressValid) dismiss();
-    }
-    else if (event->type() == QEvent::MouseMove && m_pressValid)
-    {
-        auto *mouse = static_cast<QMouseEvent *>(event);
-        if ((mouse->position() - m_pressed).manhattanLength() >= QApplication::startDragDistance())
-        { m_dragged = true; dismiss(); }
-    }
-    else if (event->type() == QEvent::MouseButtonRelease)
-    {
-        auto *mouse = static_cast<QMouseEvent *>(event);
-        const bool click = m_pressValid && !m_dragged && mouse->button() == Qt::LeftButton &&
-            (mouse->position() - m_pressed).manhattanLength() < QApplication::startDragDistance();
-        m_pressValid = false;
-        if (click) inspect(mouse->position());
-    }
-    else if (event->type() == QEvent::Resize || event->type() == QEvent::Hide ||
-             event->type() == QEvent::Wheel || event->type() == QEvent::MouseButtonDblClick)
-    { m_pressValid = false; dismiss(); }
-    return false; // Preserve QCustomPlot's normal pan/zoom and context menu behavior.
-}
-void PlotProbe::inspect(QPointF point)
-{
-    dismiss();
-    QToolTip::hideText();
-    if (!m_plot->axisRect()->rect().contains(point.toPoint()) ||
-        (m_plot->legend->visible() && m_plot->legend->outerRect().contains(point.toPoint()))) return;
-    const auto sample = m_picker(point);
-    if (!sample) return;
-    auto *fields = static_cast<QGridLayout *>(m_details->layout());
+    auto *fields = static_cast<QGridLayout *>(entry.details->layout());
     while (auto *item = fields->takeAt(0)) { delete item->widget(); delete item; }
-    m_copyText = sample->title;
-    int labelWidth = 0, valueWidth = 0;
-    for (int row = 0; row < sample->values.size(); ++row)
+    entry.copyText = entry.sample.title;
+    for (int row = 0; row < entry.sample.values.size(); ++row)
     {
-        const auto &field = sample->values[row];
+        const auto &field = entry.sample.values[row];
         auto *name = new QLabel(field.label);
         name->setObjectName("plotProbeFieldName");
         name->setTextFormat(Qt::PlainText);
@@ -153,74 +221,100 @@ void PlotProbe::inspect(QPointF point)
         value->setAlignment(Qt::AlignRight | Qt::AlignTop);
         fields->addWidget(name, row, 0, Qt::AlignTop);
         fields->addWidget(value, row, 1, Qt::AlignTop);
-        labelWidth = std::max(labelWidth, name->fontMetrics().horizontalAdvance(field.label));
-        valueWidth = std::max(valueWidth, value->sizeHint().width());
-        m_copyText += "\n" + field.label + ": " +
+        // A refreshed card is already visible. Include its newly inserted
+        // children in size calculations before the next event-loop layout.
+        name->show(); value->show();
+        entry.copyText += "\n" + field.label + ": " +
             QString::number(field.value, 'g', std::numeric_limits<double>::max_digits10);
     }
-    if (!sample->note.isEmpty())
+    if (!entry.sample.note.isEmpty())
     {
-        auto *note = new QLabel(sample->note);
+        auto *note = new QLabel(entry.sample.note);
         note->setObjectName("Muted");
         note->setTextFormat(Qt::PlainText);
         note->setWordWrap(true);
-        fields->addWidget(note, sample->values.size(), 0, 1, 2);
-        m_copyText += "\n" + sample->note;
+        fields->addWidget(note, entry.sample.values.size(), 0, 1, 2);
+        note->show();
+        entry.copyText += "\n" + entry.sample.note;
     }
-    int reserved = 20 + 18 + (sample->pen ? 26 : 0);
-    for (const auto *button : m_bubble->findChildren<QToolButton *>())
+    relayout(entry);
+}
+void PlotProbe::relayout(Entry &entry)
+{
+    entry.layoutViewport = m_plot->size();
+    auto *fields = static_cast<QGridLayout *>(entry.details->layout());
+    int labelWidth = 0, valueWidth = 0;
+    for (const auto *name : entry.details->findChildren<QLabel *>("plotProbeFieldName"))
+        labelWidth = std::max(labelWidth, name->fontMetrics().horizontalAdvance(name->text()));
+    for (const auto *value : entry.details->findChildren<QLabel *>("plotProbeValue"))
+        valueWidth = std::max(valueWidth, value->sizeHint().width());
+    int reserved = 20 + 18 + (entry.sample.pen ? 26 : 0);
+    for (const auto *button : entry.bubble->findChildren<QToolButton *>())
         reserved += button->sizeHint().width();
-    const int headerWidth = std::min(160, m_title->fontMetrics().horizontalAdvance(sample->title)) + reserved;
+    const int headerWidth = std::min(160, entry.title->fontMetrics().horizontalAdvance(entry.sample.title)) + reserved;
     const int preferred = std::clamp(std::max(headerWidth, std::min(labelWidth, 200) + valueWidth + 36), 230, 340);
     const int width = std::min(preferred, m_plot->width() - 12);
-    if (width < 120) return;
-    m_bubble->setFixedWidth(width);
-    m_swatch->setVisible(sample->pen.has_value());
-    if (sample->pen)
+    if (width < 120) { entry.bubble->hide(); return; }
+    entry.bubble->setFixedWidth(width);
+    entry.swatch->setVisible(entry.sample.pen.has_value());
+    if (entry.sample.pen)
     {
         const qreal scale = m_plot->devicePixelRatioF();
         QPixmap icon(QSize(20, 14) * scale); icon.setDevicePixelRatio(scale); icon.fill(Qt::transparent);
         QPainter painter(&icon); painter.setRenderHint(QPainter::Antialiasing);
-        auto pen = *sample->pen; pen.setWidthF(std::clamp(pen.widthF(), 1.5, 3.0));
+        auto pen = *entry.sample.pen; pen.setWidthF(std::clamp(pen.widthF(), 1.5, 3.0));
         if (pen.style() == Qt::NoPen) pen.setStyle(Qt::SolidLine);
         painter.setPen(pen); painter.drawLine(QPointF(1, 7), QPointF(19, 7));
-        painter.end(); m_swatch->setPixmap(icon);
-        m_marker->setStyleSheet(QString("background: %1; border: 2px solid palette(base); border-radius: 6px;")
+        painter.end(); entry.swatch->setPixmap(icon);
+        entry.marker->setStyleSheet(QString("background: %1; border: 2px solid palette(base); border-radius: 6px;")
                                    .arg(pen.color().name(QColor::HexArgb)));
     }
-    else m_marker->setStyleSheet({});
-    m_title->setText(m_title->fontMetrics().elidedText(sample->title, Qt::ElideRight, std::max(20, width - reserved)));
-    m_title->setToolTip(m_title->text() == sample->title ? QString() : sample->title);
-    m_title->setAccessibleName(sample->title);
+    else entry.marker->setStyleSheet({});
+    entry.title->setText(entry.title->fontMetrics().elidedText(entry.sample.title, Qt::ElideRight, std::max(20, width - reserved)));
+    entry.title->setToolTip(entry.title->text() == entry.sample.title ? QString() : entry.sample.title);
+    entry.title->setAccessibleName(entry.sample.title);
     const int bodyHeight = std::max(fields->minimumSize().height(), fields->heightForWidth(width - 24));
-    m_scroll->setFixedHeight(std::min(bodyHeight + 4, std::max(24, m_plot->height() - 100)));
-    m_bubble->adjustSize();
-    const int height = m_bubble->sizeHint().height();
-    if (height > m_plot->height() - 12) return; // A collapsed plot cannot contain a readable bubble.
-    m_bubble->resize(width, height);
-    auto anchor = sample->pixel.toPoint();
-    int x = anchor.x() + 16, y = anchor.y() + 16;
-    if (x + width > m_plot->width() - 6) x = anchor.x() - width - 16;
-    if (y + height > m_plot->height() - 6) y = anchor.y() - height - 16;
-    const auto bounded = [&](int px, int py) {
-        return QRect(std::clamp(px, 6, std::max(6, m_plot->width() - width - 6)),
-                     std::clamp(py, 6, std::max(6, m_plot->height() - height - 6)), width, height);
+    entry.scroll->setFixedHeight(std::min(bodyHeight + 4, std::max(24, m_plot->height() - 100)));
+    entry.bubble->adjustSize();
+    const int height = entry.bubble->sizeHint().height();
+    if (height > m_plot->height() - 12) { entry.bubble->hide(); return; } // A collapsed plot cannot contain a readable bubble.
+    entry.bubble->resize(width, height);
+}
+void PlotProbe::place(Entry &entry)
+{
+    const auto pixel = m_projector(entry.sample);
+    if (!pixel || !std::isfinite(pixel->x()) || !std::isfinite(pixel->y()) ||
+        !m_plot->axisRect()->rect().contains(pixel->toPoint()) || m_plot->width() < 140 || m_plot->height() < 120) {
+        entry.bubble->hide(); entry.marker->hide(); return;
+    }
+    entry.sample.pixel = *pixel;
+    if (entry.layoutViewport != m_plot->size()) relayout(entry);
+    const int width = entry.bubble->width(), height = entry.bubble->height();
+    if (height > m_plot->height() - 12) { entry.bubble->hide(); entry.marker->hide(); return; }
+    const auto anchor = pixel->toPoint();
+    auto bounded = [&](QPoint pos) {
+        return QRect(std::clamp(pos.x(), 6, std::max(6, m_plot->width()-width-6)),
+                     std::clamp(pos.y(), 6, std::max(6, m_plot->height()-height-6)), width, height);
     };
-    QRect placement = bounded(x, y);
-    const QRect marker(anchor - QPoint(9, 9), QSize(18, 18));
-    auto cost = [&](const QRect &r) {
-        const auto overlap = m_plot->legend->visible() ? r.intersected(m_plot->legend->outerRect()) : QRect();
-        return (r.intersects(marker) ? 1000000 : 0) + overlap.width() * overlap.height();
-    };
-    for (int px : {anchor.x() + 16, anchor.x() - width - 16})
-        for (int py : {anchor.y() + 16, anchor.y() - height - 16})
-        {
-            const auto candidate = bounded(px, py);
+    QRect placement = bounded(anchor + entry.manualOffset.value_or(QPoint(16, 16)));
+    if (!entry.manualOffset) {
+        auto cost = [&](QRect r) {
+            qint64 result = 0;
+            const auto area = [](QRect a) { return qint64(a.width()) * a.height(); };
+            if (m_plot->legend->visible()) result += area(r.intersected(m_plot->legend->outerRect()));
+            if (r.intersects(QRect(anchor-QPoint(9,9), QSize(18,18)))) result += 1000000;
+            // Bounded local placement; no expensive global packing or data copies.
+            for (auto *other : m_entries) if (other != &entry && !other->bubble->isHidden())
+                result += area(r.intersected(other->bubble->geometry()));
+            return result;
+        };
+        for (int dx : {16, -width-16}) for (int dy : {16, -height-16}) {
+            const auto candidate = bounded(anchor + QPoint(dx,dy));
             if (cost(candidate) < cost(placement)) placement = candidate;
         }
-    m_bubble->move(placement.topLeft());
-    m_marker->move(anchor - QPoint(6, 6));
-    m_marker->show(); m_marker->raise();
-    m_bubble->show(); m_bubble->raise();
+    }
+    entry.bubble->move(placement.topLeft());
+    entry.marker->move(anchor-QPoint(6,6));
+    entry.marker->show(); entry.bubble->show();
 }
 }

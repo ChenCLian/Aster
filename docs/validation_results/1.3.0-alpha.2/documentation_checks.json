@@ -1,0 +1,40 @@
+{
+  "version": "1.3.0-alpha.2",
+  "date": "2026-11-14",
+  "documentation": {
+    "status": "reviewed_with_platform_limits",
+    "scope": [
+      "Current version labels and release command examples",
+      "Concise description of data-move navigation and localized outlier legends",
+      "Current validation separated from retained alpha.1 evidence",
+      "Generated Chinese/English help references and embedded help"
+    ],
+    "algorithm_or_limit_changes": false,
+    "generated_reference": {
+      "tasks": 56,
+      "visible_parameters": 245,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "check": "passed"
+    },
+    "current_version_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "help_generator_tests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "application_version": "Aster_Workspace 1.3.0-alpha.2",
+    "diff_whitespace_check": "passed",
+    "embedded_help": {
+      "status": "passed",
+      "help_methods": 6,
+      "log": "final-embedded-help-and-navigation.log"
+    },
+    "historical_evidence": "Original version labels and alpha.1 validation files retained unchanged."
+  },
+  "platform_limits": "Windows/MSVC and macOS native package acceptance is still required."
+}

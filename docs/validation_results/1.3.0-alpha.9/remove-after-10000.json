@@ -1,0 +1,1 @@
+{"count":10000,"event_loop_lateness":{"max_ms":383.561424,"median_ms":0,"p95_ms":0.958774,"samples":100},"import_call_ms":392.29069,"mode":"remove","peak_rss_kib":73320,"platform":"offscreen","qt":"6.8.2","remove_event_ms":58.428121,"removed":10000,"rss_kib":72280,"select_all_event_ms":1.411702}

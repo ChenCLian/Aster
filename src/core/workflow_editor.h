@@ -61,12 +61,18 @@ public:
     void setLocked(bool locked);
     bool locked() const { return m_locked; }
     static constexpr qsizetype HistoryLimit = 100;
+    // Conservative metadata estimate; shared numerical arrays are not copied.
+    static constexpr qint64 HistoryByteLimit = 64 * 1024 * 1024;
+    qint64 historyEstimatedBytes() const { return m_historyBytes; }
 private:
+    struct HistoryEntry { WorkflowEditState state; qint64 bytes = 0; };
+    void trimHistory();
     ValidationResult validateBindings(const WorkflowEditState& candidate) const;
     WorkflowEditResult publish(WorkflowEditState state);
     WorkflowModel m_model;
     WorkflowEditState m_state;
-    QVector<WorkflowEditState> m_undo, m_redo;
+    QVector<HistoryEntry> m_undo, m_redo;
+    qint64 m_historyBytes = 0;
     QUuid m_identity = QUuid::createUuid();
     quint64 m_revision = 0;
     bool m_locked = false;

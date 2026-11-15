@@ -1,0 +1,40 @@
+{
+  "version": "1.3.0-alpha.3",
+  "date": "2026-11-15",
+  "documentation": {
+    "status": "reviewed_with_platform_limits",
+    "scope": [
+      "Current version labels and release examples",
+      "Concise plot-bubble stability description",
+      "Generated Chinese/English references and embedded help",
+      "Retained historical evidence unchanged"
+    ],
+    "algorithm_or_limit_changes": false,
+    "generated_reference": {
+      "tasks": 56,
+      "visible_parameters": 245,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "check": "passed"
+    },
+    "current_version_tests": {
+      "passed": 4,
+      "failed": 0
+    },
+    "help_generator_tests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "application_version": "Aster_Workspace 1.3.0-alpha.3",
+    "embedded_help": {
+      "status": "passed",
+      "methods": 6,
+      "log": "final-help-and-probe.log"
+    },
+    "historical_evidence": "Original version labels and alpha.1/alpha.2 validation files retained unchanged.",
+    "diff_whitespace_check": "passed"
+  },
+  "platform_limits": "Windows/MSVC and macOS native package acceptance remains required."
+}

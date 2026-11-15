@@ -3,16 +3,51 @@
 #include "core/workflow_editor.h"
 #include <QHash>
 #include <QSet>
+#include <QJsonArray>
 
 namespace aster {
 namespace {
+qint64 jsonBytes(const QJsonValue &value)
+{
+    qint64 bytes = 64;
+    if (value.isString()) bytes += 2 * value.toString().size();
+    else if (value.isArray())
+        for (const auto &item : value.toArray()) bytes += jsonBytes(item);
+    else if (value.isObject()) {
+        const auto object = value.toObject();
+        for (auto it = object.begin(); it != object.end(); ++it)
+            bytes += 64 + 2 * it.key().size() + jsonBytes(it.value());
+    }
+    return bytes;
+}
+qint64 stateBytes(const WorkflowEditState &state)
+{
+    qint64 bytes = 256 + state.definition.layout.size() * 128;
+    for (const auto &node : state.definition.nodes) {
+        bytes += 256 + 2 * node.method.size() + jsonBytes(node.parameters);
+        if (node.input) bytes += 128 + 2 * node.input->output.size();
+        for (auto it = node.parameterOverrides.begin(); it != node.parameterOverrides.end(); ++it)
+            bytes += 128 + jsonBytes(it.value());
+    }
+    for (const auto &sources : state.sources) {
+        bytes += 128;
+        for (const auto &source : sources)
+            bytes += 128 + 2 * source.label.size() + jsonBytes(source.provenance);
+    }
+    for (const auto &pairs : state.grouping) {
+        bytes += 128;
+        for (const auto &pair : pairs)
+            bytes += 256 + 2 * (pair.label.size() + pair.a.port.size() + pair.b.port.size());
+    }
+    return bytes;
+}
 bool sameGraph(const WorkflowDefinition& a, const WorkflowDefinition& b)
 {
     if (a.nodes.size() != b.nodes.size() || a.layout != b.layout) return false;
     for (qsizetype i = 0; i < a.nodes.size(); ++i) {
         const auto& x = a.nodes[i]; const auto& y = b.nodes[i];
         if (x.id != y.id || x.method != y.method || x.methodVersion != y.methodVersion ||
-            x.parameters != y.parameters || x.input.has_value() != y.input.has_value()) return false;
+            x.parameters != y.parameters || x.parameterOverrides != y.parameterOverrides || x.input.has_value() != y.input.has_value()) return false;
         if (x.input && (x.input->parent != y.input->parent || x.input->output != y.input->output ||
                         x.input->slot != y.input->slot)) return false;
     }
@@ -221,8 +256,11 @@ WorkflowEditResult WorkflowEditor::commit(const std::shared_ptr<const PreparedWo
     const auto before = m_state;
     auto result = publish(edit->m_state);
     if (result.ok() && result.changed()) {
-        if (m_undo.size() == HistoryLimit) m_undo.removeFirst();
-        m_undo.push_back(before); m_redo.clear();
+        for (const auto &entry : m_redo) m_historyBytes -= entry.bytes;
+        m_redo.clear();
+        const auto bytes = stateBytes(before);
+        m_undo.push_back({before, bytes}); m_historyBytes += bytes;
+        trimHistory();
     }
     return result;
 }
@@ -236,8 +274,13 @@ WorkflowEditResult WorkflowEditor::undo()
     if (m_locked) return {"Workflow editing is locked while running"};
     if (m_undo.isEmpty()) return {"Nothing to undo"};
     const auto before = m_state;
-    auto result = publish(m_undo.back());
-    if (result.ok()) { m_undo.removeLast(); m_redo.push_back(before); }
+    auto result = publish(m_undo.back().state);
+    if (result.ok()) {
+        m_historyBytes -= m_undo.takeLast().bytes;
+        const auto bytes = stateBytes(before);
+        m_redo.push_back({before, bytes}); m_historyBytes += bytes;
+        trimHistory();
+    }
     return result;
 }
 WorkflowEditResult WorkflowEditor::redo()
@@ -245,13 +288,29 @@ WorkflowEditResult WorkflowEditor::redo()
     if (m_locked) return {"Workflow editing is locked while running"};
     if (m_redo.isEmpty()) return {"Nothing to redo"};
     const auto before = m_state;
-    auto result = publish(m_redo.back());
-    if (result.ok()) { m_redo.removeLast(); m_undo.push_back(before); }
+    auto result = publish(m_redo.back().state);
+    if (result.ok()) {
+        m_historyBytes -= m_redo.takeLast().bytes;
+        const auto bytes = stateBytes(before);
+        m_undo.push_back({before, bytes}); m_historyBytes += bytes;
+        trimHistory();
+    }
     return result;
 }
 void WorkflowEditor::setLocked(bool locked)
 {
     if (m_locked == locked) return;
     m_locked = locked; ++m_revision; // A popup prepared before a run is stale after it, too.
+}
+void WorkflowEditor::trimHistory()
+{
+    while (m_undo.size() + m_redo.size() > HistoryLimit || m_historyBytes > HistoryByteLimit) {
+        // Oldest undo / farthest redo entries can be removed without breaking
+        // the sequence of the retained states. This releases their Qt containers.
+        auto &history = !m_undo.isEmpty() ? m_undo : m_redo;
+        if (history.isEmpty()) break;
+        m_historyBytes -= history.front().bytes;
+        history.removeFirst();
+    }
 }
 } // namespace aster

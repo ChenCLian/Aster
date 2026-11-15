@@ -91,6 +91,20 @@ class InteractionSafetyTests : public QObject
 {
     Q_OBJECT
   private slots:
+    void destroyFileOptionsWithFocusedPendingEdit()
+    {
+        QTemporaryDir dir; const auto path=dir.filePath("input.csv");
+        QVERIFY(write(path,"x,y\n0,2\n1,3\n"));
+        auto *editor=new FileOptionsEditor;
+        editor->setFile(path,{}); editor->resize(500,800); editor->show();
+        QTRY_VERIFY(editor->ready());
+        auto *unit=editor->findChild<QLineEdit*>("fileXUnit"); QVERIFY(unit);
+        unit->setFocus(); QTRY_VERIFY(unit->hasFocus());
+        QTest::keyClicks(unit,"ka");
+        // Destruction must not commit through destroyed members on focus loss.
+        delete editor;
+        QCoreApplication::processEvents();
+    }
     void diagnosticSerializationAndTranslations();
     void multipleRootsKeepFileOptionsAndStatusSeparate();
     void diagnosticSignalStorageAndDetails();
@@ -977,7 +991,7 @@ void InteractionSafetyTests::filePreviewFollowsAllEditorOptions()
     QSignalSpy reads(&preview, &FilePreviewLoader::readStarted);
     editor->findChild<QLineEdit *>("fileXUnit")->setText("ka");
     editor->findChild<QLineEdit *>("fileYUnit")->setText("ppm");
-    QCOMPARE(preview.result()->samples.xAxis.unit, QString("ka"));
+    QTRY_COMPARE(preview.result()->samples.xAxis.unit, QString("ka"));
     QCOMPARE(preview.result()->samples.yAxis.unit, QString("ppm"));
     QCOMPARE(reads.size(), 0); // Label-only edits reuse the current samples.
     y->setCurrentIndex(y->findData(2));
@@ -986,7 +1000,7 @@ void InteractionSafetyTests::filePreviewFollowsAllEditorOptions()
     x->setCurrentIndex(x->findData(1));
     QTRY_COMPARE(preview.state(), FilePreviewLoader::State::Ready);
     QCOMPARE(preview.result()->samples.x, QVector<double>({10, 20, 30}));
-    QCOMPARE(document.fileOptions(sources.root(), a), persisted); // Preview never applies drafts.
+    QTRY_VERIFY(document.fileOptions(sources.root(), a) != persisted); // Workflow and preview use the same committed options.
     const auto activate = [](QComboBox *box, const QVariant &value)
     {
         box->setCurrentIndex(box->findData(value));

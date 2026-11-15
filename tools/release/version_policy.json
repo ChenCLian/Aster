@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "current_documents": ["*.md", "docs/**/*.md"],
+  "exclude": ["docs/history/**", "docs/validation_results/**", "docs/development/CHANGELOG_*.md"],
+  "required_headers": [
+    "README.md", "RELEASE_NOTES.md", "QUICK_START.md", "FAQ.md",
+    "docs/README.md", "docs/USER_GUIDE.md", "docs/USER_GUIDE_EN.md",
+    "docs/methods/cwt.md", "docs/Aster_development_checklist.md", "docs/numeric_backends.md",
+    "docs/building.md", "docs/architecture.md", "docs/add_task.md", "docs/task_catalogue.md",
+    "docs/ui/plotting.md", "docs/ui/live_preview.md", "docs/development/cross_spectrum_contract.md",
+    "docs/development/documentation.md", "docs/development/plotting.md",
+    "docs/development/workflow_preview.md", "docs/release_maintenance_zh.md",
+    "docs/dependency_materials_zh.md", "docs/development/cross_spectrum_interfaces.md",
+    "docs/development/batch_joint_analysis.md", "docs/validation_current.md",
+    "docs/reference/task_parameters.md", "docs/reference/task_parameters_en.md"
+  ]
+}

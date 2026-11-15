@@ -19,7 +19,7 @@ namespace aster {
 
 TaskDescriptor MtmTask::descriptor()
 {
-    // Version 7 estimator is unchanged; the absolute output limit is an additive option.
+    // Version 7 estimator and parameter semantics are unchanged; peak schema is reported separately.
     TaskDescriptor d; d.version = 7; d.label = "Multitaper spectrum (MTM)"; d.category = taskCategory(TaskCategory::PowerSpectrum);
     d.inputKind = DataKind::Series; d.defaultOutput = "spectrum";
     d.outputs = {{"spectrum", "Power spectrum", DataKind::Spectrum, true}, {"peaks", "Detected peaks", DataKind::Table, true}};
@@ -116,6 +116,8 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     if (!spectrum.converged) result.warnings.push_back("Adaptive MTM reached the iteration limit");
     science_detail::initializeGsl();
     RedNoiseConf ar1;
+    FDRSpectralAnalysisResult swa;
+    bool swaEvaluated = false;
     const bool hasPower = std::any_of(spectrum.power.begin(), spectrum.power.end(), [](double p) { return p > 0; });
     if (m_ar1 && hasPower) {
         try {
@@ -133,7 +135,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     if (context.cancellation.isCancelled()) return NodeResult::cancelled();
     if (m_swa && hasPower) {
         try {
-            const auto swa = FDR_TEST(spectrum.power, spectrum.frequency, m_nw, inference);
+            swa = FDR_TEST(spectrum.power, spectrum.frequency, m_nw, inference);
             result.report["fdr_test_count"] = double(swa.testCount);
             result.report["fdr_dependence_correction"] = swa.dependenceCorrection;
             result.report["swa_window_bins"] = swa.diagnostics.window;
@@ -143,6 +145,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
             add("swa_99", swa.chiConf.chi99); add("swa_999", swa.chiConf.chi999);
             add("fdr_05", swa.fdrConf.clfdr5); add("fdr_01", swa.fdrConf.clfdr1);
             add("fdr_001", swa.fdrConf.clfdr01); add("fdr_0001", swa.fdrConf.clfdr001);
+            swaEvaluated = true;
             if (swa.diagnostics.shortFallback) result.warnings.push_back("Short spectrum: SWA uses a constant log-mean background");
         } catch (const std::exception& e) {
             for (const auto& key : QStringList{"swa_background", "swa_90", "swa_95", "swa_99", "swa_999", "fdr_05", "fdr_01", "fdr_001", "fdr_0001"}) result.outputs.remove(key);
@@ -154,13 +157,19 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     options.relativeProminence=m_relativeProminence;
     options.minWidth=m_peakWidth;options.minHeight=m_peakHeight;options.prominenceRadius=m_peakRadius;
     const auto peaks = spectrum::findSpectrumPeaks(static_cast<int>(spectrum.power.size()), spectrum.power.data(), options);
-    TableData table{{"frequency", "period", "power", "prominence", "width_bins", "ar1_95_available", "passes_ar1_95"}, {}};
+    TableData table{{"frequency", "period", "power", "prominence", "width_bins", "passes_ar1_95", "passes_swa_95", "passes_fdr_05"}, {}};
     const bool hasAr1 = ar1.chiConf.chi95.size() == spectrum.power.size() && !ar1.chiConf.chi95.empty();
     for (const auto& peak : peaks) {
         const double frequencyValue = spectrum.frequency[peak.index];
         if (frequencyValue > 0 && size_t(peak.index) < outputBins) table.rows.push_back({frequencyValue, 1.0 / frequencyValue, peak.height, peak.prominence,
-            peak.width, hasAr1 ? 1.0 : 0.0, hasAr1 && peak.height > ar1.chiConf.chi95[peak.index] ? 1.0 : 0.0});
+            peak.width,
+            hasAr1 ? (peak.height > ar1.chiConf.chi95[peak.index] ? 1.0 : 0.0) : -1.0,
+            swaEvaluated ? (peak.height > swa.chiConf.chi95[peak.index] ? 1.0 : 0.0) : -1.0,
+            swaEvaluated ? double(swa.passesFdr05[peak.index]) : -1.0});
     }
+    result.report["peak_schema_version"] = 2;
+    result.report["peak_test_codes"] = QJsonObject{{"passed", 1}, {"not_passed", 0}, {"not_evaluated", -1}};
+    result.report["fdr_evaluated"] = swaEvaluated;
     result.report["peak_count"]=table.rows.size();
     result.report["peak_detection"]=QJsonObject{{"algorithm","prominence_width_distance"},{"minimum_prominence",m_prominence},
         {"relative_prominence_fraction",m_relativeProminence},{"effective_minimum_prominence",spectrum::spectrumProminenceThreshold(int(spectrum.power.size()),spectrum.power.data(),options)},

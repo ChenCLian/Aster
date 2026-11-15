@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     {
         QJsonArray parameters, outputs;
         for (const auto &p : d.parameters)
-            parameters.append(QJsonObject{{"key", p.key}, {"label", p.label},
+            if (!p.editorHidden) parameters.append(QJsonObject{{"key", p.key}, {"label", p.label},
                 {"help", p.help}, {"default", p.defaultValue},
                 {"choices", QJsonArray::fromStringList(p.choices)},
                 {"numeric", p.kind == aster::ParameterKind::Number ||

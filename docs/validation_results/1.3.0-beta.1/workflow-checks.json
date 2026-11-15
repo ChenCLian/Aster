@@ -1,0 +1,46 @@
+{
+  "workflow_yaml": "passed",
+  "run_steps_shell_syntax": [
+    "Initialize build logs",
+    "Check release version and documentation",
+    "Install Linux dependencies",
+    "Install macOS dependencies",
+    "Show build environment",
+    "Check release tooling",
+    "Configure",
+    "Build",
+    "Check generated parameter references",
+    "Run regression tests",
+    "Package Linux",
+    "Package macOS",
+    "Resolve package path"
+  ],
+  "package_scripts_shell_syntax": "passed",
+  "matrix": [
+    {
+      "target": "linux-x64",
+      "os": "ubuntu-22.04",
+      "qt-host": "linux",
+      "qt-arch": "linux_gcc_64",
+      "arch": "x86_64",
+      "archive-ext": "tar.gz"
+    },
+    {
+      "target": "macos-arm64",
+      "os": "macos-15",
+      "qt-host": "mac",
+      "qt-arch": "clang_64",
+      "arch": "arm64",
+      "archive-ext": "zip"
+    },
+    {
+      "target": "macos-x86_64",
+      "os": "macos-15-intel",
+      "qt-host": "mac",
+      "qt-arch": "clang_64",
+      "arch": "x86_64",
+      "archive-ext": "zip"
+    }
+  ],
+  "native_actions_execution": "not_run"
+}

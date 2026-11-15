@@ -21,6 +21,8 @@
 #include <QResizeEvent>
 #include <QPainter>
 #include <QStyleOption>
+#include <QJsonDocument>
+#include <QMessageBox>
 namespace aster::ui
 {
 namespace
@@ -133,6 +135,23 @@ WorkflowPreviewPanel::WorkflowPreviewPanel(WorkflowDocument *doc, QWidget *paren
     connect(m_fit, &QToolButton::clicked, m_resultPlot, &PlotView::fit);
     connect(m_legend, &QToolButton::toggled, m_resultPlot, &PlotView::setLegend);
     connect(m_retry, &QToolButton::clicked, m_controller, &WorkflowPreviewController::retry);
+    connect(m_resultPlot,&PlotView::pointDecisionRequested,this,[this](const QString &fingerprint,int index,int decision) {
+        const auto *node=m_document->node(m_controller->node());
+        if (!node || node->method!="outlier_handling" || m_document->editingLocked() ||
+            m_controller->state()!=WorkflowPreviewController::State::Ready || !m_displayed ||
+            fingerprint!=m_displayed->output.report["outlier_input_fingerprint"].toString()) return;
+        const auto item=m_controller->parameterScope();
+        auto parameters=effectiveParameters(*node,item);
+        auto overrides=QJsonDocument::fromJson(parameters["point_overrides"].toString().toUtf8()).object();
+        if (overrides["fingerprint"].toString()!=fingerprint) overrides={};
+        auto points=overrides["points"].toObject();
+        if (decision<0) points.remove(QString::number(index)); else points[QString::number(index)]=decision==1;
+        if (points.size()>5000) { QMessageBox::information(this,text("method.outlier_handling"),text("ui.point_limit")); return; }
+        parameters["point_overrides"]=points.isEmpty() ? QString() : QString::fromUtf8(QJsonDocument(
+            QJsonObject{{"fingerprint",fingerprint},{"points",points}}).toJson(QJsonDocument::Compact));
+        const auto result=m_document->setScopedParameters(node->id,item,parameters);
+        if (!result.ok()) QMessageBox::information(this,text("method.outlier_handling"),result.error);
+    });
     updateState();
 }
 void WorkflowPreviewPanel::setFile(const QString &path, const QJsonObject &options, bool ready)
@@ -159,6 +178,7 @@ void WorkflowPreviewPanel::updateState()
         else ++it;
     using State = WorkflowPreviewController::State;
     const auto state = m_controller->state();
+    m_resultPlot->setPointReviewEnabled(state==State::Ready && !m_document->editingLocked());
     const auto *node = m_document->node(m_controller->node());
     const auto *entry = node ? m_document->model().registry().find(node->method) : nullptr;
     m_method->setText(entry ? methodLabel(entry->descriptor) : text("ui.preview_choose_node"));

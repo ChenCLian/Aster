@@ -250,6 +250,13 @@ FDRSpectralAnalysisResult FDR_TEST(const std::vector<double>& power, const std::
     result.testCount = pValues.size();
     result.dependenceCorrection = harmonic(inference.acycle ? static_cast<size_t>(nw) : pValues.size());
     const auto cutoffs = inference.acycle ? acycleFdrCutoffs(pValues,nw) : spectralFdrCutoffs(pValues);
+    result.passesFdr05.assign(power.size(), -1);
+    size_t testedIndex = 0;
+    for (size_t i = 0; i < power.size(); ++i) {
+        if (!inference.tested.empty() && !inference.tested[i]) continue;
+        result.passesFdr05[i] = !std::isnan(cutoffs[0]) && pValues[testedIndex] <= cutoffs[0] ? 1 : 0;
+        ++testedIndex;
+    }
     const std::array<std::vector<double>*,4> curves{&result.fdrConf.clfdr5,&result.fdrConf.clfdr1,&result.fdrConf.clfdr01,&result.fdrConf.clfdr001};
     for (size_t q = 0; q < cutoffs.size(); ++q) {
         if (std::isnan(cutoffs[q])) continue; // no discoveries, not a failed calculation

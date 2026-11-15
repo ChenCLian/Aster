@@ -23,7 +23,7 @@ class HeatmapStyleEditor : public QWidget
     void setStatus(const QString &status, bool available);
     void setAutomaticRange(double lower, double upper);
   private:
-    QComboBox *m_gradient, *m_mapping, *m_pixels;
+    QComboBox *m_gradient, *m_mapping, *m_pixels, *m_quantity;
     QCheckBox *m_reverse, *m_bar, *m_manual, *m_contour;
     QSpinBox *m_levels;
     QLineEdit *m_lower, *m_upper;

@@ -1,6 +1,6 @@
 # 源码构建与开发
 
-适用版本：Aster 1.2.0-beta.7。
+适用版本：Aster 1.3.0-beta.1。
 
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 
@@ -55,7 +55,7 @@ make -j4
 
 程序版本的统一入口是根目录 [VERSION](../VERSION)。修改版本或图标构建配置后，重新运行 qmake 并构建。完整版本通过生成头文件编入程序；版本文件变更会触发 qmake 更新及相关源文件重新编译。
 
-升级旧源码或发现界面版本与源码不一致时，使用新的 Release 构建目录编译整个根工程，避免沿用旧对象文件。打包脚本不编译源码，只复制 `BuildDir/bin/Aster.exe`；修改输出目录名、导出源码或收集材料均不会更新这个 EXE。发布前打开实际程序包，在“设置”中核对完整版本（包括 `beta` 后缀）。
+升级旧源码或发现界面版本与源码不一致时，使用新的 Release 构建目录编译整个根工程，避免沿用旧对象文件。打包脚本不编译源码，只部署现有构建产物（Windows 为 `BuildDir/bin/Aster.exe`，Linux 为 `BuildDir/bin/Aster`，macOS 为 `BuildDir/bin/Aster.app`）；修改输出目录名、导出源码或收集材料均不会重新编译程序。发布前打开实际程序包，在“设置”中核对完整版本（包括 `beta` 后缀）。
 
 - **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `Aster-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
 - **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1 -DependencyMode Stage` 部署 EXE、Qt 插件和第三方 DLL，再单独收集依赖源码与许可材料。已有同版本匹配材料时可用默认的 `Reuse` 模式离线复用；`Collect` 模式一次完成部署与收集。操作见[依赖材料说明](dependency_materials_zh.md#windows-本机打包)。项目源码通过独立导出命令生成普通目录。发布前应在未安装开发环境的 Windows 主机测试。

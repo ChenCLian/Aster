@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.2.0-beta.7",
+  "version": "1.3.0-beta.1",
   "update_mode": "public_github_release_check_and_browser_download",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -44,7 +44,9 @@
     "docs/development/documentation.md",
     "docs/development/plotting.md",
     "docs/development/workflow_preview.md",
-    "docs/methods/cwt.md"
+    "docs/methods/cwt.md",
+    "docs/methods/outliers_and_transforms.md",
+    "docs/development/CHANGELOG_1.3.0.md"
   ],
   "release_checks": [
     "Exact compiled application version, including prerelease suffix, matches source VERSION, release tag and package label",
@@ -58,19 +60,14 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "record": "docs/validation_results/1.2.0-beta.7/interaction_checks.json",
+    "status": "beta_source_ready_native_package_acceptance_pending",
+    "record": "docs/validation_results/1.3.0-beta.1/checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.2.0-beta.7",
+    "logs": "docs/validation_results/1.3.0-beta.1",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Focused parameter/method help interaction: no hover descriptions; existing clickable help, keyboard access and accessible descriptions preserved. Calculations and defaults unchanged.",
-    "previous_version_record": "docs/validation_results/1.2.0-beta.6/evolution_checks.json",
-    "previous_version_summary": "docs/validation.md",
-    "preceding_development_record": "docs/validation_results/1.2.0-alpha.21/probe_checks.json",
-    "previous_maintainer_acceptance": {
-      "status": "reported_temporarily_passed",
-      "date": "2026-11-07",
-      "scope": "Local acceptance reported by the maintainer; no new cross-platform or final-binary logs supplied."
-    }
+    "scope": "Beta Release rebuild; all 12 Qt regression programs; release tooling, documentation and CI/script checks. Native archives pending.",
+    "previous_version_record": "docs/validation_results/1.3.0-alpha.9/checks.json",
+    "previous_version_summary": "docs/validation_results/1.3.0-alpha.9/checks.json"
   },
   "help": {
     "local": "compiled Qt resources",
@@ -81,7 +78,8 @@
       "Settings/User guide",
       "method help",
       "parameter help",
-      "Settings/License"
+      "Settings/License",
+      "Input list selection help"
     ],
     "reference_languages": [
       "zh",
@@ -106,17 +104,19 @@
   },
   "release_channel": "beta",
   "development": {
-    "feature": "paired Welch cross-spectral analysis across ordinary branches and source roots",
+    "feature": "Beta stabilization and release preparation",
     "stage": "beta_validation",
-    "framework": "1.2.0 feature scope available; platform-specific final package checks remain separate",
+    "framework": "1.3.0 workflow parameter overrides and point-review metadata; existing numeric buffers remain shared",
     "desktop_feature_available": true,
     "remaining": [
-      "Native title dragging, divider resizing and high-DPI layout acceptance",
-      "Windows/MSVC, macOS and final Linux native package acceptance",
-      "Final package, matching source and dependency-material publication checks"
+      "Run Build desktop packages on the beta commit for all three targets",
+      "Accept each final package on a clean native host; macOS signing/Gatekeeper and Linux X11/XWayland",
+      "Build the beta Windows executable and verify compiled version and packaging",
+      "Complete manual focus/cancel and multi-monitor acceptance when available",
+      "Verify actual release source/dependency assets and existing third-party/data redistribution requirements before public binary release"
     ],
-    "scope": "Desktop and APIs: explicit ordinary-node references across branches/source roots in one workspace; no pair-after-pair or live saved-batch links.",
-    "record": "docs/development/cross_spectrum_interfaces.md",
+    "scope": "Filename-only separated node scope, independent input import settings, explicit window/padding controls and display-only square-root power.",
+    "record": "docs/development/CHANGELOG_1.3.0.md",
     "cross_node_ui_available": true,
     "out_of_scope": [
       "Structural rewrites directly involving joint nodes",
@@ -129,41 +129,43 @@
     "masked_tables": 2
   },
   "documentation_review": {
-    "date": "2026-11-08",
-    "version": "1.2.0-beta.7",
-    "status": "passed_with_platform_limits",
-    "record": "docs/validation_results/1.2.0-beta.7/documentation_checks.json",
-    "embedded_help_rebuild_required": true,
-    "algorithm_or_limit_changes": false,
-    "scope": "Version labels and help-entry wording; detailed parameter documentation retained."
+    "date": "2026-11-15",
+    "version": "1.3.0-beta.1",
+    "status": "version_links_content_and_embedded_help_checked",
+    "record": "docs/validation_results/1.3.0-beta.1/documentation_checks.json",
+    "embedded_help_rebuild_required": false,
+    "scope": "Current beta documentation, release tags, local links, embedded bilingual help and Windows acceptance provenance checked.",
+    "previous_record": "docs/validation_results/1.3.0-alpha.9/documentation_checks.json"
   },
   "release_tooling_review": {
-    "date": "2026-11-08",
-    "version": "1.2.0-beta.5",
-    "status": "real_homebrew_bottle_source_notice_collection_verified_native_archive_pending",
-    "record": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json",
+    "date": "2026-11-15",
+    "version": "1.3.0-beta.1",
+    "status": "local_tests_and_workflow_lint_passed_native_archives_pending",
+    "record": "docs/validation_results/1.3.0-beta.1/checks.json",
     "application_code_changed": false,
-    "preceding_record": "docs/validation_results/1.2.0-beta.5/homebrew_materials_checks_20261108.json"
+    "preceding_record": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json"
   },
   "plot_interaction_review": {
-    "date": "2026-11-08",
-    "version": "1.2.0-beta.5",
-    "status": "macos_arm64_native_regression_passed_linux_reported_passed",
-    "record": "docs/validation_results/1.2.0-beta.5/viewport_ci_checks_20261108.json",
-    "application_code_changed": true,
-    "application_rebuild_required": true,
-    "algorithm_or_limit_changes": false,
-    "preceding_record": "docs/validation_results/1.2.0-beta.5/shared_test_header_checks_20261108.json",
-    "latest_native_evidence": "docs/validation_results/1.2.0-beta.5/homebrew_bottle_checks_20261108.json"
+    "date": "2026-11-15",
+    "version": "1.3.0-alpha.9",
+    "record": "docs/validation_results/1.3.0-alpha.9/checks.json",
+    "status": "linux_offscreen_passed_and_user_windows_manual_subset_passed",
+    "application_rebuild_required": false,
+    "previous_record": "docs/validation_results/1.3.0-alpha.5/checks.json",
+    "windows_followup_record": "docs/validation_results/1.3.0-beta.1/windows-evidence.json"
   },
   "ci_regression_review": {
-    "date": "2026-11-08",
-    "version": "1.2.0-beta.7",
-    "status": "affected_suites_passed_native_ci_rerun_pending",
-    "record": "docs/validation_results/1.2.0-beta.7/ci_checks_20261108.json",
-    "application_code_changed": false,
-    "tests_updated": 3,
-    "full_affected_suites_passed": 1018,
-    "overlay_repeat_rounds": 20
+    "date": "2026-11-15",
+    "version": "1.3.0-beta.1",
+    "status": "linux_release_regressions_passed_cloud_ci_not_run",
+    "record": "docs/validation_results/1.3.0-beta.1/checks.json",
+    "previous_record": "docs/validation_results/1.3.0-alpha.5/checks.json"
+  },
+  "windows_acceptance_review": {
+    "date": "2026-11-15",
+    "source_version": "1.3.0-alpha.9",
+    "record": "docs/validation_results/1.3.0-beta.1/windows-evidence.json",
+    "status": "returned_automated_and_manual_subset_passed",
+    "beta_binary_retested": false
   }
 }

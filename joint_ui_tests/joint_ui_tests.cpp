@@ -948,6 +948,11 @@ void JointUiTests::scopedManifestReplay()
     const auto datasets=f.doc.datasets(f.root);
     const BatchPair other{QUuid::createUuid(),"other",{datasets[1].id,"default"},{datasets[2].id,"default"}};
     QVERIFY(f.doc.setPairs(f.joint,{f.group(),other}).isEmpty());
+    auto parameters=f.doc.node(f.joint)->parameters;
+    parameters["psd_window"]=128; parameters["psd_overlap"]=64;
+    QVERIFY(f.doc.setScopedParameters(f.joint,other.id,parameters).ok());
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),f.pair)["psd_window"].toInt(),64);
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),other.id)["psd_window"].toInt(),128);
     const auto child=f.doc.addChild(f.joint,ChildSlot::Down,"pass_table_test",{},"cross_spectrum").nodeId;
     const auto plan=f.doc.plan().batches.front();
     const auto manifest=plan->manifest(f.pair);
@@ -964,16 +969,29 @@ void JointUiTests::scopedManifestReplay()
     WorkflowModel model(registry());QVERIFY(model.replaceDefinition(decoded.definition).ok());
     const auto rebuilt=prepareBatch(model.freeze().snapshot,f.root,{datasets[0],datasets[1]},grouping.grouping);
     QVERIFY2(rebuilt.validation.ok(),qPrintable(rebuilt.validation.message()));
-    QByteArray original,replayed;
+    QByteArray original,replayed,otherResult;
     BatchObserver first,second;
-    first.completed=[&](const BatchJob &j,const NodeResult &r){if(j.node==child&&j.item==f.pair)original=encodeData(r.outputs["table"]).bytes;};
+    first.completed=[&](const BatchJob &j,const NodeResult &r){
+        if(j.node==child&&j.item==f.pair)original=encodeData(r.outputs["table"]).bytes;
+        if(j.node==child&&j.item==other.id)otherResult=encodeData(r.outputs["table"]).bytes;
+    };
     second.completed=[&](const BatchJob &j,const NodeResult &r){if(j.node==child&&j.item==f.pair)replayed=encodeData(r.outputs["table"]).bytes;};
     QCOMPARE(BatchWorkflowExecutor().run(plan,{},first).state,RunState::Succeeded);
     QCOMPARE(BatchWorkflowExecutor().run(rebuilt.snapshot,{},second).state,RunState::Succeeded);
     QVERIFY(!original.isEmpty());QCOMPARE(replayed,original);
+    QVERIFY(!otherResult.isEmpty()); QVERIFY(otherResult!=original);
+    const auto otherManifest=plan->manifest(other.id);
+    const auto otherDecoded=workflowFromJson(otherManifest["workflow"].toObject());
+    QVERIFY(otherDecoded.validation.ok());
+    for(const auto &node:otherDecoded.definition.nodes) if(node.id==f.joint)
+        QCOMPARE(effectiveParameters(node,other.id)["psd_window"].toInt(),128);
     QVERIFY(plan->manifest(QUuid::createUuid()).isEmpty());
     QCOMPARE(plan->manifest()["datasets"].toArray().size(),3);
     QCOMPARE(batchGroupingFromJson(plan->manifest()["grouping"].toObject()).grouping[f.joint].size(),2);
+    QVERIFY(f.doc.setPairs(f.joint,{f.group()}).isEmpty());
+    QVERIFY(!f.doc.node(f.joint)->parameterOverrides.contains(other.id));
+    QVERIFY(f.doc.undo().ok());
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),other.id)["psd_window"].toInt(),128);
 }
 void JointUiTests::orbitalPairPorts()
 {

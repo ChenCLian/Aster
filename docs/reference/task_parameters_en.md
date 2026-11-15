@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.2.0-beta.7. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.3.0-beta.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -51,6 +51,7 @@ Choice labels match the interface; identifiers used in saved settings are retain
 - [ODP 926B · carbon isotopes δ13C](#m-odp926_d13c)
 - [ODP 926B · lightness L\*](#m-odp926_lightness)
 - [La2004 orbital curves](#m-orbital_source)
+- [Outlier detection and handling](#m-outlier_handling)
 - [PT-ZB18a obliquity and precession](#m-precession_tilt_source)
 - [Sort, deduplicate and resample](#m-preprocess)
 - [Sampling and gap inspection](#m-sampling_check)
@@ -63,6 +64,7 @@ Choice labels match the interface; identifiers used in saved settings are retain
 - [Standardize (Z-score)](#m-standardize)
 - [Synthetic orbital proxy](#m-synthetic_orbital)
 - [Taner band-pass and envelope](#m-taner_filter)
+- [Value transformation](#m-value_transform)
 - [Welch power spectrum](#m-welch_spectrum)
 
 <a id="m-affine"></a>
@@ -1121,6 +1123,26 @@ Outputs: ` correlation_map `, ` best_rate `, ` best_correlation `, ` window_diag
 
 One-sided power spectral density in complete moving windows. X must be strictly increasing and regularly spaced. Optional normalization by each window's maximum power is off by default. No significance test.
 
+<a id="m-evolution_fft-p-evo_window_mode"></a>
+### Window definition
+
+Use samples or a percentage of the input coordinate span. Existing workflows retain sample-based defaults.
+
+Default: Samples (` samples `)
+
+Values: Samples (` samples `), Percentage of input span (` span_percent `)
+
+<a id="m-evolution_fft-p-evo_window_percent"></a>
+### Window / input span (%)
+
+Window samples L=round((N−1)*percent/100). At least 8 samples; increase the percentage for short inputs. No silent enlargement. Actual endpoint span is (L−1)*dx.
+
+Default: ` 20 `
+
+Range: ` 0.01 ≤ evo_window_percent ≤ 100 `
+
+Shown when: ` evo_window_mode ` = ` span_percent `
+
 <a id="m-evolution_fft-p-evo_window"></a>
 ### Window samples
 
@@ -1129,6 +1151,28 @@ Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and t
 Default: ` 128 `
 
 Range: ` 8 ≤ evo_window ≤ 262144 `
+
+Shown when: ` evo_window_mode ` = ` samples `
+
+<a id="m-evolution_fft-p-evo_step_mode"></a>
+### Step definition
+
+Enter step samples directly or derive them from adjacent-window overlap.
+
+Default: Samples (` samples `)
+
+Values: Samples (` samples `), Overlap (` overlap `)
+
+<a id="m-evolution_fft-p-evo_overlap_percent"></a>
+### Window overlap (%)
+
+Step S=max(1,round(L*(1−overlap/100))). The report records actual overlap after rounding. High overlap gives a more continuous map; adjacent windows are not independent observations.
+
+Default: ` 99.2 `
+
+Range: ` 0 ≤ evo_overlap_percent ≤ 99.99 `
+
+Shown when: ` evo_step_mode ` = ` overlap `
 
 <a id="m-evolution_fft-p-evo_step"></a>
 ### Step samples
@@ -1139,6 +1183,28 @@ Default: ` 16 `
 
 Range: ` 1 ≤ evo_step ≤ 262144 `
 
+Shown when: ` evo_step_mode ` = ` samples `
+
+<a id="m-evolution_fft-p-evo_fft_mode"></a>
+### FFT length definition
+
+Enter FFT samples directly or use a multiple of the window samples.
+
+Default: Explicit FFT samples (` length `)
+
+Values: Explicit FFT samples (` length `), Window sample multiplier (` multiple `)
+
+<a id="m-evolution_fft-p-evo_padding"></a>
+### FFT / window samples
+
+FFT samples = window samples × multiplier. Zero padding densifies frequency bins without improving true resolving power. Memory and work limits still apply.
+
+Default: ` 4 `
+
+Range: ` 1 ≤ evo_padding ≤ 32 `
+
+Shown when: ` evo_fft_mode ` = ` multiple `
+
 <a id="m-evolution_fft-p-evo_nfft"></a>
 ### FFT length
 
@@ -1147,6 +1213,8 @@ Range: ` 1 ≤ evo_step ≤ 262144 `
 Default: ` 0 `
 
 Range: ` 0 ≤ evo_nfft ≤ 262144 `
+
+Shown when: ` evo_fft_mode ` = ` length `
 
 <a id="m-evolution_fft-p-evo_trend"></a>
 ### Local detrending
@@ -1182,6 +1250,13 @@ Off by default, preserving physical PSD. When enabled, divide each window by its
 
 Default: ` false `
 
+<a id="m-evolution_fft-p-evo_amplitude"></a>
+### Default map: amplitude display
+
+Display the map as square root of power with smooth rendering. With per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Change the display in heatmap styles.
+
+Default: ` false `
+
 <a id="m-evolution_fft-p-evo_taper"></a>
 ### FFT taper
 
@@ -1199,6 +1274,26 @@ Outputs: ` power_map `, ` mean_spectrum `
 
 Adaptive MTM spectra in complete moving windows. Optional normalization by each window's maximum power is off by default. The map describes power variation with position; no whole-map significance test is provided.
 
+<a id="m-evolution_mtm-p-evo_window_mode"></a>
+### Window definition
+
+Use samples or a percentage of the input coordinate span. Existing workflows retain sample-based defaults.
+
+Default: Samples (` samples `)
+
+Values: Samples (` samples `), Percentage of input span (` span_percent `)
+
+<a id="m-evolution_mtm-p-evo_window_percent"></a>
+### Window / input span (%)
+
+Window samples L=round((N−1)*percent/100). At least 8 samples; increase the percentage for short inputs. No silent enlargement. Actual endpoint span is (L−1)*dx.
+
+Default: ` 20 `
+
+Range: ` 0.01 ≤ evo_window_percent ≤ 100 `
+
+Shown when: ` evo_window_mode ` = ` span_percent `
+
 <a id="m-evolution_mtm-p-evo_window"></a>
 ### Window samples
 
@@ -1207,6 +1302,28 @@ Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and t
 Default: ` 128 `
 
 Range: ` 8 ≤ evo_window ≤ 262144 `
+
+Shown when: ` evo_window_mode ` = ` samples `
+
+<a id="m-evolution_mtm-p-evo_step_mode"></a>
+### Step definition
+
+Enter step samples directly or derive them from adjacent-window overlap.
+
+Default: Samples (` samples `)
+
+Values: Samples (` samples `), Overlap (` overlap `)
+
+<a id="m-evolution_mtm-p-evo_overlap_percent"></a>
+### Window overlap (%)
+
+Step S=max(1,round(L*(1−overlap/100))). The report records actual overlap after rounding. High overlap gives a more continuous map; adjacent windows are not independent observations.
+
+Default: ` 99.2 `
+
+Range: ` 0 ≤ evo_overlap_percent ≤ 99.99 `
+
+Shown when: ` evo_step_mode ` = ` overlap `
 
 <a id="m-evolution_mtm-p-evo_step"></a>
 ### Step samples
@@ -1217,6 +1334,28 @@ Default: ` 16 `
 
 Range: ` 1 ≤ evo_step ≤ 262144 `
 
+Shown when: ` evo_step_mode ` = ` samples `
+
+<a id="m-evolution_mtm-p-evo_fft_mode"></a>
+### FFT length definition
+
+Enter FFT samples directly or use a multiple of the window samples.
+
+Default: Explicit FFT samples (` length `)
+
+Values: Explicit FFT samples (` length `), Window sample multiplier (` multiple `)
+
+<a id="m-evolution_mtm-p-evo_padding"></a>
+### FFT / window samples
+
+FFT samples = window samples × multiplier. Zero padding densifies frequency bins without improving true resolving power. Memory and work limits still apply.
+
+Default: ` 4 `
+
+Range: ` 1 ≤ evo_padding ≤ 32 `
+
+Shown when: ` evo_fft_mode ` = ` multiple `
+
 <a id="m-evolution_mtm-p-evo_nfft"></a>
 ### FFT length
 
@@ -1225,6 +1364,8 @@ Range: ` 1 ≤ evo_step ≤ 262144 `
 Default: ` 0 `
 
 Range: ` 0 ≤ evo_nfft ≤ 262144 `
+
+Shown when: ` evo_fft_mode ` = ` length `
 
 <a id="m-evolution_mtm-p-evo_trend"></a>
 ### Local detrending
@@ -1257,6 +1398,13 @@ Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
 ### Normalize each window
 
 Off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum become dimensionless relative power. This aids comparison of periodic structure but removes absolute power differences between windows. The output frequency limit does not change the normalization reference.
+
+Default: ` false `
+
+<a id="m-evolution_mtm-p-evo_amplitude"></a>
+### Default map: amplitude display
+
+Display the map as square root of power with smooth rendering. With per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Change the display in heatmap styles.
 
 Default: ` false `
 
@@ -1694,7 +1842,7 @@ Outputs: ` series `
 <a id="m-mtm"></a>
 ## Multitaper spectrum (MTM)
 
-Multitaper power spectral estimation for regular sampling. Peak tables describe local maxima; AR1/SWA thresholds and FDR curves require their respective statistical assumptions.
+Multitaper power spectra require regular sampling. AR1 95% and SWA 95% are approximate pointwise thresholds, not global spectrum tests. FDR q=0.05 uses a bandwidth dependence correction; a fitted background does not guarantee an actual 5% false discovery rate. Peak outcomes: 1 passed, 0 not passed, -1 not evaluated or unavailable. Local peaks alone do not establish significant cycles.
 
 <a id="m-mtm-p-nw"></a>
 ### Time-bandwidth NW
@@ -2016,6 +2164,74 @@ Default: ` 1 `
 Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
 
 Outputs: ` eccentricity `, ` obliquity `, ` precession `
+
+
+<a id="m-outlier_handling"></a>
+## Outlier detection and handling
+
+Detect unusual values using Hampel local MAD, global MAD, or Y bounds. Mark only is the default and leaves values unchanged. Exclusion and local-median replacement are explicit choices; source files remain unchanged.
+The MAD rule is |y−median| > multiplier × 1.4826 × MAD. When MAD is zero, values differing from the median are flagged. Genuine geological events can be flagged; detection is a screening aid. Windows count neighboring samples and do not infer hiatus boundaries.
+Right-click a curve in this node’s preview to keep, exclude, or restore automatic classification of a point. Decisions belong only to the current dataset and expire when input values change. In the decision log, action is 0 kept, 1 excluded, 2 replaced; score=-1 means unavailable. Excluded result_value entries are -1 and must be interpreted with action. Exclusion does not fill gaps; subsequent equally-spaced analyses may require explicit resampling.
+
+<a id="m-outlier_handling-p-outlier_method"></a>
+### Detection method
+
+Hampel targets local spikes. Global MAD compares the whole record and may flag trends or different stratigraphic regimes. Bounds use the original Y unit.
+
+Default: Hampel (local MAD) (` hampel `)
+
+Values: Hampel (local MAD) (` hampel `), Global MAD (` mad `), Y bounds (` bounds `)
+
+<a id="m-outlier_handling-p-outlier_window"></a>
+### Local window (points)
+
+An odd window of at least 3 points. Edges use available neighbors. Used by Hampel detection and local-median replacement; short windows may flag genuine short-period signals.
+
+Default: ` 11 `
+
+Range: ` 3 ≤ outlier_window ≤ 1001 `
+
+<a id="m-outlier_handling-p-outlier_threshold"></a>
+### MAD threshold multiplier
+
+Multiplier of 1.4826 × MAD, default 3. With zero MAD, values differing from the median are flagged. Not used by bounds detection.
+
+Default: ` 3 `
+
+Range: ` 0.1 ≤ outlier_threshold ≤ 1000 `
+
+<a id="m-outlier_handling-p-outlier_lower"></a>
+### Lower Y bound
+
+Values below this bound are flagged; equality is retained. Uses the Y unit.
+
+Default: ` -1e+100 `
+
+Range: ` -1e+100 ≤ outlier_lower ≤ 1e+100 `
+
+Shown when: ` outlier_method ` = ` bounds `
+
+<a id="m-outlier_handling-p-outlier_upper"></a>
+### Upper Y bound
+
+Values above this bound are flagged; equality is retained. Uses the Y unit.
+
+Default: ` 1e+100 `
+
+Range: ` -1e+100 ≤ outlier_upper ≤ 1e+100 `
+
+Shown when: ` outlier_method ` = ` bounds `
+
+<a id="m-outlier_handling-p-outlier_action"></a>
+### Action on detected points
+
+Mark only is the default. Exclusion removes X/Y pairs without filling gaps. Replacement uses the original local-window median. Both record all point decisions. Manual keep/exclude decisions take precedence.
+
+Default: Mark only (` mark `)
+
+Values: Mark only (` mark `), Exclude detected points (` exclude `), Replace with local median (` median `)
+
+Outputs: ` series `, ` original `, ` outliers `, ` outlier_audit `
 
 
 <a id="m-precession_tilt_source"></a>
@@ -2590,6 +2806,33 @@ Default: ` 12 `
 Range: ` 0.001 ≤ rolloff_exponent ≤ 20 `
 
 Outputs: ` filtered `, ` envelope `, ` filter_response `
+
+
+<a id="m-value_transform"></a>
+## Value transformation
+
+Compute ln(y/s), log10(y/s), asinh(y/s), or tanh(y/s), with positive scale s. X is unchanged and output is dimensionless. Logarithms require all Y > 0; no offset is added automatically. asinh accepts positive, negative, and zero values and compresses large magnitudes. tanh maps values to −1…1 and saturates at extremes.
+These transformations change amplitude meaning and downstream statistics. They do not classify outliers or fill missing intervals. Record the function and scale and compare against the original record.
+
+<a id="m-value_transform-p-value_transform"></a>
+### Transformation
+
+Logarithms require positive values. asinh handles signed values; tanh is bounded and saturates. Transformation is not outlier removal.
+
+Default: Inverse hyperbolic sine (asinh) (` asinh `)
+
+Values: Natural logarithm (ln) (` ln `), Base-10 logarithm (` log10 `), Inverse hyperbolic sine (asinh) (` asinh `), Hyperbolic tangent (tanh) (` tanh `)
+
+<a id="m-value_transform-p-transform_scale"></a>
+### Scale parameter
+
+Positive scale in the input Y unit. The function acts on y/s and returns a dimensionless value. Choose the scale for the research question; it is not estimated automatically.
+
+Default: ` 1 `
+
+Range: ` 1e-100 ≤ transform_scale ≤ 1e+100 `
+
+Outputs: ` series `
 
 
 <a id="m-welch_spectrum"></a>

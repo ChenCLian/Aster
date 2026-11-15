@@ -1,0 +1,11 @@
+{
+  "version": "1.3.0-alpha.7",
+  "documentation": {
+    "status": "passed",
+    "version_and_sync_tests": 13,
+    "help_generator_tests": 7,
+    "catalogue": "56 tasks / 259 parameters; generated references current",
+    "body_preservation": "README, FAQ, Chinese and English user guides verified byte-for-byte after version-token substitution",
+    "manual_changes": "Release-maintenance and documentation-maintenance instructions updated; release notes rewritten to one paragraph."
+  }
+}

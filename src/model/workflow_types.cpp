@@ -4,6 +4,21 @@
 #include <QStringList>
 
 namespace aster {
+QJsonObject effectiveParameters(const NodeDefinition &node, const QUuid &item)
+{
+    auto result = node.parameters;
+    const auto changes = node.parameterOverrides.constFind(item);
+    if (changes != node.parameterOverrides.cend())
+        for (auto it = changes->begin(); it != changes->end(); ++it) result[it.key()] = it.value();
+    return result;
+}
+NodeDefinition resolvedNode(NodeDefinition node, const QUuid &item)
+{
+    node.parameters = effectiveParameters(node,item);
+    node.parameterOverrides.clear();
+    return node;
+}
+
 bool validPosition(GridPosition p)
 {
     return p.column >= -GridCoordinateLimit && p.column <= GridCoordinateLimit &&

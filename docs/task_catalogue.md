@@ -1,6 +1,6 @@
 # Aster 任务分类
 
-适用版本：Aster 1.2.0-beta.7。
+适用版本：Aster 1.3.0-beta.1。
 
 任务目录由注册描述生成。下表说明分类原则；实际可用任务与可见性以当前注册表为准。
 
@@ -56,3 +56,5 @@ auto d = task_detail::seriesTransform("My filter",
 ## 验证
 
 任务目录与画布菜单共享注册分类。当前数值与交互回归见 [验证记录](validation_current.md)。单击展开分类，双击或拖动任务将其加入画布。
+
+异常值识别与处理位于“数据处理 → 数据整理”，数值变换位于“数据处理 → 幅度”。用法与结果含义见[方法说明](methods/outliers_and_transforms.md)。

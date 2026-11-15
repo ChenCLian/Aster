@@ -37,6 +37,11 @@ HeatmapStyleEditor::HeatmapStyleEditor(QWidget *parent) : QWidget(parent)
     palette->addRow(m_bar);
     auto *mapping = new StyleSection(text("ui.heatmap_mapping"));
     layout->addWidget(mapping);
+    m_quantity = new ChoiceEditor;
+    m_quantity->setObjectName("heatmapQuantity");
+    m_quantity->addItems({text("ui.heatmap_original"), text("ui.heatmap_amplitude")});
+    m_quantity->setToolTip(text("ui.heatmap_amplitude_hint"));
+    mapping->addRow(text("ui.heatmap_quantity"), m_quantity);
     m_mapping = new ChoiceEditor;
     m_mapping->setObjectName("heatmapMapping");
     m_mapping->addItems({text("ui.heatmap_linear"), text("ui.heatmap_log")});
@@ -46,6 +51,7 @@ HeatmapStyleEditor::HeatmapStyleEditor(QWidget *parent) : QWidget(parent)
     mapping->addRow(note);
     m_manual = new QCheckBox(text("ui.fixed_color_range"));
     m_manual->setObjectName("heatmapManual");
+    connect(m_quantity, qOverload<int>(&QComboBox::activated), this, [this] { m_manual->setChecked(false); });
     mapping->addRow(m_manual);
     auto number = [](const char *name)
     {
@@ -95,6 +101,7 @@ void HeatmapStyleEditor::load(const PlotStyle &s, const QString &status, bool av
     m_reverse->setChecked(s.colorReverse); m_levels->setValue(s.colorLevels);
     m_bar->setChecked(s.colorScaleVisible);
     m_mapping->setCurrentIndex(s.colorLog ? 1 : 0);
+    m_quantity->setCurrentIndex(s.colorAmplitude ? 1 : 0);
     m_pixels->setCurrentIndex(s.colorInterpolate ? 1 : 0);
     m_manual->setChecked(s.colorManual);
     m_lower->setText(QString::number(s.colorLower, 'g', 15));
@@ -122,6 +129,7 @@ void HeatmapStyleEditor::store(PlotStyle &s) const
     s.colorGradient = m_gradient->currentIndex(); s.colorReverse = m_reverse->isChecked();
     s.colorLevels = m_levels->value(); s.colorScaleVisible = m_bar->isChecked();
     s.colorLog = m_mapping->currentIndex() == 1; s.colorInterpolate = m_pixels->currentIndex() == 1;
+    s.colorAmplitude = m_quantity->currentIndex() == 1;
     s.colorManual = m_manual->isChecked();
     auto number = [](QLineEdit *e) { bool ok = false; auto v = QLocale::c().toDouble(e->text(), &ok);
         return ok ? v : std::numeric_limits<double>::quiet_NaN(); };

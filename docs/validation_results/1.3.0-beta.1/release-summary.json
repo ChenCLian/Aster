@@ -1,0 +1,110 @@
+[
+  {
+    "name": "core",
+    "returncode": 0,
+    "seconds": 0.96,
+    "passed": 66,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-core.log"
+  },
+  {
+    "name": "batch",
+    "returncode": 0,
+    "seconds": 0.67,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-batch.log"
+  },
+  {
+    "name": "analysis",
+    "returncode": 0,
+    "seconds": 66.23,
+    "passed": 699,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-analysis.log"
+  },
+  {
+    "name": "cross_spectrum",
+    "returncode": 0,
+    "seconds": 0.37,
+    "passed": 80,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-cross_spectrum.log"
+  },
+  {
+    "name": "ui",
+    "returncode": 0,
+    "seconds": 74.11,
+    "passed": 878,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-ui.log"
+  },
+  {
+    "name": "joint_ui",
+    "returncode": 0,
+    "seconds": 9.25,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-joint_ui.log"
+  },
+  {
+    "name": "rewrite",
+    "returncode": 0,
+    "seconds": 2.42,
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-rewrite.log"
+  },
+  {
+    "name": "linked_input",
+    "returncode": 0,
+    "seconds": 2.22,
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-linked_input.log"
+  },
+  {
+    "name": "style_export",
+    "returncode": 0,
+    "seconds": 14.51,
+    "passed": 56,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-style_export.log"
+  },
+  {
+    "name": "workspace",
+    "returncode": 0,
+    "seconds": 34.47,
+    "passed": 83,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-workspace.log"
+  },
+  {
+    "name": "integration",
+    "returncode": 0,
+    "seconds": 22.59,
+    "passed": 87,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-integration.log"
+  },
+  {
+    "name": "update",
+    "returncode": 0,
+    "seconds": 6.31,
+    "passed": 51,
+    "failed": 0,
+    "skipped": 0,
+    "log": "release-update.log"
+  }
+]

@@ -20,6 +20,8 @@ struct ParameterSpec {
     QString group{}, help{}, icon{};
     QJsonObject visibleWhen{}; // all named parameters must equal these values
     QString fileFilter{}; // optional file chooser for Text parameters; empty = ordinary text
+    bool editorHidden = false; // Structured metadata edited by dedicated point-review controls.
+    bool perDatasetOnly = false; // Never broadcast input-specific decisions to other datasets.
     bool hideWhenDefault = false; // Compatibility fields stay visible only when configured.
 };
 struct OutputSpec {

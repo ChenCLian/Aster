@@ -1,0 +1,10 @@
+{
+  "reference": "scipy.signal.find_peaks / peak_prominences / peak_widths",
+  "scipy": "1.17.0",
+  "cases": 900,
+  "all_passed": true,
+  "seed": 3403,
+  "coverage": "random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (Aster suppression order intentionally differs)",
+  "prominence_rtol": 2e-13,
+  "width_rtol": 2e-12
+}

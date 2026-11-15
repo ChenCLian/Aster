@@ -4,6 +4,7 @@
 #define ASTER_FILE_OPTIONS_EDITOR_H
 #include "io/files/series_file_reader.h"
 #include <QWidget>
+#include <QTimer>
 class QComboBox;
 class QLineEdit;
 class QCheckBox;
@@ -23,8 +24,10 @@ class FileOptionsEditor : public QWidget
     QJsonObject options() const;
     bool ready() const;
     void notifyPreviewInput();
+    void flushEdits();
   signals:
-    void applyRequested(QJsonObject options, bool toSelection);
+    void editStarted();
+    void optionsEdited(QString path, QJsonObject options);
     void readinessChanged(bool ready);
     void previewInputChanged(QString path, QJsonObject options, bool ready);
 
@@ -32,6 +35,7 @@ class FileOptionsEditor : public QWidget
     void requestProbe();
     void startProbe();
     void refreshPreview();
+    void markDirty();
     QString m_path;
     QJsonObject m_loadedOptions;
     bool m_initialized = false;
@@ -43,7 +47,8 @@ class FileOptionsEditor : public QWidget
     QLineEdit *m_xUnit, *m_yUnit;
     QCheckBox *m_skip;
     QLabel *m_info;
-    QPushButton *m_apply, *m_applySelection;
+    QTimer m_commitTimer;
+    bool m_dirty = false;
     QThread *m_worker = nullptr;
     quint64 m_generation = 0;
     bool m_pending = false;

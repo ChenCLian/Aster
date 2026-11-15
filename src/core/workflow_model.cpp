@@ -35,6 +35,12 @@ ValidationResult validateWorkflow(const WorkflowDefinition& d, const TaskRegistr
             if (node.methodVersion != entry->descriptor.version) result.add(path, QStringLiteral("Method version mismatch"));
             const auto params = registry.normalize(node.method, node.parameters);
             for (const auto& issue : params.validation.issues) result.add(path + QLatin1Char('/') + issue.path, issue.message);
+            if (node.parameterOverrides.size() > 10000) result.add(path,"Too many parameter overrides");
+            for (auto it=node.parameterOverrides.cbegin();it!=node.parameterOverrides.cend();++it) {
+                if (it.key().isNull()) result.add(path,"Missing parameter scope identity");
+                const auto scoped = registry.normalize(node.method,effectiveParameters(node,it.key()));
+                for (const auto &issue : scoped.validation.issues) result.add(path+"/"+it.key().toString()+"/"+issue.path,issue.message);
+            }
             if (entry->descriptor.inputKind.has_value() != node.input.has_value())
                 result.add(path, QStringLiteral("A source must be a root; a transform must have a parent"));
         }

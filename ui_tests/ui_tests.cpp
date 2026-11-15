@@ -58,6 +58,7 @@
 #include <QKeySequence>
 #include <QToolButton>
 #include <QFileDialog>
+#include <QDialogButtonBox>
 #include <QLineEdit>
 #include <QGraphicsItem>
 #include <QWheelEvent>
@@ -213,10 +214,28 @@ class UiTests : public QObject
     void closeWaitsForDatabaseEdits();
     void fileOptionsRemainPerInput();
     void directoryServiceQueriesAndMutations();
+    void directoryServiceReentrantEnqueue();
+    void directoryServiceReentrantEnqueue_data();
+    void directoryServiceDestroyedByObserver();
+    void recordNameExportIncludesUnloadedRows();
+    void recordNameExportButtonAndDialog();
     void nodeActionsAndFrequencyFilter();
     void initTestCase();
     void draftBindingsSurviveUndo();
     void sourceBindingsAreSeparate();
+    void scopedParametersAndMove();
+    void scopedParameterEditAcceptsBorrowedNodeId();
+    void scopedEditingAndPointReview();
+    void movedInputKeepsNavigationAndHistory();
+    void outlierLegendUsesDisplayLabels();
+    void scopedMetadataDoesNotCopySamples();
+    void batchImportSkipsIncompatibleFiles();
+    void batchImportCapturesSelectionAndLatestEdit();
+    void batchImportKeyboardMouseScope();
+    void batchImportPreservesConcurrentOptions();
+    void sourceActionsFitNarrowPanel();
+    void acyclePresetIsEditable();
+    void batchImportDoesNotModifyReimportedDataset();
     void hierarchicalTaskMenu();
     void astronomySourcesUseSharedUi();
     void parameterValuesAreIndependent();
@@ -255,6 +274,7 @@ void UiTests::helpCatalogueCoverageAndContext()
             QVERIFY2(localHelpAvailable(methodHelpTopic(d.key)), qPrintable(d.key));
             for (const auto &p : d.parameters)
             {
+                if (p.editorHidden) continue;
                 const QString context = d.key + '.' + p.key;
                 QVERIFY2(!parameterHelp(p, d.key).isEmpty(), qPrintable(context));
                 QVERIFY2(!parameterHelp(p, d.key).startsWith("parameterhelp."), qPrintable(context));
@@ -1060,6 +1080,8 @@ void UiTests::fullWindowRunUsesEditedParameters()
     QCOMPARE(window.document()->model().definition().nodes.size(), 6);
     auto *spin = window.findChild<QDoubleSpinBox *>("parameter_nw");
     QVERIFY(spin);
+    const auto editedItem=window.findChild<SourcePanel *>()->currentSource().provenance["dataset_id"].toString();
+    QVERIFY(!editedItem.isEmpty());
     spin->setValue(4);
     QSignalSpy loaded(window.results(), &ResultsPage::recordLoaded);
     QTRY_VERIFY(window.findChild<SourcePanel *>()->readyToRun());
@@ -1076,10 +1098,18 @@ void UiTests::fullWindowRunUsesEditedParameters()
     QVERIFY(repo.open(settings.databasePath).isEmpty());
     auto run = repo.load(window.results()->recordId());
     QVERIFY(run.ok());
-    auto def = workflowFromJson(run.run.workflowSnapshot).definition;
-    for (const auto &n : def.nodes)
-        if (n.method == "mtm")
-            QCOMPARE(n.parameters["nw"].toInt(), 4);
+    int editedRecords=0;
+    for (const auto &record : repo.list().records) {
+        const auto saved=repo.load(record.id); QVERIFY(saved.ok());
+        const bool edited=saved.run.provenance["dataset_id"].toString()==editedItem;
+        if (edited) ++editedRecords;
+        const auto def=workflowFromJson(saved.run.workflowSnapshot).definition;
+        for (const auto &n : def.nodes) if (n.method=="mtm") {
+            QCOMPARE(n.parameters["nw"].toInt(),edited ? 4 : 3);
+            QVERIFY(n.parameterOverrides.isEmpty()); // Saved run contains its actual settings.
+        }
+    }
+    QCOMPARE(editedRecords,1);
     auto *steps = window.findChild<QTableWidget *>("resultSteps");
     QCOMPARE(steps->rowCount(), 6);
     window.results()->selectStep(4, true);
@@ -1194,6 +1224,48 @@ void UiTests::fileOptionsRemainPerInput()
     QVERIFY(
         editor.findChild<QLabel *>("fileProbeInfo")->text().contains(QString::fromUtf8("无表头")));
 }
+void UiTests::directoryServiceReentrantEnqueue()
+{
+    QFETCH(bool,onMutation);
+    QTemporaryDir dir; const auto path=dir.filePath("directory.sqlite");
+    qint64 id;
+    { ResultRepository repo; QVERIFY(repo.open(path).isEmpty()); id=repo.save(storedRun("original")).recordId; }
+    RecordDirectoryService service;
+    QSignalSpy busy(&service,&RecordDirectoryService::busyChanged);
+    QSignalSpy edited(&service,&RecordDirectoryService::edited);
+    bool queued=false;
+    connect(&service,onMutation ? &RecordDirectoryService::mutationBusyChanged : &RecordDirectoryService::busyChanged,this,[&](bool active) {
+        if (active && !queued) { queued=true; service.edit(path,id,"second",{}); }
+    });
+    service.edit(path,id,"first",{});
+    QCOMPARE(busy.size(),1);
+    QTRY_COMPARE_WITH_TIMEOUT(edited.size(),2,10000);
+    QCOMPARE(busy.size(),2);
+    QVERIFY(!busy.last()[0].toBool());
+    QVERIFY(edited[0][3].toString().isEmpty());
+    QVERIFY(edited[1][3].toString().isEmpty());
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    QCOMPARE(repo.list().records.first().displayName,QString("second"));
+}
+
+void UiTests::directoryServiceReentrantEnqueue_data()
+{
+    QTest::addColumn<bool>("onMutation");
+    QTest::newRow("busy-notification")<<false;
+    QTest::newRow("mutation-notification")<<true;
+}
+
+void UiTests::directoryServiceDestroyedByObserver()
+{
+    QTemporaryDir dir; const auto path=dir.filePath("directory.sqlite");
+    { ResultRepository repo; QVERIFY(repo.open(path).isEmpty()); }
+    QPointer<RecordDirectoryService> service=new RecordDirectoryService;
+    connect(service,&RecordDirectoryService::namesExported,this,[&](QString,qint64,QString) { delete service.data(); });
+    service->exportNames(path,{},dir.filePath("names.csv"));
+    QTRY_VERIFY(service.isNull());
+    QVERIFY(QFileInfo::exists(dir.filePath("names.csv")));
+}
+
 void UiTests::directoryServiceQueriesAndMutations()
 {
     QTemporaryDir dir;
@@ -1236,6 +1308,77 @@ void UiTests::directoryServiceQueriesAndMutations()
     QTRY_COMPARE(edits, 2);
     QTRY_COMPARE(lists, 3);
     QVERIFY(last.records.isEmpty());
+}
+void UiTests::recordNameExportIncludesUnloadedRows()
+{
+    QTemporaryDir dir;
+    const auto database=dir.filePath("db.sqlite"), csv=dir.filePath("names.csv");
+    ResultRepository repo; QVERIFY(repo.open(database).isEmpty());
+    for(int i=0;i<105;++i) {
+        auto run=storedRun(QString("record %1").arg(i));
+        if(i==0) run.provenance["path"]="C:\\data\\中文,\"名字\".csv";
+        if(i==104) run.sourceLabel="pair A / B";
+        QVERIFY(repo.save(run).saved());
+    }
+    QCOMPARE(repo.list().records.size(),100); QVERIFY(repo.list().hasMore);
+    RecordDirectoryService service;
+    QSignalSpy exported(&service,&RecordDirectoryService::namesExported);
+    service.exportNames(database,{},csv);
+    QTRY_COMPARE(exported.size(),1);
+    QVERIFY(exported[0][2].toString().isEmpty()); QCOMPARE(exported[0][1].toLongLong(),105);
+    QFile output(csv); QVERIFY(output.open(QIODevice::ReadOnly)); const auto bytes=output.readAll(); output.close();
+    QVERIFY(bytes.startsWith(QByteArray::fromHex("efbbbf")+"ID,Filename\r\n"));
+    QCOMPARE(bytes.count('\n'),106);
+    QVERIFY(bytes.contains("105,\"pair A / B\"\r\n"));
+    QVERIFY(bytes.contains(QString::fromUtf8("1,\"中文,\"\"名字\"\".csv\"\r\n").toUtf8()));
+    QVERIFY(!bytes.contains("C:"));
+    RecordFilter filter; filter.text="pair A";
+    qint64 count=0;
+    QVERIFY(repo.exportRecordNames(filter,csv,&count).isEmpty()); QCOMPARE(count,1);
+    QVERIFY(output.open(QIODevice::ReadOnly)); const auto filtered=output.readAll(); output.close();
+    CancellationToken cancelled; cancelled.cancel();
+    QVERIFY(!repo.exportRecordNames({},csv,&count,cancelled).isEmpty()); QCOMPARE(count,0);
+    QVERIFY(output.open(QIODevice::ReadOnly)); QCOMPARE(output.readAll(),filtered); output.close();
+    QVERIFY(!repo.exportRecordNames({},database).isEmpty());
+    QVERIFY(!repo.exportRecordNames({},database+"-wal").isEmpty());
+    QCOMPARE(repo.list(1000).records.size(),105);
+    filter.text="absent";
+    QVERIFY(repo.exportRecordNames(filter,csv,&count).isEmpty()); QCOMPARE(count,0);
+    service.exportNames(dir.filePath("missing.sqlite"),{},csv);
+    QTRY_COMPARE(exported.size(),2); QVERIFY(!exported[1][2].toString().isEmpty());
+    QVERIFY(!QFileInfo::exists(dir.filePath("missing.sqlite")));
+}
+void UiTests::recordNameExportButtonAndDialog()
+{
+    QTemporaryDir dir;
+    const auto database=dir.filePath("db.sqlite"), csv=dir.filePath("chosen.csv");
+    { ResultRepository repo; QVERIFY(repo.open(database).isEmpty()); QVERIFY(repo.save(storedRun("sample")).saved()); }
+    RecordDirectoryPanel panel; panel.resize(330,700); panel.setDatabase(database); panel.show();
+    auto *button=panel.findChild<QPushButton*>("exportRecordNames"); QVERIFY(button);
+    auto *remove=panel.findChild<QPushButton*>("deleteCheckedRecords"); QVERIFY(remove);
+    QTRY_VERIFY(button->isEnabled()); QVERIFY(panel.checkedRecords().isEmpty());
+    QVERIFY(button->geometry().left()>remove->geometry().left());
+    QSignalSpy messages(&panel,&RecordDirectoryPanel::message);
+    const bool wasNativeDisabled=QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
+    QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,true);
+    struct RestoreDialogs { bool value; ~RestoreDialogs() { QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,value); } } restore{wasNativeDisabled};
+    bool sawDialog=false;
+    QTimer closer;
+    connect(&closer,&QTimer::timeout,this,[&] {
+        if(auto *dialog=qobject_cast<QFileDialog*>(QApplication::activeModalWidget())) {
+            sawDialog=true;
+            if(auto *name=dialog->findChild<QLineEdit*>("fileNameEdit")) name->setText(csv);
+            QMetaObject::invokeMethod(dialog,"accept",Qt::DirectConnection);
+        } else if(auto *notice=qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) notice->accept();
+    });
+    closer.start(20);
+    button->click();
+    QVERIFY(sawDialog);
+    QTRY_VERIFY(QFileInfo::exists(csv));
+    QTRY_VERIFY(!messages.isEmpty());
+    QTRY_VERIFY(button->isEnabled());
+    QFile file(csv); QVERIFY(file.open(QIODevice::ReadOnly));
+    QVERIFY(file.readAll().contains("1,\"sample\""));
 }
 void UiTests::nodeActionsAndFrequencyFilter()
 {
@@ -1740,7 +1883,7 @@ void UiTests::previewUsesDraftFileOptionsAndAutoParameters()
     // No Apply click. Draft is the preview input; normal Run flushes exactly the same options.
     auto *factor=window.findChild<ParameterEditor*>()->findChild<QDoubleSpinBox*>("parameter_factor");QVERIFY(factor);
     factor->setValue(4);factor->setValue(5);factor->setValue(3);
-    QTRY_COMPARE(window.document()->node(child)->parameters["factor"].toDouble(),3.);
+    QTRY_COMPARE(effectiveParameters(*window.document()->node(child),window.document()->datasets(child).front().id)["factor"].toDouble(),3.);
     QTRY_COMPARE(c->state(),WorkflowPreviewController::State::Ready);
     QCOMPARE(dataAs<SeriesData>(c->result()->output.outputs["series"])->y,QVector<double>({30,60,90}));
     QSignalSpy started(c,&WorkflowPreviewController::started);
@@ -2469,7 +2612,7 @@ void UiTests::verticalLayoutPreservesWorkflow()
     WorkflowDefinition longChain;
     NodeId parent;
     for (int i = 0; i < 10000; ++i) {
-        NodeDefinition n{QUuid::createUuid(), "demean", 1, {}, std::nullopt};
+        NodeDefinition n{QUuid::createUuid(), "demean", 1, {}, std::nullopt, {}};
         if (!parent.isNull()) n.input = InputBinding{parent, "series", ChildSlot::Down};
         parent = n.id; longChain.nodes.push_back(n);
     }
@@ -3161,6 +3304,7 @@ void UiTests::parameterRoundTrip_data()
         if (d.key == "file_source") continue;
         for (const auto &p : d.parameters)
         {
+            if (p.editorHidden) continue;
             QList<QJsonValue> values;
             if (p.kind == ParameterKind::Number)
             {
@@ -3191,7 +3335,9 @@ void UiTests::parameterRoundTrip()
     ParameterEditor editor; editor.showNode(&n, registry);
     // Viewing a task, or editing another field later, must not alter any saved value.
     QCOMPARE(editor.parameters(), n.parameters);
-    QVERIFY(editor.findChild<QWidget *>("parameter_" + key)->toolTip().isEmpty());
+    auto *field = editor.findChild<QWidget *>("parameter_" + key);
+    QVERIFY(field);
+    QVERIFY(field->toolTip().isEmpty());
     QVERIFY(editor.findChild<QLabel *>("parameterLabel_" + key)->toolTip().isEmpty());
     QVERIFY(editor.findChild<QToolButton *>("methodHelp")->toolTip().isEmpty());
     for (auto *button : editor.findChildren<QToolButton *>("ParameterHelp"))
@@ -3237,7 +3383,7 @@ void UiTests::scientificParametersReachPreviewAndRun()
     QTest::keyClick(factor, Qt::Key_Return);
     auto *controller = window.findChild<WorkflowPreviewPanel *>()->controller();
     QTRY_COMPARE(controller->state(), WorkflowPreviewController::State::Ready);
-    QVERIFY(window.document()->node(target)->parameters["factor"].toDouble() == 1e-15);
+    QVERIFY(effectiveParameters(*window.document()->node(target),root)["factor"].toDouble() == 1e-15);
     const auto before = controller->result(); QVERIFY(before);
     const auto *source = dataAs<SeriesData>(before->original.outputs["series"]);
     const auto *preview = dataAs<SeriesData>(before->output.outputs["series"]);
@@ -3479,4 +3625,402 @@ void UiTests::outputPickerWorkflowBinding()
     QCoreApplication::processEvents();
     QVERIFY(!pending || !pending->isVisible());
     QCOMPARE(doc->model().definition().nodes.size(), 1);
+}
+
+void UiTests::scopedParameterEditAcceptsBorrowedNodeId()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("sine_source").nodeId;
+    const auto child=doc.addChild(root,ChildSlot::Down,"affine").nodeId;
+    // Deliberately pass an identifier stored inside the graph being replaced.
+    const auto result=doc.setScopedParameters(doc.node(child)->id,root,{{"factor",3.}});
+    QVERIFY2(result.ok(),qPrintable(result.error));
+    QCOMPARE(result.nodeId,child);
+    QCOMPARE(effectiveParameters(*doc.node(child),root)["factor"].toDouble(),3.);
+    QVERIFY(doc.undo().ok());
+    QCOMPARE(effectiveParameters(*doc.node(child),root)["factor"].toDouble(),1.);
+}
+
+void UiTests::scopedParametersAndMove()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto node=doc.addChild(root,ChildSlot::Down,"affine").nodeId;
+    const auto samples=series();
+    QVERIFY(doc.setSources(root,{{"A",samples,{}},{"B",samples,{}}}).isEmpty());
+    const auto a=doc.datasets(node)[0].id,b=doc.datasets(node)[1].id;
+    QVERIFY(doc.setScopedParameters(node,a,{{"factor",3}}).ok());
+    QCOMPARE(effectiveParameters(*doc.node(node),a)["factor"].toDouble(),3.);
+    QCOMPARE(effectiveParameters(*doc.node(node),b)["factor"].toDouble(),1.);
+    const auto plan=doc.plan(); QVERIFY(plan.validation.ok());
+    const auto encoded=workflowToJson(doc.model().definition());
+    QCOMPARE(encoded["schema_version"].toInt(),2);
+    const auto decoded=workflowFromJson(encoded); QVERIFY(decoded.validation.ok());
+    QCOMPARE(decoded.definition.nodes[1].parameterOverrides,doc.node(node)->parameterOverrides);
+    QVERIFY(doc.setScopedParameters(node,b,{{"factor",4}}).ok());
+    QVERIFY(doc.setScopedParameters(node,a,{{"factor",2}},true).ok());
+    QVERIFY(doc.node(node)->parameterOverrides.isEmpty());
+    QCOMPARE(effectiveParameters(*doc.node(node),a)["factor"].toDouble(),2.);
+    QVERIFY(doc.undo().ok());
+    QCOMPARE(effectiveParameters(*doc.node(node),a)["factor"].toDouble(),3.);
+    QCOMPARE(effectiveParameters(*doc.node(node),b)["factor"].toDouble(),4.);
+    const auto run=WorkflowExecutor().run(plan.requests.front());
+    QCOMPARE(dataAs<SeriesData>(run.nodes[node].outputs["series"])->y[0],3.); // frozen before later edits
+    const auto outlier=doc.addChild(node,ChildSlot::Down,"outlier_handling").nodeId;
+    const QString choice="{\"fingerprint\":\"sample\",\"points\":{\"0\":true}}";
+    QVERIFY(doc.setScopedParameters(outlier,a,{{"point_overrides",choice}}).ok());
+    QVERIFY(doc.setScopedParameters(outlier,b,{{"outlier_threshold",5}},true).ok());
+    QCOMPARE(effectiveParameters(*doc.node(outlier),a)["point_overrides"].toString(),choice);
+    QCOMPARE(effectiveParameters(*doc.node(outlier),b)["point_overrides"].toString(),QString());
+    const auto sources=doc.sources().value(root);
+    QVERIFY(doc.setSources(root,{sources.back()}).isEmpty());
+    QVERIFY(!doc.node(outlier)->parameterOverrides.contains(a));
+    QVERIFY(!doc.node(node)->parameterOverrides.contains(a));
+    QVERIFY(doc.undo().ok());
+    QCOMPARE(effectiveParameters(*doc.node(outlier),a)["point_overrides"].toString(),choice);
+    WorkflowDocument files(makeScientificRegistry());
+    auto first=files.addRoot("file_source").nodeId;
+    files.setFiles(first,{"/tmp/a.csv","/tmp/b.csv"});
+    const auto child=files.addChild(first,ChildSlot::Down,"affine").nodeId;
+    const auto moved=files.datasets(first).front().id;
+    QVERIFY(files.setScopedParameters(child,moved,{{"factor",7}}).ok());
+    const auto move=files.moveDatasets(first,{}, {moved},true); QVERIFY2(move.ok(),qPrintable(move.error));
+    QCOMPARE(files.files(first).size(),1); QCOMPARE(files.files(move.nodeId).size(),1);
+    NodeId copy;
+    for(const auto &n:files.model().definition().nodes) if(n.input && n.input->parent==move.nodeId) copy=n.id;
+    QVERIFY(!copy.isNull()); QCOMPARE(effectiveParameters(*files.node(copy),moved)["factor"].toDouble(),7.);
+    QVERIFY(!files.node(child)->parameterOverrides.contains(moved));
+    QCOMPARE(files.datasets(move.nodeId).front().id,moved);
+    QVERIFY(files.undo().ok()); QCOMPARE(files.files(first).size(),2); QVERIFY(!files.node(copy));
+    QCOMPARE(effectiveParameters(*files.node(child),moved)["factor"].toDouble(),7.);
+    auto target=files.addRoot("file_source").nodeId;
+    auto targetChild=files.addChild(target,ChildSlot::Down,"affine",{{"factor",9}}).nodeId;
+    QVERIFY(files.moveDatasets(first,target,{moved},false).ok());
+    QCOMPARE(effectiveParameters(*files.node(targetChild),moved)["factor"].toDouble(),9.);
+    const auto revision=files.revision();
+    QVERIFY(!files.moveDatasets(first,target,{moved},false).ok()); QCOMPARE(files.revision(),revision);
+}
+void UiTests::movedInputKeepsNavigationAndHistory()
+{
+    QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("moves.sqlite");
+    const auto a=dir.filePath("a.csv"),b=dir.filePath("b.csv");
+    for (const auto &path:{a,b}) {
+        QFile file(path); QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("x,y\n0,1\n1,3\n2,2\n3,4\n");
+    }
+    MainWindow window(settings,false); window.resize(1364,950); window.show();
+    auto *sources=window.findChild<SourcePanel*>(); sources->addFiles({a,b});
+    QTRY_VERIFY(sources->readyToRun());
+    auto *doc=window.document(); const auto first=sources->root();
+    const auto child=doc->addChild(first,ChildSlot::Down,"affine").nodeId;
+    const auto bid=doc->datasets(child)[1].id;
+    sources->selectDataset(first,bid); window.canvas()->nodeSelected(child);
+    QTRY_VERIFY(sources->readyToRun());
+    auto *editor=window.findChild<ParameterEditor*>();
+    editor->findChild<QDoubleSpinBox*>("parameter_factor")->setValue(7);
+    // Open and accept immediately: the still-debounced edit must reach the copy.
+    QTest::mouseClick(sources->findChild<QPushButton*>("moveSourceInputs"),Qt::LeftButton);
+    auto *dialog=sources->findChild<QDialog*>("moveInputsDialog"); QVERIFY(dialog && dialog->isVisible());
+    QPointer<QDialog> oldDialog=dialog;
+    QTest::mouseClick(dialog->findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok),Qt::LeftButton);
+    QTRY_VERIFY(oldDialog.isNull());
+    const auto second=sources->root(); QVERIFY(second!=first);
+    QCOMPARE(window.canvas()->selectedNode(),second);
+    QCOMPARE(QUuid(sources->currentSource().provenance["dataset_id"].toString()),bid);
+    QVERIFY(window.canvas()->viewport()->rect().contains(window.canvas()->mapFromScene(window.canvas()->nodeRect(second).center())));
+    NodeId copy;
+    for (const auto &n:doc->model().definition().nodes) if (n.input && n.input->parent==second) copy=n.id;
+    QVERIFY(!copy.isNull()); QCOMPARE(effectiveParameters(*doc->node(copy),bid)["factor"].toDouble(),7.);
+    window.canvas()->nodeSelected(copy);
+    auto *undo=window.findChild<QPushButton*>("undoWorkflowEdit"), *redo=window.findChild<QPushButton*>("redoWorkflowEdit");
+    QVERIFY(undo && redo); QTest::mouseClick(undo,Qt::LeftButton);
+    QCOMPARE(sources->root(),first); QCOMPARE(window.canvas()->selectedNode(),first);
+    QCOMPARE(QUuid(sources->currentSource().provenance["dataset_id"].toString()),bid);
+    QCOMPARE(effectiveParameters(*doc->node(child),bid)["factor"].toDouble(),7.);
+    QTest::mouseClick(redo,Qt::LeftButton);
+    QCOMPARE(sources->root(),second); QCOMPARE(window.canvas()->selectedNode(),second);
+    QCOMPARE(QUuid(sources->currentSource().provenance["dataset_id"].toString()),bid);
+    QTRY_VERIFY(sources->readyToRun());
+    QTest::mouseClick(sources->findChild<QPushButton*>("moveSourceInputs"),Qt::LeftButton);
+    dialog=sources->findChild<QDialog*>("moveInputsDialog"); QVERIFY(dialog && dialog->isVisible());
+    auto *target=dialog->findChild<QComboBox*>("moveInputsTarget"); QVERIFY(target);
+    target->setCurrentIndex(target->findData(first));
+    oldDialog=dialog;
+    QTest::mouseClick(dialog->findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Ok),Qt::LeftButton);
+    QTRY_VERIFY(oldDialog.isNull());
+    QCOMPARE(window.canvas()->selectedNode(),first);
+    QCOMPARE(QUuid(sources->currentSource().provenance["dataset_id"].toString()),bid); // not first existing file A
+    QTest::mouseClick(undo,Qt::LeftButton);
+    QCOMPARE(window.canvas()->selectedNode(),second); QCOMPARE(sources->root(),second);
+    QTest::mouseClick(redo,Qt::LeftButton);
+    QCOMPARE(window.canvas()->selectedNode(),first); QCOMPARE(sources->root(),first);
+    auto *controller=window.findChild<WorkflowPreviewPanel*>()->controller();
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+}
+void UiTests::outlierLegendUsesDisplayLabels()
+{
+    struct Restore { ~Restore() { setLanguage("zh"); } } restore;
+    for (const auto &language:QStringList{"zh","en"}) {
+        setLanguage(language);
+        const auto data=series();
+        const auto result=NodeResult::success({{"series",data},{"original",data},{"outliers",data}},
+                                              {{"outlier_input_fingerprint","test"}});
+        PlotView view; view.resize(700,500); view.showOutput(result,"series");
+        const auto *plot=view.findChild<QCustomPlot*>("resultPlot"); QVERIFY(plot);
+        QStringList labels;
+        for (int i=0;i<plot->graphCount();++i) labels<<plot->graph(i)->name();
+        QVERIFY(labels.contains(language=="zh" ? "原始序列" : "Original series"));
+        QVERIFY(labels.contains(language=="zh" ? "处理后的序列" : "Processed series"));
+        QVERIFY(!labels.contains("original"));
+    }
+}
+void UiTests::scopedMetadataDoesNotCopySamples()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto data=series(); QVector<SourceItem> items; items.reserve(5000);
+    for(int i=0;i<5000;++i) items.push_back({QString::number(i),data,{}});
+    QVERIFY(doc.setSources(root,items).isEmpty());
+    auto parent=root; QVector<NodeId> nodes;
+    for(int i=0;i<7;++i) { parent=doc.addChild(parent,ChildSlot::Down,"affine").nodeId; nodes.push_back(parent); }
+    const auto datasets=doc.datasets(root); auto draft=doc.beginEdit();
+    for(auto &node:draft.state.definition.nodes) if(node.id!=root)
+        for(const auto &dataset:datasets) node.parameterOverrides[dataset.id]={{"factor",2},{"offset",1}};
+    auto prepared=doc.prepareEdit(std::move(draft)); QVERIFY(prepared.validation.ok());
+    QVERIFY(doc.commitEdit(prepared.edit).ok());
+    const auto snapshot=doc.model().freeze().snapshot;
+    QVERIFY(doc.setScopedParameters(nodes.back(),datasets.front().id,{{"factor",3}}).ok());
+    for(const auto &source:doc.sources()[root]) QCOMPARE(source.data,data);
+    QVERIFY(doc.undo().ok());
+    QCOMPARE(effectiveParameters(*doc.node(nodes.back()),datasets.front().id)["factor"].toDouble(),2.);
+    const auto bytes=QJsonDocument(workflowToJson(doc.model().definition())).toJson(QJsonDocument::Compact);
+    QVERIFY(bytes.size()<5*1024*1024); // metadata only; no numerical buffers or per-dataset node clones
+    QVERIFY(snapshot);
+}
+void UiTests::batchImportSkipsIncompatibleFiles()
+{
+    QTemporaryDir dir; const auto a=dir.filePath("a.csv"),b=dir.filePath("b.csv");
+    for(const auto &item:QVector<QPair<QString,QByteArray>>{{a,"x,y,z\n0,2,4\n1,3,5\n"},{b,"x,y\n0,2\n1,3\n"}}) {
+        QFile file(item.first); QVERIFY(file.open(QIODevice::WriteOnly)); file.write(item.second);
+    }
+    WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc); panel.addFiles({a,b}); panel.resize(400,900); panel.show();
+    auto *editor=panel.findChild<FileOptionsEditor*>(); QTRY_VERIFY(editor->ready());
+    auto *files=panel.findChild<QListWidget*>("sourceFiles"); files->setCurrentRow(0); files->selectAll();
+    const auto oldB=doc.fileOptions(panel.root(),b);
+    QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
+    auto *y=editor->findChild<QComboBox*>("fileYColumn"); y->setCurrentIndex(y->findData(2));
+    QTRY_COMPARE(doc.fileOptions(panel.root(),a)["y_column"].toInt(),2);
+    QVERIFY(!editor->findChild<QPushButton*>("applyFileOptions"));
+    QVERIFY(!editor->findChild<QPushButton*>("applySelectedFileOptions"));
+    QTRY_COMPARE_WITH_TIMEOUT(done.size(),1,10000);
+    QCOMPARE(done[0][0].toStringList().size(),1); QCOMPARE(done[0][1].toStringList().size(),1);
+    QCOMPARE(doc.fileOptions(panel.root(),b),oldB);
+    for(auto *message:panel.findChildren<QMessageBox*>()) message->close();
+}
+
+void UiTests::batchImportDoesNotModifyReimportedDataset()
+{
+    QTemporaryDir dir; const auto path=dir.filePath("input.csv");
+    { QFile file(path); QVERIFY(file.open(QIODevice::WriteOnly)); file.write("x,y,z\n0,2,4\n1,3,5\n"); }
+    WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc);
+    const auto second=dir.filePath("second.csv"); QVERIFY(QFile::copy(path,second));
+    panel.addFiles({path,second});
+    auto *editor=panel.findChild<FileOptionsEditor*>(); QTRY_VERIFY(editor->ready());
+    panel.findChild<QListWidget*>("sourceFiles")->selectAll();
+    const auto root=panel.root();
+    const auto previousId=doc.datasets(root).first().id;
+    const auto before=doc.fileOptions(root,path);
+    auto desired=before; desired["y_column"]=2;
+    QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
+    auto *y=editor->findChild<QComboBox*>("fileYColumn"); y->setCurrentIndex(y->findData(2));
+    // Do not pump events until the same path belongs to a new dataset.
+    doc.setFiles(root,{second});
+    doc.setFiles(root,{path,second});
+    QVERIFY(doc.datasets(root).first().id!=previousId);
+    QTRY_COMPARE_WITH_TIMEOUT(done.size(),1,10000);
+    QCOMPARE(done[0][0].toStringList(),QStringList{second});
+    QCOMPARE(done[0][1].toStringList().size(),1);
+    QCOMPARE(doc.fileOptions(root,path),before);
+    for(auto *message:panel.findChildren<QMessageBox*>()) message->close();
+}
+
+void UiTests::batchImportCapturesSelectionAndLatestEdit()
+{
+    QTemporaryDir dir; QStringList paths;
+    for (int i=0;i<3;++i) { const auto path=dir.filePath(QString::number(i)+".csv"); paths<<path;
+        QFile f(path); QVERIFY(f.open(QIODevice::WriteOnly)); f.write("x,y\n0,2\n1,3\n"); }
+    WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc); panel.addFiles(paths);
+    auto *editor=panel.findChild<FileOptionsEditor*>(); QTRY_VERIFY(editor->ready());
+    auto *files=panel.findChild<QListWidget*>("sourceFiles"); files->setCurrentRow(0); files->item(1)->setSelected(true);
+    const auto root=panel.root(); const auto node=doc.addChild(root,ChildSlot::Down,"affine").nodeId;
+    const auto nodeParameters=doc.node(node)->parameters;
+    const auto untouched=doc.fileOptions(root,paths[2]);
+    auto *unit=editor->findChild<QLineEdit*>("fileXUnit"); QVERIFY(unit);
+    QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
+    unit->setText("ka"); editor->flushEdits();
+    unit->setText("yr"); editor->flushEdits(); // queued while the first validation runs
+    unit->setText("Ma"); // capture A/B before the delayed edit is flushed by selecting C
+    files->setCurrentRow(2,QItemSelectionModel::ClearAndSelect);
+    QTRY_COMPARE_WITH_TIMEOUT(done.size(),3,10000);
+    QTRY_VERIFY(panel.readyToRun());
+    QCOMPARE(doc.fileOptions(root,paths[0])["x_unit"].toString(),QString("Ma"));
+    QCOMPARE(doc.fileOptions(root,paths[1])["x_unit"].toString(),QString("Ma"));
+    QCOMPARE(doc.fileOptions(root,paths[2]),untouched);
+    QCOMPARE(doc.node(node)->parameters,nodeParameters);
+    for (const auto &event:done) QVERIFY(event[1].toStringList().isEmpty());
+    auto *help=panel.findChild<QToolButton*>("sourceSelectionHelp"); QVERIFY(help);
+    QTest::mouseClick(help,Qt::LeftButton);
+    auto *dialog=panel.findChild<HelpDialog*>(); QVERIFY(dialog);
+    QCOMPARE(dialog->currentTopic().anchor,QString("input-selection")); dialog->close();
+}
+void UiTests::batchImportKeyboardMouseScope()
+{
+    QTemporaryDir dir; QStringList paths;
+    QVERIFY(QDir(dir.path()).mkpath("A")); QVERIFY(QDir(dir.path()).mkpath("B"));
+    for (const auto &name:QStringList{"A/same.txt","B/same.txt","third.txt","fourth.txt"}) {
+        const auto path=dir.filePath(name); paths<<path; QFile f(path);
+        QVERIFY(f.open(QIODevice::WriteOnly)); f.write("x y\n0 1\n1 2\n2 3\n");
+    }
+    WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc);
+    panel.resize(300,800); panel.show(); panel.addFiles(paths);
+    auto *editor=panel.findChild<FileOptionsEditor*>(); QTRY_VERIFY(editor->ready());
+    const auto root=panel.root(); const auto node=doc.addChild(root,ChildSlot::Down,"affine").nodeId;
+    const auto nodeParameters=doc.node(node)->parameters;
+    const auto untouched=doc.fileOptions(root,paths[2]);
+    auto *list=panel.findChild<QListWidget*>("sourceFiles");
+    const auto click=[&](int row,Qt::KeyboardModifiers mods=Qt::NoModifier) {
+        QTest::mouseClick(list->viewport(),Qt::LeftButton,mods,list->visualItemRect(list->item(row)).center());
+    };
+    click(0); QTest::keyClick(list,Qt::Key_A,Qt::ControlModifier);
+    QCOMPARE(list->selectedItems().size(),4);
+    click(0,Qt::ControlModifier); QVERIFY(!list->item(0)->isSelected());
+    QVERIFY(!editor->isEnabled());
+    click(0); click(1,Qt::ShiftModifier); QCOMPARE(list->selectedItems().size(),2);
+    QTRY_VERIFY(editor->ready()); QVERIFY(editor->isEnabled());
+    auto *unit=editor->findChild<QLineEdit*>("fileXUnit");
+    QTest::mouseClick(unit,Qt::LeftButton); QTest::keyClick(unit,Qt::Key_A,Qt::ControlModifier);
+    QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
+    QTest::keyClicks(unit,"kyr"); click(2); // Focus loss + selection change, before debounce.
+    QTRY_COMPARE_WITH_TIMEOUT(done.size(),1,10000); QTRY_VERIFY(panel.readyToRun());
+    QCOMPARE(done[0][0].toStringList().size(),2); QVERIFY(done[0][1].toStringList().isEmpty());
+    for(int row=0;row<2;row++)QCOMPARE(doc.fileOptions(root,paths[row])["x_unit"].toString(),QString("kyr"));
+    QCOMPARE(doc.fileOptions(root,paths[2]),untouched); QCOMPARE(doc.node(node)->parameters,nodeParameters);
+    QVERIFY(doc.undo().ok());
+    for(int row=0;row<2;row++)QCOMPARE(doc.fileOptions(root,paths[row])["x_unit"].toString(),QString());
+    QVERIFY(doc.redo().ok());
+    for(int row=0;row<2;row++)QCOMPARE(doc.fileOptions(root,paths[row])["x_unit"].toString(),QString("kyr"));
+    QTRY_VERIFY(panel.readyToRun());
+    click(0);QTest::keyClick(list,Qt::Key_A,Qt::ControlModifier);
+    QTest::mouseClick(panel.findChild<QPushButton*>("removeSourceInput"),Qt::LeftButton);
+    QVERIFY(doc.files(root).isEmpty());QVERIFY(doc.undo().ok());QCOMPARE(doc.files(root),paths);
+}
+void UiTests::batchImportPreservesConcurrentOptions()
+{
+    QTemporaryDir dir; QStringList paths;
+    for(int i=0;i<2;i++){const auto path=dir.filePath(QString::number(i)+".txt");paths<<path;
+        QFile f(path);QVERIFY(f.open(QIODevice::WriteOnly));f.write("x y\n0 1\n1 2\n2 3\n");}
+    WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc);panel.addFiles(paths);
+    auto *editor=panel.findChild<FileOptionsEditor*>();QTRY_VERIFY(editor->ready());
+    auto *list=panel.findChild<QListWidget*>("sourceFiles");list->selectAll();
+    const auto root=panel.root();QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
+    editor->findChild<QLineEdit*>("fileXUnit")->setText("kyr");editor->flushEdits();
+    auto external=doc.fileOptions(root,paths[1]);external["x_unit"]="external";
+    QVERIFY(doc.setFileOptions(root,{paths[1]},external)); // Before queued worker completion is delivered.
+    QTRY_COMPARE_WITH_TIMEOUT(done.size(),1,10000);
+    QCOMPARE(done[0][0].toStringList(),QStringList{paths[0]});QCOMPARE(done[0][1].toStringList().size(),1);
+    QCOMPARE(doc.fileOptions(root,paths[0])["x_unit"].toString(),QString("kyr"));
+    QCOMPARE(doc.fileOptions(root,paths[1])["x_unit"].toString(),QString("external"));
+    for(auto *message:panel.findChildren<QMessageBox*>())message->close();
+}
+void UiTests::sourceActionsFitNarrowPanel()
+{
+    struct Restore { ~Restore(){setLanguage("zh");} } restore;
+    for(const auto &language:QStringList{"zh","en"}) {
+        setLanguage(language);WorkflowDocument doc(makeScientificRegistry());SourcePanel panel(&doc);
+        panel.resize(270,700);panel.show();QTest::qWait(10);
+        for(const auto &name:QStringList{"moveSourceInputs","removeSourceInput"}) {
+            const auto *button=panel.findChild<QPushButton*>(name);QVERIFY(button);
+            QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(language+" "+name));
+            const auto position=button->mapTo(&panel,QPoint(0,0));
+            QVERIFY(position.x()>=0 && position.x()+button->width()<=panel.width());
+        }
+    }
+}
+void UiTests::acyclePresetIsEditable()
+{
+    auto registry=makeScientificRegistry();
+    NodeDefinition node; node.id=QUuid::createUuid(); node.method="evolution_fft";
+    ParameterEditor editor; editor.showNode(&node,registry); editor.show();
+    auto *preset=editor.findChild<QPushButton*>("acycleLahPreset"); QVERIFY(preset);
+    QTest::mouseClick(preset,Qt::LeftButton);
+    QCOMPARE(editor.parameters()["evo_window_mode"].toString(),QString("span_percent"));
+    QCOMPARE(editor.parameters()["evo_overlap_percent"].toDouble(),99.2);
+    QCOMPARE(editor.parameters()["evo_padding"].toInt(),4);
+    QCOMPARE(editor.parameters()["evo_taper"].toString(),QString("rectangular"));
+    QVERIFY(editor.parameters()["evo_normalize"].toBool()); QVERIFY(editor.parameters()["evo_amplitude"].toBool());
+    QVERIFY(editor.findChild<QWidget*>("parameterRow_evo_window")->isHidden());
+    QVERIFY(!editor.findChild<QWidget*>("parameterRow_evo_window_percent")->isHidden());
+    auto *percent=editor.findChild<QDoubleSpinBox*>("parameter_evo_window_percent"); percent->setValue(30);
+    QCOMPARE(editor.parameters()["evo_window_percent"].toDouble(),30.);
+}
+
+void UiTests::scopedEditingAndPointReview()
+{
+    QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("scope.sqlite");
+    const auto a=dir.filePath("a.csv"),b=dir.filePath("b.csv");
+    for(const auto &path:{a,b}) { QFile f(path); QVERIFY(f.open(QIODevice::WriteOnly)); f.write("x,y\n0,2\n1,2\n2,2\n3,90\n4,2\n5,2\n6,2\n"); }
+    MainWindow window(settings,false); window.resize(1500,950); window.show();
+    auto *sources=window.findChild<SourcePanel*>(); sources->addFiles({a,b}); QTRY_VERIFY(sources->readyToRun());
+    auto *doc=window.document(); const auto root=sources->root();
+    const auto node=doc->addChild(root,ChildSlot::Down,"affine").nodeId;
+    const auto aid=doc->datasets(node)[0].id,bid=doc->datasets(node)[1].id;
+    auto *files=sources->findChild<QListWidget*>("sourceFiles"); files->setCurrentRow(0);
+    window.canvas()->nodeSelected(node);
+    auto *editor=window.findChild<ParameterEditor*>();
+    auto *scope=editor->findChild<QLabel*>("parameterScopeLabel"); QVERIFY(scope);
+    QVERIFY(scope->text().endsWith("a.csv")); QVERIFY(!scope->text().contains(dir.path()));
+    QVERIFY(editor->findChild<QFrame*>("parameterScopeSeparator"));
+    auto *factor=editor->findChild<QDoubleSpinBox*>("parameter_factor"); QVERIFY(factor); factor->setValue(3);
+    QTRY_COMPARE(effectiveParameters(*doc->node(node),aid)["factor"].toDouble(),3.);
+    files->setCurrentRow(1);
+    QTRY_COMPARE(editor->findChild<QDoubleSpinBox*>("parameter_factor")->value(),1.);
+    auto *all=editor->findChild<QPushButton*>("applyNodeAllData"); QVERIFY(all && all->isEnabled());
+    QTest::mouseClick(all,Qt::LeftButton);
+    QTRY_COMPARE(effectiveParameters(*doc->node(node),aid)["factor"].toDouble(),1.);
+    QVERIFY(doc->undo().ok());
+    QCOMPARE(effectiveParameters(*doc->node(node),aid)["factor"].toDouble(),3.);
+    QCOMPARE(effectiveParameters(*doc->node(node),bid)["factor"].toDouble(),1.);
+    files->setCurrentRow(0); QTRY_COMPARE(editor->findChild<QDoubleSpinBox*>("parameter_factor")->value(),3.);
+    const auto both=doc->sources().value(root);
+    QVERIFY(doc->setSources(root,{both.front()}).isEmpty());
+    QTRY_VERIFY(!editor->findChild<QPushButton*>("applyNodeAllData")->isEnabled());
+    QVERIFY(doc->setSources(root,both).isEmpty());
+    QTRY_VERIFY(editor->findChild<QPushButton*>("applyNodeAllData")->isEnabled());
+    const auto outlier=doc->addChild(node,ChildSlot::Down,"outlier_handling",{{"outlier_window",3}}).nodeId;
+    window.canvas()->nodeSelected(outlier);
+    auto *panel=window.findChild<WorkflowPreviewPanel*>(); auto *controller=panel->controller();
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+    auto *view=panel->findChild<PlotView*>("nodePreviewPlot"); QVERIFY(view);
+    QCOMPARE(controller->result()->output.report["detected_count"].toInt(),1);
+    const auto fingerprint=controller->result()->output.report["outlier_input_fingerprint"].toString();
+    view->pointDecisionRequested(fingerprint,3,0);
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+    QCOMPARE(controller->result()->output.report["selected_count"].toInt(),0);
+    const auto pointDecision=effectiveParameters(*doc->node(outlier),aid)["point_overrides"].toString(); QVERIFY(!pointDecision.isEmpty());
+    QVERIFY(effectiveParameters(*doc->node(outlier),bid)["point_overrides"].toString().isEmpty());
+    all=editor->findChild<QPushButton*>("applyNodeAllData"); QTest::mouseClick(all,Qt::LeftButton);
+    QCOMPARE(effectiveParameters(*doc->node(outlier),aid)["point_overrides"].toString(),pointDecision);
+    QVERIFY(effectiveParameters(*doc->node(outlier),bid)["point_overrides"].toString().isEmpty());
+    files->setCurrentRow(1); QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+    QCOMPARE(controller->result()->output.report["selected_count"].toInt(),1);
+    const auto generated=doc->addRoot("sine_source",{{"count",64}}).nodeId;
+    const auto scaled=doc->addChild(generated,ChildSlot::Down,"affine",{{"factor",1}}).nodeId;
+    window.canvas()->nodeSelected(scaled);
+    editor->findChild<QDoubleSpinBox*>("parameter_factor")->setValue(7);
+    QTRY_COMPARE(effectiveParameters(*doc->node(scaled),generated)["factor"].toDouble(),7.);
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,10000);
+    const auto *original=dataAs<SeriesData>(controller->result()->original.outputs["series"]);
+    const auto *output=dataAs<SeriesData>(controller->result()->output.outputs["series"]);
+    QVERIFY(original && output); QCOMPARE(output->y[1],original->y[1]*7);
+
 }

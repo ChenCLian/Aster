@@ -46,7 +46,7 @@ BatchResult runJointBatch(std::shared_ptr<const BatchSnapshot> plan, const QStri
             runIds[job.item] = run.runId;
             order << job.item;
         }
-        auto node = nodes.value(job.node);
+        auto node = resolvedNode(nodes.value(job.node),job.item);
         if (node.id == pending[job.item].root)
             node.input.reset();
         definitions[job.item].nodes << node;

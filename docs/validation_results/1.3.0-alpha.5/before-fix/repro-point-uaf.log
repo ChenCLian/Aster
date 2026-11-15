@@ -1,0 +1,487 @@
+********* Start testing of UiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : UiTests::initTestCase()
+QWARN  : UiTests::outputPopupPlacement() This plugin does not support raise()
+QWARN  : UiTests::outputPopupPlacement() This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPopupPlacement()
+QWARN  : UiTests::outputPickerInteraction(zh-light) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(zh-light) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(zh-light)
+QWARN  : UiTests::outputPickerInteraction(zh-dark) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(zh-dark) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(zh-dark)
+QWARN  : UiTests::outputPickerInteraction(en-light) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(en-light) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(en-light)
+QWARN  : UiTests::outputPickerInteraction(en-dark) This plugin does not support raise()
+QWARN  : UiTests::outputPickerInteraction(en-dark) This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerInteraction(en-dark)
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support raise()
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerFilteringAndCancellation() This plugin does not support propagateSizeHints()
+PASS   : UiTests::outputPickerFilteringAndCancellation()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support raise()
+QWARN  : UiTests::outputPickerWorkflowBinding() This plugin does not support grabbing the keyboard
+PASS   : UiTests::outputPickerWorkflowBinding()
+PASS   : UiTests::maskedTableDisplay()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support raise()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support raise()
+QWARN  : UiTests::settingsLinksAndKeyboardNavigation() This plugin does not support propagateSizeHints()
+PASS   : UiTests::settingsLinksAndKeyboardNavigation()
+QWARN  : UiTests::plotDestinationSettings() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::plotDestinationSettings() This plugin does not support propagateSizeHints()
+PASS   : UiTests::plotDestinationSettings()
+PASS   : UiTests::helpCatalogueCoverageAndContext()
+QWARN  : UiTests::helpLinksAndFallback() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpLinksAndFallback()
+QWARN  : UiTests::helpLanguageAndChapterReuse() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpLanguageAndChapterReuse()
+QWARN  : UiTests::helpReferenceVisibleLayout() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::helpReferenceVisibleLayout() This plugin does not support propagateSizeHints()
+PASS   : UiTests::helpReferenceVisibleLayout()
+PASS   : UiTests::helpDirectoryLinks()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support raise()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support raise()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support raise()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::licenseNoticesOffline() This plugin does not support raise()
+PASS   : UiTests::licenseNoticesOffline()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterHelpTracksSelectedNode() This plugin does not support raise()
+PASS   : UiTests::parameterHelpTracksSelectedNode()
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 3 ok= true
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 10 columns= 3 ok= true
+QINFO  : UiTests::fileReadinessSurvivesDisabledPanel() [Aster import] column_controls_ms= 0
+PASS   : UiTests::fileReadinessSurvivesDisabledPanel()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::compactInputStatesAndFrequencyEditor() This plugin does not support propagateSizeHints()
+QINFO  : UiTests::compactInputStatesAndFrequencyEditor() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 205 columns= 0 ok= false
+PASS   : UiTests::compactInputStatesAndFrequencyEditor()
+QWARN  : UiTests::legacyFrequencyZeroCommit(mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(mtm) This plugin does not support propagateSizeHints()
+PASS   : UiTests::legacyFrequencyZeroCommit(mtm)
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_fft) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_fft) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_fft) This plugin does not support propagateSizeHints()
+PASS   : UiTests::legacyFrequencyZeroCommit(evolution_fft)
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::legacyFrequencyZeroCommit(evolution_mtm) This plugin does not support propagateSizeHints()
+PASS   : UiTests::legacyFrequencyZeroCommit(evolution_mtm)
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionSettingsAndPlotDefaults() This plugin does not support propagateSizeHints()
+PASS   : UiTests::evolutionSettingsAndPlotDefaults()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(mtm) This plugin does not support propagateSizeHints()
+PASS   : UiTests::frequencyLimitTypingPreservesDecimals(mtm)
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_fft) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_fft) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_fft) This plugin does not support propagateSizeHints()
+PASS   : UiTests::frequencyLimitTypingPreservesDecimals(evolution_fft)
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::frequencyLimitTypingPreservesDecimals(evolution_mtm) This plugin does not support propagateSizeHints()
+PASS   : UiTests::frequencyLimitTypingPreservesDecimals(evolution_mtm)
+PASS   : UiTests::cocoWorkBudgetPresentation()
+QINFO  : UiTests::sourceNodePreviewBeforeAddingAnalysis() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 25 columns= 2 ok= true
+QINFO  : UiTests::sourceNodePreviewBeforeAddingAnalysis() [Aster import] column_controls_ms= 0
+PASS   : UiTests::sourceNodePreviewBeforeAddingAnalysis()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::visibleSelectionActionsPreserveFilterScope() This plugin does not support propagateSizeHints()
+PASS   : UiTests::visibleSelectionActionsPreserveFilterScope()
+QWARN  : UiTests::axisHintsPreserveSingleAxisNavigation() This plugin does not support raise()
+QWARN  : UiTests::axisHintsPreserveSingleAxisNavigation() This plugin does not support raise()
+PASS   : UiTests::axisHintsPreserveSingleAxisNavigation()
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 22 columns= 2 ok= true
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 36 columns= 2 ok= true
+QINFO  : UiTests::previewRecoversAfterRunAndRereadsFile() [Aster import] column_controls_ms= 0
+PASS   : UiTests::previewRecoversAfterRunAndRereadsFile()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support raise()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support grabbing the keyboard
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::wheelRequiresDeliberateNumericFocus() This plugin does not support propagateSizeHints()
+PASS   : UiTests::wheelRequiresDeliberateNumericFocus()
+QWARN  : UiTests::axisSegmentsStayVisibleAndKeepBothAxes() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::axisSegmentsStayVisibleAndKeepBothAxes() This plugin does not support propagateSizeHints()
+PASS   : UiTests::axisSegmentsStayVisibleAndKeepBothAxes()
+QWARN  : UiTests::catalogSingleClickAndTaskDoubleClick() This plugin does not support propagateSizeHints()
+PASS   : UiTests::catalogSingleClickAndTaskDoubleClick()
+PASS   : UiTests::dragCardThemeScaleAndSourceDrop()
+PASS   : UiTests::restoredCatalogueMatchesMenusAndDrag()
+QWARN  : UiTests::restoredFilePickerCommitsAndCancels() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredFilePickerCommitsAndCancels() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredFilePickerCommitsAndCancels() This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredFilePickerCommitsAndCancels()
+QWARN  : UiTests::restoredPreviewAndExport(gaussian_filter) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(gaussian_filter)
+QWARN  : UiTests::restoredPreviewAndExport(taner_filter) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(taner_filter)
+QWARN  : UiTests::restoredPreviewAndExport(hilbert_envelope) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(hilbert_envelope)
+QWARN  : UiTests::restoredPreviewAndExport(evolution_fft) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredPreviewAndExport(evolution_fft) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(evolution_fft)
+QWARN  : UiTests::restoredPreviewAndExport(evolution_mtm) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredPreviewAndExport(evolution_mtm) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(evolution_mtm)
+QWARN  : UiTests::restoredPreviewAndExport(select_interval) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(select_interval)
+QWARN  : UiTests::restoredPreviewAndExport(demean) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(demean)
+QWARN  : UiTests::restoredPreviewAndExport(standardize) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(standardize)
+QWARN  : UiTests::restoredPreviewAndExport(sampling_check) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(sampling_check)
+QWARN  : UiTests::restoredPreviewAndExport(moving_average) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(moving_average)
+QWARN  : UiTests::restoredPreviewAndExport(savitzky_golay) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(savitzky_golay)
+QWARN  : UiTests::restoredPreviewAndExport(fft_spectrum) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(fft_spectrum)
+QWARN  : UiTests::restoredPreviewAndExport(welch_spectrum) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(welch_spectrum)
+QWARN  : UiTests::restoredPreviewAndExport(lomb_scargle) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(lomb_scargle)
+QWARN  : UiTests::restoredPreviewAndExport(butterworth_lowpass) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(butterworth_lowpass)
+QWARN  : UiTests::restoredPreviewAndExport(butterworth_highpass) This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredPreviewAndExport(butterworth_highpass)
+QWARN  : UiTests::restoredOrbitalSourcesPreview() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredOrbitalSourcesPreview() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredOrbitalSourcesPreview() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::restoredOrbitalSourcesPreview() This plugin does not support propagateSizeHints()
+PASS   : UiTests::restoredOrbitalSourcesPreview()
+QWARN  : UiTests::cocoPreview() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::cocoPreview() This plugin does not support propagateSizeHints()
+PASS   : UiTests::cocoPreview()
+QWARN  : UiTests::cocoAnalysisPreview(monte-carlo) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::cocoAnalysisPreview(monte-carlo) This plugin does not support propagateSizeHints()
+PASS   : UiTests::cocoAnalysisPreview(monte-carlo)
+QWARN  : UiTests::cocoAnalysisPreview(sliding-coco) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::cocoAnalysisPreview(sliding-coco) This plugin does not support propagateSizeHints()
+PASS   : UiTests::cocoAnalysisPreview(sliding-coco)
+QWARN  : UiTests::cycleTuningPreview(cycle-markers) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::cycleTuningPreview(cycle-markers) This plugin does not support propagateSizeHints()
+PASS   : UiTests::cycleTuningPreview(cycle-markers)
+QWARN  : UiTests::cycleTuningPreview(target-calculator) This plugin does not support propagateSizeHints()
+QWARN  : UiTests::cycleTuningPreview(target-calculator) This plugin does not support propagateSizeHints()
+PASS   : UiTests::cycleTuningPreview(target-calculator)
+QWARN  : UiTests::chronologyPreview(rate) This plugin does not support propagateSizeHints()
+PASS   : UiTests::chronologyPreview(rate)
+QWARN  : UiTests::chronologyPreview(controls) This plugin does not support propagateSizeHints()
+PASS   : UiTests::chronologyPreview(controls)
+PASS   : UiTests::previewFileErrorsAndInputReplacement()
+PASS   : UiTests::previewRunsOnlyAncestorsAndSelectedInput()
+PASS   : UiTests::previewUsesTheSelectedParentPort()
+QWARN  : UiTests::generatedSourcePreviewFollowsBranch() This plugin does not support propagateSizeHints()
+PASS   : UiTests::generatedSourcePreviewFollowsBranch()
+QWARN  : UiTests::generatedSourcePreviewKeepsOutputChoice() This plugin does not support propagateSizeHints()
+PASS   : UiTests::generatedSourcePreviewKeepsOutputChoice()
+PASS   : UiTests::generatedSourcePreviewCanvasRoundTrip()
+QWARN  : UiTests::generatedSourcePreviewHandlesTableOutputs() This plugin does not support propagateSizeHints()
+PASS   : UiTests::generatedSourcePreviewHandlesTableOutputs()
+QWARN  : UiTests::generatedSourcePreviewSurvivesDownstreamFailure() This plugin does not support propagateSizeHints()
+PASS   : UiTests::generatedSourcePreviewSurvivesDownstreamFailure()
+PASS   : UiTests::sourceCardFollowsSelectedBranch()
+PASS   : UiTests::previewCancelsStaleWorkAndKeepsUiResponsive()
+PASS   : UiTests::previewIgnoresUnrelatedEditsAndEmptyClicks()
+QINFO  : UiTests::previewUsesDraftFileOptionsAndAutoParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 33 columns= 3 ok= true
+QINFO  : UiTests::previewUsesDraftFileOptionsAndAutoParameters() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::previewUsesDraftFileOptionsAndAutoParameters() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 3 ok= true
+QINFO  : UiTests::previewUsesDraftFileOptionsAndAutoParameters() [Aster import] column_controls_ms= 0
+PASS   : UiTests::previewUsesDraftFileOptionsAndAutoParameters()
+PASS   : UiTests::previewFailureDeletionAndGenerator()
+QWARN  : UiTests::previewMultipleOutputsAndDisplayBudget() This plugin does not support propagateSizeHints()
+PASS   : UiTests::previewMultipleOutputsAndDisplayBudget()
+QINFO  : UiTests::previewCloseAndDesktopCapture() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 26 columns= 2 ok= true
+QINFO  : UiTests::previewCloseAndDesktopCapture() [Aster import] column_controls_ms= 0
+PASS   : UiTests::previewCloseAndDesktopCapture()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::parameterLayoutDefaultsAndVisibility() This plugin does not support propagateSizeHints()
+PASS   : UiTests::parameterLayoutDefaultsAndVisibility()
+QWARN  : UiTests::menuTouchTargetsAndPeakMarkers() This plugin does not support propagateSizeHints()
+PASS   : UiTests::menuTouchTargetsAndPeakMarkers()
+PASS   : UiTests::frequencyFilterShowsMatchingNode()
+PASS   : UiTests::closeWaitsForDatabaseEdits()
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 2 columns= 3 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 3 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 3 columns= 3 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 9 columns= 2 ok= true
+QINFO  : UiTests::fileOptionsRemainPerInput() [Aster import] column_controls_ms= 0
+PASS   : UiTests::fileOptionsRemainPerInput()
+PASS   : UiTests::directoryServiceQueriesAndMutations()
+PASS   : UiTests::directoryServiceReentrantEnqueue(busy-notification)
+PASS   : UiTests::directoryServiceReentrantEnqueue(mutation-notification)
+PASS   : UiTests::directoryServiceDestroyedByObserver()
+PASS   : UiTests::recordNameExportIncludesUnloadedRows()
+QWARN  : UiTests::recordNameExportButtonAndDialog() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::recordNameExportButtonAndDialog() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::recordNameExportButtonAndDialog() This plugin does not support propagateSizeHints()
+PASS   : UiTests::recordNameExportButtonAndDialog()
+PASS   : UiTests::nodeActionsAndFrequencyFilter()
+PASS   : UiTests::draftBindingsSurviveUndo()
+PASS   : UiTests::sourceBindingsAreSeparate()
+PASS   : UiTests::scopedParametersAndMove()
+QINFO  : UiTests::scopedEditingAndPointReview() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 52 columns= 2 ok= true
+QINFO  : UiTests::scopedEditingAndPointReview() [Aster import] column_controls_ms= 0
+QINFO  : UiTests::scopedEditingAndPointReview() [Aster import] preview_read_ms= 0 gui_delivery_wait_ms= 53 columns= 2 ok= true
+QINFO  : UiTests::scopedEditingAndPointReview() [Aster import] column_controls_ms= 0
+=================================================================
+==863==ERROR: AddressSanitizer: heap-use-after-free on address 0x513000dc6a80 at pc 0x560cba7e7547 bp 0x7ffd83bbcd80 sp 0x7ffd83bbcd78
+READ of size 16 at 0x513000dc6a80 thread T0
+    #0 0x560cba7e7546 in aster::ui::WorkflowDocument::setScopedParameters(QUuid const&, QUuid, QJsonObject const&, bool) ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/workflow/workflow_document.cpp:161
+    #1 0x560cbac00514 in operator() ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/panels/workflow_preview_panel.cpp:152
+    #2 0x560cbac2e2ce in operator() ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:141
+    #3 0x560cbac2e55b in call_internal<void, QtPrivate::FunctorCall<QtPrivate::IndexesList<0, 1, 2>, QtPrivate::List<QString, int, int>, void, aster::ui::WorkflowPreviewPanel::WorkflowPreviewPanel(aster::ui::WorkflowDocument*, QWidget*)::<lambda(const QString&, int, int)> >::call(aster::ui::WorkflowPreviewPanel::WorkflowPreviewPanel(aster::ui::WorkflowDocument*, QWidget*)::<lambda(const QString&, int, int)>&, void**)::<lambda()> > ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:65
+    #4 0x560cbac2e413 in call ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:140
+    #5 0x560cbac2dbed in call<QtPrivate::List<QString, int, int>, void> ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:362
+    #6 0x560cbac2dac2 in impl ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:572
+    #7 0x7fa6e5fa3402  (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1e4402) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #8 0x560cbaeb4674 in aster::ui::PlotView::pointDecisionRequested(QString, int, int) /workspace/scratch/e6f223d0ec44/build-sanitize/desktop_ui/moc_plot_view.cpp:244
+    #9 0x560cb9943f27 in UiTests::scopedEditingAndPointReview() ../../work/Aster-source-export-1.3.0-alpha.3/ui_tests/ui_tests.cpp:3863
+    #10 0x560cb9788fa5 in UiTests::qt_static_metacall(QObject*, QMetaObject::Call, int, void**) ui_tests.moc:686
+    #11 0x7fa6e5f64aed in QMetaMethodInvoker::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a5aed) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #12 0x7fa6e5f655c8 in QMetaMethod::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a65c8) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #13 0x7fa6e65b717d  (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2917d) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #14 0x7fa6e65b9aa2  (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2baa2) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #15 0x7fa6e65c584f in QTest::qRun() (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x3784f) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #16 0x7fa6e65bcefe in QTest::qExec(QObject*, int, char**) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Test.so.6+0x2eefe) (BuildId: 4a3c0b5138bd360c08c70eb8c2027ecb8f947cbd)
+    #17 0x560cb9783beb in main ../../work/Aster-source-export-1.3.0-alpha.3/ui_tests/ui_tests.cpp:1538
+    #18 0x7fa6e525cca7  (/lib/x86_64-linux-gnu/libc.so.6+0x29ca7) (BuildId: 5e5b51f4c39af9ac589408c1dc432ba390a273cc)
+    #19 0x7fa6e525cd64 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x29d64) (BuildId: 5e5b51f4c39af9ac589408c1dc432ba390a273cc)
+    #20 0x560cb96cb1e0 in _start (/workspace/scratch/e6f223d0ec44/build-sanitize/bin/aster_ui_tests+0x5c461e0) (BuildId: 157efcac41d47577620128f5a0abf076f881b4b1)
+
+0x513000dc6a80 is located 256 bytes inside of 376-byte region [0x513000dc6980,0x513000dc6af8)
+freed by thread T0 here:
+    #0 0x7fa6ea14f8f8 in free ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:52
+    #1 0x560cb99b39ae in QArrayDataPointer<aster::NodeDefinition>::~QArrayDataPointer() ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qarraydatapointer.h:110
+    #2 0x560cbb7c0544 in QArrayDataPointer<aster::NodeDefinition>::operator=(QArrayDataPointer<aster::NodeDefinition>&&) ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qarraydatapointer.h:84
+    #3 0x560cbb7bf09d in QList<aster::NodeDefinition>::operator=(QList<aster::NodeDefinition>&&) ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qlist.h:83
+    #4 0x560cbb7bf289 in aster::WorkflowDefinition::operator=(aster::WorkflowDefinition&&) ../../work/Aster-source-export-1.3.0-alpha.3/src/model/workflow_types.h:49
+    #5 0x560cbb7f00de in aster::WorkflowModel::commit(aster::WorkflowDefinition, QUuid, long long) ../../work/Aster-source-export-1.3.0-alpha.3/src/core/workflow_model.cpp:114
+    #6 0x560cbb7f5e7a in aster::WorkflowModel::replaceDefinition(aster::WorkflowDefinition) ../../work/Aster-source-export-1.3.0-alpha.3/src/core/workflow_model.cpp:201
+    #7 0x560cbb835d12 in aster::WorkflowEditor::publish(aster::WorkflowEditState) ../../work/Aster-source-export-1.3.0-alpha.3/src/core/workflow_editor.cpp:246
+    #8 0x560cbb8368f8 in aster::WorkflowEditor::commit(std::shared_ptr<aster::PreparedWorkflowEdit const> const&) ../../work/Aster-source-export-1.3.0-alpha.3/src/core/workflow_editor.cpp:257
+    #9 0x560cbb83742b in aster::WorkflowEditor::apply(aster::WorkflowEditDraft) ../../work/Aster-source-export-1.3.0-alpha.3/src/core/workflow_editor.cpp:270
+    #10 0x560cba7e1915 in aster::ui::WorkflowDocument::applyEdit(aster::WorkflowEditDraft) ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/workflow/workflow_document.cpp:80
+    #11 0x560cba7e7389 in aster::ui::WorkflowDocument::setScopedParameters(QUuid const&, QUuid, QJsonObject const&, bool) ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/workflow/workflow_document.cpp:159
+    #12 0x560cbac00514 in operator() ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/panels/workflow_preview_panel.cpp:152
+    #13 0x560cbac2e2ce in operator() ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:141
+    #14 0x560cbac2e55b in call_internal<void, QtPrivate::FunctorCall<QtPrivate::IndexesList<0, 1, 2>, QtPrivate::List<QString, int, int>, void, aster::ui::WorkflowPreviewPanel::WorkflowPreviewPanel(aster::ui::WorkflowDocument*, QWidget*)::<lambda(const QString&, int, int)> >::call(aster::ui::WorkflowPreviewPanel::WorkflowPreviewPanel(aster::ui::WorkflowDocument*, QWidget*)::<lambda(const QString&, int, int)>&, void**)::<lambda()> > ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:65
+    #15 0x560cbac2e413 in call ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:140
+    #16 0x560cbac2dbed in call<QtPrivate::List<QString, int, int>, void> ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:362
+    #17 0x560cbac2dac2 in impl ../../deps/root/usr/include/x86_64-linux-gnu/qt6/QtCore/qobjectdefs_impl.h:572
+    #18 0x7fa6e5fa3402  (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1e4402) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #19 0x560cbaeb4674 in aster::ui::PlotView::pointDecisionRequested(QString, int, int) /workspace/scratch/e6f223d0ec44/build-sanitize/desktop_ui/moc_plot_view.cpp:244
+    #20 0x560cb9943f27 in UiTests::scopedEditingAndPointReview() ../../work/Aster-source-export-1.3.0-alpha.3/ui_tests/ui_tests.cpp:3863
+    #21 0x560cb9788fa5 in UiTests::qt_static_metacall(QObject*, QMetaObject::Call, int, void**) ui_tests.moc:686
+    #22 0x7fa6e5f64aed in QMetaMethodInvoker::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a5aed) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+    #23 0x7fa6e5f655c8 in QMetaMethod::invokeImpl(QMetaMethod, void*, Qt::ConnectionType, long long, void const* const*, char const* const*, QtPrivate::QMetaTypeInterface const* const*) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x1a65c8) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+
+previously allocated by thread T0 here:
+    #0 0x7fa6ea150c57 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x7fa6e6037657 in QArrayData::allocate(QArrayData**, long long, long long, long long, QArrayData::AllocationOption) (/workspace/scratch/e6f223d0ec44/deps/root/usr/lib/x86_64-linux-gnu/libQt6Core.so.6+0x278657) (BuildId: 94d9d631bd658383e9aa6c5526e73c2470b61dd1)
+
+SUMMARY: AddressSanitizer: heap-use-after-free ../../work/Aster-source-export-1.3.0-alpha.3/src/ui/workflow/workflow_document.cpp:161 in aster::ui::WorkflowDocument::setScopedParameters(QUuid const&, QUuid, QJsonObject const&, bool)
+Shadow bytes around the buggy address:
+  0x513000dc6800: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x513000dc6880: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x513000dc6900: fd fd fd fd fd fd fd fa fa fa fa fa fa fa fa fa
+  0x513000dc6980: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x513000dc6a00: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x513000dc6a80:[fd]fd fd fd fd fd fd fd fd fd fd fd fd fd fd fa
+  0x513000dc6b00: fa fa fa fa fa fa fa fa 00 00 00 00 00 00 00 00
+  0x513000dc6b80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x513000dc6c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x513000dc6c80: 00 00 00 00 00 00 00 fa fa fa fa fa fa fa fa fa
+  0x513000dc6d00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==863==ABORTING

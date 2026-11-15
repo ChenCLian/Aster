@@ -51,6 +51,9 @@ struct RedNoiseConf {
 
 struct FDRSpectralAnalysisResult {
     std::vector<double> swa;
+    // Per-bin q=.05 decisions: -1 outside the tested family, 0 retained, 1 rejected.
+    // Keep decisions in p-space so the observed boundary survives inverse-CDF rounding.
+    std::vector<int> passesFdr05;
     FDRConf fdrConf;
     ChiConf chiConf;
     size_t testCount = 0;

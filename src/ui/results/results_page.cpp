@@ -152,6 +152,9 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     auto *fit = new QPushButton(text("ui.fit"));
     auto *clear = new QPushButton(text("ui.clear"));
     clear->setObjectName("clearPlot");
+    auto *clearBubbles = new QPushButton(text("ui.clear_bubbles"));
+    clearBubbles->setObjectName("clearPageBubbles");
+    chartBar->addWidget(clearBubbles);
     chartBar->addWidget(fit);
     chartBar->addWidget(clear);
     cl->addLayout(chartBar);
@@ -171,6 +174,11 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     connect(m_errorDetailsButton, &QPushButton::clicked, this, &ResultsPage::showErrorDetails);
     m_workspace = new PlotWorkspace;
     m_plot = m_workspace->currentView();
+    clearBubbles->setEnabled(false);
+    connect(clearBubbles, &QPushButton::clicked, m_workspace, &PlotWorkspace::clearPageBubbles);
+    auto syncBubbles = [this, clearBubbles] { clearBubbles->setEnabled(m_workspace->hasPageBubbles()); };
+    connect(m_workspace, &PlotWorkspace::bubblesChanged, this, syncBubbles);
+    connect(m_workspace, &PlotWorkspace::currentViewChanged, this, syncBubbles);
     connect(m_workspace, &PlotWorkspace::selectionChanged, this, &ResultsPage::syncPlotSelection);
     cl->addWidget(m_workspace, 1);
     connect(m_workspace, &PlotWorkspace::message, this, &ResultsPage::message);

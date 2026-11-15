@@ -53,6 +53,13 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - name: Check release version and documentation
+        run: |
+          python3 tools/release/update_version.py --check 2>&1 | tee build-release/ci-logs/version-check.log
+          for script in tools/release/package_linux.sh tools/release/package_macos.sh tools/release/linux_app_run.sh; do
+            bash -n "$script"
+          done
+          printf 'Aster version: %s\n' "$(tr -d '\r\n' < VERSION)" >> build-release/ci-logs/context.log
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
@@ -93,7 +100,7 @@ jobs:
             c++ --version
           } 2>&1 | tee build-release/ci-logs/environment.log
       - name: Check release tooling
-        run: python3 -m unittest discover -v -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/license-tests.log
+        run: python3 -m unittest discover -v -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/release-tooling-tests.log
       - name: Configure
         run: |
           cd build-release

@@ -91,7 +91,7 @@ PreparedNodeRewrite prepareNodeRewrite(const WorkflowEditor& editor, const NodeR
     if (request.kind == NodeRewriteKind::Replace) {
         auto& node = graph.nodes[targetIndex];
         node.method = request.method; node.methodVersion = entry->descriptor.version;
-        node.parameters = request.parameters; node.input->output = request.inputOutput;
+        node.parameters = request.parameters; node.parameterOverrides.clear(); node.input->output = request.inputOutput;
         for (auto& child : graph.nodes)
             if (child.input && child.input->parent == request.target)
                 child.input->output = request.childOutputs.value(child.id);

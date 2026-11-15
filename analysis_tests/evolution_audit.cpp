@@ -104,6 +104,7 @@ class EvolutionAudit : public QObject
     void taskDefaultsAndTypes();
     void absoluteLimitsAndLegacyWorkflows();
     void windowNormalization();
+    void relativeWindowSettingsPreservePower();
     void intervalSelection();
     void centeringAndStandardizing();
     void qualityInspection();
@@ -325,6 +326,31 @@ void EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
     const auto grid = dataAs<GridData>(fine.outputs["power_map"]);
     QCOMPARE(grid->columns, qsizetype(606));
     QCOMPARE(grid->rows, qsizetype(161));
+}
+void EvolutionAudit::relativeWindowSettingsPreservePower()
+{
+    const auto input=makeData(sample(501));
+    const QJsonObject controls{{"evo_window_mode","span_percent"},{"evo_window_percent",20},
+        {"evo_step_mode","overlap"},{"evo_overlap_percent",99.2},
+        {"evo_fft_mode","multiple"},{"evo_padding",4},
+        {"evo_trend","linear"},{"evo_taper","rectangular"},{"evo_normalize",true},{"evo_amplitude",true}};
+    const auto relative=run("evolution_fft",input,controls);
+    QCOMPARE(relative.state,NodeState::Succeeded);
+    const auto explicitSamples=run("evolution_fft",input,{{"evo_window",100},{"evo_step",1},{"evo_nfft",400},
+        {"evo_trend","linear"},{"evo_taper","rectangular"},{"evo_normalize",true}});
+    QCOMPARE(explicitSamples.state,NodeState::Succeeded);
+    QCOMPARE(dataAs<GridData>(relative.outputs["power_map"])->values,dataAs<GridData>(explicitSamples.outputs["power_map"])->values);
+    QCOMPARE(dataAs<SpectrumData>(relative.outputs["mean_spectrum"])->power,dataAs<SpectrumData>(explicitSamples.outputs["mean_spectrum"])->power);
+    QCOMPARE(relative.report["window_samples"].toInt(),100);
+    QCOMPARE(relative.report["step_samples"].toInt(),1);
+    QCOMPARE(relative.report["nfft"].toInt(),400);
+    QCOMPARE(relative.report["actual_overlap_percent"].toDouble(),99.);
+    QVERIFY(relative.report["map_display_amplitude"].toBool());
+    QCOMPARE(run("evolution_fft",makeData(sample(20)),controls).state,NodeState::Failed);
+    auto noOverlap=controls; noOverlap["evo_overlap_percent"]=0;
+    QCOMPARE(run("evolution_fft",input,noOverlap).report["step_samples"].toInt(),100);
+    auto tooLarge=controls; tooLarge["evo_padding"]=32; tooLarge["evo_window_percent"]=100;
+    QCOMPARE(run("evolution_fft",makeData(sample(10000)),tooLarge).state,NodeState::Failed);
 }
 void EvolutionAudit::windowNormalization()
 {

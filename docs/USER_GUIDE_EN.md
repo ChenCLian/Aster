@@ -1,4 +1,4 @@
-# Aster 1.2.0-beta.7 User Guide
+# Aster 1.3.0-beta.1 User Guide
 
 [中文手册](USER_GUIDE.md) · [Task and parameter reference](reference/task_parameters_en.md) · [Methods (Chinese)](methods/README.md) · [FAQ (Chinese)](../FAQ.md)
 
@@ -18,15 +18,28 @@ Build a task tree on the Tasks page, inspect the selected node's output preview,
 
 ## Input data
 
-Import delimited CSV, TXT, TSV or DAT files. Select a file and verify the delimiter, header, X/Y columns and units. Apply the configuration to that file, or to selected files with the same structure. Import and processing do not overwrite source files. Hover over a file for its full path and status.
+Import delimited CSV, TXT, TSV or DAT files. Select a file and verify the delimiter, header, X/Y columns and units. Changes apply automatically to selected files. Bulk import settings copy column positions, not header names. Each file is checked; incompatible files retain their previous settings and are listed with reasons. Import and processing do not overwrite source files. Hover over a file for its full path and status.
 
 Built-in sources include sine signals, synthetic orbital proxies, ODP records and astronomical curves. Independent sources are not repeated for each imported file. Check the age/depth axis, provenance and sampling of ODP data. Coordinate units are metadata; changing a unit label does not convert the numbers. Use an age-model task to transform depth to age.
+
+<a id="input-selection"></a>
+### Input-list shortcuts and selection scope
+
+Click **?** next to Move/Remove to open this section. Focus the file list first.
+
+- Windows/Linux: Ctrl+A selects all; Ctrl+click toggles individual selections; Shift+click selects a range.
+- macOS: Command+A selects all; Command+click toggles selections; Shift+click selects a range.
+- Clicking a file selects the preview. Editing Columns and import settings applies the current delimiter, header, X/Y positions, units and skip-invalid-rows options to selected files. Units are labels, not numerical conversions.
+- Move and Remove operate on selected inputs. Remove does not delete disk files. Wait for bulk validation before moving inputs or running the workflow.
+- Selection controls only left-side initialization/import and list operations. **It does not batch-edit right-side task parameters.** Those still belong to the current data/pair; use Apply to all data in this workflow in the separated right footer to unify one node.
+
+Incompatible files retain their settings with an explanation. Edits are undoable and processed in order. Changing selection does not retarget pending edits. If the focused row is deselected, select it before editing import settings.
 
 <a id="workflow"></a>
 
 ## Tasks and parameters
 
-Add a source, then use downstream or branch controls to connect processing and analysis tasks. Tasks can also be searched, double-clicked or dragged from the catalogue. Select the appropriate upstream output when a task has several outputs. Delete selected nodes with the toolbar or Del and check the confirmation. Nodes, connections, parameters, imported file lists, file import options and pairs share one undo/redo history, limited to 100 effective edits. Undoing a node deletion restores its source bindings and pairs; undoing input removal restores the original dataset identity. Undo does not restore file contents on disk or remove saved results. Preserve original data separately. Workflow editing is disabled during a run.
+Add a source, then use downstream or branch controls to connect processing and analysis tasks. Tasks can also be searched, double-clicked or dragged from the catalogue. Select the appropriate upstream output when a task has several outputs. Delete selected nodes with the toolbar or Del and check the confirmation. Nodes, connections, parameters, imported file lists, file import options and pairs share one undo/redo history, limited to 100 effective edits and a conservative 64 MiB metadata budget. Older history may expire sooner when the budget is reached. Undoing a node deletion restores its source bindings and pairs; undoing input removal restores the original dataset identity. Undo does not restore file contents on disk or remove saved results. Preserve original data separately. Workflow editing is disabled during a run.
 
 When several compatible outputs are available, the chooser opens near the source node. Rows have a consistent height and the default output is bold. More than eight choices enable search and scrolling. Hover for the full name; click or press Enter to confirm. Escape or clicking outside cancels without adding a task. A single compatible output connects directly.
 
@@ -41,7 +54,7 @@ For continuous wavelet analysis, choose the calculation convention by its power 
 <a id="evolution-spectrum"></a>
 ## Evolutionary FFT and MTM
 
-Evolutionary spectra estimate power in moving windows of a strictly increasing, regularly sampled series. Window length and step are entered in samples. Enter the maximum frequency directly in reciprocal X units, such as 1/m or 1/ka. Zero selects Nyquist automatically; larger values are clamped to Nyquist. Saved legacy ratios remain active until the maximum-frequency field is explicitly edited, including re-entering and confirming zero. The limit crops the saved map and mean spectrum; narrowing it does not improve resolution.
+Evolutionary spectra estimate power in moving windows of a strictly increasing, regularly sampled series. Window length accepts samples or a percentage of the input span; step accepts samples or overlap percentage. Enter the maximum frequency directly in reciprocal X units, such as 1/m or 1/ka. Zero selects Nyquist automatically; larger values are clamped to Nyquist. Saved legacy ratios remain active until the maximum-frequency field is explicitly edited, including re-entering and confirming zero. The limit crops the saved map and mean spectrum; narrowing it does not improve resolution.
 
 For sample spacing dx, N input samples, window length L and step S:
 
@@ -55,6 +68,30 @@ Normalize each window is off by default, preserving physical PSD. When enabled, 
 
 Preview and result heatmaps retain discrete cells and linear color mapping by default. In the result plot's heatmap settings, logarithmic color mapping and smooth display remain available without altering calculated values. Parameter help explains the same conversions.
 
+
+
+
+### Acycle LAH-style preset and amplitude display
+
+The evolutionary FFT editor offers an editable preset: 20% of input span, 99.2% overlap, 4× FFT length, local linear detrending, rectangular taper, per-window normalization and smooth amplitude display. The current frequency limit is preserved. Every control remains editable. This follows the main LAH calculation/display choices, not every Acycle version or GUI default.
+
+Percentage mode resolves L=round((N−1)*percent/100), S=max(1,round(L*(1−overlap/100))). The report records actual counts and rounded overlap. Increase the percentage if L is below 8; no silent enlargement occurs. Overlapping windows are not independent observations. Zero padding densifies bins without improving true resolution. Existing work/memory limits still apply.
+
+Amplitude display takes the square root of non-negative power. Normalized maps show relative amplitude; otherwise they show square root of PSD, not signal amplitude. Database, CSV, probes and mean spectra retain power. The heatmap style editor switches back to power; changing quantity resets manual color limits. There is no added 2D smoothing, automatic resampling or time-end padding. Strict LAH boundary compatibility remains deferred.
+
+### Parameters for each dataset
+
+Select an input and a task node. Parameter edits apply to that dataset at the selected node; joint nodes and their descendants use the selected pair. A fixed footer identifies the scope and provides **Apply to all data in this workflow** (or **Apply to all pairs in this workflow** for paired tasks) without scrolling through long forms. It unifies this node’s settings within the current analysis workflow and sets defaults for future inputs in that workflow. Undo restores the prior individual settings.
+
+Point-level keep/exclude decisions are never copied to other inputs. Applying detection rules retains each dataset's point decisions. Changes to input values invalidate old point decisions and require review.
+
+Use **Move** beside Remove to send selected files to an existing or new tree. Destination and **Copy processing steps** are separate choices. Existing destinations use their own processing settings; copying steps to a new tree retains the selected data's node settings. Input identities and import options remain unchanged. Existing pair references are not silently retargeted; copied joint nodes need new pair configuration. The move can be undone.
+
+### Outliers and value transforms
+
+**Data processing → Cleanup → Outlier detection and handling** offers Hampel, global MAD and Y bounds. The default only marks points. Exclusion or local-median replacement must be selected explicitly; original samples and a point decision log are retained. In the node preview, right-click a curve to keep or exclude an individual point. Direct entry of replacement values is not provided. Genuine geological events may produce extreme values.
+
+**Data processing → Amplitude → Value transformation** offers ln, log10, asinh and tanh. These change amplitude interpretation and downstream statistics; they do not classify outliers. Logarithms require positive values. asinh accepts signed values; tanh saturates. Missing intervals and hiatus filling are not inferred automatically.
 
 <a id="cross-spectrum"></a>
 
@@ -147,7 +184,7 @@ Heatmaps default to Rainbow. Use Plot → Heatmap to adjust the palette, colour 
 
 Previews, results and figure exports share default styles. Manual settings persist while the page is open and do not change stored values. Closing a page or the application discards its layout and styles. Restore defaults uses the current version's default styles.
 
-Click samples, peaks or grid cells to inspect coordinates. The readout displays 8 significant digits; Copy preserves the current sampled values at full numerical precision. A color and line-style swatch identifies curve readings. Positive frequencies can show reciprocal periods. Decimated preview readings refer to displayed samples. Esc, clicking blank space or changing the view dismisses the readout. CSV exports complete selected outputs; PNG/PDF exports figures and styles subject to display budgets. See [plotting details (Chinese)](ui/plotting.md) and [statistical limits (Chinese)](methods/statistical_limits.md).
+Click samples, peaks or grid cells to inspect coordinates. The readout displays 8 significant digits; Copy preserves the current sampled values at full numerical precision. A color and line-style swatch identifies curve readings. Positive frequencies can show reciprocal periods. Decimated preview readings refer to displayed samples. Close an individual bubble with its close button or Esc. Blank clicks, page changes, panning and zooming preserve bubbles; off-screen points temporarily hide them. The plot context menu clears that plot, and the results toolbar clears the current page. Figure exports omit bubbles by default. CSV exports complete selected outputs; PNG/PDF exports figures and styles subject to display budgets. See [plotting details (Chinese)](ui/plotting.md) and [statistical limits (Chinese)](methods/statistical_limits.md).
 
 <a id="database"></a>
 

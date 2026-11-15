@@ -1,0 +1,14 @@
+{
+  "version": "1.3.0-alpha.8",
+  "documentation": {
+    "status": "scope_wording_and_version_checked",
+    "manual_edits": [
+      "Chinese/English node scope labels",
+      "Chinese/English user-guide scope paragraphs"
+    ],
+    "current_version_tests": 4,
+    "version_update_tests": 9,
+    "help_catalogue": "56 tasks / 259 parameters current",
+    "embedded_help_rebuilt": true
+  }
+}

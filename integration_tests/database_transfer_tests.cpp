@@ -456,6 +456,40 @@ class DatabaseTransferTests : public QObject
         QCOMPARE(panel.checkedRecords().size(), 1);
         QCOMPARE(panel.checkedRecords().firstKey(), 1);
     }
+    void cancelTransferIncludesActiveAndQueuedRequests()
+    {
+        QTemporaryDir dir;
+        const auto from=dir.filePath("source.db"), to=dir.filePath("target.db");
+        const auto backup=dir.filePath("queued-backup.db");
+        {
+            ResultRepository source, target;
+            QVERIFY(source.open(from).isEmpty());
+            QVERIFY(target.open(to).isEmpty());
+            QVERIFY(source.save(sample()).saved());
+        }
+        RecordDirectoryService service;
+        QVector<DatabaseTransferResult> results;
+        connect(&service,&RecordDirectoryService::transferred,this,
+                [&](QString,DatabaseTransferResult result,bool) { results.push_back(result); });
+        bool cancelled=false;
+        // Pause the worker at its first checkpoint, so cancellation is deterministic.
+        connect(&service,&RecordDirectoryService::transferProgress,this,
+                [&](QString,qint64,qint64) {
+                    if (cancelled) return;
+                    cancelled=true;
+                    service.backup(from,backup);
+                    service.cancelTransfer();
+                },Qt::BlockingQueuedConnection);
+        service.merge(to,from);
+        QTRY_COMPARE_WITH_TIMEOUT(results.size(),2,10000);
+        QVERIFY(cancelled);
+        QVERIFY(results[0].cancelled);
+        QVERIFY(results[1].cancelled);
+        QVERIFY(!QFileInfo::exists(backup));
+        ResultRepository target; QVERIFY(target.open(to).isEmpty());
+        QCOMPARE(target.list({},100,0).records.size(),0);
+    }
+
     void serviceSignalsAndDirectoryEntry()
     {
         setLanguage("en");

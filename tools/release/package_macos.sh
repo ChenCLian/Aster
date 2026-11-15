@@ -99,8 +99,12 @@ done < <(find "$frameworks" -depth -type d -name '*.framework' -print0)
 echo "Signing Aster.app"
 codesign "${sign_args[@]}" "$app"
 codesign --verify --deep --strict --verbose=2 "$app"
-QT_QPA_PLATFORM=offscreen "$app/Contents/MacOS/Aster" --version
-QT_QPA_PLATFORM=offscreen "$app/Contents/MacOS/Aster" --numeric-backend
+# Smoke-test the deployed bundle without the build machine's Qt/library paths.
+for probe in --version --numeric-backend; do
+  env -u DYLD_LIBRARY_PATH -u DYLD_FRAMEWORK_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
+    -u DYLD_FALLBACK_FRAMEWORK_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH \
+    QT_QPA_PLATFORM=offscreen "$app/Contents/MacOS/Aster" "$probe"
+done
 if [[ -n "${ASTER_NOTARY_PROFILE:-}" ]]; then
   [[ "$identity" != '-' ]] || { echo 'Notarization requires a Developer ID identity' >&2; exit 1; }
   ditto -c -k --keepParent "$app" "$stage/notarize.zip"

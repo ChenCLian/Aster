@@ -75,6 +75,15 @@ inline QVector<QVector<OutputReference>> plotGroups(const QVector<OutputReferenc
                 return rank(a) < rank(b);
             });
         }
+        if (!separate && ref.method == "outlier_handling" && ref.kind == "Series") {
+            for (const auto &other : refs)
+                if (!used.contains(other.key()) && samePlotNode(ref,other) && other.kind=="Series")
+                { group.push_back(other); used.insert(other.key()); }
+            std::stable_sort(group.begin(),group.end(),[](const OutputReference &a,const OutputReference &b) {
+                auto rank=[](const OutputReference &v) { return v.port=="series" ? 0 : v.port=="original" ? 1 : 2; };
+                return rank(a)<rank(b);
+            });
+        }
         if (!separate && waveletGrid(ref))
             for (const auto &other : refs)
                 if (samePlotNode(ref, other) && other.port == "coi" && other.kind == "Series")

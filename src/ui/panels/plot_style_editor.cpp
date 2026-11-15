@@ -298,6 +298,15 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     connectLiveControls();
     setView(view);
 }
+PlotStyleEditor::~PlotStyleEditor()
+{
+    // QWidget teardown can emit editingFinished on focus loss, after our
+    // member timer and draft have been destroyed. Disconnect while alive.
+    m_liveTimer.stop();
+    for (auto *child : findChildren<QObject *>())
+        disconnect(child, nullptr, this, nullptr);
+    if (m_view) disconnect(m_view, nullptr, this, nullptr);
+}
 void PlotStyleEditor::scheduleApply(int delayMs)
 {
     if (!m_loading && !m_applying && m_view && m_view->hasPlot())

@@ -1,5 +1,6 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
+#include <QScopedValueRollback>
 #include "ui/settings/settings_dialog.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/settings/language_catalog.h"
@@ -84,7 +85,9 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_newSource = new QPushButton(text("ui.data_source"));
     m_newSource->setObjectName("addSource");
     m_undo = new QPushButton(text("ui.undo"));
+    m_undo->setObjectName("undoWorkflowEdit");
     m_redo = new QPushButton(text("ui.redo"));
+    m_redo->setObjectName("redoWorkflowEdit");
     m_remove = new QPushButton(text("ui.delete"));
     m_remove->setObjectName("deleteNode");
     for (auto *button : {m_newSource, m_undo, m_redo, m_remove})
@@ -138,7 +141,8 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     canvasPanel->setObjectName("Panel");
     canvasPanel->setMinimumWidth(300);
     auto *cv = new QVBoxLayout(canvasPanel);
-    cv->setContentsMargins(0, 0, 0, 0);
+    // Keep the opaque graphics viewport inside the panel's rounded border.
+    cv->setContentsMargins(3, 3, 3, 3);
     cv->setSpacing(0);
     m_canvas = new WorkflowCanvas(m_document);
     cv->addWidget(m_canvas, 1);
@@ -222,6 +226,13 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_canvas, &WorkflowCanvas::replaceMethodDropped, this,
         [this](QString method, NodeId node) { reviewRewrite(NodeRewriteKind::Replace, node, method); });
     connect(m_sources, &SourcePanel::importRequested, this, &MainWindow::importFiles);
+    connect(m_sources, &SourcePanel::moveInputsRequested, this, [this] {
+        if (!m_runner->busy() && flushParameters()) m_sources->moveSelectedDatasets();
+    });
+    connect(m_sources, &SourcePanel::inputsMoved, this, [this](NodeId root) {
+        selectNode(root);
+        m_canvas->ensureVisible(m_canvas->nodeRect(root),24,24);
+    });
     connect(m_sources, &SourcePanel::editRejected, this, &MainWindow::showMessage);
     connect(m_sources, &SourcePanel::readinessChanged, this, [this] { updateActions(); });
     connect(m_canvas, &WorkflowCanvas::rootRequested, this, &MainWindow::sourceMenu);
@@ -236,6 +247,14 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_editor, &ParameterEditor::edited, this,
             [this] { m_preview->controller()->setEditing(true); });
     connect(m_editor, &ParameterEditor::applyRequested, this, [this] { flushParameters(); });
+    connect(m_sources, &SourcePanel::previewSourceChanged, this, [this] { refreshParameterScope(); });
+    connect(m_pairing, &PairingPanel::pairSelected, this, [this] { refreshParameterScope(); });
+    connect(m_editor, &ParameterEditor::applyAllRequested, this, [this] {
+        if (m_runner->busy() || !flushParameters()) return;
+        QScopedValueRollback<bool> updating(m_updatingEditor,true);
+        const auto result=m_document->setScopedParameters(m_editor->nodeId(),m_editorItem,m_editor->parameters(),true);
+        if (!result.ok()) m_editor->setError(result.error);
+    });
     connect(m_preview->controller(), &WorkflowPreviewController::busyChanged, this, [this](bool busy) {
         if (!busy && m_closeWhenIdle) QTimer::singleShot(0, this, &QWidget::close);
     });
@@ -248,36 +267,18 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                     m_editor->showNode(nullptr, m_document->model().registry());
                     m_preview->controller()->setEditing(false);
                 }
+                if (!m_updatingEditor && !m_editor->dirty()) refreshParameterScope(true);
                 updateActions();
             });
     connect(m_document, &WorkflowDocument::sourcesChanged, this,
             [this]
             {
                 m_canvas->rebuild();
+                if (!m_updatingEditor && !m_editor->dirty()) refreshParameterScope(true);
                 updateActions();
             });
-    connect(m_undo, &QPushButton::clicked, this,
-            [this]
-            {
-                if (flushParameters())
-                {
-                    auto r = m_document->undo();
-                    if (!r.ok())
-                        showMessage(r.error);
-                    selectNode(m_canvas->selectedNode());
-                }
-            });
-    connect(m_redo, &QPushButton::clicked, this,
-            [this]
-            {
-                if (flushParameters())
-                {
-                    auto r = m_document->redo();
-                    if (!r.ok())
-                        showMessage(r.error);
-                    selectNode(m_canvas->selectedNode());
-                }
-            });
+    connect(m_undo, &QPushButton::clicked, this, [this] { stepHistory(false); });
+    connect(m_redo, &QPushButton::clicked, this, [this] { stepHistory(true); });
     connect(fit, &QPushButton::clicked, m_canvas, &WorkflowCanvas::fitWorkflow);
     connect(m_canvas, &WorkflowCanvas::zoomChanged, this,
             [this](int n) { m_zoom->setText(QString::number(n) + "%"); });
@@ -471,7 +472,10 @@ bool MainWindow::flushParameters()
 {
     if (!m_editor->dirty())
         return true;
-    auto r = m_document->setParameters(m_editor->nodeId(), m_editor->parameters());
+    QScopedValueRollback<bool> updating(m_updatingEditor,true);
+    auto r = m_editorItem.isNull()
+        ? m_document->setParameters(m_editor->nodeId(),m_editor->parameters())
+        : m_document->setScopedParameters(m_editor->nodeId(),m_editorItem,m_editor->parameters());
     if (!r.ok())
     {
         m_editor->setError(r.error);
@@ -481,22 +485,91 @@ bool MainWindow::flushParameters()
     m_preview->controller()->setEditing(false);
     return true;
 }
+void MainWindow::refreshParameterScope(bool force)
+{
+    if (m_updatingEditor || !m_editor || !m_pairing) return;
+    const auto id=m_editor->nodeId();
+    const auto *node=m_document->node(id);
+    if (!node) return;
+    const auto joint=m_document->pairNodeFor(id);
+    const auto root=m_document->rootFor(id);
+    const auto *rootNode=m_document->node(root);
+    if (!rootNode) return;
+    const bool external=m_document->model().registry().find(rootNode->method)->descriptor.requiresSourceBinding;
+    QUuid item;
+    QString label;
+    int count=0;
+    bool editable=true;
+    if (!joint.isNull()) {
+        item=m_pairing->currentPair(); label=m_pairing->currentLabel();
+        count=m_document->grouping().value(joint).size(); editable=!item.isNull();
+    } else if (!external) {
+        item=root; label=methodLabel(m_document->model().registry().find(rootNode->method)->descriptor); count=1;
+    } else {
+        count=m_document->sources().value(root).size();
+        if (root==m_sources->root()) {
+            const auto source=m_sources->currentSource();
+            item=QUuid(source.provenance["dataset_id"].toString()); label=source.label;
+            const auto path = source.provenance["path"].toString();
+            if (!path.isEmpty()) {
+                auto portablePath = path;
+                portablePath.replace('\\', '/');
+                label = portablePath.section('/', -1);
+            }
+        }
+        editable=!item.isNull() || count==0;
+    }
+    if (label.isEmpty()) label=text(count==0 ? "ui.new_data_defaults" : "ui.select_input_for_parameters");
+    if (!force && item==m_editorItem) return;
+    if (!flushParameters()) return;
+    QScopedValueRollback<bool> updating(m_updatingEditor,true);
+    node=m_document->node(id); // Committing the previous scope can replace the graph.
+    if (!node) return;
+    const auto effective=resolvedNode(*node,item);
+    m_editorItem=item;
+    m_editor->showNode(&effective,m_document->model().registry());
+    m_editor->setScope(label,!joint.isNull(),editable,count>1);
+}
 void MainWindow::selectNode(NodeId id)
 {
-    if (!flushParameters())
-        return;
-    m_canvas->setSelectedNode(id);
-    auto *n = m_document->node(id);
-    m_editor->showNode(n, m_document->model().registry());
-    m_pairing->selectNode(id);
-    if (n)
+    if (!flushParameters()) return;
     {
-        auto *root = n;
-        while (root->input) root = m_document->node(root->input->parent);
-        m_sources->selectRoot(root->id);
-        m_preview->controller()->selectNode(id);
+        QScopedValueRollback<bool> updating(m_updatingEditor,true);
+        m_canvas->setSelectedNode(id);
+        const auto root=m_document->rootFor(id);
+        if (!root.isNull()) m_sources->selectRoot(root);
+        m_pairing->selectNode(id);
+        m_editor->showNode(m_document->node(id),m_document->model().registry());
+        m_editorItem={};
     }
+    refreshParameterScope(true);
+    if (m_document->node(id)) m_preview->controller()->selectNode(id);
     updateActions();
+}
+void MainWindow::stepHistory(bool redo)
+{
+    if (!flushParameters()) return;
+    const auto before=m_canvas->selectedNode();
+    QUuid dataset;
+    if (m_document->rootFor(before)==m_sources->root() && m_document->pairNodeFor(before).isNull())
+        dataset=QUuid(m_sources->currentSource().provenance["dataset_id"].toString());
+    const auto result=redo ? m_document->redo() : m_document->undo();
+    if (!result.ok()) { showMessage(result.error); return; }
+    auto selected=m_canvas->selectedNode();
+    // Follow the same input through a tree move without storing another history
+    // of datasets or numeric buffers. Joint-node selection remains independent.
+    NodeId destination;
+    if (!dataset.isNull())
+        for (auto it=m_document->sources().cbegin();it!=m_document->sources().cend() && destination.isNull();++it)
+            for (const auto &source:it.value())
+                if (QUuid(source.provenance["dataset_id"].toString())==dataset) { destination=it.key(); break; }
+    if (!destination.isNull()) {
+        m_sources->selectDataset(destination,dataset);
+        if (!m_document->node(selected) || m_document->rootFor(selected)!=destination) selected=destination;
+    }
+    selectNode(selected);
+    if (selected!=before && m_document->node(selected))
+        m_canvas->ensureVisible(m_canvas->nodeRect(selected),24,24);
 }
 void MainWindow::sourceMenu(QPoint pos)
 {

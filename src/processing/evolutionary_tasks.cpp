@@ -19,19 +19,26 @@ TaskDescriptor evolutionDescriptor(bool mtm)
                  {"mean_spectrum", "Mean window spectrum", DataKind::Spectrum, true}};
     d.defaultOutput = "power_map";
     d.parameters = {
+        science_detail::text("evo_window_mode", "Window definition", "samples", {"samples", "span_percent"}),
+        task_detail::number("evo_window_percent", "Window / input span (%)", 20, .01, 100),
         task_detail::number("evo_window", "Window samples", 128, 8,
                             double(numeric::EvolutionLimits::maxFftSamples),
                             ParameterKind::Integer),
+        science_detail::text("evo_step_mode", "Step definition", "samples", {"samples", "overlap"}),
+        task_detail::number("evo_overlap_percent", "Window overlap (%)", 99.2, 0, 99.99),
         task_detail::number("evo_step", "Step samples", 16, 1,
                             double(numeric::EvolutionLimits::maxFftSamples),
                             ParameterKind::Integer),
+        science_detail::text("evo_fft_mode", "FFT length definition", "length", {"length", "multiple"}),
+        task_detail::number("evo_padding", "FFT length / window samples", 4, 1, 32, ParameterKind::Integer),
         task_detail::number("evo_nfft", "FFT samples (0 = window)", 0, 0,
                             double(numeric::EvolutionLimits::maxFftSamples),
                             ParameterKind::Integer),
         science_detail::text("evo_trend", "Local detrending", "mean", {"mean", "linear"}),
         task_detail::number("frequency_max", "Maximum frequency (0 = automatic)", 0, 0, 1e100),
         task_detail::number("evo_frequency_ratio", "Legacy maximum / Nyquist", 1, .001, 1),
-        science_detail::boolean("evo_normalize", "Normalize each window by its maximum power", false)};
+        science_detail::boolean("evo_normalize", "Normalize each window by its maximum power", false),
+        science_detail::boolean("evo_amplitude", "Default map: amplitude (square root of power)", false)};
     if (mtm)
         d.parameters.push_back(task_detail::number("evo_nw", "Time-bandwidth NW", 2, 1, 32));
     else
@@ -41,7 +48,14 @@ TaskDescriptor evolutionDescriptor(bool mtm)
     {
         p.hideWhenDefault = p.key == "evo_frequency_ratio";
         p.group =
-            (p.key == "evo_window" || p.key == "evo_step") ? "moving_window" : "spectral_estimator";
+            (p.key.startsWith("evo_window") || p.key.startsWith("evo_step") || p.key == "evo_overlap_percent")
+                ? "moving_window" : "spectral_estimator";
+        if (p.key == "evo_window") p.visibleWhen = {{"evo_window_mode", "samples"}};
+        if (p.key == "evo_window_percent") p.visibleWhen = {{"evo_window_mode", "span_percent"}};
+        if (p.key == "evo_step") p.visibleWhen = {{"evo_step_mode", "samples"}};
+        if (p.key == "evo_overlap_percent") p.visibleWhen = {{"evo_step_mode", "overlap"}};
+        if (p.key == "evo_nfft") p.visibleWhen = {{"evo_fft_mode", "length"}};
+        if (p.key == "evo_padding") p.visibleWhen = {{"evo_fft_mode", "multiple"}};
     }
     return d;
 }
@@ -64,6 +78,14 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
     o.windowSamples = p["evo_window"].toInt();
     o.stepSamples = p["evo_step"].toInt();
     o.fftLength = p["evo_nfft"].toInt();
+    // Span mode uses the observed endpoint span, as in LAH window/dt.
+    // Do not silently enlarge a short window: the numeric validator reports it.
+    if (p["evo_window_mode"].toString() == "span_percent")
+        o.windowSamples = std::size_t(std::llround((s->x.size() - 1) * p["evo_window_percent"].toDouble(20) / 100));
+    if (p["evo_step_mode"].toString() == "overlap")
+        o.stepSamples = std::size_t(std::max(1LL, std::llround(o.windowSamples * (1 - p["evo_overlap_percent"].toDouble(99.2) / 100))));
+    if (p["evo_fft_mode"].toString() == "multiple")
+        o.fftLength = o.windowSamples * std::size_t(p["evo_padding"].toInt(4));
     o.maximumFrequencyRatio = p["evo_frequency_ratio"].toDouble();
     o.maximumFrequency = p["frequency_max"].toDouble();
     o.normalizeWindows = p["evo_normalize"].toBool();
@@ -144,6 +166,11 @@ NodeResult run(const TaskInput &input, const ExecutionContext &c, const QJsonObj
             : "arithmetic_mean_of_window_PSDs_not_full_record_estimate";
         report["adaptive_unconverged_windows"] = r.unconvergedWindows;
         report["resampled"] = false;
+        report["window_mode"] = p["evo_window_mode"].toString("samples");
+        report["step_mode"] = p["evo_step_mode"].toString("samples");
+        report["fft_mode"] = p["evo_fft_mode"].toString("length");
+        report["actual_overlap_percent"] = 100 * (1 - double(o.stepSamples) / o.windowSamples);
+        report["map_display_amplitude"] = p["evo_amplitude"].toBool();
         if (mtm)
             report["taper_plan_builds"] = 1;
         auto result = NodeResult::success({{"power_map", makeData(std::move(grid))},

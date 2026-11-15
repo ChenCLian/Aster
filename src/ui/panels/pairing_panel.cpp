@@ -35,6 +35,8 @@ PairingPanel::PairingPanel(WorkflowDocument *doc, QWidget *parent)
     connect(doc, &WorkflowDocument::changed, this, &PairingPanel::refresh);
     hide();
 }
+QUuid PairingPanel::currentPair() const { return m_pairs->currentData().toUuid(); }
+QString PairingPanel::currentLabel() const { return m_pairs->currentText(); }
 void PairingPanel::selectNode(NodeId id)
 {
     m_node = m_document->pairNodeFor(id);

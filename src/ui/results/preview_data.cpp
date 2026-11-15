@@ -43,6 +43,9 @@ NodeResult reducePreviewData(const NodeResult &result, const CancellationToken &
     {
         if (cancel.isCancelled()) return NodeResult::cancelled();
         const auto source = it.value();
+        // Keep the immutable original for exact point identity in outlier review.
+        // Copies share storage; display sampling remains a renderer concern.
+        if (it.key() == "original" && result.report.contains("outlier_input_fingerprint")) continue;
         if (const auto *s = dataAs<SeriesData>(source); s && s->x.size() > PointLimit)
         {
             SeriesData d; d.xAxis = s->xAxis; d.yAxis = s->yAxis;

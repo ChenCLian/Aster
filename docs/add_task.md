@@ -1,6 +1,6 @@
 # Aster：添加一种任务
 
-适用版本：Aster 1.2.0-beta.7。
+适用版本：Aster 1.3.0-beta.1。
 
 最短的实际样例是 `src/processing/affine_task.h/.cpp`。它展示了统一接口、独立参数、只读上游和具名输出。新增任务仍需要自己的计算实现；宏负责消除分散的注册代码。
 
@@ -127,3 +127,7 @@ return NodeResult::success(
 参数参考由任务定义与语言资源生成，不直接编辑 Markdown。中文为 `docs/reference/task_parameters.md`，英文为 `docs/reference/task_parameters_en.md`。两者的方法锚点均为 `m-<method>`，参数锚点为 `m-<method>-p-<parameter>`。生成、重新编译与校验流程见[参数参考工具](../tools/help_reference/README.md)。GitHub Actions 检查文档是否与当前定义一致。
 
 新增内置页面加入 `resources/help.qrc`；界面回归检查注册任务的帮助覆盖与本地定位。不要将内部翻译键用作默认用户提示。
+
+### 逐条数据的设置
+
+节点参数按当前数据或配对保存差异。适用于所有输入的识别规则可以批量应用；采样点索引、逐点保留／排除决定等数据专属状态须声明 `perDatasetOnly`，并用输入身份或指纹校验，禁止复制到其他输入。内部状态还可声明 `editorHidden`，不生成普通参数控件或参数帮助条目。

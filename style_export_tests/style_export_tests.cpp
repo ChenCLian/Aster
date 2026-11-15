@@ -114,6 +114,17 @@ void original(const QString &path)
     if (f.open(QIODevice::WriteOnly))
         f.write("previous complete file\n");
 }
+QList<QFrame *> visibleBubbles(QWidget *plot)
+{
+    QList<QFrame *> result;
+    for (auto *bubble : plot->findChildren<QFrame *>("plotProbeBubble"))
+        if (!bubble->isHidden()) result.push_back(bubble);
+    return result;
+}
+QFrame *visibleBubble(QWidget *plot)
+{
+    const auto all=visibleBubbles(plot); return all.isEmpty() ? nullptr : all.front();
+}
 QString probeText(QWidget *bubble)
 {
     const auto names = bubble->findChildren<QLabel *>("plotProbeFieldName");
@@ -130,6 +141,8 @@ class StyleExportTests : public QObject
   private slots:
     void initTestCase();
     void probeCurveClickAndLifetime();
+    void probeViewportAndDestruction();
+    void probeReadoutsSurviveResize();
     void probeGridCoordinatesAndMask();
     void probeCompactReadout_data();
     void probeCompactReadout();
@@ -138,6 +151,7 @@ class StyleExportTests : public QObject
     void contourGeometryAndBudgets();
     void contourRenderingAndState();
     void heatmapMappingPreservesRawData();
+    void amplitudeDisplayPreservesPower();
     void heatmapEditorLiveAndGrouped();
     void heatmapInitialAvailability_data();
     void heatmapInitialAvailability();
@@ -173,55 +187,131 @@ void StyleExportTests::probeCurveClickAndLifetime()
 {
     PlotView view; view.resize(760,520); view.show(); view.showOutput(spectrum(),"spectrum");
     auto *p=plot(view); QTRY_VERIFY(p->axisRect()->width()>200); QTest::qWait(30);
-    auto *bubble=p->findChild<QFrame *>("plotProbeBubble"); QVERIFY(bubble);
-    auto *details=bubble->findChild<QWidget *>("plotProbeDetails"); QVERIFY(details);
     auto *g=curve(view,"peaks"); QVERIFY(g);
     const auto point=g->coordsToPixels(.1,4).toPoint();
     const auto cleanExport=p->toPixmap().toImage();
     QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,point);
-    QTRY_VERIFY(bubble->isVisible()); QVERIFY(probeText(bubble).contains("0.1"));
-    QVERIFY(probeText(bubble).contains("10")); // period
+    auto *bubble=visibleBubble(p); QVERIFY(bubble);
     QVERIFY(probeText(bubble).contains("(ka): 10"));
     QVERIFY(p->rect().contains(bubble->geometry()));
-    QCOMPARE(p->toPixmap().toImage(),cleanExport); // Inspection UI is absent from figure exports.
-    const auto captures=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
-    if(!captures.isEmpty()) { QDir().mkpath(captures); QVERIFY(view.grab().save(captures+"/probe_curve.png")); }
-    QTest::keyClick(p,Qt::Key_Escape); QVERIFY(!bubble->isVisible());
-    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,point); QVERIFY(bubble->isVisible());
-    QTest::mouseClick(bubble->findChild<QToolButton *>("closePlotProbe"),Qt::LeftButton); QVERIFY(!bubble->isVisible());
+    QCOMPARE(p->toPixmap().toImage(),cleanExport);
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,point);
+    QCOMPARE(visibleBubbles(p).size(), 1); // Duplicate samples focus an existing card.
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,p->axisRect()->bottomRight()-QPoint(10,10));
+    QVERIFY(view.hasBubbles()); // Blank click does not dismiss.
     auto style=view.style(); style.swapXY=true; style.x.reversed=true;
-    QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(30);
-    g=curve(view,"peaks"); QVERIFY(g);
-    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(.1,4).toPoint());
-    QVERIFY(bubble->isVisible()); QVERIFY(probeText(bubble).contains("Frequency (1/ka): 0.1"));
+    QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(35);
+    QVERIFY(visibleBubble(p));
+    QVERIFY(probeText(bubble).contains("Frequency (1/ka): 0.1"));
     QVERIFY(probeText(bubble).contains("Power (PSD): 4"));
-    style.swapXY=false; style.x.reversed=false; QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(30);
-    g=curve(view,"peaks"); QVERIFY(g);
-    QTest::mousePress(p,Qt::LeftButton,Qt::NoModifier,point);
-    QTest::mouseMove(p,point+QPoint(40,30));
-    QTest::mouseRelease(p,Qt::LeftButton,Qt::NoModifier,point+QPoint(40,30));
-    QVERIFY(!bubble->isVisible());
-    view.fit(); QTest::qWait(30);
-    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(.1,4).toPoint());
-    QVERIFY(bubble->isVisible());
-    view.clear(); QVERIFY(!bubble->isVisible());
-    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,point); QVERIFY(!bubble->isVisible());
-    view.showOutput(spectrum(),"spectrum"); view.resize(190,110); QTest::qWait(30);
-    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,curve(view,"peaks")->coordsToPixels(.1,4).toPoint());
-    QVERIFY(!bubble->isVisible() || p->rect().contains(bubble->geometry()));
+    const auto oldRange=p->yAxis->range();
+    p->yAxis->moveRange(100); p->replot(); QTest::qWait(10);
+    QVERIFY(!visibleBubble(p)); QVERIFY(view.hasBubbles());
+    p->yAxis->setRange(oldRange); p->replot(); QTRY_VERIFY(visibleBubble(p));
+    view.refreshOutput(spectrum()); QTest::qWait(35); QVERIFY(view.hasBubbles());
+    auto *close=visibleBubble(p)->findChild<QToolButton *>("closePlotProbe");
+    QVERIFY(close->width() >= 28 && close->height() >= 28);
+    QTest::mouseClick(close,Qt::LeftButton); QVERIFY(!view.hasBubbles());
+    // A sparse smooth line must be selectable between distant vertices.
+    SeriesData sparse{{0,10,20},{0,10,0},{"X","ka"},{"Y","u"}};
+    view.showOutput(NodeResult::success({{"series",makeData(sparse)}}),"series");
+    QTest::qWait(35); g=curve(view,"series"); QVERIFY(g);
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(4,4).toPoint());
+    QVERIFY(view.hasBubbles()); bubble=visibleBubble(p); QVERIFY(bubble);
+    QVERIFY(probeText(bubble).contains("X (ka): 0")); // Real endpoint, not interpolated 4.
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(16,4).toPoint());
+    QCOMPARE(visibleBubbles(p).size(),2);
+    auto *title=bubble->findChild<QLabel *>("plotProbeTitle"); const auto before=bubble->pos();
+    QTest::mousePress(title,Qt::LeftButton,Qt::NoModifier,QPoint(10,8));
+    QTest::mouseMove(title,QPoint(40,18));
+    QTest::mouseRelease(title,Qt::LeftButton,Qt::NoModifier,QPoint(40,18));
+    QVERIFY(bubble->pos()!=before); QVERIFY(p->rect().contains(bubble->geometry()));
+    QTest::keyClick(p,Qt::Key_Escape); QCOMPARE(visibleBubbles(p).size(),1);
+    view.clearBubbles(); QVERIFY(!view.hasBubbles());
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(10,10).toPoint());
+    QVERIFY(view.hasBubbles()); view.clear(); QVERIFY(!view.hasBubbles());
+}
+void StyleExportTests::probeViewportAndDestruction()
+{
+    auto *view = new PlotView;
+    view->resize(900,620); view->show();
+    view->showOutput(NodeResult::success({{"series",makeData(SeriesData{{0,10,20},{0,10,0},{"X","ka"},{"Y","u"}})}}),"series");
+    auto *p=plot(*view); QTest::qWait(35);
+    p->xAxis->setRange(-20,40); p->yAxis->setRange(-20,40); p->replot(); QTest::qWait(10);
+    auto *g=curve(*view,"series"); QVERIFY(g);
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(10,10).toPoint());
+    QPointer<QFrame> bubble=visibleBubble(p); QVERIFY(bubble);
+    const auto dimensions=bubble->size(); const auto font=bubble->font(); const auto reading=probeText(bubble);
+    auto *title=bubble->findChild<QLabel *>("plotProbeTitle");
+    QTest::mousePress(title,Qt::LeftButton,Qt::NoModifier,QPoint(10,8));
+    QTest::mouseMove(title,QPoint(30,18));
+    QTest::mouseRelease(title,Qt::LeftButton,Qt::NoModifier,QPoint(30,18));
+    const auto oldPosition=bubble->pos(); const auto oldAnchor=g->coordsToPixels(10,10).toPoint();
+    p->xAxis->moveRange(1); p->replot(); QTest::qWait(10);
+    const auto delta=g->coordsToPixels(10,10).toPoint()-oldAnchor;
+    QVERIFY((bubble->pos()-oldPosition-delta).manhattanLength()<=2);
+    p->xAxis->scaleRange(.8,10); p->yAxis->scaleRange(.8,10); p->replot(); QTest::qWait(10);
+    QCOMPARE(bubble->size(),dimensions); QCOMPARE(bubble->font(),font); QCOMPARE(probeText(bubble),reading);
+    const auto range=p->xAxis->range();
+    for(int i=0;i<30;++i) {
+        p->xAxis->moveRange(100); p->replot(); QTest::qWait(1);
+        QTRY_VERIFY(bubble->isHidden()); QVERIFY(view->hasBubbles());
+        p->xAxis->setRange(range); p->replot(); QTest::qWait(1);
+        QTRY_VERIFY(!bubble->isHidden()); QCOMPARE(probeText(bubble),reading);
+    }
+    p->xAxis->moveRange(100); p->replot(); // Leave a queued refresh during destruction.
+    delete view;
+    QVERIFY(bubble.isNull());
+    QCoreApplication::sendPostedEvents(nullptr,QEvent::DeferredDelete);
+    QCoreApplication::processEvents();
+}
+void StyleExportTests::probeReadoutsSurviveResize()
+{
+    PlotView view; view.resize(800,520); view.show();
+    view.showOutput(NodeResult::success({{"series",makeData(SeriesData{
+        {0,10,20},{0,10,0},{"Time","ka"},{"Signal","u"}})}}),"series");
+    auto *p=plot(view); QTest::qWait(35);
+    auto *g=curve(view,"series"); QVERIFY(g);
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(10,10).toPoint());
+    auto *bubble=visibleBubble(p); QVERIFY(bubble);
+    const auto reading=probeText(bubble);
+    auto readoutsVisible=[&] {
+        auto *scroll=bubble->findChild<QScrollArea *>();
+        if(!scroll || scroll->viewport()->height()<35) return false;
+        const auto values=bubble->findChildren<QLabel *>("plotProbeValue");
+        if(values.size()!=2) return false;
+        for(auto *value:values) {
+            const QRect rect(value->mapTo(scroll->viewport(),QPoint()),value->size());
+            if(value->visibleRegion().isEmpty() || !scroll->viewport()->rect().contains(rect)) return false;
+        }
+        return true;
+    };
+    QTRY_VERIFY(readoutsVisible());
+    // A save notification reduces the plot height; splitter/window changes do
+    // the same. The values must stay readable, not merely remain in QObject.
+    for(const auto size:{QSize(800,485),QSize(520,485),QSize(800,520)}) {
+        view.resize(size);
+        QTest::qWait(35);
+        QVERIFY(readoutsVisible());
+        QCOMPARE(probeText(bubble),reading);
+    }
+    // Clicking the same point refreshes the existing card, without hiding rows.
+    QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,g->coordsToPixels(10,10).toPoint());
+    QTest::qWait(35); QCOMPARE(visibleBubbles(p).size(),1);
+    QVERIFY(readoutsVisible()); QCOMPARE(probeText(bubble),reading);
 }
 void StyleExportTests::probeGridCoordinatesAndMask()
 {
     PlotView view; view.resize(760,560); view.show(); view.showOutput(grid(),"power");
     auto *p=plot(view); QTest::qWait(35);
-    auto *bubble=p->findChild<QFrame *>("plotProbeBubble"); QVERIFY(bubble);
+    QFrame *bubble=nullptr;
     for(bool swapped:{false,true}) {
         auto style=view.style(); style.swapXY=swapped; style.x.reversed=true; style.y.reversed=true;
         QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(35);
         QCPColorMap *map=nullptr; for(int i=0;i<p->plottableCount();++i) if((map=qobject_cast<QCPColorMap *>(p->plottable(i)))) break;
         QVERIFY(map);
         QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,map->coordsToPixels(1,view.style().y.logarithmic?2:4).toPoint());
-        QVERIFY(bubble->isVisible());
+        bubble=visibleBubble(p); QVERIFY(bubble);
         const auto detail=probeText(bubble);
         QVERIFY(detail.contains("Time (ka): 1")); QVERIFY(detail.contains("Period (ka): 4")); QVERIFY(detail.contains("Power (u): 3"));
     }
@@ -232,7 +322,7 @@ void StyleExportTests::probeGridCoordinatesAndMask()
     auto style=view.style(); style.colorLog=true; QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(35);
     auto *map=qobject_cast<QCPColorMap *>(p->plottable(0)); QVERIFY(map);
     QTest::mouseClick(p,Qt::LeftButton,Qt::NoModifier,map->coordsToPixels(1,view.style().y.logarithmic?2:4).toPoint());
-    QVERIFY(!bubble->isVisible());
+    QVERIFY(!view.hasBubbles());
 }
 void StyleExportTests::probeCompactReadout_data()
 {
@@ -297,7 +387,7 @@ void StyleExportTests::probeCompactReadout()
         QVERIFY(value->width() >= value->fontMetrics().horizontalAdvance(value->text()));
     QVERIFY(probeText(bubble).contains("<b>&"));
     if (!captures.isEmpty()) QVERIFY(view.grab().save(captures + "/probe-narrow-" + language + "-" + theme + ".png"));
-    p->xAxis->moveRange(1); QVERIFY(!bubble->isVisible());
+    p->xAxis->moveRange(1); p->replot(); QTest::qWait(10); QVERIFY(view.hasBubbles());
     setLanguage("zh"); QVERIFY(ThemeManager::instance().apply(*qApp, "light").isEmpty());
 }
 void StyleExportTests::pendingStyleEditsKeepViewport_data()
@@ -1082,6 +1172,30 @@ void StyleExportTests::heatmapMappingPreservesRawData()
     QCOMPARE(map->data()->cell(0,0),0.); QCOMPARE(map->data()->cell(1,0),-2.);
     g.values.fill(0); result.outputs["power"]=makeData(g); view.showOutput(result,"power");
     s=view.style(); s.colorLog=true; QVERIFY(!view.applyStyle(s).isEmpty()); QVERIFY(!view.style().colorLog);
+}
+void StyleExportTests::amplitudeDisplayPreservesPower()
+{
+    auto g=*dataAs<GridData>(grid().outputs["power"]);
+    g.valueAxis={"Relative power","1"}; g.values={0,.01,.04,.09,.16,.25,.36,.49,.64,.81,1,1};
+    auto result=NodeResult::success({{"power_map",makeData(g)}},{{"map_display_amplitude",true}});
+    PlotView view; view.showOutput(result,"power_map");
+    QVERIFY(view.style().colorAmplitude); QVERIFY(view.style().colorInterpolate);
+    auto *map=qobject_cast<QCPColorMap*>(plot(view)->plottable(0)); QVERIFY(map);
+    QCOMPARE(map->data()->cell(1,0),.1); QCOMPARE(map->data()->cell(2,0),.2);
+    QCOMPARE(map->colorScale()->axis()->label(),text("ui.relative_amplitude"));
+    QCOMPARE(dataAs<GridData>(view.currentData())->values,g.values);
+    QTemporaryDir dir; QVERIFY(view.exportCsv(dir.filePath("power.csv")).isEmpty());
+    QVERIFY(bytes(dir.filePath("power.csv")).contains("0,0.01,0.04"));
+    auto style=view.style(); style.colorAmplitude=false;
+    QVERIFY(view.applyStyle(style).isEmpty());
+    map=qobject_cast<QCPColorMap*>(plot(view)->plottable(0)); QCOMPARE(map->data()->cell(1,0),.01);
+    style.colorAmplitude=true; style.colorLog=true;
+    QVERIFY(view.applyStyle(style).isEmpty());
+    map=qobject_cast<QCPColorMap*>(plot(view)->plottable(0));
+    QCOMPARE(map->dataRange().lower,.1); QCOMPARE(map->dataRange().upper,1.);
+    g.values[0]=-1; result.outputs["power_map"]=makeData(g); result.report["map_display_amplitude"]=false;
+    view.showOutput(result,"power_map"); style=view.style(); style.colorAmplitude=true;
+    QVERIFY(!view.applyStyle(style).isEmpty());
 }
 void StyleExportTests::heatmapInitialAvailability_data()
 {

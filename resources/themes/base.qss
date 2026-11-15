@@ -57,6 +57,10 @@ QTabBar#styleAxis::tab:selected:hover { background: @accentHover@; color: @accen
 QTabBar#styleAxis:focus::tab:selected { border: 2px solid @accentText@; padding: 6px 11px; }
 QTabBar#styleAxis::tab:disabled { background: @disabledSurface@; color: @disabled@; border-color: @border@; }
 QScrollArea { border: 0; background: transparent; }
+/* The workflow panel owns the outer frame. Style the scroll-bar intersection
+   too, so zooming cannot expose the native corner frame above the fit bar. */
+QGraphicsView#workflowCanvas { border: 0; background: @canvas@; }
+QGraphicsView#workflowCanvas::corner { border: 0; background: @canvas@; }
 QScrollBar:vertical { width: 8px; background: transparent; margin: 2px; }
 QScrollBar:horizontal { height: 8px; background: transparent; margin: 2px; }
 QScrollBar::handle { background: @controlBorder@; border-radius: 3px; min-height: 24px; min-width: 24px; }
@@ -129,7 +133,8 @@ QWidget#Panel[panelRole="activity"] QTableView { background: @activity@; }
 QFrame#plotProbeBubble { background: @probe@; border: 1px solid @controlBorder@; border-radius: 6px; }
 QFrame#plotProbeBubble QLabel { background: transparent; border: 0; }
 QLabel#plotProbeTitle { font-weight: 600; color: @text@; }
-QToolButton#closePlotProbe { border: 0; background: transparent; padding: 0; min-width: 20px; min-height: 20px; font-size: 16px; }
+QToolButton#closePlotProbe { border: 0; background: transparent; padding: 0; min-width: 28px; max-width: 28px; min-height: 28px; max-height: 28px; font-size: 22px; }
+QToolButton#closePlotProbe:hover { background: @selection@; border-radius: 4px; }
 QToolButton#copyPlotProbe { padding: 2px 6px; }
 QFrame#plotProbeMarker { background: @accent@; border: 2px solid @accentText@; border-radius: 6px; }
 

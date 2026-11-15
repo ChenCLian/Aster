@@ -42,6 +42,8 @@ class PlotWorkspace : public QWidget
     void closePage(int index);
     void closeSubplot();
     void reset();
+    void clearPageBubbles();
+    bool hasPageBubbles() const;
     void forgetRecord(const QString &databasePath, qint64 recordId);
     QVector<FigureCell> figureCells(bool wholePage) const;
     int pageCount() const;
@@ -55,6 +57,7 @@ class PlotWorkspace : public QWidget
     void selectionChanged(aster::OutputReference reference);
     void message(QString text);
     void outputReady();
+    void bubblesChanged();
 
   private:
     struct Cell

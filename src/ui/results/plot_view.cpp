@@ -201,7 +201,26 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
         if (hasPlot() && m_plot->isVisible())
             m_plot->replot(QCustomPlot::rpQueuedRefresh);
     });
-    m_probe = new PlotProbe(m_plot, [this](QPointF point) { return sampleAt(point); });
+    m_probe = new PlotProbe(m_plot, [this](QPointF point) { return sampleAt(point); },
+        [this](const ProbeSample &sample) -> std::optional<QPointF> {
+            if (!hasPlot()) return {};
+            if ((keyAxis()->scaleType() == QCPAxis::stLogarithmic && sample.coordinates.x() <= 0) ||
+                (valueAxis()->scaleType() == QCPAxis::stLogarithmic && sample.coordinates.y() <= 0)) return {};
+            if (sample.key == "@grid") {
+                if (!dataAs<GridData>(m_data)) return {};
+                if (m_style.colorLog && sample.values.size() >= 3 && sample.values[2].value <= 0) return {};
+                const double k = keyAxis()->coordToPixel(sample.coordinates.x());
+                const double v = valueAxis()->coordToPixel(displayedY(sample.coordinates.y()));
+                return m_style.swapXY ? QPointF(v,k) : QPointF(k,v);
+            }
+            for (int i=0; i<m_plot->graphCount(); ++i) {
+                auto *graph = m_plot->graph(i);
+                if (graph->property("outputKey").toString() == sample.key && graph->visible())
+                    return graph->coordsToPixels(sample.coordinates.x(), displayedY(sample.coordinates.y()));
+            }
+            return {};
+        });
+    connect(m_probe, &PlotProbe::changed, this, &PlotView::bubblesChanged);
     m_plot->setFocusPolicy(Qt::StrongFocus);
     m_plot->setToolTip(text("ui.probe_hint"));
     m_plot->setBackground(Qt::white);
@@ -289,6 +308,28 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
             {
                 auto *menu = new QMenu(this);
                 menu->setAttribute(Qt::WA_DeleteOnClose);
+                if (m_pointReviewEnabled && m_result.report.contains("outlier_input_fingerprint")) {
+                    const auto sample = sampleAt(pos);
+                    const auto *original = dataAs<SeriesData>(m_result.outputs.value("original"));
+                    if (sample && original && QStringList{"series","original","outliers"}.contains(sample->key)) {
+                        const auto it = std::lower_bound(original->x.begin(),original->x.end(),sample->coordinates.x());
+                        if (it != original->x.end() && *it == sample->coordinates.x()) {
+                            const int index = int(it-original->x.begin());
+                            const auto fingerprint = m_result.report["outlier_input_fingerprint"].toString();
+                            const auto generation = m_generation;
+                            for (const auto decision : {0,1,-1}) {
+                                auto *action = menu->addAction(text(decision==0 ? "ui.point_keep" : decision==1 ? "ui.point_exclude" : "ui.point_automatic"));
+                                action->setObjectName(decision==0 ? "pointKeep" : decision==1 ? "pointExclude" : "pointAutomatic");
+                                connect(action,&QAction::triggered,this,[this,generation,fingerprint,index,decision] {
+                                    if (generation==m_generation && m_pointReviewEnabled) emit pointDecisionRequested(fingerprint,index,decision);
+                                });
+                            }
+                            menu->addSeparator();
+                        }
+                    }
+                }
+                auto *clearBubbles = menu->addAction(text("ui.clear_bubbles"), this, &PlotView::clearBubbles);
+                clearBubbles->setEnabled(hasBubbles());
                 auto *fitAction = menu->addAction(text("ui.fit_data"), this, &PlotView::fit);
                 fitAction->setEnabled(plottedCount() > 0);
                 auto *copy = menu->addAction(text("ui.copy_image"), this,
@@ -306,6 +347,12 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
 PlotStyle PlotView::defaults() const
 {
     return plotPreset(m_result, m_port, m_crossMetric->currentData().toString());
+}
+PlotView::~PlotView()
+{
+    // Destroy callbacks that capture this while all PlotView members and the plot still exist.
+    delete m_probe;
+    m_probe = nullptr;
 }
 bool PlotView::isCrossSpectrum() const
 {
@@ -366,6 +413,7 @@ void PlotView::rememberView()
 }
 void PlotView::showOutput(const NodeResult &result, const QString &port, const QString &viewKey)
 {
+    if (!m_refining) m_probe->dismiss();
     QScopedValueRollback<bool> rendering(m_rendering, true);
     m_viewportTimer.stop();
     rememberView();
@@ -562,6 +610,14 @@ QString PlotView::applyStyle(const PlotStyle &style)
         return text("ui.invalid_heat_map_color_range");
     if (style.colorLog && !m_style.colorLog && dataAs<GridData>(m_data) && m_positiveMax <= 0)
         return text("ui.heatmap_no_positive");
+    if (style.colorAmplitude) {
+        const auto *grid = dataAs<GridData>(m_data);
+        const auto bounds = m_result.report["plot_samples"].toObject().value(m_port).toObject()["color_bounds"].toArray();
+        if (!grid || !(grid->valueAxis.name == "Relative power" || grid->valueAxis.name == "Power spectral density") ||
+            std::any_of(grid->values.begin(), grid->values.end(), [](double v) { return v < 0; }) ||
+            (!bounds.isEmpty() && bounds[0].toDouble() < 0))
+            return text("ui.heatmap_amplitude_requires_power");
+    }
     QPixmap image;
     if (style.backgroundImage != m_backgroundPath && !style.backgroundImage.isEmpty())
     {
@@ -579,7 +635,7 @@ QString PlotView::applyStyle(const PlotStyle &style)
         m_backgroundPath = style.backgroundImage;
     }
     const auto old = m_style;
-    m_probe->dismiss();
+    if (!m_refining && old.crossMetric != style.crossMetric) m_probe->dismiss();
     const bool scaleChanged = old.crossMetric != style.crossMetric || old.swapXY != style.swapXY ||
                               old.x.logarithmic != style.x.logarithmic ||
                               old.y.logarithmic != style.y.logarithmic;
@@ -602,7 +658,7 @@ QString PlotView::applyStyle(const PlotStyle &style)
             a->subGridColor = themeColor("subGrid");
         }
     }
-    if (scaleChanged || old.colorLog != style.colorLog)
+    if (scaleChanged || old.colorLog != style.colorLog || old.colorAmplitude != style.colorAmplitude)
     {
         const auto xr = keyAxis()->range(), yr = valueAxis()->range();
         draw();
@@ -671,6 +727,7 @@ QString PlotView::resolutionDescription() const
 }
 void PlotView::refreshOutput(const NodeResult &result)
 {
+    QScopedValueRollback<bool> refining(m_refining, true);
     // A newer gesture may still be in the debounce interval when an older
     // read completes. Rebuilding the view must not consume that pending read.
     const bool pendingViewport = m_viewportTimer.isActive();
@@ -1077,7 +1134,6 @@ void PlotView::draw()
 {
     if (isCrossSpectrum())
     { QSignalBlocker block(m_crossMetric); m_crossMetric->setCurrentIndex(m_crossMetric->findData(m_style.crossMetric)); }
-    m_probe->dismiss();
     QScopedValueRollback<bool> rendering(m_rendering, true);
     m_contour = nullptr;
     m_contourState = int(ContourState::NoBoundary);
@@ -1150,7 +1206,8 @@ void PlotView::draw()
         for (int r = 0; r < rows; ++r)
             for (int c = 0; c < cols; ++c)
             {
-                const auto value = grid->values[sourceY[r] * grid->columns + sourceX[c]];
+                const auto raw = grid->values[sourceY[r] * grid->columns + sourceX[c]];
+                const auto value = m_style.colorAmplitude ? (raw >= 0 ? std::sqrt(raw) : qQNaN()) : raw;
                 map->data()->setCell(c, r, m_style.colorLog && value <= 0 ? qQNaN() : value);
                 m_colorMin = std::min(m_colorMin, value); m_colorMax = std::max(m_colorMax, value);
                 if (value > 0) { m_positiveMin = std::min(m_positiveMin,value); m_positiveMax = std::max(m_positiveMax,value); }
@@ -1162,6 +1219,12 @@ void PlotView::draw()
             m_colorMin = colors[0].toDouble(); m_colorMax = colors[1].toDouble();
             m_positiveMax = std::max(0., m_colorMax);
             m_positiveMin = colors[2].toDouble();
+            if (m_style.colorAmplitude) {
+                m_colorMin = std::sqrt(std::max(0., m_colorMin));
+                m_colorMax = std::sqrt(std::max(0., m_colorMax));
+                m_positiveMin = std::sqrt(std::max(0., m_positiveMin));
+                m_positiveMax = std::sqrt(m_positiveMax);
+            }
         }
         // A saved log style may be revisited on a viewport with no positive samples.
         // Keep the setting, render transparent cells, and report the empty mapping.
@@ -1187,6 +1250,9 @@ void PlotView::draw()
             m_contourState = int(ContourState::Invalid);
         m_scale->setVisible(true);
         m_scale->axis()->setLabel(axisLabel(grid->valueAxis));
+        if (m_style.colorAmplitude)
+            m_scale->axis()->setLabel(grid->valueAxis.name == "Relative power" ? text("ui.relative_amplitude")
+                : text("ui.sqrt_psd") + (grid->valueAxis.unit.isEmpty() ? QString() : " [sqrt(" + grid->valueAxis.unit + ")]") );
         keyAxis()->setLabel(axisLabel(grid->xAxis));
         valueAxis()->setLabel(axisLabel(grid->yAxis));
         if (periodLog)
@@ -1332,7 +1398,7 @@ std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
             return ProbeSample{map->coordsToPixels(k, v), portLabel(m_port),
                 {{axisLabel(grid->xAxis), grid->x[ix]},
                  {axisLabel(grid->yAxis), grid->y[iy]},
-                 {axisLabel(grid->valueAxis), z}}, note(), std::nullopt};
+                 {axisLabel(grid->valueAxis), z}}, note(), std::nullopt, "@grid", QPointF(grid->x[ix], grid->y[iy])};
         }
         return {};
     }
@@ -1345,30 +1411,48 @@ std::optional<ProbeSample> PlotView::sampleAt(QPointF point) const
         const auto *axis = graph->keyAxis();
         const double p = axis->orientation() == Qt::Horizontal ? point.x() : point.y();
         const auto a = axis->pixelToCoord(p - 14), b = axis->pixelToCoord(p + 14);
-        auto first = graph->data()->findBegin(std::min(a, b), false);
-        const auto end = graph->data()->findEnd(std::max(a, b), false);
+        auto first = graph->data()->findBegin(std::min(a, b), true);
+        const auto end = graph->data()->findEnd(std::max(a, b), true);
         for (auto it = first; it != end; ++it)
         {
             if (!std::isfinite(it->key) || !std::isfinite(it->value)) continue;
-            const auto pixel = graph->coordsToPixels(it->key, it->value);
+            auto chosen = it;
+            auto pixel = graph->coordsToPixels(it->key, it->value);
+            auto square = [](QPointF delta) { return delta.x()*delta.x()+delta.y()*delta.y(); };
+            double d = square(pixel-point);
+            const auto next = std::next(it);
+            if (graph->lineStyle() == QCPGraph::lsLine && next != graph->data()->constEnd() && std::isfinite(next->value)) {
+                const auto nextPixel = graph->coordsToPixels(next->key, next->value);
+                const auto segment = nextPixel-pixel;
+                const auto length = square(segment);
+                if (length > 0 && std::isfinite(length)) {
+                    const auto delta = point-pixel;
+                    const auto t = std::clamp((delta.x()*segment.x()+delta.y()*segment.y())/length, 0.0, 1.0);
+                    const auto lineDistance = square(pixel+t*segment-point);
+                    if (lineDistance < d) {
+                        d = lineDistance;
+                        // Report a real sample, never the interpolated mouse coordinate.
+                        if (square(nextPixel-point) < square(pixel-point)) { chosen = next; pixel = nextPixel; }
+                    }
+                }
+            }
             if (!m_plot->axisRect()->rect().contains(pixel.toPoint())) continue;
-            const auto delta = pixel - point;
-            double d = delta.x() * delta.x() + delta.y() * delta.y();
             const bool peak = graph->property("outputKey").toString() == "peaks";
             if (d > distance || (best && d == distance && !peak)) continue;
             distance = d;
             QVector<ProbeValue> values{
-                {keyAxis()->label().isEmpty() ? "X" : keyAxis()->label(), it->key},
-                {valueAxis()->label().isEmpty() ? "Y" : valueAxis()->label(), it->value}};
+                {keyAxis()->label().isEmpty() ? "X" : keyAxis()->label(), chosen->key},
+                {valueAxis()->label().isEmpty() ? "Y" : valueAxis()->label(), originalY(chosen->value)}};
             if (const auto *spectrum = dataAs<SpectrumData>(m_data);
-                spectrum && it->key > 0 && std::isfinite(1.0 / it->key))
+                spectrum && chosen->key > 0 && std::isfinite(1.0 / chosen->key))
             {
                 const auto frequencyUnit = spectrum->frequencyAxis.unit.trimmed();
                 const auto periodUnit = frequencyUnit.startsWith("1/") ? frequencyUnit.mid(2) :
                     (frequencyUnit.isEmpty() ? QString() : "1/(" + frequencyUnit + ")");
-                values.push_back({axisLabel({text("ui.probe_period"), periodUnit}), 1.0 / it->key});
+                values.push_back({axisLabel({text("ui.probe_period"), periodUnit}), 1.0 / chosen->key});
             }
-            best = ProbeSample{pixel, graph->name(), values, note(), graph->pen()};
+            best = ProbeSample{pixel, graph->name(), values, note(), graph->pen(), graph->property("outputKey").toString(),
+                QPointF(chosen->key, originalY(chosen->value))};
         }
     }
     return best;

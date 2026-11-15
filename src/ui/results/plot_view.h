@@ -29,9 +29,13 @@ class PlotView : public QWidget
     Q_OBJECT
   public:
     explicit PlotView(QWidget *parent = nullptr);
+    ~PlotView() override;
     void showOutput(const NodeResult &result, const QString &port, const QString &viewKey = {});
     void clear(const QString &message = {});
     void clearByUser();
+    void setPointReviewEnabled(bool enabled) { m_pointReviewEnabled = enabled; }
+    void clearBubbles() { m_probe->dismiss(); }
+    bool hasBubbles() const { return m_probe->hasBubbles(); }
     void setOutputReference(const OutputReference &reference)
     {
         m_reference = reference;
@@ -84,6 +88,8 @@ class PlotView : public QWidget
     }
   signals:
     void activated();
+    void pointDecisionRequested(QString fingerprint, int index, int decision); // -1 automatic, 0 keep, 1 exclude
+    void bubblesChanged();
     void viewportChanged();
     void styleChanged();
     void outputChanged();
@@ -126,12 +132,12 @@ class PlotView : public QWidget
     PlotStyle m_style, m_defaults;
     QCache<QString, SavedView> m_views{128};
     quint64 m_generation = 0;
-    bool m_gridLog = false;
+    bool m_gridLog = false, m_pointReviewEnabled = false;
     ContourPlottable *m_contour = nullptr; // Owned by QCustomPlot; reset before clearPlottables.
     int m_contourState = 1; // ContourState::NoBoundary
     double m_colorMin = 0, m_colorMax = 1, m_positiveMin = 0, m_positiveMax = 0;
     qsizetype m_nonPositiveCells = 0;
-    bool m_rendering = false;
+    bool m_rendering = false, m_refining = false;
     QTimer m_viewportTimer;
     QTimer m_presentTimer;
     PlotProbe *m_probe;

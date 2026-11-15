@@ -23,26 +23,38 @@ bool exactKeys(const QJsonObject& object, const QStringList& keys)
 QJsonObject workflowToJson(const WorkflowDefinition& definition)
 {
     QJsonArray nodes, layout;
+    bool scoped = false;
+    for (const auto &node : definition.nodes) scoped |= !node.parameterOverrides.isEmpty();
     for (const auto& node : definition.nodes) {
         QJsonValue input(QJsonValue::Null);
         if (node.input) input = QJsonObject{{"parent", idText(node.input->parent)},
             {"output", node.input->output}, {"slot", slotName(node.input->slot)}};
-        nodes.push_back(QJsonObject{{"id", idText(node.id)}, {"method", node.method},
-            {"method_version", node.methodVersion}, {"parameters", node.parameters}, {"input", input}});
+        QJsonObject encoded{{"id", idText(node.id)}, {"method", node.method},
+            {"method_version", node.methodVersion}, {"parameters", node.parameters}, {"input", input}};
+        if (scoped) {
+            QJsonObject overrides;
+            for (auto it=node.parameterOverrides.begin();it!=node.parameterOverrides.end();++it)
+                overrides[idText(it.key())] = it.value();
+            encoded["parameter_overrides"] = overrides;
+        }
+        nodes.push_back(encoded);
     }
     for (auto it = definition.layout.begin(); it != definition.layout.end(); ++it)
         layout.push_back(QJsonObject{{"id", idText(it.key())}, {"column", it->column}, {"row", it->row}});
-    return {{"schema_version", 1}, {"nodes", nodes}, {"layout", layout}};
+    return {{"schema_version", scoped ? 2 : 1}, {"nodes", nodes}, {"layout", layout}};
 }
 WorkflowReadResult workflowFromJson(const QJsonObject& json)
 {
     WorkflowReadResult result;
     const auto reject = [&](QString path, QString message) { result.validation.add(path, message); };
     if (!exactKeys(json, {"schema_version", "nodes", "layout"}) ||
-        !integer(json.value("schema_version"), 1, 1) || !json.value("nodes").isArray() || !json.value("layout").isArray()) {
+        !integer(json.value("schema_version"), 1, 2) || !json.value("nodes").isArray() || !json.value("layout").isArray()) {
         reject("workflow", "Unsupported schema version or malformed top-level fields");
         return result;
     }
+    const bool scoped = json.value("schema_version").toInt() == 2;
+    QStringList nodeKeys{"id", "method", "method_version", "parameters", "input"};
+    if (scoped) nodeKeys << "parameter_overrides";
     const auto nodes = json.value("nodes").toArray();
     const auto layout = json.value("layout").toArray();
     if (nodes.size() > WorkflowNodeLimit || layout.size() > WorkflowNodeLimit) {
@@ -51,7 +63,7 @@ WorkflowReadResult workflowFromJson(const QJsonObject& json)
     for (qsizetype i = 0; i < nodes.size(); ++i) {
         const auto path = QStringLiteral("nodes[%1]").arg(i);
         const auto n = nodes[i].toObject();
-        if (!nodes[i].isObject() || !exactKeys(n, {"id", "method", "method_version", "parameters", "input"}) ||
+        if (!nodes[i].isObject() || !exactKeys(n, nodeKeys) ||
             !n.value("id").isString() || QUuid(n.value("id").toString()).isNull() ||
             !n.value("method").isString() || n.value("method").toString().isEmpty() ||
             !integer(n.value("method_version"), 1, std::numeric_limits<int>::max()) || !n.value("parameters").isObject()) {
@@ -59,6 +71,18 @@ WorkflowReadResult workflowFromJson(const QJsonObject& json)
         }
         NodeDefinition node{QUuid(n.value("id").toString()), n.value("method").toString(),
                             n.value("method_version").toInt(), n.value("parameters").toObject(), std::nullopt};
+        if (scoped) {
+            const auto overrides = n.value("parameter_overrides").toObject();
+            if (!n.value("parameter_overrides").isObject() || overrides.size() > 10000) {
+                reject(path,"Malformed or oversized parameter overrides"); continue;
+            }
+            for (auto it=overrides.begin(); it!=overrides.end(); ++it) {
+                const QUuid id(it.key());
+                if (id.isNull() || node.parameterOverrides.contains(id) || !it.value().isObject())
+                    reject(path,"Malformed parameter override identity or values");
+                else node.parameterOverrides[id]=it.value().toObject();
+            }
+        }
         const auto input = n.value("input");
         if (!input.isNull()) {
             const auto edge = input.toObject();

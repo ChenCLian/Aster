@@ -14,6 +14,8 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QSet>
+#include <QSaveFile>
+#include <QTextStream>
 #include <exception>
 #include <new>
 #include <algorithm>
@@ -295,6 +297,64 @@ RecordList ResultRepository::list(const RecordFilter &filter, int limit, int off
 RecordList ResultRepository::listBefore(const RecordFilter &filter, int limit, qint64 beforeId) const
 {
     return queryList(filter, limit, 0, beforeId);
+}
+QString ResultRepository::exportRecordNames(const RecordFilter &filter, const QString &path,
+                                            qint64 *written, const CancellationToken &cancel) const
+{
+    if (written) *written = 0;
+    auto error = checkThread();
+    if (error.isEmpty()) error = filter.validate();
+    if (!error.isEmpty()) return error;
+    const auto destination = QFileInfo(path).absoluteFilePath();
+    const auto database = QFileInfo(m_db.databaseName()).absoluteFilePath();
+    for (const auto &suffix : {QString(), QString("-wal"), QString("-shm"), QString("-journal")}) {
+        const QFileInfo protectedFile(database + suffix), target(destination);
+        if (destination == protectedFile.absoluteFilePath() ||
+            (target.exists() && !target.canonicalFilePath().isEmpty() &&
+             target.canonicalFilePath() == protectedFile.canonicalFilePath()))
+            return "CSV destination must not replace the database or its journal files";
+    }
+    if (cancel.isCancelled()) return "Export cancelled";
+    QVariantList values;
+    QString statement = "SELECT r.id,r.source_label,r.provenance FROM aster_runs r WHERE 1=1";
+    statement += database_detail::recordConditions(filter, values);
+    statement += " ORDER BY r.id DESC";
+    QSqlQuery query(m_db);
+    query.setForwardOnly(true);
+    if (!query.prepare(statement)) return query.lastError().text();
+    for (const auto &value : values) query.addBindValue(value);
+    if (!query.exec()) return query.lastError().text();
+    QSaveFile file(path);
+    file.setDirectWriteFallback(false);
+    if (!file.open(QIODevice::WriteOnly)) return file.errorString();
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+    out.setGenerateByteOrderMark(true); // Chinese names also open correctly in Excel.
+    out << "ID,Filename\r\n";
+    qint64 count = 0;
+    while (query.next()) {
+        if (cancel.isCancelled()) return "Export cancelled";
+        auto name = query.value(1).toString();
+        const auto provenance = QJsonDocument::fromJson(query.value(2).toByteArray()).object();
+        // Keep generated/pair labels intact, including slashes in their names.
+        if (!provenance.contains("batch_pair") && !provenance["path"].toString().isEmpty()) {
+            name = provenance["path"].toString();
+            name.replace('\\', '/'); // Saved Windows paths are portable across hosts.
+            name = name.section('/', -1);
+        }
+        name.replace('"', "\"\"");
+        out << query.value(0).toLongLong() << ",\"" << name << "\"\r\n";
+        ++count;
+        if (out.status() != QTextStream::Ok) return "CSV write failed";
+    }
+    if (query.lastError().isValid()) return query.lastError().text();
+    out.flush();
+    if (cancel.isCancelled()) return "Export cancelled";
+    if (out.status() != QTextStream::Ok || file.error() != QFileDevice::NoError)
+        return "CSV write failed";
+    if (!file.commit()) return file.errorString();
+    if (written) *written = count;
+    return {};
 }
 RecordList ResultRepository::queryList(const RecordFilter &filter, int limit, int offset, qint64 beforeId) const
 {

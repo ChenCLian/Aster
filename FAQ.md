@@ -1,6 +1,6 @@
 # Aster 常见问题
 
-适用于 Aster 1.2.0-beta.7。[快速开始](QUICK_START.md) · [软件介绍](README.md)
+适用于 Aster 1.3.0-beta.1。[快速开始](QUICK_START.md) · [软件介绍](README.md)
 
 ## 下载与启动
 
@@ -211,7 +211,7 @@ MTM 的“频率上限”按输入横轴单位的倒数填写，例如横轴为 
 
 ### 更新后能用 1.1.1 打开新的交叉谱结果吗？
 
-本版可读取旧版结果；1.1.1 无法读取本版交叉谱表使用的未定义值标记格式。beta 版建议使用独立数据库，并保留原库备份。计算、绘图和资源范围见[交叉谱方法说明](https://github.com/ChenCLian/Aster/blob/main/docs/methods/cross_spectrum.md)。
+本版可读取旧版结果；1.1.1 无法读取本版交叉谱表使用的未定义值标记格式。预发布版建议使用独立数据库，并保留原库备份。计算、绘图和资源范围见[交叉谱方法说明](https://github.com/ChenCLian/Aster/blob/main/docs/methods/cross_spectrum.md)。
 
 ## COCO 与年龄分析
 
