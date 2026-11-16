@@ -214,7 +214,7 @@ class DependencyMaterialTests(unittest.TestCase):
             raise AssertionError(args)
         old_read=Path.read_bytes
         def file_read(path):
-            if str(path)=='/usr/share/doc/libfixture1/copyright':return b'copyright terms'
+            if path==Path('/usr/share/doc/libfixture1/copyright'):return b'copyright terms'
             return old_read(path)
         with patch.object(providers,'run',side_effect=native_run),patch.object(Path,'read_bytes',file_read):
             owners={};providers.debian_sources(self.collection,[library],owners)

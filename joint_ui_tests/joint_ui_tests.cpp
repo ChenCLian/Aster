@@ -3,6 +3,7 @@
 #include <QtTest>
 #include <QComboBox>
 #include <QLabel>
+#include <QTextBrowser>
 #include <QScopeGuard>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -37,6 +38,7 @@
 #include "ui/results/results_page.h"
 #include "ui/exports/figure_export.h"
 #include "ui/common/presentation.h"
+#include "ui/common/error_presenter.h"
 #include "third_party/qcustomplot/qcustomplot.h"
 #include "io/database/data_codec.h"
 #include "model/workflow_codec.h"
@@ -332,7 +334,7 @@ void JointUiTests::longJointSourceCaptionKeepsPlotSpace()
     panel.findChild<QComboBox *>("pairInputPreview")->setCurrentIndex(1);
     QVERIFY(heading->text().contains("B-256.csv")); QVERIFY(heading->toolTip().contains("/a/very/long"));
     QCOMPARE(dataAs<SeriesData>(view->currentData())->yAxis.name, QString("Alternative"));
-    // A long validation error must release its extra rows after correction.
+    // Errors belong in the readable plot message, with a compact status line.
     QLabel *status = nullptr;
     for (auto *label : panel.findChildren<QLabel *>("Muted"))
         if (label->text().startsWith(text("ui.preview_complete").section('%', 0, 0))) status = label;
@@ -340,10 +342,22 @@ void JointUiTests::longJointSourceCaptionKeepsPlotSpace()
     const auto compactHeight = status->minimumHeight();
     QVERIFY(f.doc.setParameters(f.joint, {{"psd_window", 512}, {"psd_overlap", 256}}).ok());
     QTRY_COMPARE_WITH_TIMEOUT(panel.controller()->state(), WorkflowPreviewController::State::Failed, 10000);
-    QVERIFY(status->minimumHeight() > compactHeight);
+    QCOMPARE(status->text(), text("ui.preview_failed"));
+    QVERIFY(status->minimumHeight() <= compactHeight);
+    auto *resultView = panel.findChild<PlotView *>("nodePreviewPlot"); QVERIFY(resultView);
+    auto *failure = resultView->findChild<QTextBrowser *>("plotMessage"); QVERIFY(failure);
+    QTRY_VERIFY(failure->isVisible());
+    const auto explanation = presentError(panel.controller()->result()->output);
+    QVERIFY(!explanation.summary.isEmpty());
+    QVERIFY(failure->toPlainText().contains(explanation.summary));
+    QVERIFY(failure->toPlainText().contains(explanation.suggestion));
+    QVERIFY(failure->font().pointSizeF() >= 14);
     QVERIFY(f.doc.setParameters(f.joint, {{"psd_window", 64}, {"psd_overlap", 32}}).ok());
     QTRY_COMPARE_WITH_TIMEOUT(panel.controller()->state(), WorkflowPreviewController::State::Ready, 10000);
     QTRY_VERIFY(status->minimumHeight() <= compactHeight);
+    QTRY_VERIFY(!failure->isVisible());
+    QVERIFY(resultView->hasPlot());
+    QVERIFY(status->text().startsWith(text("ui.preview_complete").section('%', 0, 0)));
     const auto captures = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
     if (!captures.isEmpty()) QVERIFY(panel.grab().save(captures + "/joint-caption-recovered.png"));
 }

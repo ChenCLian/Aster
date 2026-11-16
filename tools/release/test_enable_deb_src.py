@@ -141,6 +141,12 @@ class SourceRepositoryTests(unittest.TestCase):
         self.assertFalse(enable_deb_src.official_uri('mirror+file:/etc/apt/../outside.txt', self.apt))
         self.assertFalse(enable_deb_src.official_uri('mirror+file://remote/etc/apt/apt-mirrors.txt', self.apt))
 
+    def test_native_file_uri_and_encoded_apt_paths(self):
+        mirrors = self.write_runner_mirror_list()
+        self.assertTrue(enable_deb_src.official_uri('mirror+' + mirrors.resolve().as_uri(), self.apt))
+        self.assertTrue(enable_deb_src.official_uri('mirror+file:/etc/apt/apt%2Dmirrors.txt', self.apt))
+        self.assertFalse(enable_deb_src.official_uri('mirror+file:/etc/apt/%2e%2e/outside.txt', self.apt))
+
     def test_mirror_with_architecture_options_keeps_original_options(self):
         self.write_runner_mirror_list()
         line = ('deb [arch=amd64 signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] '

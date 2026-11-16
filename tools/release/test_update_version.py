@@ -51,22 +51,34 @@ class VersionUpdateTests(unittest.TestCase):
         self.assertEqual(self.snapshot(),before)
         bump.write_changes(changes)
         self.assertEqual(bump.check(self.root),[])
-        self.assertEqual((self.root/'README.md').read_text(),before['README.md'].decode().replace(self.old,self.new))
+        self.assertEqual((self.root/'README.md').read_text(encoding='utf-8'),before['README.md'].decode('utf-8').replace('\r\n','\n').replace(self.old,self.new))
         self.assertEqual((self.root/'docs/history/old.md').read_bytes(),before['docs/history/old.md'])
         self.assertEqual((self.root/'docs/development/CHANGELOG_1.3.0.md').read_bytes(),before['docs/development/CHANGELOG_1.3.0.md'])
         self.assertEqual((self.root/'config/version.pri').read_bytes(),before['config/version.pri'])
-        archived=(self.root/f'docs/history/releases/{self.old}/RELEASE_NOTES.md').read_text()
+        archived=(self.root/f'docs/history/releases/{self.old}/RELEASE_NOTES.md').read_text(encoding='utf-8')
         self.assertIn(self.old,archived);self.assertIn('../../../guide.md#help',archived)
         self.assertIn('[Review](REVIEW_CN.md)',archived)
-        self.assertNotIn('Old notes',(self.root/'RELEASE_NOTES.md').read_text())
-        self.assertIn('修复偶发',(self.root/'RELEASE_NOTES.md').read_text())
-        status=json.loads((self.root/'PACKAGE_STATUS.json').read_text())
+        self.assertNotIn('Old notes',(self.root/'RELEASE_NOTES.md').read_text(encoding='utf-8'))
+        self.assertIn('修复偶发',(self.root/'RELEASE_NOTES.md').read_text(encoding='utf-8'))
+        status=json.loads((self.root/'PACKAGE_STATUS.json').read_text(encoding='utf-8'))
         self.assertEqual(status['database_schema'],3);self.assertEqual(status['dependency_version'],'6.8.2')
         self.assertEqual(status['ci_regression_review']['version'],self.old)
         self.assertEqual(status['validation']['status'],'pending')
         self.assertNotIn('2185',json.dumps(status['validation']))
-        record=json.loads((self.root/status['validation']['record']).read_text())
+        record=json.loads((self.root/status['validation']['record']).read_text(encoding='utf-8'))
         self.assertEqual(record['status'],'pending');self.assertNotIn('passed',record)
+
+    def test_utf8_crlf_documents_keep_content_and_historical_bytes(self):
+        readme = '# Aster ' + self.old + '\r\n\r\n中文说明：保留正文。\r\n'
+        (self.root / 'README.md').write_bytes(readme.encode('utf-8'))
+        history = self.root / 'docs/history/old.md'
+        history.write_bytes(('中文历史 ' + self.old + '\r\n').encode('utf-8'))
+        history_bytes = history.read_bytes()
+        bump.write_changes(bump.plan(self.root, self.new, '修复打包检查。'))
+        self.assertEqual((self.root / 'README.md').read_text(encoding='utf-8'),
+                         readme.replace('\r\n', '\n').replace(self.old, self.new))
+        self.assertEqual(history.read_bytes(), history_bytes)
+        self.assertEqual(bump.check(self.root), [])
 
     def test_cli_dry_run_and_notes_file(self):
         notes=self.root/'notes.txt';notes.write_text('较大的更新\n\n- 新功能说明\n',encoding='utf-8-sig')
@@ -76,7 +88,7 @@ class VersionUpdateTests(unittest.TestCase):
             self.assertEqual(self.snapshot(),before)
             self.assertEqual(bump.main([self.new,'--notes-file',str(notes)]),0)
             self.assertEqual(bump.main(['--check']),0)
-        self.assertIn('新功能说明',(self.root/'RELEASE_NOTES.md').read_text())
+        self.assertIn('新功能说明',(self.root/'RELEASE_NOTES.md').read_text(encoding='utf-8'))
 
     def test_semver_order_and_invalid_versions(self):
         self.assertLess(bump.version_key('1.3.0-alpha.9'),bump.version_key('1.3.0-alpha.10'))
@@ -123,9 +135,9 @@ class VersionUpdateTests(unittest.TestCase):
                          f'https://github.com/example/Aster/releases/tag/v{self.old}\n')
         bump.write_changes(bump.plan(self.root, self.new, 'Update.'))
         self.assertEqual(bump.check(self.root), [])
-        self.assertIn('git tag v' + self.new, guide.read_text())
-        self.assertIn('/tag/v' + self.new, guide.read_text())
-        guide.write_text(guide.read_text() + '\nStale tag: v' + self.old)
+        self.assertIn('git tag v' + self.new, guide.read_text(encoding='utf-8'))
+        self.assertIn('/tag/v' + self.new, guide.read_text(encoding='utf-8'))
+        guide.write_text(guide.read_text(encoding='utf-8') + '\nStale tag: v' + self.old)
         self.assertTrue(any('Stale version ' + self.old in error for error in bump.check(self.root)))
         text = f'prefix{self.old} v{self.old}0 v{self.old}suffix'
         self.assertEqual(bump.replace_version(text, self.old, self.new), text)
@@ -152,13 +164,13 @@ class VersionUpdateTests(unittest.TestCase):
         try:path.symlink_to(target)
         except (OSError,NotImplementedError):self.skipTest('Symlinks unavailable')
         with self.assertRaises(ValueError):bump.plan(self.root,self.new,'note')
-        self.assertEqual(target.read_text(),'Aster '+self.old)
+        self.assertEqual(target.read_text(encoding='utf-8'),'Aster '+self.old)
 
     def test_stable_release_and_following_patch_bump(self):
         bump.write_changes(bump.plan(self.root,'1.3.0','正式发布。'))
         self.assertEqual(bump.check(self.root),[])
         bump.write_changes(bump.plan(self.root,'1.3.1','小修复。'))
         self.assertEqual(bump.check(self.root),[])
-        self.assertIn('Aster-1.3.1-linux', (self.root/'docs/guide.md').read_text())
+        self.assertIn('Aster-1.3.1-linux', (self.root/'docs/guide.md').read_text(encoding='utf-8'))
 
 if __name__=='__main__':unittest.main()

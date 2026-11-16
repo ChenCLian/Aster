@@ -4,9 +4,10 @@ Copyright (C) 2026 ZiJie Chen
 SPDX-License-Identifier: GPL-3.0-only
 """
 import argparse
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 from urllib.parse import unquote, urlsplit
+from urllib.request import url2pathname
 
 
 def convert(text):
@@ -32,13 +33,16 @@ def official_uri(uri, apt_root=Path('/etc/apt')):
     parsed = urlsplit(uri)
     if parsed.scheme != 'mirror+file' or parsed.netloc or parsed.query or parsed.fragment:
         return False
-    path = Path(unquote(parsed.path))
-    if not path.is_absolute() or '..' in path.parts:
+    uri_path = PurePosixPath(unquote(parsed.path))
+    if not uri_path.is_absolute() or '..' in uri_path.parts:
         return False
     # --apt-root also supports inspecting a copy of /etc/apt in tests or diagnostics.
-    if apt_root != Path('/etc/apt') and Path('/etc/apt') in path.parents:
-        path = apt_root / path.relative_to('/etc/apt')
-    if apt_root.resolve() not in path.resolve().parents:
+    # URI paths are POSIX paths even when the copy is inspected on Windows.
+    if PurePosixPath('/etc/apt') in uri_path.parents:
+        path = apt_root.joinpath(*uri_path.relative_to('/etc/apt').parts)
+    else:
+        path = Path(url2pathname(str(uri_path)))
+    if not path.is_absolute() or apt_root.resolve() not in path.resolve().parents:
         return False
     try:
         lines = path.read_text(encoding='utf-8-sig').splitlines()

@@ -6,7 +6,9 @@ SPDX-License-Identifier: GPL-3.0-only
 import base64
 import hashlib
 import json
+import os
 import re
+import stat
 from pathlib import Path
 import shutil
 import subprocess
@@ -59,7 +61,10 @@ class PackagingLayoutTests(unittest.TestCase):
         for name in ['config/local.pri', 'build-release', 'dist', 'results.sqlite']:
             self.assertFalse((dest / name).exists())
         self.assertTrue((dest / '.github/workflows/build.yml').is_file())
-        self.assertTrue((dest / 'tools/run.sh').stat().st_mode & 0o100)
+        self.assertEqual(stat.S_IMODE((dest / 'tools/run.sh').stat().st_mode),
+                         stat.S_IMODE((root / 'tools/run.sh').stat().st_mode))
+        if os.name != 'nt':  # Windows chmod does not implement POSIX execute bits.
+            self.assertTrue((dest / 'tools/run.sh').stat().st_mode & stat.S_IXUSR)
         manifest = json.loads((dest / 'PACKAGE_MANIFEST.json').read_text())
         for item in manifest['files']:
             data = (dest / item['path']).read_bytes()
