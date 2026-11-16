@@ -226,6 +226,10 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_canvas, &WorkflowCanvas::replaceMethodDropped, this,
         [this](QString method, NodeId node) { reviewRewrite(NodeRewriteKind::Replace, node, method); });
     connect(m_sources, &SourcePanel::importRequested, this, &MainWindow::importFiles);
+    // Structural input actions must consume the current parameter draft before
+    // removing its identity or taking a pairing-dialog revision snapshot.
+    m_sources->setBeforeInputRemoval([this] { return !m_runner->busy() && flushParameters(); });
+    m_pairing->setBeforePairEdit([this] { return !m_runner->busy() && flushParameters(); });
     connect(m_sources, &SourcePanel::moveInputsRequested, this, [this] {
         if (!m_runner->busy() && flushParameters()) m_sources->moveSelectedDatasets();
     });
@@ -703,6 +707,27 @@ void MainWindow::reviewRewrite(NodeRewriteKind kind, NodeId target, QString meth
     const auto options = inspectNodeRewrite(m_document->model(), kind, target, method);
     if (!options.ok()) { showMessage(nodeRewriteMessage(options.error)); return; }
     for (auto *old : findChildren<NodeEditDialog *>()) old->reject();
+    // A single producer may still expose several compatible ports. Skip the
+    // review only when every connection, including downstream branches, is unique.
+    bool unique = options.inputs.size() == 1;
+    for (const auto &mapping : options.outputs)
+        unique = unique && mapping.choices.size() == 1;
+    if (unique) {
+        NodeRewriteRequest request;
+        request.kind = kind;
+        request.target = target;
+        request.method = method;
+        request.inputOutput = options.inputs.front().key;
+        for (const auto &mapping : options.outputs)
+            request.childOutputs[mapping.child] = mapping.choices.front().key;
+        const auto prepared = m_document->prepareRewrite(request);
+        if (!prepared.ok()) { showMessage(nodeRewriteMessage(prepared.error)); return; }
+        const auto committed = m_document->commitEdit(prepared.edit);
+        if (!committed.ok()) { showMessage(nodeRewriteMessage(committed.error)); return; }
+        selectNode(prepared.nodeId);
+        statusBar()->showMessage(text("ui.node_edit_applied"), 8000);
+        return;
+    }
     auto *dialog = new NodeEditDialog(m_document, kind, target, method, this);
     connect(dialog, &NodeEditDialog::committed, this, [this](NodeId id) { selectNode(id); });
     connect(m_runner, &RunController::busyChanged, dialog, [dialog](bool busy) { if (busy) dialog->reject(); });

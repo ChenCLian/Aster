@@ -13,8 +13,8 @@ SOURCES += ../src/ui/common/popup_placement.cpp ../src/ui/common/output_picker.c
 HEADERS += ../src/ui/common/popup_placement.h ../src/ui/common/output_picker.h
 SOURCES += ../src/ui/workflow/node_edit_dialog.cpp
 HEADERS += ../src/ui/workflow/node_edit_dialog.h
-SOURCES += ../src/ui/help/help_dialog.cpp
-HEADERS += ../src/ui/help/help_dialog.h
+SOURCES += ../src/ui/help/help_dialog.cpp ../src/ui/help/help_catalog.cpp
+HEADERS += ../src/ui/help/help_dialog.h ../src/ui/help/help_catalog.h
 
 SOURCES += \
     ../src/third_party/qcustomplot/qcustomplot.cpp \
@@ -148,3 +148,7 @@ HEADERS += ../src/ui/panels/joint_input_dialog.h
 SOURCES += ../src/ui/results/plot_preset.cpp
 HEADERS += ../src/ui/results/plot_preset.h
 HEADERS += ../src/ui/results/plot_recipe.h ../src/io/database/grid_sampling.h
+
+include(../config/archive.pri)
+SOURCES += ../src/update/download_package.cpp ../src/update/package_download.cpp
+HEADERS += ../src/update/download_package.h ../src/update/package_download.h

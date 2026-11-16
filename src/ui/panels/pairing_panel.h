@@ -4,6 +4,7 @@
 #define ASTER_PAIRING_PANEL_H
 #include "ui/workflow/workflow_document.h"
 #include <QWidget>
+#include <functional>
 class QComboBox;
 namespace aster::ui
 {
@@ -14,12 +15,14 @@ class PairingPanel : public QWidget
     explicit PairingPanel(WorkflowDocument *, QWidget *parent = nullptr);
     void selectNode(NodeId);
     void refresh();
+    void setBeforePairEdit(std::function<bool()> guard) { m_beforePairEdit = std::move(guard); }
     QUuid currentPair() const;
     QString currentLabel() const;
   signals:
     void pairSelected(QUuid);
 
   private:
+    std::function<bool()> m_beforePairEdit;
     void editPairs();
     WorkflowDocument *m_document;
     NodeId m_node;

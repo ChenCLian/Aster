@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.3.0-beta.1。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.3.0-beta.20。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.0-beta.1` 对应 `v1.3.0-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.0-beta.20` 对应 `v1.3.0-beta.20`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -41,7 +41,7 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 脚本为新版本建立“待验证”记录，保留旧验证记录的链接；不会把旧版通过数量转记到新版。版本检查通过后，按改动范围运行测试并填写实际验证记录。运行 `qmake` 并重新构建，程序版本和内置帮助才会更新；只运行脚本不会修改已有 EXE。下面的构建、部署和打包流程不变。
 
-软件通过公开 GitHub Releases 检查版本，显示说明并打开下载页。更新采用完整程序包手动安装。正式版通道排除预发布版；需要测试预发布时，在更新窗口选择包含预发布版的通道。
+软件优先查询公开 GitHub Releases，失败时回退 Gitee 并标注查询范围。 GitHub 查询成功但同版本更新信息附件发生网络错误、超时或缺失时，也可按配置回退 Gitee；主动取消和无效内容不会触发换源。正式版与 Beta 分开选择，Alpha 不参与。有效下载信息提供完整包下载、SHA-256 校验与新目录解压；由用户关闭旧版并启动新版。旧发布缺少下载信息时仍可打开发布页。
 
 源码仓库根目录应直接包含 `Aster.pro`、`VERSION`、`src/`、`resources/`、`tools/` 和 `.github/`。本机配置 `config/local.pri`、构建目录、用户数据库和凭据不提交到仓库。
 
@@ -51,15 +51,51 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 ## GitHub Actions 构建
 
-工作流 `.github/workflows/build-desktop.yml` 在原生 Linux/macOS runner 上编译、测试和打包。可从任意系统的浏览器触发，不要求维护者本机运行 macOS 或 Linux。
+工作流 `.github/workflows/build-desktop.yml` 分别使用 Windows x64、Linux x64、macOS arm64 和 macOS x86_64 原生 runner。维护者不需要本机运行所有系统。
 
-1. 完成参数参考生成与校验（见下文），提交待发布源码并推送到 GitHub。工作流先核对 `VERSION`、带 `v` 前缀的发布标签示例、当前文档和验收记录；不一致会在安装依赖前停止。
-2. 打开 **Actions → Build desktop packages → Run workflow**，选择待构建分支。
-3. 确认 `linux-x64`、`macos-arm64`、`macos-x86_64` 三个任务的构建、文档同步检查、回归和打包步骤通过。
-4. 下载运行页面底部的 Artifacts。`Aster-<版本>-<平台>.zip` 或 `.tar.gz` 是可直接上传 Release 的程序包，无外层 ZIP；工作流通过 `actions/upload-artifact@v7` 的 `archive: false` 原样上传。`dependency-materials-*` 仍是多个依赖附件的运输 ZIP，解开后上传其中的源包和记录 ZIP；`logs-*` 为诊断日志。
-5. 保留该次运行链接、源码提交、测试日志和程序包摘要。失败的构建不作为可发布产物。
+1. 完成版本同步、参数参考生成与文档链接检查，提交源码并推送 GitHub。
+2. 打开 **Actions → Build desktop packages → Run workflow**，选择分支。`prepare_draft` 默认开启。
+3. 四个平台分别构建、回归、收集依赖材料和打包，再从最终包解压启动，记录中英文截图。任何平台失败都会阻止草稿汇总。
+4. 成功后自动准备 `v<VERSION>` 草稿，包含四个程序包、项目源码、依赖材料、`Aster-update.json` 与 `SHA256SUMS.txt`。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
+5. 下载 `logs-*` 查看检查记录和截图，人工复核界面、公告与附件后再点击 Publish。无需提前创建草稿；需要先写公告也可以提前建立同标签草稿。
 
-工作流只上传构件，不自动创建或修改 Release。依赖材料构件的 30 天保存期不能替代 Release 中持续可用的源码附件。当前配置为 Qt 6.8.3、Python 3.12；Linux 使用 Ubuntu 22.04，macOS 使用 `macos-15`（Apple Silicon）和 `macos-15-intel`（Intel）。具体值以工作流文件为准。
+首次验收先取消勾选 `prepare_draft`，并保持 `ENABLE_GITEE_MIRROR` 未启用。这样会构建、测试并上传 Actions 构件，不创建发布草稿。四个平台通过后再开启草稿准备。桌面发布工作流在仓库内串行执行，防止不同分支同时更新同版本附件。
+
+草稿上传期间不要点击 Publish。脚本在编辑及每次上传前重新查询草稿状态，发现已发布或标签变化会停止；查询与上传是分开的网络操作，不能替代平台级原子锁。必须等待草稿任务成功结束，再人工发布。复用草稿时按版本校正正式版/Beta 标记，保留已有标题和公告。
+
+最终包检查每次先清除自身产生的旧日志与截图，并重写 result.json；失败或超时会记录失败及已收到的输出。不要将上一次运行的截图或报告当成当前构件的通过证明。
+
+运行页面中的 `program-*` 是 Actions 运输构件，下载后需取出里面的程序 ZIP/tar.gz；汇总脚本自动完成此步，Release 内为最终原始程序包。`dependency-materials-*` 构件也先解开运输层，再将材料附件上传 GitHub；不会进入 Gitee 同步。
+
+自动截图可帮助发现异常，但不能可靠识别所有乱码、系统缩放或系统对话框问题。首次 Windows/macOS 包仍需原生启动验收，macOS 签名与公证是独立事项。
+
+## 启用 Gitee 镜像
+
+仅需配置一次，不要把令牌写入代码或发到聊天中：
+
+1. 确保 `ChenCLian/Aster` 为公开 Gitee 仓库，令牌具有该仓库源码推送和 Release 附件管理权限。
+2. GitHub 仓库 **Settings → Secrets and variables → Actions**：新增 Secret `GITEE_TOKEN`；新增 Variable `ENABLE_GITEE_MIRROR`，值为 `true`。未启用变量时镜像任务跳过。
+3. 人工发布 GitHub Release 后，**Mirror published release to Gitee** 自动运行。失败可选择该工作流 Run workflow，输入已经公开的版本标签重试。
+4. 首次查看镜像报告，并实际测试匿名下载。Gitee API、权限、容量或下载跳转改变时任务会明确失败，不会公布未验证的镜像地址。
+
+同步只读取四个程序附件和小型更新信息，**四个平台的 dependency-materials 均不下载到同步任务，也不上传 Gitee**。源码快照同时排除依赖材料目录。程序内部的许可文件保留，Gitee 公告链接到 GitHub 对应版本的材料附件。
+
+源码进入独立的 `release-stable` / `release-beta` 分支及对应版本标签，不覆盖 Gitee 原 `main`；可在 Gitee 网页选择默认展示分支。不自动删除远端旧版本。程序超过保守同步上限时跳过该平台镜像，仍可从 GitHub 下载；总容量不足需要维护者自行整理。
+
+已有程序附件不覆盖。已存在元数据必须字节一致，否则停止；确认需要补齐镜像后，只删除 Gitee 当前版本的 `Aster-update.json` 再重试。同步成功后，GitHub 上同名更新信息及其校验摘要会更新，程序包内容保持原样。
+
+## 一份正文，多处阅读
+
+Markdown 本身不能执行“判断当前域名”的脚本。仓库文档统一使用相对路径，如 `[快速开始](../QUICK_START.md)`，本地、GitHub 和 Gitee 会按当前文件位置解析。内置手册也读取同一组 Markdown，并在软件内跳转。
+
+Gitee 首次创建公告时沿用 GitHub 已发布的正文，保留你在草稿中的手动修改。发布公告的位置不同，由 `document_links.py` / `release_delivery.py` 自动将正文相对链接拼接为对应平台、版本标签下的完整网址。外部参考、其他仓库及历史固定标签链接保留原地址。
+
+```bash
+python tools/release/document_links.py --write-manifest
+python tools/release/document_links.py
+```
+
+新增、移动文档或修改链接后更新生成清单 `resources/manual_files.json`。四个平台的离线文档使用同一清单，Windows Stage 不额外需要 Python。平常只改正文，不必另写本地、内置、GitHub、Gitee 四份内容；参数参考仍由描述符自动生成。首次出现新的 Markdown 语法时应检查渲染，四个阅读器不保证像素一致。
 
 ## 平台与产物
 
@@ -151,7 +187,7 @@ bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 di
 
 程序包包含 `README.md`、`QUICK_START.md`、`FAQ.md`、`RELEASE_NOTES.md`、`AUTHORS.md`、`LICENSE`、`COPYRIGHT.md`、`SOURCE_CODE.md`、`SOURCE_DEPENDENCIES.md`、`START_HERE.txt` 和许可文件。README 的图标位于 `resources/app/aster.png`；该资源仅供随包文档显示，不改变应用内部资源。
 
-Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notices.py`。`START_HERE.txt` 由各平台脚本生成，提供启动、更新和文档入口。`SOURCE_DEPENDENCIES.md` 与 `licenses/dependencies/` 由依赖收集器按实际程序包生成，Windows 默认打包则在验证运行依赖后从既有材料安装；依赖源码归档单独输出到 `release-assets/`。使用手册、参数参考和科学方法文档通过 Qt 资源内置于程序；维护者编辑的 Markdown 位于源码 `docs/` 中。开发与构建文档不要求离线内置。
+Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notices.py`。`START_HERE.txt` 由各平台脚本生成，提供启动、更新和文档入口。`SOURCE_DEPENDENCIES.md` 与 `licenses/dependencies/` 由依赖收集器按实际程序包生成，Windows 默认打包则在验证运行依赖后从既有材料安装；依赖源码归档单独输出到 `release-assets/`。使用手册、参数参考和方法文档通过 Qt 资源内置于程序；维护者编辑的 Markdown 位于源码 `docs/` 中。开发与构建文档不要求离线内置。
 
 更新运行要求时，同步 README 下载表、快速开始、FAQ、发布说明和对应脚本中的启动提示。
 
@@ -229,9 +265,9 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 ## 创建 GitHub Release
 
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
-2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.3.0-beta.1`，标题填写 `Aster 1.3.0-beta.1`。
+2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.3.0-beta.20`，标题填写 `Aster 1.3.0-beta.20`。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
-4. 上传程序包和各平台 `release-assets/` 中的全部文件，无需上传独立 `.sha256`。Windows 目录由维护者压缩；Actions 的程序归档直接上传，依赖材料构件先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
+4. 使用上述 Actions 时草稿附件已自动准备；手动发布则上传程序包、生成的 `Aster-update.json` 和各平台 `release-assets/` 中的全部文件。Windows 目录由维护者压缩；Actions 程序和依赖材料构件均先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
 5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。
 
 GitHub 为 Release 附件记录 SHA-256 摘要，可通过附件 API 的 `digest` 字段查看；Actions 程序构件有自己的摘要。两者都针对实际上传的文件，不是源文件或可执行文件的单独签名。依赖下载及来源核验仍使用预期摘要，不能以 GitHub 上传后的摘要代替。

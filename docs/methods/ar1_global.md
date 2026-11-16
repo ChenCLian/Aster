@@ -1,5 +1,7 @@
 # AR1 背景全局检验
 
+操作与输出解释：[中文](spectral_inference.md#ar1) · [English](spectral_inference_en.md#ar1)。公共概念见[统计解释](../concepts/statistical_interpretation.md)。
+
 `ar1_global` 是独立的 AR1 全局检验任务，通过模拟参考库计算统计量；普通 MTM 不会自动运行它。
 
 它在声明的平稳 Gaussian AR1 噪声模型下模拟参考序列，比较观测统计量在参考分布中的位置。同一组设置可复用已生成参考库，减少重复计算。缓存是数值模拟的结果，不是固定分位数查表；缓存键不匹配时不会混用。

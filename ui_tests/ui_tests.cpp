@@ -3,6 +3,8 @@
 #include <QTextBlock>
 #include <QTextFragment>
 #include "ui/help/help_dialog.h"
+#include "ui/help/help_catalog.h"
+#include <QElapsedTimer>
 #include <QAbstractTextDocumentLayout>
 #include "ui/settings/settings_dialog.h"
 #include <QTextBrowser>
@@ -25,6 +27,7 @@
 #include <QVBoxLayout>
 #include "../tests/support/workspace_fixture.h"
 #include <QtTest>
+#include "ui/panels/joint_input_dialog.h"
 #include <QTableView>
 #include <QtTest/qtestspontaneevent.h>
 #include <QApplication>
@@ -163,6 +166,16 @@ class UiTests : public QObject
     void helpLanguageAndChapterReuse();
     void helpReferenceVisibleLayout();
     void helpDirectoryLinks();
+    void helpTreeAndParameterSelection();
+    void helpGlobalSearchAndCancellation();
+    void helpFindAndReadingHistory();
+    void helpNavigationResponsiveLayout();
+    void allTaskGuidesAndIndexStayOffline();
+    void chronologyGuidesStayOfflineAndReturn();
+    void statisticalGuidesStayOfflineAndReturn();
+    void dataProcessingGuidesStayOfflineAndReturn();
+    void spectralGuidesStayOfflineAndShareConcepts();
+    void samplingGuidesStayOfflineAndReturnToParameter();
     void licenseNoticesOffline();
     void parameterHelpTracksSelectedNode();
     void fileReadinessSurvivesDisabledPanel();
@@ -234,7 +247,20 @@ class UiTests : public QObject
     void batchImportKeyboardMouseScope();
     void batchImportPreservesConcurrentOptions();
     void sourceActionsFitNarrowPanel();
-    void acyclePresetIsEditable();
+    void evolutionPresetIsEditable();
+    void automaticEvolutionScopes();
+    void batchPreservesInheritedDecisions();
+    void batchRejectsStaleScope();
+    void automaticScopeReplayIsolation();
+    void automaticBatchFailureIsolation();
+    void removeInputFlushesPendingParameters();
+    void duplicateSourceSelectionUsesIdentity();
+    void pairManagerFlushesPendingParameters();
+    void helpSearchDiscardsStaleResults();
+    void helpColdSearchEnterOpensResult();
+    void automaticEvolutionBatchButtons();
+    void previewMessagesRemainReadable();
+    void evolutionResolvedPreviewFollowsInput();
     void batchImportDoesNotModifyReimportedDataset();
     void hierarchicalTaskMenu();
     void astronomySourcesUseSharedUi();
@@ -295,6 +321,143 @@ void UiTests::helpCatalogueCoverageAndContext()
     QVERIFY(parameterHelp(window, "mtm") != parameterHelp(window, "moving_average"));
 }
 
+void UiTests::helpTreeAndParameterSelection()
+{
+    struct Restore{~Restore(){setLanguage("zh");}} restore;
+    const auto registry=makeScientificRegistry();
+    HelpDialog dialog;dialog.show();
+    auto *tree=dialog.findChild<QTreeWidget*>("helpContents");QVERIFY(tree);
+    for(const auto &lang:QStringList{"zh","en"}){
+        setLanguage(lang);QVERIFY(dialog.navigate(userGuideTopic()));
+        QCOMPARE(tree->topLevelItemCount(),5);
+        QVERIFY(dialog.findChild<QLineEdit*>("helpGlobalSearch")->placeholderText()==text("help.search_all"));
+        for(const auto &method:registry.descriptors()){
+            QVERIFY(dialog.navigate(methodHelpTopic(method.key)));
+            auto *item=tree->currentItem();QVERIFY(item);
+            QCOMPARE(item->data(0,Qt::UserRole+1).toString(),"m-"+method.key);
+            for(const auto &parameter:method.parameters){
+                if(parameter.editorHidden)continue;
+                const auto topic=parameterHelpTopic(method.key,parameter.key);
+                QVERIFY(dialog.navigate(topic));item=tree->currentItem();QVERIFY(item);
+                QCOMPARE(item->data(0,Qt::UserRole).toString(),topic.path);
+                QCOMPARE(item->data(0,Qt::UserRole+1).toString(),topic.anchor);
+                for(auto *parent=item->parent();parent;parent=parent->parent())QVERIFY(parent->isExpanded());
+            }
+        }
+        const auto pages=helpNavigation(lang);
+        QSet<QString> paths;
+        for(const auto &page:pages){
+            QVERIFY(!paths.contains(page.path));paths.insert(page.path);
+            QVERIFY2(localHelpAvailable({page.path,{}}),qPrintable(page.path));
+            for(const auto &section:helpSections(page.path))
+                for(const auto &anchor:section.anchors)QVERIFY2(localHelpAvailable({page.path,anchor}),qPrintable(page.path+'#'+anchor));
+        }
+        QVERIFY(paths.contains(lang=="zh"?"docs/concepts/spectral_parameters.md":"docs/concepts/spectral_parameters_en.md"));
+        QVERIFY(!paths.contains(lang=="zh"?"docs/concepts/spectral_parameters_en.md":"docs/concepts/spectral_parameters.md"));
+        auto *group=tree->topLevelItem(1);tree->setCurrentItem(group);group->setExpanded(false);
+        tree->setFocus();QTest::keyClick(tree,Qt::Key_Right);QVERIFY(group->isExpanded());
+        QTest::keyClick(tree,Qt::Key_Left);QVERIFY(!group->isExpanded());
+    }
+}
+void UiTests::helpGlobalSearchAndCancellation()
+{
+    struct Restore{~Restore(){setLanguage("zh");}} restore;
+    setLanguage("zh");auto *dialog=new HelpDialog;dialog->show();
+    QVERIFY(dialog->navigate(userGuideTopic()));
+    auto *search=dialog->findChild<QLineEdit*>("helpGlobalSearch");
+    auto *results=dialog->findChild<QListWidget*>("helpSearchResults");
+    auto *status=dialog->findChild<QLabel*>("helpSearchStatus");QVERIFY(search&&results&&status);
+    int heartbeats=0;QTimer timer;timer.setInterval(1);connect(&timer,&QTimer::timeout,[&]{++heartbeats;});timer.start();
+    QElapsedTimer elapsed;elapsed.start();search->setText("evo_target_windows");
+    QTRY_VERIFY_WITH_TIMEOUT(results->count()>0 && !status->text().contains(text("help.indexing").section('%',0,0)),15000);
+    QVERIFY(heartbeats>0);qInfo()<<"Help cold search milliseconds"<<elapsed.elapsed();
+    search->setFocus();QTest::keyClick(search,Qt::Key_Return);
+    QVERIFY(dialog->currentTopic().anchor.contains("evo_target_windows"));
+    const auto before=dialog->currentTopic();search->setText("__not_in_any_manual_89__");
+    QTRY_COMPARE(status->text(),text("help.no_results"));QCOMPARE(results->count(),0);
+    QCOMPARE(dialog->currentTopic().anchor,before.anchor);
+    search->setText("NyQuIsT");QTRY_VERIFY(results->count()>0); // case-insensitive body text
+    search->setText("频率 分辨");QTest::qWait(180);QTRY_VERIFY(status->text()!=text("help.no_results") && results->count()>0);
+    search->setText("Nyquist __absent_second_term__");
+    QTRY_COMPARE(status->text(),text("help.no_results"));QCOMPARE(results->count(),0);
+    search->clear();QTRY_VERIFY(dialog->findChild<QTreeWidget*>("helpContents")->isVisible());
+    QVERIFY(!status->isVisible());
+    // Changing language rebuilds the catalogue and cancels old-query state.
+    setLanguage("en");QVERIFY(dialog->navigate(userGuideTopic()));QVERIFY(search->text().isEmpty());
+    search->setText("padding");QTRY_VERIFY_WITH_TIMEOUT(results->count()>0,15000);
+    QTest::mouseClick(results->viewport(),Qt::LeftButton,Qt::NoModifier,results->visualItemRect(results->item(0)).center());
+    QVERIFY(dialog->currentTopic().path.contains("_en",Qt::CaseInsensitive));
+    auto *tree=dialog->findChild<QTreeWidget*>("helpContents");QVERIFY(tree->currentItem());
+    search->clear();QVERIFY(tree->isVisible());
+    const auto captures=qEnvironmentVariable("ASTER_HELP_CAPTURE_DIR");
+    if(!captures.isEmpty()){
+        QDir().mkpath(captures);search->setText("FFT");QTRY_VERIFY(results->count()>0);
+        dialog->grab().save(captures+"/help-global-search-en.png");
+    }
+    QPointer<HelpDialog> guard(dialog);dialog->close();QTRY_VERIFY(guard.isNull());
+    // Close during a pending index build: timers must not retain the dialog.
+    auto *pending=new HelpDialog;pending->show();
+    pending->findChild<QLineEdit*>("helpGlobalSearch")->setText("窗口");
+    QPointer<HelpDialog> pendingGuard(pending);pending->close();QTRY_VERIFY(pendingGuard.isNull());
+    QTest::qWait(150);
+}
+void UiTests::helpFindAndReadingHistory()
+{
+    setLanguage("zh");HelpDialog dialog;dialog.show();QVERIFY(dialog.navigate(userGuideTopic("database")));
+    auto *browser=dialog.findChild<QTextBrowser*>("helpBrowser");
+    auto *search=dialog.findChild<QLineEdit*>("helpSearch");
+    QTRY_VERIFY(browser->verticalScrollBar()->value()>0);
+    browser->verticalScrollBar()->setValue(browser->verticalScrollBar()->value()+37);
+    const int position=browser->verticalScrollBar()->value();
+    QVERIFY(dialog.navigate(parameterHelpTopic("mtm","smooth_window")));
+    QTRY_VERIFY(browser->verticalScrollBar()->value()>0);
+    dialog.findChild<QPushButton*>("helpBack")->click();QTRY_COMPARE(browser->verticalScrollBar()->value(),position);
+    dialog.findChild<QPushButton*>("helpForward")->click();QTRY_VERIFY(browser->verticalScrollBar()->value()>0);
+    QCOMPARE(dialog.currentTopic().anchor,QString("m-mtm-p-smooth_window"));
+    dialog.findChild<QPushButton*>("helpBack")->click();QTRY_COMPARE(browser->verticalScrollBar()->value(),position);
+    QVERIFY(dialog.navigate({"FAQ.md",{}}));QVERIFY(!dialog.findChild<QPushButton*>("helpForward")->isEnabled());
+    dialog.findChild<QPushButton*>("helpFindToggle")->click();QVERIFY(search->isVisible());
+    search->setText("Windows");QTest::keyClick(search,Qt::Key_Return);
+    QCOMPARE(browser->textCursor().selectedText(),QString("Windows"));
+    const auto first=browser->textCursor().selectionStart();
+    dialog.findChild<QPushButton*>("helpFindPrevious")->click();
+    QCOMPARE(browser->textCursor().selectedText(),QString("Windows"));
+    dialog.findChild<QPushButton*>("helpFindNext")->click();QCOMPARE(browser->textCursor().selectionStart(),first);
+    search->setText("__no_match__");QTest::keyClick(search,Qt::Key_Return);
+    QCOMPARE(dialog.findChild<QLabel*>("helpFindStatus")->text(),text("help.no_match"));
+    dialog.findChild<QPushButton*>("helpFindClose")->click();QVERIFY(!search->isVisible());
+    dialog.activateWindow();browser->setFocus();QTest::keyClick(browser,Qt::Key_F,Qt::ControlModifier);
+    QTRY_VERIFY(search->isVisible());
+    search->setText("Windows");QTest::keyClick(search,Qt::Key_Return);QVERIFY(dialog.isVisible());
+    browser->setPlainText(QString::fromUtf8("A 🪐B éZ 🪐B"));
+    search->setText(QString::fromUtf8("🪐B"));QTest::keyClick(search,Qt::Key_Return);
+    QCOMPARE(browser->textCursor().selectedText(),QString::fromUtf8("🪐B"));
+    search->setText(QString::fromUtf8("é"));QTest::keyClick(search,Qt::Key_Return);
+    QCOMPARE(browser->textCursor().selectedText(),QString::fromUtf8("é"));
+}
+void UiTests::helpNavigationResponsiveLayout()
+{
+    struct Restore{~Restore(){setLanguage("zh");ThemeManager::instance().apply(*qApp,"light");}} restore;
+    const auto captures=qEnvironmentVariable("ASTER_HELP_CAPTURE_DIR");
+    for(const auto &lang:QStringList{"zh","en"})for(const auto &theme:QStringList{"light","dark"}){
+        setLanguage(lang);ThemeManager::instance().apply(*qApp,theme);
+        HelpDialog dialog;dialog.resize(900,640);dialog.show();
+        QVERIFY(dialog.navigate({lang=="zh"?"docs/concepts/spectral_parameters.md":"docs/concepts/spectral_parameters_en.md","fft-padding"}));
+        auto *browser=dialog.findChild<QTextBrowser*>("helpBrowser");QTRY_VERIFY(browser->verticalScrollBar()->value()>0);
+        auto *tree=dialog.findChild<QTreeWidget*>("helpContents");QVERIFY(tree->currentItem());
+        QVERIFY(dialog.findChild<QLabel*>("helpBreadcrumb")->text().contains(lang=="zh"?"通用":"Shared"));
+        QVERIFY(browser->width()>400);QVERIFY(tree->width()>=180);
+        dialog.findChild<QPushButton*>("helpFindToggle")->click();
+        QTest::qWait(20);
+        for(auto *widget:{static_cast<QWidget*>(browser),static_cast<QWidget*>(tree),dialog.findChild<QWidget*>("helpFindBar")}){
+            const auto topLeft=widget->mapTo(&dialog,QPoint());
+            QVERIFY(topLeft.x()>=0 && topLeft.x()+widget->width()<=dialog.width());
+        }
+        if(!captures.isEmpty()){QDir().mkpath(captures);dialog.grab().save(captures+"/help-navigation-"+lang+"-"+theme+".png");}
+        dialog.resize(680,480);QTest::qWait(20);QVERIFY(browser->width()>=280);
+    }
+}
+
 void UiTests::helpLinksAndFallback()
 {
     auto *dialog = new HelpDialog;
@@ -327,6 +490,12 @@ void UiTests::helpLinksAndFallback()
                                      Q_ARG(QUrl, QUrl("../FAQ.md#linux-fonts"))));
     QCOMPARE(dialog->currentTopic().path, QString("FAQ.md"));
     QCOMPARE(dialog->currentTopic().anchor, QString("linux-fonts"));
+    QVERIFY(QMetaObject::invokeMethod(browser,"anchorClicked",Qt::DirectConnection,
+        Q_ARG(QUrl,QUrl("https://gitee.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md#database"))));
+    QCOMPARE(dialog->currentTopic().path,QString("docs/USER_GUIDE.md"));
+    QCOMPARE(dialog->currentTopic().anchor,QString("database"));
+    QCOMPARE(onlineHelpUrl({"FAQ.md","linux-fonts"},"gitee.com").toString(),QString("https://gitee.com/ChenCLian/Aster/blob/main/FAQ.md#linux-fonts"));
+    QVERIFY(onlineHelpUrl({"FAQ.md",{}},"evil.invalid").isEmpty());
     QVERIFY(dialog->navigate(userGuideTopic()));
     QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection,
                                      Q_ARG(QUrl, QUrl("#database"))));
@@ -495,6 +664,388 @@ void UiTests::helpReferenceVisibleLayout()
     }
 }
 
+void UiTests::samplingGuidesStayOfflineAndReturnToParameter()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        const QString conceptPath = "docs/concepts/sampling" + suffix + ".md";
+        const QString taskPath = "docs/methods/preprocessing" + suffix + ".md";
+        for (const auto &anchor : {"coordinates", "duplicates", "spacing", "interpolation", "gaps", "limits"})
+            QVERIFY(localHelpAvailable({conceptPath, anchor}));
+        for (const auto &anchor : {"inspection", "inspection-output", "cleanup", "resampling", "grid-endpoints", "resampling-failures"})
+            QVERIFY(localHelpAvailable({taskPath, anchor}));
+        for (const auto &method : {QString("clean_series"), QString("preprocess")})
+        {
+            const auto origin = parameterHelpTopic(method, "duplicate_policy");
+            QVERIFY(dialog.navigate(origin));
+            const QString href = "../concepts/sampling" + suffix + ".md#duplicates";
+            QVERIFY(browser->document()->toHtml().contains(href));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection,
+                                             Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, conceptPath);
+            QCOMPARE(dialog.currentTopic().anchor, QString("duplicates"));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+            dialog.findChild<QPushButton *>("helpForward")->click();
+            QCOMPARE(dialog.currentTopic().path, conceptPath);
+        }
+        QVERIFY(dialog.navigate({taskPath, "inspection-output"}));
+        QVERIFY(browser->toPlainText().contains("4096"));
+        QVERIFY(browser->toPlainText().contains("interval_details_truncated"));
+        const auto captures = qEnvironmentVariable("ASTER_HELP_CAPTURE_DIR");
+        if (!captures.isEmpty())
+        {
+            QDir().mkpath(captures);
+            dialog.resize(900, 680);
+            dialog.show();
+            QTest::qWait(30);
+            QVERIFY(dialog.grab().save(captures + "/sampling-" + language + ".png"));
+        }
+        QVERIFY(dialog.navigate({"docs/ui/live_preview.md", "display-limits"}));
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
+void UiTests::spectralGuidesStayOfflineAndShareConcepts()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        const QString conceptPath = "docs/concepts/spectral_parameters" + suffix + ".md";
+        const QString taskPath = "docs/methods/power_spectra" + suffix + ".md";
+        for (const auto &anchor : {"windows", "overlap", "taper-trend", "fft-padding", "frequency", "power-units", "normalization", "display"})
+            QVERIFY(localHelpAvailable({conceptPath, anchor}));
+        for (const auto &anchor : {"fft", "welch", "evolution-settings", "evolution-output", "preset", "limits"})
+            QVERIFY(localHelpAvailable({taskPath, anchor}));
+        for (const auto &method : {QString("fft_spectrum"), QString("welch_spectrum"), QString("evolution_fft"), QString("evolution_mtm")})
+        {
+            const QString parameter = method.startsWith("evolution") ? "evo_nfft" : "psd_nfft";
+            const auto origin = parameterHelpTopic(method, parameter);
+            QVERIFY(dialog.navigate(origin));
+            const QString href = "../concepts/spectral_parameters" + suffix + ".md#fft-padding";
+            QVERIFY(browser->document()->toHtml().contains(href));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, conceptPath);
+            QCOMPARE(dialog.currentTopic().anchor, QString("fft-padding"));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
+void UiTests::dataProcessingGuidesStayOfflineAndReturn()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    struct Topic { const char *method; const char *path; const char *anchor; };
+    const Topic topics[] = {
+        {"affine", "concepts/data_processing", "centering"},
+        {"demean", "concepts/data_processing", "centering"},
+        {"standardize", "concepts/data_processing", "centering"},
+        {"moving_average", "methods/smoothing_trends", "moving-average"},
+        {"savitzky_golay", "methods/smoothing_trends", "savitzky-golay"},
+        {"linear_detrend", "methods/smoothing_trends", "linear"},
+        {"detrend_lowess", "methods/smoothing_trends", "lowess"},
+        {"outlier_handling", "methods/outliers_and_transforms", "outliers"},
+        {"value_transform", "methods/outliers_and_transforms", "transforms"},
+        {"butterworth_lowpass", "methods/filter_usage", "butterworth"},
+        {"butterworth_highpass", "methods/filter_usage", "butterworth"},
+        {"gaussian_filter", "methods/filter_usage", "bandpass"},
+        {"taner_filter", "methods/filter_usage", "bandpass"},
+        {"hilbert_envelope", "methods/filter_usage", "hilbert"}
+    };
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        for (const auto &t : topics)
+        {
+            const auto origin = methodHelpTopic(t.method);
+            QVERIFY(dialog.navigate(origin));
+            const QString path = QString(t.path) + suffix + ".md";
+            const QString href = "../" + path + "#" + t.anchor;
+            QVERIFY2(browser->document()->toHtml().contains(href), t.method);
+            QVERIFY(localHelpAvailable({"docs/" + path, t.anchor}));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, "docs/" + path);
+            QCOMPARE(dialog.currentTopic().anchor, QString(t.anchor));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+        // Same parameter name has different domains in MTM and sample smoothing.
+        for (const auto &method : {QString("moving_average"), QString("savitzky_golay")})
+        {
+            QVERIFY(dialog.navigate(parameterHelpTopic(method, "smooth_window")));
+            QVERIFY(browser->document()->toHtml().contains("../concepts/data_processing" + suffix + ".md#neighborhoods"));
+        }
+        QVERIFY(dialog.navigate({"docs/methods/smoothing_trends" + suffix + ".md", "lowess"}));
+        QVERIFY(browser->toPlainText().contains("mean(trend)"));
+        QVERIFY(dialog.navigate({"docs/methods/outliers_and_transforms" + suffix + ".md", "audit"}));
+        QVERIFY(browser->toPlainText().contains("result_value"));
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
+void UiTests::statisticalGuidesStayOfflineAndReturn()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    struct Topic { const char *method; const char *path; const char *anchor; };
+    const Topic topics[] = {
+        {"mtm", "methods/spectral_inference", "mtm"},
+        {"lomb_scargle", "methods/spectral_inference", "lomb"},
+        {"cross_spectrum", "methods/spectral_inference", "cross"},
+        {"cwt", "methods/spectral_inference", "wavelet"},
+        {"ar1_global", "methods/spectral_inference", "ar1"},
+        {"mtm_ar1_simulation", "methods/spectral_inference", "legacy"}
+    };
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        for (const auto &t : topics)
+        {
+            const auto origin = methodHelpTopic(t.method);
+            QVERIFY(dialog.navigate(origin));
+            const QString path = QString(t.path) + suffix + ".md";
+            const QString href = "../" + path + "#" + t.anchor;
+            QVERIFY2(browser->document()->toHtml().contains(href), t.method);
+            QVERIFY(localHelpAvailable({"docs/" + path, t.anchor}));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, "docs/" + path);
+            QCOMPARE(dialog.currentTopic().anchor, QString(t.anchor));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+        const QString concepts = "docs/concepts/statistical_interpretation" + suffix + ".md";
+        for (const auto &anchor : {"outputs", "local-global", "fdr", "background", "unavailable", "coi"})
+            QVERIFY(localHelpAvailable({concepts, anchor}));
+        QVERIFY(dialog.navigate(parameterHelpTopic("mtm", "swa")));
+        const QString href = "../concepts/statistical_interpretation" + suffix + ".md#fdr";
+        QVERIFY(browser->document()->toHtml().contains(href));
+        QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+        QCOMPARE(dialog.currentTopic().path, concepts);
+        QCOMPARE(dialog.currentTopic().anchor, QString("fdr"));
+        dialog.findChild<QPushButton *>("helpBack")->click();
+        QCOMPARE(dialog.currentTopic().anchor, parameterHelpTopic("mtm", "swa").anchor);
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
+void UiTests::chronologyGuidesStayOfflineAndReturn()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    struct Topic { const char *method; const char *path; const char *anchor; };
+    const Topic topics[] = {
+        {"sedrate_to_age", "methods/chronology_usage", "rate"},
+        {"apply_age_model", "methods/chronology_usage", "apply"},
+        {"cycle_age_model", "methods/chronology_usage", "cycles"},
+        {"milankovitch_period", "methods/chronology_usage", "periods"},
+        {"coco_scan", "methods/coco_usage", "scan"},
+        {"coco_monte_carlo", "methods/coco_usage", "monte-carlo"},
+        {"evolution_coco", "methods/coco_usage", "evolution"},
+        {"orbital_source", "methods/astronomy_usage", "orbital"},
+        {"eccentricity_source", "methods/astronomy_usage", "orbital"},
+        {"precession_tilt_source", "methods/astronomy_usage", "pt"},
+        {"etp_source", "methods/astronomy_usage", "etp"},
+        {"insolation_source", "methods/astronomy_usage", "daily"},
+        {"seasonal_insolation", "methods/astronomy_usage", "season"},
+        {"insolation_map", "methods/astronomy_usage", "map"}
+    };
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        for (const auto &t : topics)
+        {
+            const auto origin = methodHelpTopic(t.method);
+            QVERIFY(dialog.navigate(origin));
+            const QString path = QString(t.path) + suffix + ".md";
+            const QString href = "../" + path + "#" + t.anchor;
+            QVERIFY2(browser->document()->toHtml().contains(href), t.method);
+            QVERIFY(localHelpAvailable({"docs/" + path, t.anchor}));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, "docs/" + path);
+            QCOMPARE(dialog.currentTopic().anchor, QString(t.anchor));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+        const QString concepts = "docs/concepts/chronology_coordinates" + suffix + ".md";
+        for (const auto &anchor : {"coordinates", "units", "epoch", "coverage", "sampling", "files"})
+            QVERIFY(localHelpAvailable({concepts, anchor}));
+        // One shared concept is reached from multiple tasks, with return to each origin.
+        for (const auto &method : {"sedrate_to_age", "apply_age_model", "cycle_age_model"})
+        {
+            const auto origin = parameterHelpTopic(method, "chrono_age_reference");
+            QVERIFY(dialog.navigate(origin));
+            const QString href = "../concepts/chronology_coordinates" + suffix + ".md#epoch";
+            QVERIFY(browser->document()->toHtml().contains(href));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, concepts);
+            QCOMPARE(dialog.currentTopic().anchor, QString("epoch"));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
+void UiTests::allTaskGuidesAndIndexStayOffline()
+{
+    capturedHelpUrls.clear();
+    QDesktopServices::setUrlHandler("https", this, "captureHelpUrl");
+    struct Restore {
+        ~Restore() { QDesktopServices::unsetUrlHandler("https"); setLanguage("zh"); }
+    } restore;
+    HelpDialog dialog;
+    auto *browser = dialog.findChild<QTextBrowser *>("helpBrowser");
+    QVERIFY(browser);
+    struct Topic { const char *method; const char *path; const char *anchor; };
+    const Topic topics[] = {
+        {"affine", "concepts/data_processing", "centering"},
+        {"apply_age_model", "methods/chronology_usage", "apply"},
+        {"ar1_global", "methods/spectral_inference", "ar1"},
+        {"butterworth_highpass", "methods/filter_usage", "butterworth"},
+        {"butterworth_lowpass", "methods/filter_usage", "butterworth"},
+        {"clean_series", "methods/preprocessing", "cleanup"},
+        {"coco_monte_carlo", "methods/coco_usage", "monte-carlo"},
+        {"coco_scan", "methods/coco_usage", "scan"},
+        {"cross_spectrum", "methods/spectral_inference", "cross"},
+        {"cwt", "methods/spectral_inference", "wavelet"},
+        {"cycle_age_model", "methods/chronology_usage", "cycles"},
+        {"database_grid", "methods/data_sources", "database"},
+        {"database_series", "methods/data_sources", "database"},
+        {"database_spectrum", "methods/data_sources", "database"},
+        {"database_table", "methods/data_sources", "database"},
+        {"demean", "concepts/data_processing", "centering"},
+        {"detrend_lowess", "methods/smoothing_trends", "lowess"},
+        {"eccentricity_source", "methods/astronomy_usage", "orbital"},
+        {"etp_source", "methods/astronomy_usage", "etp"},
+        {"evolution_coco", "methods/coco_usage", "evolution"},
+        {"evolution_fft", "methods/power_spectra", "evolution-settings"},
+        {"evolution_mtm", "methods/power_spectra", "evolution-settings"},
+        {"fft_spectrum", "methods/power_spectra", "fft"},
+        {"file_source", "methods/data_sources", "files"},
+        {"gaussian_filter", "methods/filter_usage", "bandpass"},
+        {"hilbert_envelope", "methods/filter_usage", "hilbert"},
+        {"input_series", "methods/data_sources", "bound"},
+        {"insolation_map", "methods/astronomy_usage", "map"},
+        {"insolation_source", "methods/astronomy_usage", "daily"},
+        {"linear_detrend", "methods/smoothing_trends", "linear"},
+        {"lomb_scargle", "methods/spectral_inference", "lomb"},
+        {"milankovitch_period", "methods/chronology_usage", "periods"},
+        {"moving_average", "methods/smoothing_trends", "moving-average"},
+        {"mtm", "methods/spectral_inference", "mtm"},
+        {"mtm_ar1_simulation", "methods/spectral_inference", "legacy"},
+        {"odp1143_d18o", "methods/data_sources", "odp"},
+        {"odp846_d13c", "methods/data_sources", "odp"},
+        {"odp846_d18o", "methods/data_sources", "odp"},
+        {"odp926_d13c", "methods/data_sources", "odp"},
+        {"odp926_lightness", "methods/data_sources", "odp"},
+        {"orbital_source", "methods/astronomy_usage", "orbital"},
+        {"outlier_handling", "methods/outliers_and_transforms", "outliers"},
+        {"precession_tilt_source", "methods/astronomy_usage", "pt"},
+        {"preprocess", "methods/preprocessing", "resampling"},
+        {"sampling_check", "methods/preprocessing", "inspection"},
+        {"savitzky_golay", "methods/smoothing_trends", "savitzky-golay"},
+        {"seasonal_insolation", "methods/astronomy_usage", "season"},
+        {"sedrate_to_age", "methods/chronology_usage", "rate"},
+        {"select_interval", "methods/selection_summary", "interval"},
+        {"series_summary", "methods/selection_summary", "summary"},
+        {"sine_source", "methods/data_sources", "sine"},
+        {"standardize", "concepts/data_processing", "centering"},
+        {"synthetic_orbital", "methods/data_sources", "synthetic"},
+        {"taner_filter", "methods/filter_usage", "bandpass"},
+        {"value_transform", "methods/outliers_and_transforms", "transforms"},
+        {"welch_spectrum", "methods/power_spectra", "welch"}
+    };
+    for (const auto &language : {QString("zh"), QString("en")})
+    {
+        setLanguage(language);
+        const QString suffix = language == "zh" ? "" : "_en";
+        for (const auto &t : topics)
+        {
+            const auto origin = methodHelpTopic(t.method);
+            QVERIFY(dialog.navigate(origin));
+            const QString path = QString(t.path) + suffix + ".md";
+            const QString href = "../" + path + "#" + t.anchor;
+            QVERIFY2(browser->document()->toHtml().contains(href), t.method);
+            QVERIFY(localHelpAvailable({"docs/" + path, t.anchor}));
+            QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+            QCOMPARE(dialog.currentTopic().path, "docs/" + path);
+            QCOMPARE(dialog.currentTopic().anchor, QString(t.anchor));
+            dialog.findChild<QPushButton *>("helpBack")->click();
+            QCOMPARE(dialog.currentTopic().path, origin.path);
+            QCOMPARE(dialog.currentTopic().anchor, origin.anchor);
+        }
+        const QString index = language == "zh" ? "docs/README.md" : "docs/README_EN.md";
+        for (const auto &anchor : {"start", "features", "shared", "troubleshooting", "about"})
+            QVERIFY(localHelpAvailable({index, anchor}));
+        QVERIFY(dialog.navigate({index, "features"}));
+        const QString href = "methods/data_sources" + suffix + ".md";
+        QVERIFY(browser->document()->toHtml().contains(href));
+        QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection, Q_ARG(QUrl, QUrl(href))));
+        QCOMPARE(dialog.currentTopic().path, "docs/" + href);
+        dialog.findChild<QPushButton *>("helpBack")->click();
+        QCOMPARE(dialog.currentTopic().path, index);
+        QCOMPARE(dialog.currentTopic().anchor, QString("features"));
+        QVERIFY(localHelpAvailable({"resources/synthetic/NOTICE.md", {}}));
+        QPushButton *home = nullptr;
+        for (auto *button : dialog.findChildren<QPushButton *>())
+            if (button->text() == QStringLiteral("主页") || button->text() == "Home") home = button;
+        QVERIFY(home);
+        home->click();
+        QCOMPARE(dialog.currentTopic().path, userGuideTopic().path);
+        QVERIFY(dialog.currentTopic().anchor.isEmpty());
+    }
+    QVERIFY(capturedHelpUrls.isEmpty());
+}
+
 void UiTests::helpDirectoryLinks()
 {
     capturedHelpUrls.clear();
@@ -655,7 +1206,9 @@ void UiTests::settingsLinksAndKeyboardNavigation()
         auto *manual = dialog.findChild<QPushButton *>("openUserGuide");
         QVERIFY(manual->text().contains(language == "zh" ? QString::fromUtf8("（F1）") : QString("(F1)")));
         dialog.findChild<QPushButton *>("settingsContact")->click();
-        QCOMPARE(capturedHelpUrls.last().toString(), QString("https://github.com/ChenCLian/Aster/blob/main/AUTHORS.md"));
+        auto *authorHelp=dialog.findChild<HelpDialog *>("helpDialog");
+        QVERIFY(authorHelp);QCOMPARE(authorHelp->currentTopic().path,QString("AUTHORS.md"));
+        QVERIFY(capturedHelpUrls.isEmpty());
         QTest::keyClick(&dialog, Qt::Key_F1);
         QTRY_VERIFY(dialog.findChild<HelpDialog *>("helpDialog"));
         dialog.findChild<HelpDialog *>("helpDialog")->close();
@@ -1496,6 +2049,11 @@ void UiTests::parameterLayoutDefaultsAndVisibility()
             QCoreApplication::processEvents();
             QCOMPARE(editor.parameters(),n.parameters);
             QVERIFY(!editor.dirty());
+            if(!d.parameters.isEmpty()) {
+                auto *reset=editor.findChild<QPushButton*>("resetNodeDefaults"); QVERIFY(reset);
+                QTest::mouseClick(reset,Qt::LeftButton);
+                QCOMPARE(editor.parameters(),registry.normalize(d.key,{}).parameters);
+            }
             if(d.key=="detrend_lowess") {
                 auto* label=editor.findChild<QLabel*>("parameterLabel_fraction");QVERIFY(label);
                 QVERIFY2(label->width()>200,qPrintable(QString::number(label->width())));
@@ -2884,7 +3442,8 @@ void UiTests::evolutionSettingsAndPlotDefaults()
         auto *normalize = editor.findChild<QCheckBox *>("parameter_evo_normalize");
         QVERIFY(limit && legacy && normalize);
         QVERIFY(!legacy->isVisible());
-        QVERIFY(!normalize->isChecked());
+        QCOMPARE(normalize->isChecked(),QString(method)=="evolution_fft");
+        normalize->setChecked(false); // Explicit physical PSD comparison.
         QVERIFY(editor.findChild<QLabel *>("parameterLabel_frequency_max")->toolTip().isEmpty());
         QVERIFY(limit->accessibleDescription().contains("1/m"));
         QVERIFY(editor.findChild<QSpinBox *>("parameter_evo_step")->accessibleDescription().contains("37"));
@@ -2902,10 +3461,10 @@ void UiTests::evolutionSettingsAndPlotDefaults()
         QCOMPARE(relative.state, NodeState::Succeeded);
         PlotView view;
         view.showOutput(raw, "power_map");
-        QVERIFY(!view.style().colorInterpolate);
+        QCOMPARE(view.style().colorInterpolate,QString(method)=="evolution_fft");
         QVERIFY(!view.style().colorLog);
         view.showOutput(relative, "power_map");
-        QVERIFY(!view.style().colorInterpolate);
+        QCOMPARE(view.style().colorInterpolate,QString(method)=="evolution_fft");
         QVERIFY(!view.style().colorLog);
         QCOMPARE(dataAs<GridData>(relative.outputs["power_map"])->valueAxis.unit, QString("1"));
         QVERIFY(view.style().y.label.contains("Frequency"));
@@ -3795,6 +4354,13 @@ void UiTests::scopedMetadataDoesNotCopySamples()
     QCOMPARE(effectiveParameters(*doc.node(nodes.back()),datasets.front().id)["factor"].toDouble(),2.);
     const auto bytes=QJsonDocument(workflowToJson(doc.model().definition())).toJson(QJsonDocument::Compact);
     QVERIFY(bytes.size()<5*1024*1024); // metadata only; no numerical buffers or per-dataset node clones
+    QElapsedTimer bulkTimer;bulkTimer.start();
+    QVERIFY(doc.setScopedParameters(nodes.back(),datasets.front().id,{{"factor",4}},true).ok());
+    qInfo()<<"5000-input bulk parameter edit milliseconds"<<bulkTimer.elapsed();
+    QVERIFY(doc.node(nodes.back())->parameterOverrides.isEmpty());
+    for(const auto &source:doc.sources()[root])QCOMPARE(source.data,data);
+    QCOMPARE(effectiveParameters(*doc.node(nodes.back()),datasets.back().id)["factor"].toDouble(),4.);
+    QCOMPARE(effectiveParameters(*doc.node(nodes.front()),datasets.back().id)["factor"].toDouble(),2.);
     QVERIFY(snapshot);
 }
 void UiTests::batchImportSkipsIncompatibleFiles()
@@ -3946,15 +4512,19 @@ void UiTests::sourceActionsFitNarrowPanel()
         }
     }
 }
-void UiTests::acyclePresetIsEditable()
+void UiTests::evolutionPresetIsEditable()
 {
     auto registry=makeScientificRegistry();
     NodeDefinition node; node.id=QUuid::createUuid(); node.method="evolution_fft";
     ParameterEditor editor; editor.showNode(&node,registry); editor.show();
-    auto *preset=editor.findChild<QPushButton*>("acycleLahPreset"); QVERIFY(preset);
-    QTest::mouseClick(preset,Qt::LeftButton);
+    auto *preset=editor.findChild<QPushButton*>("resetNodeDefaults"); QVERIFY(preset);
+    QVERIFY(!editor.dirty());
     QCOMPARE(editor.parameters()["evo_window_mode"].toString(),QString("span_percent"));
-    QCOMPARE(editor.parameters()["evo_overlap_percent"].toDouble(),99.2);
+    QCOMPARE(editor.parameters()["evo_step_mode"].toString(),QString("target_windows"));
+    QCOMPARE(editor.parameters()["evo_target_windows"].toInt(),500);
+    QVERIFY(editor.findChild<QWidget*>("parameterRow_evo_overlap_percent")->isHidden());
+    QVERIFY(editor.findChild<QWidget*>("parameterRow_evo_step")->isHidden());
+    QVERIFY(!editor.findChild<QWidget*>("parameterRow_evo_target_windows")->isHidden());
     QCOMPARE(editor.parameters()["evo_padding"].toInt(),4);
     QCOMPARE(editor.parameters()["evo_taper"].toString(),QString("rectangular"));
     QVERIFY(editor.parameters()["evo_normalize"].toBool()); QVERIFY(editor.parameters()["evo_amplitude"].toBool());
@@ -3962,6 +4532,472 @@ void UiTests::acyclePresetIsEditable()
     QVERIFY(!editor.findChild<QWidget*>("parameterRow_evo_window_percent")->isHidden());
     auto *percent=editor.findChild<QDoubleSpinBox*>("parameter_evo_window_percent"); percent->setValue(30);
     QCOMPARE(editor.parameters()["evo_window_percent"].toDouble(),30.);
+    auto *target=editor.findChild<QSpinBox*>("parameter_evo_target_windows"); QVERIFY(target);
+    target->setValue(250); QCOMPARE(editor.parameters()["evo_target_windows"].toInt(),250);
+    auto *mode=editor.findChild<QComboBox*>("parameter_evo_step_mode"); QVERIFY(mode);
+    mode->setCurrentIndex(mode->findData("overlap"));
+    QVERIFY(!editor.findChild<QWidget*>("parameterRow_evo_overlap_percent")->isHidden());
+    QVERIFY(editor.findChild<QWidget*>("parameterRow_evo_target_windows")->isHidden());
+    mode->setCurrentIndex(mode->findData("target_windows"));
+    QCOMPARE(target->value(),250);
+    // Saving/reopening preserves the explicit mode and edited target.
+    node.parameters=editor.parameters(); editor.showNode(&node,registry);
+    QCOMPARE(editor.parameters()["evo_target_windows"].toInt(),250);
+    QCOMPARE(editor.parameters()["evo_step_mode"].toString(),QString("target_windows"));
+    QVERIFY(!editor.dirty());
+    preset=editor.findChild<QPushButton*>("resetNodeDefaults");
+    QTest::mouseClick(preset,Qt::LeftButton);
+    QVERIFY(editor.dirty());
+    QCOMPARE(editor.parameters(),registry.normalize("evolution_fft",{}).parameters);
+    // Old fixed-count input must not be reinterpreted just by opening the panel.
+    node.parameters={{"evo_window",80},{"evo_step",5},{"evo_nfft",160}};
+    editor.showNode(&node,registry);
+    QVERIFY(!editor.dirty());
+    QCOMPARE(editor.parameters()["evo_window_mode"].toString(),QString("samples"));
+    QCOMPARE(editor.parameters()["evo_step_mode"].toString(),QString("samples"));
+    QCOMPARE(editor.parameters()["evo_fft_mode"].toString(),QString("length"));
+    // Rebuilding a focused form must not commit or edit the replacement node.
+    auto *frequency=editor.findChild<QDoubleSpinBox*>("parameter_frequency_max");
+    frequency->setFocus(); frequency->setProperty("frequencyZeroEdited",true);
+    QSignalSpy rebuildingEdits(&editor,&ParameterEditor::edited);
+    // Reset does not erase decisions belonging to one specific input.
+    node.method="outlier_handling";
+    node.parameters={{"point_overrides",QString("{\"fingerprint\":\"sample\",\"points\":{\"0\":true}}")}};
+    editor.showNode(&node,registry);
+    QCOMPARE(rebuildingEdits.size(),0); QVERIFY(!editor.dirty());
+    const auto points=editor.parameters().value("point_overrides");
+    QTest::mouseClick(editor.findChild<QPushButton*>("resetNodeDefaults"),Qt::LeftButton);
+    QCOMPARE(editor.parameters()["point_overrides"],points);
+}
+
+
+void UiTests::batchPreservesInheritedDecisions()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const QString choice="{\"fingerprint\":\"sample\",\"points\":{\"0\":true}}";
+    // Restored single-run parameters can carry point decisions in the base.
+    const auto node=doc.addChild(root,ChildSlot::Down,"outlier_handling",{{"point_overrides",choice}}).nodeId;
+    QVERIFY(doc.setSources(root,{{"A",series(),{}},{"B",series(),{}}}).isEmpty());
+    const auto a=doc.datasets(node)[0].id,b=doc.datasets(node)[1].id;
+    auto bparams=doc.node(node)->parameters;bparams["point_overrides"]="";
+    QVERIFY(doc.setScopedParameters(node,b,bparams).ok());
+    auto p=effectiveParameters(*doc.node(node),a);p["outlier_threshold"]=5;
+    const auto before=workflowToJson(doc.model().definition());
+    QVERIFY(doc.setScopedParameters(node,a,p,true).ok());
+    QCOMPARE(effectiveParameters(*doc.node(node),a)["point_overrides"].toString(),choice);
+    QCOMPARE(effectiveParameters(*doc.node(node),b)["point_overrides"].toString(),QString());
+    QCOMPARE(doc.node(node)->parameters["point_overrides"].toString(),QString());
+    QVERIFY(doc.undo().ok());QCOMPARE(workflowToJson(doc.model().definition()),before);
+    QVERIFY(doc.redo().ok());
+    auto sources=doc.sources().value(root);sources.push_back({"C",series(),{}});
+    QVERIFY(doc.setSources(root,sources).isEmpty());
+    const auto c=doc.datasets(node)[2].id;
+    QCOMPARE(effectiveParameters(*doc.node(node),c)["point_overrides"].toString(),QString());
+    QCOMPARE(effectiveParameters(*doc.node(node),c)["outlier_threshold"].toDouble(),5.);
+    const auto decoded=workflowFromJson(workflowToJson(doc.model().definition()));QVERIFY(decoded.validation.ok());
+    WorkflowDocument reopened(makeScientificRegistry());QVERIFY(reopened.replaceDefinition(decoded.definition).ok());
+    QVERIFY(reopened.setSources(root,doc.sources().value(root)).isEmpty());
+    QCOMPARE(effectiveParameters(*reopened.node(node),a)["point_overrides"].toString(),choice);
+    QCOMPARE(effectiveParameters(*reopened.node(node),b)["point_overrides"].toString(),QString());
+    // Broadcasting from B also preserves A's decisions; neither supplies C's points.
+    QVERIFY(reopened.setScopedParameters(node,b,effectiveParameters(*reopened.node(node),b),true).ok());
+    QCOMPARE(effectiveParameters(*reopened.node(node),a)["point_overrides"].toString(),choice);
+}
+void UiTests::batchRejectsStaleScope()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto other=doc.addRoot("sine_source").nodeId;
+    const auto node=doc.addChild(root,ChildSlot::Down,"evolution_fft").nodeId;
+    QVERIFY(doc.setSources(root,{{"A",series(),{}},{"B",series(),{}}}).isEmpty());
+    const auto stale=doc.datasets(node)[0].id;
+    const auto sources=doc.sources().value(root);QVERIFY(doc.setSources(root,{sources.back()}).isEmpty());
+    const auto before=workflowToJson(doc.model().definition());const auto revision=doc.revision();
+    for(const auto &scope:QVector<QUuid>{stale,other,QUuid{}}){
+        QVERIFY(!doc.setScopedParameters(node,scope,{{"evo_window_percent",30}},true).ok());
+        QCOMPARE(doc.revision(),revision);QCOMPARE(workflowToJson(doc.model().definition()),before);
+    }
+    const auto active=doc.datasets(node)[0].id;doc.setEditingLocked(true);
+    const auto lockedRevision=doc.revision();
+    QVERIFY(!doc.setScopedParameters(node,active,{{"evo_window_percent",30}},true).ok());
+    QCOMPARE(doc.revision(),lockedRevision);doc.setEditingLocked(false);
+    QVERIFY(doc.setScopedParameters(node,active,{{"evo_window_percent",30}},true).ok());
+}
+void UiTests::automaticScopeReplayIsolation()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    auto input=[](int count,double step){SeriesData s;for(int i=0;i<count;++i){s.x<<i*step;s.y<<std::sin(i*.13);}return makeData(s);};
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto otherRoot=doc.addRoot("input_series").nodeId;
+    const auto node=doc.addChild(root,ChildSlot::Down,"evolution_fft").nodeId;
+    const auto sibling=doc.addChild(root,ChildSlot::Right,"evolution_fft").nodeId;
+    const auto other=doc.addChild(otherRoot,ChildSlot::Down,"evolution_fft").nodeId;
+    QVERIFY(doc.setSources(root,{{"same.csv",input(501,.25),{}},{"same.csv",input(1001,.5),{}}}).isEmpty());
+    QVERIFY(doc.setSources(otherRoot,{{"same.csv",input(801,1.),{}}}).isEmpty());
+    const auto a=doc.datasets(node)[0].id,b=doc.datasets(node)[1].id;
+    const auto initial=doc.plan();QVERIFY(initial.validation.ok());
+    auto p=doc.node(node)->parameters;p["evo_window_percent"]=30;
+    QVERIFY(doc.setScopedParameters(node,a,p,true).ok());
+    QCOMPARE(doc.node(sibling)->parameters["evo_window_percent"].toDouble(),20.);
+    QCOMPARE(doc.node(other)->parameters["evo_window_percent"].toDouble(),20.);
+    auto manual=p;manual["evo_window_mode"]="samples";manual["evo_window"]=80;
+    QVERIFY(doc.setScopedParameters(node,b,manual).ok());
+    // Reordering does not exchange the two same-named datasets' settings.
+    const auto sources=doc.sources().value(root);QVERIFY(doc.setSources(root,{sources[1],sources[0]}).isEmpty());
+    QCOMPARE(effectiveParameters(*doc.node(node),a)["evo_window_mode"].toString(),QString("span_percent"));
+    QCOMPARE(effectiveParameters(*doc.node(node),b)["evo_window_mode"].toString(),QString("samples"));
+    const auto encoded=workflowToJson(doc.model().definition());const auto decoded=workflowFromJson(encoded);QVERIFY(decoded.validation.ok());
+    WorkflowDocument reopened(makeScientificRegistry());QVERIFY(reopened.replaceDefinition(decoded.definition).ok());
+    for(auto it=doc.sources().cbegin();it!=doc.sources().cend();++it)QVERIFY(reopened.setSources(it.key(),it.value()).isEmpty());
+    QCOMPARE(workflowToJson(reopened.model().definition()),encoded);
+    const auto plan=reopened.plan();QVERIFY(plan.validation.ok());QCOMPARE(plan.requests.size(),3);
+    int seen=0;
+    for(const auto &request:plan.requests){
+        const auto run=WorkflowExecutor().run(request);if(!run.nodes.contains(node))continue;
+        const auto result=run.nodes[node];QCOMPARE(result.state,NodeState::Succeeded);
+        // Restored order is B then A, one manual and one input-relative setting.
+        QCOMPARE(result.report["window_samples"].toInt(),seen==0?80:150);++seen;
+    }
+    QCOMPARE(seen,2);
+    // A frozen request retains its pre-broadcast settings even after later edits.
+    for(const auto &request:initial.requests){const auto run=WorkflowExecutor().run(request);if(run.nodes.contains(node)){
+        const auto count=run.nodes[node].report["window_samples"].toInt();QVERIFY(count==100||count==200);
+    }}
+}
+
+
+void UiTests::automaticBatchFailureIsolation()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto node=doc.addChild(root,ChildSlot::Down,"evolution_fft").nodeId;
+    auto input=[](int count){SeriesData s;for(int i=0;i<count;++i){s.x<<double(i);s.y<<std::sin(i*.13);}return makeData(s);};
+    QVERIFY(doc.setSources(root,{{"short",input(21),{}},{"long",input(501),{}}}).isEmpty());
+    const auto active=doc.datasets(node)[1].id;
+    QVERIFY(doc.setScopedParameters(node,active,doc.node(node)->parameters,true).ok());
+    const auto before=workflowToJson(doc.model().definition());const auto plan=doc.plan();QVERIFY(plan.validation.ok());
+    QTemporaryDir dir;const auto path=dir.filePath("failure-isolation.sqlite");
+    const auto results=BatchRunner().run(plan,path,2);QVERIFY(results.error.isEmpty());QCOMPARE(results.items.size(),2);
+    ResultRepository repo;QVERIFY(repo.open(path,false).isEmpty());int success=0,failure=0;
+    for(const auto &item:results.items){
+        QVERIFY(item.persistence.saved());const auto saved=repo.load(item.persistence.recordId);QVERIFY(saved.ok());
+        const auto result=saved.run.nodes[node];
+        if(item.sourceLabel=="short"){QCOMPARE(result.state,NodeState::Failed);++failure;}
+        else {QCOMPARE(result.state,NodeState::Succeeded);QCOMPARE(result.report["window_samples"].toInt(),100);++success;}
+    }
+    QCOMPARE(success,1);QCOMPARE(failure,1);
+    QCOMPARE(workflowToJson(doc.model().definition()),before); // No runtime writeback of resolved numbers.
+}
+
+
+
+void UiTests::duplicateSourceSelectionUsesIdentity()
+{
+    WorkflowDocument doc(makeScientificRegistry());const auto root=doc.addRoot("input_series").nodeId;
+    QVERIFY(doc.setSources(root,{{"same output",series(),{}},{"same output",series(),{}}}).isEmpty());
+    SourcePanel panel(&doc);panel.show();panel.selectRoot(root);
+    const auto a=doc.datasets(root)[0].id;panel.selectDataset(root,a);
+    QCOMPARE(QUuid(panel.currentSource().provenance["dataset_id"].toString()),a);
+    panel.refresh();QCOMPARE(QUuid(panel.currentSource().provenance["dataset_id"].toString()),a);
+    auto sources=doc.sources().value(root);std::reverse(sources.begin(),sources.end());
+    QVERIFY(doc.setSources(root,sources).isEmpty());
+    QCOMPARE(QUuid(panel.currentSource().provenance["dataset_id"].toString()),a);
+    sources.push_back({"same output",series(),{}});QVERIFY(doc.setSources(root,sources).isEmpty());
+    QCOMPARE(QUuid(panel.currentSource().provenance["dataset_id"].toString()),a);
+}
+
+void UiTests::removeInputFlushesPendingParameters()
+{
+    QTemporaryDir dir;AppSettings settings;settings.databasePath=dir.filePath("remove-pending.sqlite");
+    QStringList paths;for(int k=0;k<2;++k){const auto path=dir.filePath(QString::number(k)+".csv");paths<<path;
+        QFile f(path);QVERIFY(f.open(QIODevice::WriteOnly));f.write("x,y\n0,1\n1,2\n2,3\n");}
+    MainWindow window(settings,false);window.resize(1500,950);window.show();
+    auto *sources=window.findChild<SourcePanel*>();sources->addFiles(paths);QTRY_VERIFY(sources->readyToRun());
+    auto *doc=window.document();const auto root=sources->root();
+    const auto node=doc->addChild(root,ChildSlot::Down,"affine").nodeId;
+    auto *files=sources->findChild<QListWidget*>("sourceFiles");files->setCurrentRow(0,QItemSelectionModel::ClearAndSelect);
+    const auto a=doc->datasets(node)[0].id,b=doc->datasets(node)[1].id;
+    window.canvas()->nodeSelected(node);auto *editor=window.findChild<ParameterEditor*>();
+    auto *factor=editor->findChild<QDoubleSpinBox*>("parameter_factor");QVERIFY(factor);
+    factor->setFocus();QTest::keyClick(factor,Qt::Key_A,Qt::ControlModifier);QTest::keyClicks(factor,"7");
+    QVERIFY(editor->dirty());
+    QTest::mouseClick(sources->findChild<QPushButton*>("removeSourceInput"),Qt::LeftButton);
+    QCOMPARE(doc->datasets(node).size(),1);
+    QVERIFY(!editor->dirty()); // The deleted input must not leave an uncommittable form.
+    QCOMPARE(editor->parameters()["factor"].toDouble(),1.);
+    QCOMPARE(effectiveParameters(*doc->node(node),b)["factor"].toDouble(),1.);
+    QTest::mouseClick(window.findChild<QPushButton*>("undoWorkflowEdit"),Qt::LeftButton);
+    QCOMPARE(doc->datasets(node).size(),2);
+    QCOMPARE(effectiveParameters(*doc->node(node),a)["factor"].toDouble(),7.);
+    QTest::mouseClick(window.findChild<QPushButton*>("redoWorkflowEdit"),Qt::LeftButton);
+    QCOMPARE(doc->datasets(node).size(),1);
+    // A surviving scope stays editable after the old draft timer would have fired.
+    QTest::qWait(300);factor=editor->findChild<QDoubleSpinBox*>("parameter_factor");QVERIFY(factor);
+    factor->setValue(3);QTRY_COMPARE(effectiveParameters(*doc->node(node),b)["factor"].toDouble(),3.);
+}
+void UiTests::pairManagerFlushesPendingParameters()
+{
+    QTemporaryDir dir;AppSettings settings;settings.databasePath=dir.filePath("pair-pending.sqlite");
+    MainWindow window(settings,false);window.resize(1500,950);window.show();auto *doc=window.document();
+    const auto root=doc->addRoot("input_series").nodeId;
+    QVERIFY(doc->setSources(root,{{"A",series(),{}},{"B",series(),{}}}).isEmpty());
+    const auto inputs=doc->datasets(root);
+    const auto joint=doc->addChild(root,ChildSlot::Down,"cross_spectrum",{{"psd_window",64},{"psd_overlap",32}}).nodeId;
+    const auto pair=QUuid::createUuid();
+    QVERIFY(doc->setPairs(joint,{{pair,"self",{inputs[0].id,"series"},{inputs[1].id,"series"}}}).isEmpty());
+    window.canvas()->nodeSelected(joint);auto *editor=window.findChild<ParameterEditor*>();
+    auto *length=editor->findChild<QSpinBox*>("parameter_psd_window");QVERIFY(length);length->setValue(96);QVERIFY(editor->dirty());
+    auto *manage=window.findChild<QPushButton*>("managePairs");QVERIFY(manage&&manage->isVisible());
+    QTest::mouseClick(manage,Qt::LeftButton);
+    QPointer<PairingDialog> dialog=window.findChild<PairingDialog*>();QVERIFY(dialog);
+    QTest::qWait(350);QVERIFY(dialog&&dialog->isVisible());
+    QCOMPARE(effectiveParameters(*doc->node(joint),pair)["psd_window"].toInt(),96);
+    dialog->reject();QTRY_VERIFY(!dialog||!dialog->isVisible());
+}
+void UiTests::helpSearchDiscardsStaleResults()
+{
+    setLanguage("zh");HelpDialog dialog;dialog.show();QVERIFY(dialog.navigate(userGuideTopic()));
+    auto *search=dialog.findChild<QLineEdit*>("helpGlobalSearch");auto *results=dialog.findChild<QListWidget*>("helpSearchResults");
+    search->setText("evo_target_windows");QTRY_VERIFY(results->count()>0);
+    const auto topic=dialog.currentTopic();search->setText("__absent_new_query__");
+    // No old hits may remain actionable during the debounce interval.
+    QCOMPARE(results->count(),0);
+    QTest::keyClick(search,Qt::Key_Return);QCOMPARE(dialog.currentTopic().path,topic.path);QCOMPARE(dialog.currentTopic().anchor,topic.anchor);
+}
+void UiTests::helpColdSearchEnterOpensResult()
+{
+    setLanguage("zh");HelpDialog dialog;dialog.show();QVERIFY(dialog.navigate(userGuideTopic()));
+    auto *search=dialog.findChild<QLineEdit*>("helpGlobalSearch");search->setText("evo_target_windows");
+    QTest::keyClick(search,Qt::Key_Return);
+    QTRY_VERIFY(dialog.currentTopic().anchor.contains("evo_target_windows"));
+    // Pending Enter is cancelled by new text, clear, or a different navigation.
+    for(int cancelMode=0;cancelMode<3;++cancelMode){
+        HelpDialog pending;pending.show();QVERIFY(pending.navigate(userGuideTopic()));
+        auto *query=pending.findChild<QLineEdit*>("helpGlobalSearch");
+        query->setText("evo_target_windows");QTest::keyClick(query,Qt::Key_Return);
+        if(cancelMode==0)query->setText("__missing_after_enter__");
+        else if(cancelMode==1)query->clear();
+        else QVERIFY(pending.navigate({"FAQ.md",{}}));
+        const auto expected=pending.currentTopic();
+        if(cancelMode==0)QTRY_COMPARE(pending.findChild<QLabel*>("helpSearchStatus")->text(),text("help.no_results"));
+        else if(cancelMode==2)QTRY_VERIFY(pending.findChild<QListWidget*>("helpSearchResults")->count()>0);
+        else QTest::qWait(300);
+        QCOMPARE(pending.currentTopic().path,expected.path);QCOMPARE(pending.currentTopic().anchor,expected.anchor);
+    }
+}
+
+void UiTests::automaticEvolutionScopes()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root=doc.addRoot("input_series").nodeId;
+    const auto evo=doc.addChild(root,ChildSlot::Down,"evolution_fft").nodeId;
+    auto input=[](int count,double dt) {
+        SeriesData s; s.xAxis={"Age","ka"}; s.yAxis={"Signal","u"};
+        for(int i=0;i<count;++i) {s.x.push_back(i*dt);s.y.push_back(std::sin(i*.13)+.2*std::cos(i*.47));}
+        return makeData(s);
+    };
+    QVERIFY(doc.setSources(root,{{"A",input(501,.25),{}},{"B",input(1201,.5),{}}}).isEmpty());
+    const auto a=doc.datasets(evo)[0].id,b=doc.datasets(evo)[1].id;
+    const auto defaults=doc.model().registry().normalize("evolution_fft",{}).parameters;
+    QCOMPARE(doc.node(evo)->parameters,defaults);
+    QVERIFY(doc.node(evo)->parameterOverrides.isEmpty());
+    // Neither dataset has ever opened an editor. Resolve from each actual input.
+    auto checkRun=[&](int wa,int wb) {
+        const auto plan=doc.plan(); QVERIFY(plan.validation.ok()); QCOMPARE(plan.requests.size(),2);
+        int index=0;
+        for(const auto &request:plan.requests) {
+            const auto result=WorkflowExecutor().run(request).nodes[evo];
+            QCOMPARE(result.state,NodeState::Succeeded);
+            const auto window=index==0?wa:wb;
+            QCOMPARE(result.report["window_samples"].toInt(),window);
+            QCOMPARE(result.report["nfft"].toInt(),window*4);
+            const auto *grid=dataAs<GridData>(result.outputs["power_map"]); QVERIFY(grid);
+            QVERIFY(std::abs(grid->y.back()-(index==0?2.:1.))<1e-10);
+            ++index;
+        }
+    };
+    checkRun(100,240);
+    const auto revision=doc.revision();
+    ParameterEditor editor; NodeDefinition shown=*doc.node(evo);
+    shown.parameters=effectiveParameters(shown,a); editor.showNode(&shown,doc.model().registry());
+    QCOMPARE(doc.revision(),revision); QVERIFY(!editor.dirty());
+    auto changed=defaults; changed["evo_window_percent"]=30;
+    QVERIFY(doc.setScopedParameters(evo,a,changed).ok());
+    checkRun(150,240); // A changes; unvisited B retains defaults.
+    QCOMPARE(effectiveParameters(*doc.node(evo),b),defaults);
+    QVERIFY(doc.setScopedParameters(evo,a,changed,true).ok());
+    checkRun(150,360); // Copies the rule, never A's resolved count.
+    QVERIFY(doc.node(evo)->parameterOverrides.isEmpty());
+    const auto encoded=workflowToJson(doc.model().definition());
+    const auto decoded=workflowFromJson(encoded); QVERIFY(decoded.validation.ok());
+    QCOMPARE(decoded.definition.nodes[1].parameters,changed);
+    QVERIFY(doc.undo().ok()); checkRun(150,240);
+    QVERIFY(doc.redo().ok()); checkRun(150,360);
+    // Manual settings remain intentional until reset; reset+batch restores rules.
+    changed["evo_window_mode"]="samples"; changed["evo_window"]=80;
+    QVERIFY(doc.setScopedParameters(evo,a,changed,true).ok()); checkRun(80,80);
+    shown=*doc.node(evo); shown.parameters=effectiveParameters(shown,a);
+    editor.showNode(&shown,doc.model().registry());
+    QTest::mouseClick(editor.findChild<QPushButton*>("resetNodeDefaults"),Qt::LeftButton);
+    QVERIFY(doc.setScopedParameters(evo,a,editor.parameters()).ok()); checkRun(100,80);
+    QVERIFY(doc.setScopedParameters(evo,a,editor.parameters(),true).ok()); checkRun(100,240);
+    // Input replacement and future datasets inherit rules, not cached numbers.
+    auto sources=doc.sources().value(root); sources[1].data=input(801,.5);
+    QVERIFY(doc.setSources(root,sources).isEmpty()); checkRun(100,160);
+    sources.push_back({"C",input(1001,1.),{}});
+    QVERIFY(doc.setSources(root,sources).isEmpty());
+    const auto futurePlan=doc.plan(); QVERIFY(futurePlan.validation.ok());
+    QCOMPARE(futurePlan.requests.size(),3);
+    const auto future=WorkflowExecutor().run(futurePlan.requests.back()).nodes[evo];
+    QCOMPARE(future.state,NodeState::Succeeded);
+    QCOMPARE(future.report["window_samples"].toInt(),200);
+    QCOMPARE(future.report["nfft"].toInt(),800);
+    QCOMPARE(future.report["nyquist_frequency"].toDouble(),.5);
+}
+
+void UiTests::automaticEvolutionBatchButtons()
+{
+    QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("automatic.sqlite");
+    QStringList paths;
+    for(int n:{501,1201}) {
+        const auto path=dir.filePath(QString::number(n)+".csv"); paths<<path;
+        QFile f(path); QVERIFY(f.open(QIODevice::WriteOnly));
+        QByteArray bytes("x,y\n");
+        for(int i=0;i<n;++i) bytes+=QByteArray::number(i)+","+QByteArray::number(std::sin(i*.13),'g',15)+"\n";
+        f.write(bytes);
+    }
+    MainWindow window(settings,false); window.resize(1500,950); window.show();
+    auto *sources=window.findChild<SourcePanel*>(); sources->addFiles(paths);
+    QTRY_VERIFY(sources->readyToRun());
+    auto *doc=window.document(); const auto root=sources->root();
+    const auto node=doc->addChild(root,ChildSlot::Down,"evolution_fft").nodeId;
+    const auto a=doc->datasets(node)[0].id,b=doc->datasets(node)[1].id;
+    auto *files=sources->findChild<QListWidget*>("sourceFiles"); files->setCurrentRow(0);
+    window.canvas()->nodeSelected(node);
+    auto *editor=window.findChild<ParameterEditor*>();
+    auto *controller=window.findChild<WorkflowPreviewPanel*>()->controller();
+    QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,15000);
+    QCOMPARE(controller->result()->output.report["window_samples"].toInt(),100);
+    auto *percent=editor->findChild<QDoubleSpinBox*>("parameter_evo_window_percent"); QVERIFY(percent);
+    // Keyboard edit followed immediately by batch action must flush the draft.
+    percent->setFocus(); QTest::keyClick(percent,Qt::Key_A,Qt::ControlModifier); QTest::keyClicks(percent,"30");
+    QTest::mouseClick(editor->findChild<QPushButton*>("applyNodeAllData"),Qt::LeftButton);
+    QTRY_COMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),30.);
+    QCOMPARE(effectiveParameters(*doc->node(node),b)["evo_window_percent"].toDouble(),30.);
+    files->setCurrentRow(1); // First visit to B must resolve its own 1201 points.
+    QTRY_VERIFY_WITH_TIMEOUT(controller->state()==WorkflowPreviewController::State::Ready &&
+        controller->result()->output.report["window_samples"].toInt()==360,15000);
+    QTest::mouseClick(editor->findChild<QPushButton*>("resetNodeDefaults"),Qt::LeftButton);
+    QTest::mouseClick(editor->findChild<QPushButton*>("applyNodeAllData"),Qt::LeftButton);
+    QTRY_COMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),20.);
+    QCOMPARE(effectiveParameters(*doc->node(node),b)["evo_window_percent"].toDouble(),20.);
+    QTRY_VERIFY_WITH_TIMEOUT(controller->state()==WorkflowPreviewController::State::Ready &&
+        controller->result()->output.report["window_samples"].toInt()==240,15000);
+    files->setCurrentRow(0);
+    QTRY_VERIFY_WITH_TIMEOUT(controller->state()==WorkflowPreviewController::State::Ready &&
+        controller->result()->output.report["window_samples"].toInt()==100,15000);
+    // Switch before the edit debounce fires, then broadcast B's own settings.
+    percent=editor->findChild<QDoubleSpinBox*>("parameter_evo_window_percent");
+    percent->setFocus();QTest::keyClick(percent,Qt::Key_A,Qt::ControlModifier);QTest::keyClicks(percent,"35");
+    files->setCurrentRow(1);
+    QCOMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),35.);
+    QCOMPARE(editor->parameters()["evo_window_percent"].toDouble(),20.);
+    QTest::mouseClick(editor->findChild<QPushButton*>("applyNodeAllData"),Qt::LeftButton);
+    QCOMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),20.);
+    QTest::mouseClick(window.findChild<QPushButton*>("undoWorkflowEdit"),Qt::LeftButton);
+    QCOMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),35.);
+    QCOMPARE(editor->parameters()["evo_window_percent"].toDouble(),20.);
+    QTest::mouseClick(window.findChild<QPushButton*>("redoWorkflowEdit"),Qt::LeftButton);
+    QCOMPARE(effectiveParameters(*doc->node(node),a)["evo_window_percent"].toDouble(),20.);
+    QCOMPARE(editor->parameters()["evo_window_percent"].toDouble(),20.);
+}
+
+void UiTests::previewMessagesRemainReadable()
+{
+    PlotView view; view.resize(320,220); view.show();
+    const QString shortMessage="无法显示预览\n请检查窗口长度与输入数据。";
+    view.clear(shortMessage);
+    auto *message=view.findChild<QTextBrowser*>("plotMessage"); QVERIFY(message);
+    QTRY_VERIFY(message->isVisible());
+    QCOMPARE(message->toPlainText(),shortMessage);
+    QVERIFY(message->font().pointSizeF()>=14);
+    const QString longMessage=QString("<b>这是纯文本错误信息，不执行 HTML。</b>\n").repeated(200);
+    view.clear(longMessage);
+    QCOMPARE(message->toPlainText(),longMessage);
+    QTRY_VERIFY(message->verticalScrollBar()->maximum()>0);
+    QVERIFY(message->font().pointSizeF()>=14);
+    QCOMPARE(message->horizontalScrollBar()->maximum(),0);
+    QCOMPARE(message->verticalScrollBar()->value(),0);
+    message->selectAll(); QVERIFY(message->textCursor().hasSelection());
+    const auto capture=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if(!capture.isEmpty()) {QDir().mkpath(capture);view.grab().save(capture+"/preview-long-message.png");}
+    view.clear(shortMessage); QTRY_COMPARE(message->verticalScrollBar()->maximum(),0);
+    if(!capture.isEmpty()) view.grab().save(capture+"/preview-short-message.png");
+}
+
+void UiTests::evolutionResolvedPreviewFollowsInput()
+{
+    struct Restore { ~Restore(){setLanguage("zh");} } restore;
+    for (const auto &language : QStringList{"zh", "en"})
+    {
+        setLanguage(language);
+        WorkflowDocument doc(makeScientificRegistry());
+        const auto root=doc.addRoot("sine_source",{{"count",1001},{"step",1}}).nodeId;
+        const auto cut=doc.addChild(root,ChildSlot::Down,"select_interval",
+            {{"interval_lower",0},{"interval_upper",500}}).nodeId;
+        const QJsonObject params{{"evo_window_mode","span_percent"},{"evo_window_percent",20},
+            {"evo_step_mode","target_windows"},{"evo_target_windows",500},
+            {"evo_fft_mode","multiple"},{"evo_padding",4}};
+        const auto target=doc.addChild(cut,ChildSlot::Down,"evolution_fft",params).nodeId;
+        QVERIFY(!target.isNull());
+        WorkflowPreviewPanel panel(&doc); panel.resize(360,850); panel.show();
+        auto *controller=panel.controller(); controller->selectNode(target);
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,15000);
+        // Resolve the 501-point upstream output, not the 1001-point source.
+        QCOMPARE(controller->result()->output.report["input_samples"].toInt(),501);
+        const auto expected=text("ui.evolution_resolved").arg(100).arg(1).arg(99.,0,'f',2).arg(400)
+            + text("ui.preview_warning_count").arg(1);
+        QLabel *status=nullptr;
+        for (auto *label:panel.findChildren<QLabel*>())
+            if (label->text()==expected) status=label;
+        QVERIFY(status); QVERIFY(status->toolTip().contains("402"));
+        auto changed=params; changed["evo_target_windows"]=20;
+        QVERIFY(doc.setParameters(target,changed).ok());
+        QVERIFY(status->text()!=expected); // Invalidate the old summary immediately.
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,15000);
+        QCOMPARE(controller->result()->output.report["step_samples"].toInt(),22);
+        QCOMPARE(status->text(),text("ui.evolution_resolved").arg(100).arg(22).arg(78.,0,'f',2).arg(400)
+            + text("ui.preview_warning_count").arg(1));
+        const auto lastSummary=status->text();
+        const auto capture=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+        if (!capture.isEmpty())
+        {
+            QDir().mkpath(capture);
+            panel.grab().save(capture+"/evolution-preview-"+language+".png");
+            ParameterEditor editor; editor.resize(330,900);
+            editor.showNode(doc.node(target),doc.model().registry()); editor.show();
+            auto *preset=editor.findChild<QPushButton*>("resetNodeDefaults"); QVERIFY(preset);
+            QTest::mouseClick(preset,Qt::LeftButton); QTest::qWait(10);
+            editor.grab().save(capture+"/evolution-parameters-"+language+".png");
+        }
+        changed["evo_window_percent"]=.01;
+        QVERIFY(doc.setParameters(target,changed).ok());
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Failed,15000);
+        QVERIFY(status->text()!=expected && status->text()!=lastSummary);
+        QCOMPARE(status->text(),text("ui.preview_failed"));
+        auto *failedView=panel.findChild<PlotView*>("nodePreviewPlot"); QVERIFY(failedView);
+        auto *failure=failedView->findChild<QTextBrowser*>("plotMessage"); QVERIFY(failure);
+        QTRY_VERIFY(failure->isVisible());
+        const auto explanation=presentError(controller->result()->output);
+        QVERIFY(failure->toPlainText().contains(explanation.summary));
+        QVERIFY(failure->toPlainText().contains(explanation.suggestion));
+        QVERIFY(failure->font().pointSizeF()>=14);
+        if(!capture.isEmpty()) panel.grab().save(capture+"/evolution-error-"+language+".png");
+        controller->selectNode(root);
+        QTRY_COMPARE_WITH_TIMEOUT(controller->state(),WorkflowPreviewController::State::Ready,15000);
+        QVERIFY(!status->text().contains("FFT"));
+    }
 }
 
 void UiTests::scopedEditingAndPointReview()

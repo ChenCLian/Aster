@@ -127,23 +127,32 @@ EditResult WorkflowDocument::setScopedParameters(NodeId id, QUuid item, const QJ
     if (!original) return {"Unknown node",{},0};
     const auto normalized = model().registry().normalize(original->method,parameters);
     if (!normalized.validation.ok()) return {normalized.validation.message(),{},0};
-    if (!all) {
-        bool found = false;
-        const auto joint = pairNodeFor(id);
-        if (!joint.isNull()) {
-            for (const auto &pair : grouping().value(joint)) found |= pair.id==item;
-        } else for (const auto &dataset : datasets(id)) found |= dataset.id==item;
-        if (!found) return {"Select a dataset or pair belonging to this node",{},0};
+    // A bulk edit still originates from one live dataset/pair. Reject stale
+    // selection callbacks instead of promoting their parameters to the base.
+    QSet<QUuid> scopes;
+    const auto joint = pairNodeFor(id);
+    if (!joint.isNull()) {
+        for (const auto &pair : grouping().value(joint)) scopes.insert(pair.id);
+    } else {
+        for (const auto &dataset : datasets(id)) scopes.insert(dataset.id);
     }
+    if (item.isNull() || !scopes.contains(item))
+        return {"Select a dataset or pair belonging to this node",{},0};
     auto draft = beginEdit();
     for (auto &target : draft.state.definition.nodes) if (target.id==id) {
         if (all) {
             QMap<QUuid,QJsonObject> preserved;
             for (const auto &spec : model().registry().find(target.method)->descriptor.parameters)
                 if (spec.perDatasetOnly)
-                    for (auto it=target.parameterOverrides.cbegin();it!=target.parameterOverrides.cend();++it) {
-                        const auto value=effectiveParameters(target,it.key()).value(spec.key);
-                        if (value!=spec.defaultValue) preserved[it.key()][spec.key]=value;
+                    for (const auto &scope : scopes) {
+                        // A restored run may store an input-only value in the
+                        // base, with no override. Preserve each current input's
+                        // effective value before resetting the future-input base.
+                        const auto base=target.parameters.value(spec.key);
+                        const auto scoped=target.parameterOverrides.value(scope).value(spec.key);
+                        const auto value=scoped.isUndefined()
+                            ? (base.isUndefined()?spec.defaultValue:base) : scoped;
+                        if (value!=spec.defaultValue) preserved[scope][spec.key]=value;
                     }
             target.parameters=normalized.parameters;
             for (const auto &spec : model().registry().find(target.method)->descriptor.parameters)

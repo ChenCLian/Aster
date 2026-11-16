@@ -1,0 +1,15 @@
+{
+  "version": "1.3.0-beta.15",
+  "documentation": {
+    "status": "reviewed",
+    "content_rewritten": true,
+    "scope": [
+      "release notes",
+      "bilingual manual update/contact instructions",
+      "FAQ",
+      "validation",
+      "outer delivery/cleanup guide"
+    ],
+    "embedded_manual_built": true
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "version": "1.3.0-beta.9",
+  "checked_at_utc": "2026-11-15T19:14:00.329870+00:00",
+  "status": "targeted_parameter_preview_and_regression_checks_passed",
+  "scope": "Evolutionary FFT default rules, per-input automatic resolution and batch/reset semantics, readable preview diagnostics, and matching bilingual help. B-stage help-window navigation remains pending.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "configuration": "Release",
+    "incremental_root_build": "passed",
+    "compiled_version": "1.3.0-beta.9"
+  },
+  "qt_tests": {
+    "numerical_suite": {
+      "suites": 21,
+      "passed": 709,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "analysis-tests.log"
+    },
+    "evolutionary_current_suite": {
+      "suites": 1,
+      "passed": 36,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "evolution-tests.log"
+    },
+    "core": {
+      "suites": 1,
+      "passed": 66,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "aster_core_tests.log"
+    },
+    "batch": {
+      "suites": 1,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "aster_batch_tests.log"
+    },
+    "cross_spectrum": {
+      "suites": 1,
+      "passed": 80,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "aster_cross_spectrum_tests.log"
+    },
+    "main_ui": {
+      "suites": 1,
+      "passed": 894,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "ui-tests-final.log"
+    },
+    "focused_ui_final": {
+      "suites": 1,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "ui-supplement.log"
+    },
+    "joint_scope": {
+      "suites": 1,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "joint-scope.log"
+    },
+    "plot_style_export": {
+      "suites": 1,
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "style-export.log"
+    }
+  },
+  "help_generator_tests": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  },
+  "release_tooling_tests": {
+    "passed": 142,
+    "failed": 0,
+    "skipped": 0
+  },
+  "numeric_kernel_changed": false,
+  "task_defaults_changed": [
+    "evolution_fft"
+  ],
+  "method_versions_changed": false,
+  "application_code_changed": true,
+  "automatic_parameter_model": "base settings + input-specific overrides; resolve rules per actual upstream input at execution",
+  "compatibility": "explicit saved parameters retained; old fixed counts without mode fields inferred as fixed; stored results not recalculated",
+  "validation_notes": [
+    "Main UI suite contains data-driven parameter round trips and input interaction cases.",
+    "Evolutionary current suite includes two additional compatibility/budget tests beyond the full numerical-suite run; repeated cases are not summed as distinct tests.",
+    "Final focused UI run checks the subsequently added future-dataset case and rebuilt diagnostics.",
+    "UI tests use Qt keyboard/mouse events on Linux offscreen; not a Windows native desktop acceptance.",
+    "Initial local build omitted CPATH for already present GL headers; final build uses the local dependency include path.",
+    "An initial added test retained a QJsonValueRef from a temporary object; the test was corrected before final validation."
+  ],
+  "performance_sample": {
+    "source": "evolution-tests.log",
+    "scope": "elapsed times and grid sizes for the new default only; not a cross-platform performance benchmark",
+    "input_counts": [
+      39,
+      501,
+      1001,
+      10001
+    ],
+    "rejected_examples": [
+      38,
+      20001
+    ]
+  },
+  "packaging_scripts_and_actions_changed": false,
+  "not_run": [
+    "Windows/macOS native builds and clean-host deployment",
+    "Cloud Actions and final binary package acceptance",
+    "MATLAB/Acycle direct comparisons",
+    "Full application stress/performance campaign",
+    "B-stage help-window implementation"
+  ],
+  "previous_record": "docs/validation_results/1.3.0-beta.8/checks.json"
+}

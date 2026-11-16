@@ -1,5 +1,7 @@
 # 目标周期与逐周期赋龄
 
+操作与输出解释：[中文](chronology_usage.md#cycles) · [English](chronology_usage_en.md#cycles)。共同约定见[深度、年龄与速率](../concepts/chronology_coordinates.md)。
+
 本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation.md)。
 
 ## 米兰科维奇目标周期

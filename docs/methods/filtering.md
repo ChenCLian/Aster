@@ -1,5 +1,7 @@
 # Gaussian、Taner 与 Hilbert
 
+操作与选择见[滤波与振幅包络](filter_usage.md)；本文保留公式及参考约定。
+
 本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation.md)。
 
 ## 从界面使用

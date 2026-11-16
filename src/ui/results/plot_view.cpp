@@ -1,5 +1,9 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
+#include <QTextBrowser>
+#include <QTextCursor>
+#include <QTextOption>
+#include <QScrollBar>
 #include "ui/common/plot_axis_hints.h"
 #include <QImageReader>
 #include "ui/settings/theme_manager.h"
@@ -185,10 +189,16 @@ PlotView::PlotView(QWidget *p) : QWidget(p)
     });
     m_stack = new QStackedWidget;
     layout->addWidget(m_stack);
-    m_empty = new QLabel(text("ui.select_a_record_to_explore_its_plots_and_steps"));
-    m_empty->setAlignment(Qt::AlignCenter);
-    m_empty->setWordWrap(true);
-    m_empty->setObjectName("Muted");
+    m_empty = new QTextBrowser;
+    m_empty->setObjectName("plotMessage");
+    m_empty->setFrameShape(QFrame::NoFrame);
+    m_empty->setOpenLinks(false);
+    m_empty->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_empty->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    m_empty->setMinimumWidth(0);
+    m_empty->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_empty->setStyleSheet("QTextBrowser#plotMessage { font-size: 14pt; padding: 12px; }");
+    setMessage(text("ui.select_a_record_to_explore_its_plots_and_steps"));
     m_stack->addWidget(m_empty);
     m_plot = new QCustomPlot;
     new PlotAxisHints(m_plot);
@@ -478,6 +488,17 @@ void PlotView::clearByUser()
     m_views.clear();
     emit clearedByUser();
 }
+void PlotView::setMessage(const QString &message)
+{
+    // Plain text prevents diagnostics/file names from becoming active HTML.
+    // Long messages wrap and scroll instead of shrinking below a readable size.
+    m_empty->setPlainText(message);
+    m_empty->selectAll();
+    m_empty->setAlignment(Qt::AlignCenter);
+    m_empty->moveCursor(QTextCursor::Start);
+    m_empty->verticalScrollBar()->setValue(0);
+}
+
 void PlotView::clear(const QString &message)
 {
     m_probe->dismiss();
@@ -503,7 +524,7 @@ void PlotView::clear(const QString &message)
     m_port.clear();
     m_style = {};
     m_defaults = {};
-    m_empty->setText(message.isEmpty()
+    setMessage(message.isEmpty()
                          ? text("ui.plot_cleared_select_a_step_or_output_to_display_it_again")
                          : message);
     m_stack->setCurrentWidget(m_empty);
@@ -1168,7 +1189,7 @@ void PlotView::draw()
     {
         if (!increasing(grid->x) || !increasing(grid->y))
         {
-            m_empty->setText(
+            setMessage(
                 text("ui.heat_maps_need_at_least_two_increasing_coordinates_per_axis_"));
             m_stack->setCurrentWidget(m_empty);
             return;
@@ -1297,7 +1318,7 @@ void PlotView::draw()
             const auto curves = crossSpectrumCurves(m_result, m_style.crossMetric);
             if (!curves.error.isEmpty() || curves.paths.isEmpty())
             {
-                m_empty->setText(curves.error.isEmpty() ? text("ui.cross_undefined") : curves.error);
+                setMessage(curves.error.isEmpty() ? text("ui.cross_undefined") : curves.error);
                 m_stack->setCurrentWidget(m_empty); return;
             }
             QVector<double> x, y;

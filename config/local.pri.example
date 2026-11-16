@@ -17,6 +17,7 @@ unix {
     # GSL_PREFIX = /opt/dependencies/gsl
     # GSL_LIB_DIR = /opt/dependencies/gsl/lib
     # OPENBLAS_ROOT = /opt/dependencies/openblas
+    # ARCHIVE_PREFIX = /opt/dependencies/libarchive
     # Set only when LAPACK is separate from OpenBLAS.
     # ASTER_LAPACK_LIBS = -llapack
 }

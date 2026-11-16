@@ -2,6 +2,15 @@ name: Build desktop packages
 
 on:
   workflow_dispatch:
+    inputs:
+      prepare_draft:
+        description: Prepare a GitHub Release draft after all four packages pass
+        type: boolean
+        default: true
+
+concurrency:
+  group: aster-desktop-release
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -17,6 +26,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - target: windows-x64
+            os: windows-2022
+            qt-host: windows
+            qt-arch: win64_msvc2022_64
+            arch: x86_64
+            archive-ext: zip
           - target: linux-x64
             os: ubuntu-22.04
             qt-host: linux
@@ -36,15 +51,17 @@ jobs:
             arch: x86_64
             archive-ext: zip
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       QT_QPA_PLATFORM: offscreen
       OPENBLAS_NUM_THREADS: '1'
+      ASTER_UPDATE_SCREENSHOT_DIR: ${{ github.workspace }}/build-release/test-results/update-screenshots
+      ASTER_UI_CAPTURE_DIR: ${{ github.workspace }}/build-release/test-results/ui-screenshots
     steps:
       - uses: actions/checkout@v5
       - name: Initialize build logs
         run: |
-          mkdir -p build-release/ci-logs
+          mkdir -p build-release/ci-logs build-release/test-results/ui-screenshots
           {
             printf 'Commit: %s\nRef: %s\n' "$GITHUB_SHA" "$GITHUB_REF"
             uname -sm
@@ -56,6 +73,8 @@ jobs:
       - name: Check release version and documentation
         run: |
           python3 tools/release/update_version.py --check 2>&1 | tee build-release/ci-logs/version-check.log
+          python3 tools/release/document_links.py 2>&1 | tee build-release/ci-logs/document-links.log
+          python3 -c "from pathlib import Path; import sys; sys.path.insert(0,'tools/release'); from download_metadata import valid_version; assert valid_version(Path('VERSION').read_text().strip()), 'Alpha is developer-only and cannot enter release delivery'"
           for script in tools/release/package_linux.sh tools/release/package_macos.sh tools/release/linux_app_run.sh; do
             bash -n "$script"
           done
@@ -68,17 +87,34 @@ jobs:
           sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
           sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.sources /etc/apt/sources.list.d/aster-deb-src.sources
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev \
+          sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev libarchive-dev \
             libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
             libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-shape0 libxcb-xfixes0 \
-            libssl3 libfontconfig1 libdbus-1-3 libfreetype6 libegl1 patchelf file curl xvfb xauth
+            fonts-noto-cjk libssl3 libfontconfig1 libdbus-1-3 libfreetype6 libegl1 patchelf file curl xvfb xauth
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
           exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
           test "$(uname -m)" = '${{ matrix.arch }}'
-          brew install gsl openblas
-          printf 'GSL_PREFIX = %s\nOPENBLAS_ROOT = %s\n' "$(brew --prefix gsl)" "$(brew --prefix openblas)" > config/local.pri
+          brew install gsl openblas libarchive
+          printf 'GSL_PREFIX = %s\nOPENBLAS_ROOT = %s\nARCHIVE_PREFIX = %s\n' "$(brew --prefix gsl)" "$(brew --prefix openblas)" "$(brew --prefix libarchive)" > config/local.pri
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = $env:VCPKG_INSTALLATION_ROOT
+          if (!$root) { throw 'The runner vcpkg installation is missing' }
+          & "$root/vcpkg.exe" install gsl:x64-windows openblas:x64-windows lapack-reference:x64-windows libarchive:x64-windows 2>&1 | Tee-Object build-release/ci-logs/install-dependencies.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "VCPKG_PREFIX = $($root.Replace('\','/'))/installed/x64-windows" | Set-Content config/local.pri
+          "$root/installed/x64-windows/bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          git -C $root rev-parse HEAD | Out-File build-release/ci-logs/vcpkg-commit.txt
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -96,11 +132,19 @@ jobs:
             python3 --version
             qmake -v
             qmake -query QT_INSTALL_PREFIX
-            make --version
-            c++ --version
+            if [[ "$RUNNER_OS" == Windows ]]; then
+              cmd //c "cl 2>&1 & exit /b 0"
+            else
+              make --version
+              c++ --version
+            fi
           } 2>&1 | tee build-release/ci-logs/environment.log
       - name: Check release tooling
         run: python3 -m unittest discover -v -s tools/release -p 'test_*.py' 2>&1 | tee build-release/ci-logs/release-tooling-tests.log
+      - name: Check Windows packaging process
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tools/release/test_windows_packaging.ps1
       - name: Configure
         run: |
           cd build-release
@@ -115,7 +159,11 @@ jobs:
           if [[ "$RUNNER_OS" == macOS ]]; then
             make -j3 2>&1 | tee ci-logs/build.log
           else
-            make -j2 2>&1 | tee ci-logs/build.log
+            if [[ "$RUNNER_OS" == Windows ]]; then
+              nmake /NOLOGO 2>&1 | tee ci-logs/build.log
+            else
+              make -j2 2>&1 | tee ci-logs/build.log
+            fi
           fi
       - name: Check generated parameter references
         run: |
@@ -123,6 +171,14 @@ jobs:
           python3 tools/help_reference/generate.py --build build-release --check 2>&1 | tee build-release/ci-logs/help-reference.log
       - name: Run regression tests
         run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $qtBin = (& qmake -query QT_INSTALL_BINS).Trim()
+          ./tools/release/package_windows.ps1 -BuildDir build-release -QtBin $qtBin -VcpkgPrefix "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -VcpkgRoot "$env:VCPKG_INSTALLATION_ROOT" -OutputDir dist -DependencyMode Collect
+          $version = (Get-Content VERSION -Raw).Trim()
+          Compress-Archive -LiteralPath "dist/Aster-$version-windows-x64" -DestinationPath "dist/Aster-$version-windows-x64.zip"
       - name: Package Linux
         if: runner.os == 'Linux'
         run: bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist 2>&1 | tee build-release/ci-logs/package.log
@@ -136,11 +192,14 @@ jobs:
           package="dist/Aster-$version-${{ matrix.target }}.${{ matrix.archive-ext }}"
           test -f "$package"
           printf 'path=%s\n' "$package" >> "$GITHUB_OUTPUT"
+      - name: Check final package
+        run: python3 tools/release/check_packaged.py '${{ steps.package-path.outputs.path }}' --version "$(tr -d '\r\n' < VERSION)" --platform '${{ matrix.target }}' --output build-release/package-acceptance
       - name: Upload package
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
+          name: program-${{ matrix.target }}
           path: ${{ steps.package-path.outputs.path }}
-          archive: false
+          compression-level: 0
           if-no-files-found: error
           retention-days: 30
       - name: Upload dependency sources and notices
@@ -159,9 +218,53 @@ jobs:
           path: |
             build-release/ci-logs/
             build-release/test-results/
+            build-release/package-acceptance/
             dist/dependency-materials/*/report.json
             dist/dependency-materials/*/records/recipes/brew-*/*.rb
             dist/dependency-materials/*/records/recipes/brew-*/INSTALL_RECEIPT.json
             dist/dependency-materials/*/records/recipes/brew-*/local-patch-recovery.json
           if-no-files-found: ignore
           retention-days: 30
+
+  draft:
+    name: Prepare reviewable release draft
+    needs: package
+    if: inputs.prepare_draft
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: program-*
+          path: ${{ runner.temp }}/aster-artifacts
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: dependency-materials-*
+          path: ${{ runner.temp }}/aster-artifacts
+      - name: Assemble all four platforms
+        run: |
+          python3 tools/release/release_delivery.py prepare --artifacts "$RUNNER_TEMP/aster-artifacts" --directory "$RUNNER_TEMP/release-ready"
+          python3 tools/release/package_source.py --output "$RUNNER_TEMP/source-export"
+          version="$(tr -d '\r\n' < VERSION)"
+          cd "$RUNNER_TEMP/source-export"
+          zip -qr "../release-ready/Aster-$version-source.zip" "Aster-source-export-$version"
+      - name: Create or update draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/release/release_delivery.py draft --directory "$RUNNER_TEMP/release-ready" --commit "$GITHUB_SHA"
+      - name: Record mirror allow-list
+        run: python3 tools/release/release_delivery.py mirror-plan --directory "$RUNNER_TEMP/release-ready"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: release-preparation
+          path: |
+            ${{ runner.temp }}/release-ready/mirror-plan.json
+            ${{ runner.temp }}/release-ready/RELEASE_GITHUB.md
+            ${{ runner.temp }}/release-ready/RELEASE_GITEE.md
+          if-no-files-found: ignore

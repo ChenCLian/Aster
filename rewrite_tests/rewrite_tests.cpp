@@ -241,11 +241,49 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(preview.state(),WorkflowPreviewController::State::Ready,10000);
         QVERIFY(std::abs(dataAs<SeriesData>(preview.result()->output.outputs.value("series"))->y[0]-42)<1e-9);
     }
+    void uniqueRewriteWithoutDialog_data() {
+        QTest::addColumn<bool>("replace");
+        QTest::newRow("insert") << false;
+        QTest::newRow("replace-leaf") << true;
+    }
+    void uniqueRewriteWithoutDialog() {
+        QFETCH(bool,replace);
+        QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("unique.sqlite");
+        MainWindow window(settings,false); window.resize(1300,850); window.show();
+        auto *doc=window.document(); const auto root=doc->addRoot("sine_source").nodeId;
+        const auto target=doc->addChild(root,ChildSlot::Down,"affine",{{"factor",7}}).nodeId;
+        const auto before=workflowToJson(doc->model().definition());
+        if(replace) window.canvas()->replaceMethodDropped("moving_average",target);
+        else window.canvas()->insertMethodDropped("moving_average",target);
+        QVERIFY(!window.findChild<NodeEditDialog*>());
+        const auto selected=window.canvas()->selectedNode(); QVERIFY(!selected.isNull());
+        QCOMPARE(doc->node(selected)->method,QString("moving_average"));
+        if(replace) { QCOMPARE(selected,target); QVERIFY(!doc->node(target)->parameters.contains("factor")); }
+        else { QCOMPARE(doc->node(target)->input->parent,selected); QCOMPARE(doc->node(target)->parameters.value("factor").toInt(),7); }
+        const auto after=workflowToJson(doc->model().definition()); QVERIFY(after!=before);
+        QVERIFY(doc->undo().ok()); QCOMPARE(workflowToJson(doc->model().definition()),before);
+        QVERIFY(doc->redo().ok()); QCOMPARE(workflowToJson(doc->model().definition()),after);
+    }
+    void singleProducerWithAmbiguousPortsStillAsks() {
+        QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("ambiguous.sqlite");
+        MainWindow window(settings,false); window.resize(1300,850); window.show();
+        auto *doc=window.document(); const auto root=doc->addRoot("sine_source").nodeId;
+        const auto parent=doc->addChild(root,ChildSlot::Down,"linear_detrend").nodeId;
+        const auto target=doc->addChild(parent,ChildSlot::Down,"affine",{},"detrended").nodeId;
+        QVERIFY(!target.isNull()); const auto before=workflowToJson(doc->model().definition());
+        window.canvas()->replaceMethodDropped("moving_average",target);
+        QPointer<NodeEditDialog> dialog=window.findChild<NodeEditDialog*>(); QVERIFY(dialog);
+        QTRY_VERIFY(dialog && dialog->isVisible());
+        QCOMPARE(workflowToJson(doc->model().definition()),before);
+        dialog->reject(); QCoreApplication::processEvents();
+        QCOMPARE(workflowToJson(doc->model().definition()),before);
+    }
     void mainWindowMenuAndDrag() {
         QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("rewrite.sqlite");
         MainWindow window(settings,false); window.resize(1300,850); window.show();
         auto* doc=window.document(); const auto root=doc->addRoot("sine_source").nodeId;
-        const auto target=doc->addChild(root,ChildSlot::Down,"affine").nodeId; window.canvas()->fitWorkflow(); window.activateWindow(); QTest::qWait(50);
+        const auto target=doc->addChild(root,ChildSlot::Down,"affine").nodeId;
+        QVERIFY(!doc->addChild(target,ChildSlot::Down,"affine").nodeId.isNull()); window.canvas()->fitWorkflow(); window.activateWindow(); QTest::qWait(50);
         const auto before=workflowToJson(doc->model().definition());
         QTest::mouseClick(window.canvas()->viewport(),Qt::LeftButton,Qt::NoModifier,window.canvas()->insertionViewportPosition(target));
         QMenu* menu=nullptr; for(auto* m:window.findChildren<QMenu*>("taskPicker")) if(m->isVisible()) menu=m; QVERIFY(menu);
@@ -253,14 +291,15 @@ private slots:
         QVector<QMenu*> chain; for(auto* m=leaf;m!=menu;m=qobject_cast<QMenu*>(m->parentWidget())) { QVERIFY(m); chain.prepend(m); }
         auto* current=menu; for(auto* next:chain) { current->setActiveAction(next->menuAction()); QTest::keyClick(current,Qt::Key_Right); QTRY_VERIFY(next->isVisible()); current=next; }
         leaf->setActiveAction(action); QTest::keyClick(leaf,Qt::Key_Return);
-        QPointer<NodeEditDialog> dialog=window.findChild<NodeEditDialog*>(); QVERIFY(dialog); QTRY_VERIFY(dialog && dialog->isVisible());
-        QCOMPARE(workflowToJson(doc->model().definition()),before);
-        QTest::mouseClick(dialog->findChild<QPushButton*>("nodeEditConfirm"),Qt::LeftButton);
-        QCOMPARE(doc->model().definition().nodes.size(),3); QCOMPARE(doc->node(target)->input->parent,window.canvas()->selectedNode());
+        QPointer<NodeEditDialog> dialog=window.findChild<NodeEditDialog*>(); QVERIFY(!dialog);
+        QCOMPARE(doc->model().definition().nodes.size(),4); QCOMPARE(doc->node(target)->input->parent,window.canvas()->selectedNode());
         QVERIFY(doc->undo().ok()); QCOMPARE(workflowToJson(doc->model().definition()),before);
         QCoreApplication::sendPostedEvents(nullptr,QEvent::DeferredDelete); window.canvas()->fitWorkflow();
         QVERIFY(drop(*window.canvas(),window.canvas()->mapFromScene(window.canvas()->nodeRect(target).center()),"linear_detrend"));
         dialog=window.findChild<NodeEditDialog*>(); QVERIFY(dialog); QTRY_VERIFY(dialog && dialog->isVisible());
+        QCOMPARE(workflowToJson(doc->model().definition()),before);
+        for(auto *box:dialog->findChildren<QComboBox*>())
+            if(box->objectName().startsWith("nodeEditOutput_")) box->setCurrentIndex(1);
         QTest::mouseClick(dialog->findChild<QPushButton*>("nodeEditConfirm"),Qt::LeftButton);
         QCOMPARE(doc->node(target)->method,QString("linear_detrend")); QCOMPARE(window.canvas()->selectedNode(),target);
         QVERIFY(doc->undo().ok()); QCOMPARE(workflowToJson(doc->model().definition()),before);
@@ -274,7 +313,7 @@ private slots:
         QVERIFY(contextMenu); QVERIFY(replace->isEnabled()); contextMenu->setActiveAction(replace); QTest::keyClick(contextMenu,Qt::Key_Return);
         QMenu* replacementMenu=nullptr; for(auto* m:window.findChildren<QMenu*>("taskPicker")) if(m->isVisible()) replacementMenu=m;
         QVERIFY(replacementMenu); QVERIFY(findAction(replacementMenu,"linear_detrend")); replacementMenu->close();
-        window.canvas()->insertMethodDropped("affine",target); dialog=window.findChild<NodeEditDialog*>(); QVERIFY(dialog);
+        window.canvas()->insertMethodDropped("linear_detrend",target); dialog=window.findChild<NodeEditDialog*>(); QVERIFY(dialog);
         QVERIFY(doc->removeSubtree(target).ok()); QCoreApplication::processEvents(); QVERIFY(!dialog || !dialog->isVisible());
     }
 };

@@ -40,4 +40,6 @@ python -m unittest discover -s tools/help_reference -p "test_*.py"
 
 两份文档使用相同的稳定锚点：方法 `m-<method>`，参数 `m-<method>-p-<parameter>`。中文文件沿用原路径，已有链接继续有效。程序中的帮助入口按界面语言选择路径；本地缺页或缺章节时，后备 GitHub 地址使用同一语言路径和锚点。操作指南及科学方法文章仍单独维护，本工具只生成任务与参数参考。
 
+长篇操作说明与公共概念使用可选的 `referenceguide.<method>`、`referenceguide.<method>.<parameter>` 语言资源条目，内容为相对于 `docs/reference/` 的 Markdown 链接。它们只出现在生成的参考页中，不加入界面短提示。多个任务可以引用同一个公共章节，各任务的默认值和适用限制仍由原任务定义与专用说明提供；新增目标文档须同时加入 `resources/help.qrc`，并核对中英文目标及锚点。
+
 不要直接编辑生成的 Markdown。新增参数时修改任务描述；修改名称或说明时更新语言资源，然后运行生成器。

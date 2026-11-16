@@ -26,7 +26,7 @@ MTM 数值对照使用随包独立 Python 生成器及固定 JSON 参照，CWT �
 - GNU Scientific Library：https://www.gnu.org/software/gsl/ 。GPL；应保留实际使用版本的版权与完整许可，并提供对应源码。
 - Qt：https://www.qt.io/ 。按实际模块与发行版本保留 Qt 及其内含第三方组件的许可，不以项目 GPL 声明替换 Qt 原有许可。
 
-实际发行包的组件、版本、源码与配方由[依赖材料收集器（在线说明）](https://github.com/ChenCLian/Aster/blob/main/docs/dependency_materials_zh.md)记录；程序包内的 `SOURCE_DEPENDENCIES.md` 提供该平台的实际下载入口。Qt、GSL 及其他库继续适用各自条款；OpenBLAS/LAPACK 的 BSD 类许可要求保留原版权、条件与免责声明，Aster 的对应源码范围另按 GPL 确定。
+实际发行包的组件、版本、源码与配方由[依赖材料收集器（在线说明）](dependency_materials_zh.md)记录；程序包内的 `SOURCE_DEPENDENCIES.md` 提供该平台的实际下载入口。Qt、GSL 及其他库继续适用各自条款；OpenBLAS/LAPACK 的 BSD 类许可要求保留原版权、条件与免责声明，Aster 的对应源码范围另按 GPL 确定。
 
 开发和分发时分别遵守所用依赖版本的许可。科学测试 JSON 由随包脚本使用 NumPy/SciPy 及 statsmodels 0.14.6 生成，Python 库本身未随包分发。
 
@@ -63,3 +63,7 @@ La2004 与 La2010 的随附 README 记录了作者、版权和使用方法，但
 ## 交叉谱真实数据参考
 
 `cross_spectrum_tests/fixtures/real_reference.json` 使用内置 ODP 846、ODP 926 记录生成重采样序列及数值核对结果；原数据及插值衍生数据保留 CC BY 3.0 归属。来源、DOI、转换说明和软件版本见[参考数据说明](../cross_spectrum_tests/fixtures/README.md)，完整来源哈希和引文保留在 JSON 内。验证脚本使用 NumPy/SciPy；它们不是应用运行依赖。
+
+## 更新下载解压依赖
+
+完整包解压使用系统或包管理器提供的 [libarchive](https://www.libarchive.org/)，不复制第三方源码进应用目录。各发行包须随实际 libarchive 及其压缩依赖收集版权、许可和对应来源；Windows 使用 vcpkg，macOS 使用 Homebrew，Linux 使用发行版依赖记录。已同步构建配置、部署依赖路径和通知收集入口，原生打包验收仍需执行。

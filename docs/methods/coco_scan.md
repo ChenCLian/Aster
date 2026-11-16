@@ -1,5 +1,7 @@
 # COCO 固定目标扫描
 
+操作与输出解释：[中文](coco_usage.md#scan) · [English](coco_usage_en.md#scan)。共同约定见[深度、年龄与速率](../concepts/chronology_coordinates.md)。
+
 本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation.md)。
 
 ## 使用与输出

@@ -1,0 +1,18 @@
+********* Start testing of UiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : UiTests::initTestCase()
+QWARN  : UiTests::evolutionPresetIsEditable() This plugin does not support propagateSizeHints()
+PASS   : UiTests::evolutionPresetIsEditable()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+QWARN  : UiTests::evolutionResolvedPreviewFollowsInput() This plugin does not support propagateSizeHints()
+PASS   : UiTests::evolutionResolvedPreviewFollowsInput()
+PASS   : UiTests::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 2317ms
+********* Finished testing of UiTests *********

@@ -1,0 +1,22 @@
+[
+  {
+    "case": "before",
+    "error": "BadZipFile",
+    "record": {
+      "status": "passed"
+    },
+    "stale_screenshot": true
+  },
+  {
+    "case": "after",
+    "error": "BadZipFile",
+    "record": {
+      "version": "1.3.0",
+      "platform": "windows-x64",
+      "status": "failed",
+      "scope": "isolated search paths, startup, backend, UI screenshots; native visual review still required",
+      "error": "File is not a zip file"
+    },
+    "stale_screenshot": false
+  }
+]

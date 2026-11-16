@@ -212,6 +212,7 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     connect(remove, &QPushButton::clicked, this,
             [this]
             {
+                if (m_beforeInputRemoval && !m_beforeInputRemoval()) return;
                 m_options->flushEdits();
                 if (m_optionsWorker || !m_optionsQueue.isEmpty()) return;
                 auto paths = m_document->files(root());
@@ -424,6 +425,8 @@ void SourcePanel::refresh()
     const auto previous = root();
     const auto currentPath =
         m_files->currentItem() ? m_files->currentItem()->data(Qt::UserRole).toString() : QString();
+    const auto currentDataset = m_files->currentItem()
+        ? m_files->currentItem()->data(Qt::UserRole + 4).toUuid() : QUuid{};
     QSet<QString> selected;
     for (auto *item : m_files->selectedItems())
         selected.insert(item->data(Qt::UserRole).toString());
@@ -460,7 +463,10 @@ void SourcePanel::refresh()
             auto ref = OutputReference::fromJson(source.provenance["database_source"].toObject());
             auto *item = new QListWidgetItem(source.label, m_files);
             item->setData(Qt::UserRole, source.label);
-            if (source.label == currentPath) m_files->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
+            const auto dataset = QUuid(source.provenance["dataset_id"].toString());
+            item->setData(Qt::UserRole + 4, dataset);
+            if (!currentDataset.isNull() && dataset == currentDataset)
+                m_files->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
             item->setData(Qt::UserRole + 3, source.label + "\n" + ref.databasePath +
                           "\n" + ref.nodeId.toString() + " / " + ref.port);
             updateFileState(item, m_states.value(root().toString() + "|" + source.label,

@@ -107,15 +107,17 @@ ParameterResult TaskRegistry::normalize(const QString& key, const QJsonObject& s
     ParameterResult result;
     const auto* entry = find(key);
     if (!entry) { result.validation.add(key, QStringLiteral("Unknown method")); return result; }
+    const auto values = entry->descriptor.prepareParameters
+        ? entry->descriptor.prepareParameters(supplied) : supplied;
     QSet<QString> allowed;
     for (const auto& spec : entry->descriptor.parameters) {
         allowed.insert(spec.key);
-        const auto value = supplied.contains(spec.key) ? supplied.value(spec.key) : spec.defaultValue;
+        const auto value = values.contains(spec.key) ? values.value(spec.key) : spec.defaultValue;
         const auto error = parameterError(spec, value);
         if (!error.isEmpty()) result.validation.add(key + QLatin1Char('.') + spec.key, error);
         else result.parameters.insert(spec.key, value);
     }
-    for (auto it = supplied.begin(); it != supplied.end(); ++it)
+    for (auto it = values.begin(); it != values.end(); ++it)
         if (!allowed.contains(it.key())) result.validation.add(key + QLatin1Char('.') + it.key(), QStringLiteral("Unknown parameter"));
     return result;
 }

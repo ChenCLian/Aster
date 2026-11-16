@@ -90,16 +90,18 @@ int main(int argc,char**argv){
   spinUntil([&]{return lateness.size()>=100;},3000);timer.stop();out["event_loop_lateness"]=stats(lateness);
  } else if(mode=="numeric") {
   auto registry=makeScientificRegistry();QJsonArray runs;
-  for(int n:{1001,10001,100001})for(bool preset:{false,true}) {
+  for(int n:{1001,10001,100001})for(const auto &settings:QStringList{"fixed","legacy_overlap","target_windows"}) {
+   const bool preset=settings!="fixed";
    QJsonObject p{{"evo_window",200},{"evo_step",64},{"evo_nfft",800},{"evo_trend","linear"},{"evo_taper","rectangular"},{"evo_normalize",true}};
    if(preset){p["evo_window_mode"]="span_percent";p["evo_window_percent"]=20;p["evo_step_mode"]="overlap";p["evo_overlap_percent"]=99.2;p["evo_fft_mode"]="multiple";p["evo_padding"]=4;}
+   if(settings=="target_windows"){p["evo_step_mode"]="target_windows";p["evo_target_windows"]=500;}
    QString error;auto task=registry.create("evolution_fft",p,&error);if(!task)return 9;
    const auto input=series(n);QVector<double> times;NodeResult result;
    for(int repeat=0;repeat<11;repeat++){QElapsedTimer t;t.start();result=task->execute({input},{});if(repeat)times<<ms(t);}
-   const bool expectedSuccess=!preset || n==1001;
+   const bool expectedSuccess=!preset || n==1001 || (settings=="target_windows" && n==10001);
    if((result.state==NodeState::Succeeded)!=expectedSuccess ||
        (!expectedSuccess && result.diagnostic().code!="EVOLUTION_BUDGET"))return 16;
-   runs.append(QJsonObject{{"samples",n},{"preset",preset},{"timing",stats(times)},{"succeeded",result.state==NodeState::Succeeded},{"diagnostic",result.diagnostic().code},{"report",result.report}});
+   runs.append(QJsonObject{{"samples",n},{"preset",preset},{"settings",settings},{"timing",stats(times)},{"succeeded",result.state==NodeState::Succeeded},{"diagnostic",result.diagnostic().code},{"report",result.report}});
   }out["runs"]=runs;
  } else if(mode=="cancel") {
   auto registry=makeScientificRegistry();QString error;auto task=registry.create("evolution_fft",{{"evo_window",256},{"evo_step",64},{"evo_nfft",1024},{"frequency_max",.02}},&error);

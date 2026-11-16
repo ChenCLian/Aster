@@ -17,7 +17,7 @@ WORDS = {
         "condition": "显示条件", "none": "无",
         "intro": "本参考对应 Aster {version} 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。",
         "fallback": "选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。",
-        "links": "[使用手册](../USER_GUIDE.md) · [科学方法](../methods/README.md) · [English](task_parameters_en.md)",
+        "links": "[使用手册](../USER_GUIDE.md) · [方法说明](../methods/README.md) · [English](task_parameters_en.md)",
         "file": "文件读取配置在输入面板中编辑；界面列号从 1 开始，内部参数列号从 0 开始。",
     },
     "en": {
@@ -106,6 +106,11 @@ def render(catalog, catalogs, language):
         help_text = translated(current, english, ["methodhelp." + key])
         if help_text:
             lines += [help_text, ""]
+        # Long-form guidance is reference-only: do not put Markdown links into
+        # compact UI tooltips. Several tasks can link to one canonical topic.
+        guide = translated(current, english, ["referenceguide." + key])
+        if guide:
+            lines += [guide, ""]
         if key == "file_source":
             lines += [words["file"], ""]
         for parameter in task["parameters"]:
@@ -119,6 +124,9 @@ def render(catalog, catalogs, language):
             lines += [f'<a id="m-{key}-p-{name}"></a>', f'### {inline(label)}', ""]
             if help_text:
                 lines += [help_text, ""]
+            guide = translated(current, english, [f"referenceguide.{key}.{name}"])
+            if guide:
+                lines += [guide, ""]
             # The input panel applies detected file options over descriptor defaults.
             if key != "file_source":
                 lines += [f'{words["default"]}: {choice_value(parameter, parameter["default"])}', ""]

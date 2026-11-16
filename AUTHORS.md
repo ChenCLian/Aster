@@ -20,9 +20,9 @@ Aster 原创贡献：Copyright (C) 2026 ZiJie Chen。软件整体以 GPL-3.0-onl
 
 外部代码、数值方法与科学数据的作者、引用及许可见以下来源记录。
 
-- 外部代码、数值依赖及数据归属：[docs/third_party.md](https://github.com/ChenCLian/Aster/blob/main/docs/third_party.md)。
+- 外部代码、数值依赖及数据归属：[docs/third_party.md](docs/third_party.md)。
 - 随附许可文本：[licenses/](licenses/) 及 `src/third_party/` 中的原始许可文件。
-- 合成轨道代理信号的参考模型与深度模板：[resources/synthetic/NOTICE.md](https://github.com/ChenCLian/Aster/blob/main/resources/synthetic/NOTICE.md)。
+- 合成轨道代理信号的参考模型与深度模板：[resources/synthetic/NOTICE.md](resources/synthetic/NOTICE.md)。
 - 其他天文解和示例数据：见对应 `resources/` 子目录中的来源、目录与许可文件。
 
 ## 建议引用方式

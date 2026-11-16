@@ -1,0 +1,53 @@
+name: Mirror published release to Gitee
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published GitHub version tag (v prefix; stable or beta)
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: aster-gitee-mirror
+  cancel-in-progress: false
+jobs:
+  mirror:
+    if: vars.ENABLE_GITEE_MIRROR == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Validate version selection
+        run: |
+          python3 - <<'PY'
+          import os,re
+          tag=os.environ['RELEASE_TAG']
+          if not re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-beta\.(0|[1-9][0-9]*))?',tag):
+              raise SystemExit('Only stable and beta releases are eligible; alpha is developer-only')
+          PY
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify tooling
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
+      - name: Mirror source and eligible program packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: python3 tools/release/sync_gitee.py --tag "$RELEASE_TAG" --report "$RUNNER_TEMP/gitee-mirror-report.json"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: gitee-mirror-report
+          path: ${{ runner.temp }}/gitee-mirror-report.json
+          if-no-files-found: ignore

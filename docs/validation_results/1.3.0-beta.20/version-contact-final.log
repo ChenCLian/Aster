@@ -1,0 +1,14 @@
+********* Start testing of UpdateTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : UpdateTests::initTestCase() entering
+PASS   : UpdateTests::initTestCase()
+INFO   : UpdateTests::compiledVersionMatchesSettingsAndHelp() entering
+PASS   : UpdateTests::compiledVersionMatchesSettingsAndHelp()
+INFO   : UpdateTests::settingsContactOpensLocalAuthorPage() entering
+QWARN  : UpdateTests::settingsContactOpensLocalAuthorPage() This plugin does not support raise()
+QWARN  : UpdateTests::settingsContactOpensLocalAuthorPage() This plugin does not support raise()
+PASS   : UpdateTests::settingsContactOpensLocalAuthorPage()
+INFO   : UpdateTests::cleanupTestCase() entering
+PASS   : UpdateTests::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 201ms
+********* Finished testing of UpdateTests *********

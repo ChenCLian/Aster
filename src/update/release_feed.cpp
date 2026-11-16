@@ -10,6 +10,7 @@ namespace aster::updates {
 UpdateConfig UpdateConfig::fromJson(const QByteArray &json) {
     const auto o=QJsonDocument::fromJson(json).object();
     UpdateConfig c; c.owner=o["owner"].toString();c.repository=o["repository"].toString();c.apiVersion=o["api_version"].toString();
+    c.packageMetadata=o["package_metadata"].toString();c.mirrorFallback=o["mirror_fallback"].toBool();
     return c;
 }
 bool UpdateConfig::valid() const {
@@ -20,8 +21,8 @@ bool UpdateConfig::valid() const {
            date.match(apiVersion).capturedLength()==apiVersion.size()&&!apiVersion.isEmpty()&&
            timeoutMs>0&&maximumPages>0&&maximumPages<=100&&maximumResponseBytes>0&&maximumResponseBytes<=16*1024*1024;
 }
-QUrl UpdateConfig::apiUrl(int page) const {
-    QUrl u("https://api.github.com/repos/"+owner+"/"+repository+"/releases");
+QUrl UpdateConfig::apiUrl(int page, bool mirror) const {
+    QUrl u((mirror?"https://gitee.com/api/v5/repos/":"https://api.github.com/repos/")+owner+"/"+repository+"/releases");
     QUrlQuery q;q.addQueryItem("per_page","100");q.addQueryItem("page",QString::number(page));u.setQuery(q);return u;
 }
 QUrl UpdateConfig::releasesUrl() const {return QUrl("https://github.com/"+owner+"/"+repository+"/releases");}
@@ -29,7 +30,7 @@ QUrl UpdateConfig::releaseUrl(const QString &tag) const {
     // Never launch a URL supplied by release notes or API payloads.
     QUrl u=releasesUrl();u.setPath(u.path()+"/tag/"+tag);return u;
 }
-FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases) {
+FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases,bool mirror) {
     FeedPage result;
     if(body.size()>config.maximumResponseBytes){result.errorKey="update.error_response_limit";return result;}
     QJsonParseError error;const auto document=QJsonDocument::fromJson(body,&error);
@@ -38,12 +39,14 @@ FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool
     if(rows.size()>100){result.errorKey="update.error_response";return result;}
     for(const auto &value:rows) {
         if(!value.isObject()){result.errorKey="update.error_response";return result;}
-        const auto o=value.toObject();
+        auto o=value.toObject();
+        if(mirror&&!o.contains("draft"))o.insert("draft",false);
         if(!o["draft"].isBool()||!o["prerelease"].isBool()||!o["tag_name"].isString()) {result.errorKey="update.error_response";return result;}
         if(o["draft"].toBool())continue;
         const auto tag=o["tag_name"].toString();const auto version=ReleaseVersion::parse(tag);
-        if(!version||(!includePrereleases&&(o["prerelease"].toBool()||!version->prerelease.isEmpty())))continue;
-        result.releases.append({tag,o["name"].toString().left(256),o["body"].toString().left(16000),*version,config.releaseUrl(tag)});
+        if(!version||isAlphaVersion(tag)||(!includePrereleases&&(o["prerelease"].toBool()||!version->prerelease.isEmpty())))continue;
+        auto pageUrl=config.releaseUrl(tag);if(mirror)pageUrl.setHost("gitee.com");
+        result.releases.append({tag,o["name"].toString().left(256),o["body"].toString().left(16000),*version,pageUrl,QDateTime::fromString(o["published_at"].toString(),Qt::ISODate),mirror?QString("Gitee"):QString("GitHub")});
     }
     return result;
 }

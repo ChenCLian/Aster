@@ -275,6 +275,9 @@ def main(argv=None):
             print(('CREATE ' if change.before is None else 'UPDATE ') + str(change.path.relative_to(ROOT)))
         if not args.dry_run:
             write_changes(changes)
+            if (ROOT / "resources/help.qrc").is_file():
+                from document_links import manifest_text
+                (ROOT / "resources/manual_files.json").write_text(manifest_text(ROOT), encoding="utf-8")
         print(f'{len(changes)} files; ' + ('preview only, no files written.' if args.dry_run else 'synchronized. Rebuild the application to update its version and embedded help.'))
         return 0
     except (OSError, ValueError, KeyError) as error:

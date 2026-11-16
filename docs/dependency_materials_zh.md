@@ -1,6 +1,6 @@
 # 依赖源码与许可材料
 
-适用源码：Aster 1.3.0-beta.1。[发布维护](release_maintenance_zh.md) · [第三方说明](third_party.md)
+适用源码：Aster 1.3.0-beta.20。[发布维护](release_maintenance_zh.md) · [第三方说明](third_party.md)
 
 ## 文件放在哪里
 

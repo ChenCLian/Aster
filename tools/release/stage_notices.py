@@ -2,6 +2,7 @@
 import argparse
 from pathlib import Path
 import shutil
+from document_links import stage_manual
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -13,6 +14,7 @@ def main():
     args = parser.parse_args()
     dest = args.destination.resolve()
     dest.mkdir(parents=True, exist_ok=True)
+    stage_manual(dest, ROOT)
     notices = dest / 'licenses'
     notices.mkdir(exist_ok=True)
     for name in ['README.md', 'AUTHORS.md', 'QUICK_START.md', 'FAQ.md',
@@ -51,7 +53,7 @@ def main():
     if doc.exists():
         for p in doc.iterdir():
             if p.name.startswith(('libgsl', 'libopenblas', 'liblapack', 'libgfortran',
-                                  'libquadmath', 'libssl', 'libqt6')) and (p/'copyright').is_file():
+                                  'libquadmath', 'libssl', 'libqt6', 'libarchive', 'liblzma', 'libzstd', 'zlib', 'libbz2', 'liblz4', 'libxml2', 'libacl')) and (p/'copyright').is_file():
                 shutil.copy2(p/'copyright', notices / (p.name + '-copyright.txt'))
 
 if __name__ == '__main__':

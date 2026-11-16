@@ -90,6 +90,26 @@ class ReferenceTests(unittest.TestCase):
             pages["zh"] = generate.render(self.catalog, self.catalogs, "zh")
             self.assertEqual(generate.synchronize(root, pages, check=True), [generate.PATHS["zh"]])
 
+    def test_reference_guides_are_localized_optional_and_preserve_descriptors(self):
+        before = copy.deepcopy(self.catalog)
+        self.catalogs["zh"]["referenceguide.demo"] = "[任务详解](../methods/demo.md#use)"
+        self.catalogs["en"]["referenceguide.demo"] = "[Task guide](../methods/demo_en.md#use)"
+        self.catalogs["zh"]["referenceguide.demo.factor"] = "[共用概念](../concepts/shared.md#factor)"
+        self.catalogs["en"]["referenceguide.demo.factor"] = "[Shared concept](../concepts/shared_en.md#factor)"
+        zh = generate.render(self.catalog, self.catalogs, "zh")
+        en = generate.render(self.catalog, self.catalogs, "en")
+        self.assertIn("../methods/demo.md#use", zh)
+        self.assertNotIn("../methods/demo_en.md", zh)
+        self.assertIn("../concepts/shared_en.md#factor", en)
+        self.assertNotIn("共用概念", en)
+        self.assertLess(zh.index("../methods/demo.md"), zh.index('id="m-demo-p-factor"'))
+        self.assertGreater(zh.index("../concepts/shared.md"), zh.index('id="m-demo-p-factor"'))
+        self.assertEqual(self.catalog, before)
+        del self.catalogs["zh"]["referenceguide.demo.factor"]
+        fallback = generate.render(self.catalog, self.catalogs, "zh")
+        self.assertIn("../concepts/shared_en.md#factor", fallback)
+        self.assertNotIn("referenceguide.demo", fallback)
+
     def test_stale_binary_and_duplicate_anchors_are_rejected(self):
         generate.validate(self.catalog, "1.1.1")
         with self.assertRaises(ValueError):

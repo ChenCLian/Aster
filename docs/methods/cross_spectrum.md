@@ -1,5 +1,7 @@
 # Welch 交叉谱、相干度与相位
 
+操作与输出解释：[中文](spectral_inference.md#cross) · [English](spectral_inference_en.md#cross)。公共概念见[统计解释](../concepts/statistical_interpretation.md)。
+
 [A/B 配对操作](../USER_GUIDE.md#cross-spectrum) · [参数参考](../reference/task_parameters.md#m-cross_spectrum) · [方法目录](README.md)
 
 ## 输入与参数

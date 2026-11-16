@@ -98,12 +98,14 @@ Chinese text shown as boxes usually requires CJK fonts; see FAQ.md (Linux fonts)
 Keep usr/ beside AppRun. This package requires a compatible Linux system and an
 X11 display (or XWayland). It does not bundle glibc, graphics drivers or a desktop.
 The official build targets Ubuntu 22.04 or newer; other distributions need testing.
-Updates: Settings > Check for updates opens the public release page.
+Updates: Settings > Check for updates can download, verify and extract a new package.
+Older releases without download information open the public release page instead.
 Close Aster before using a new package. Keep your database and settings separately.
 EOF
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --version
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --numeric-backend
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=xcb \
   xvfb-run -a "$stage/AppRun" --version
+python3 "$script_dir/download_metadata.py" stamp "$stage" --platform linux-x64
 tar -C "$output" -czf "$output/$name.tar.gz" "$name"
 echo "Created $output/$name.tar.gz"

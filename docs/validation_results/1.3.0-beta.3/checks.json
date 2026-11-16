@@ -1,0 +1,70 @@
+{
+  "version": "1.3.0-beta.3",
+  "date": "2026-11-15",
+  "status": "targeted_documentation_and_help_checks_passed",
+  "scope": "C1 sampling/cleanup/resampling documentation, localized reference-guide links and resource packaging; no algorithm or application src changes.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "configuration": "Release",
+    "incremental_build": "passed",
+    "compiled_version": "1.3.0-beta.3"
+  },
+  "qt_help_tests": {
+    "returncode": 0,
+    "seconds": 3.82,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "functions": [
+      "helpCatalogueCoverageAndContext",
+      "helpLinksAndFallback",
+      "helpLanguageAndChapterReuse",
+      "helpReferenceVisibleLayout",
+      "helpDirectoryLinks",
+      "samplingGuidesStayOfflineAndReturnToParameter",
+      "parameterHelpTracksSelectedNode"
+    ],
+    "platform": "Linux Qt 6.8.2 offscreen",
+    "includes_init_cleanup": true
+  },
+  "help_generator_tests": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  },
+  "release_tooling_tests": {
+    "unique_passed": 141,
+    "failed": 0,
+    "remaining_skipped": 0,
+    "initial_discovery": {
+      "run": 140,
+      "passed": 138,
+      "skipped": 2
+    },
+    "environment_followup": {
+      "passed": 3,
+      "scope": "Two Homebrew Ruby-query cases and the qmake rebuild/version test; missing local runtime paths supplied."
+    }
+  },
+  "content_checks": {
+    "registered_tasks_unchanged": 56,
+    "exposed_parameter_definitions_unchanged": 261,
+    "all_src_files_unchanged": true,
+    "gsl_minimum_samples_confirmed": {
+      "linear": 2,
+      "natural_cubic": 3,
+      "akima": 5
+    }
+  },
+  "manual_visual_review": "Chinese and English sampling-output pages rendered in Linux Qt offscreen, 900x680; screenshots used for internal inspection only.",
+  "not_run": [
+    "Full numeric and desktop regression suites",
+    "Windows/macOS native builds and packaged binaries",
+    "Cloud Actions and clean-host packaging acceptance",
+    "Performance benchmarks",
+    "MATLAB/Acycle direct comparison",
+    "New B-stage navigation/search UI (not implemented)"
+  ],
+  "previous_record": "docs/validation_results/1.3.0-beta.2/checks.json"
+}

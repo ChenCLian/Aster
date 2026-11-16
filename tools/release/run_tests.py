@@ -9,7 +9,7 @@ import time
 
 TARGETS = ['aster_core_tests', 'aster_batch_tests', 'aster_analysis_tests', 'aster_cross_spectrum_tests', 'aster_ui_tests', 'aster_joint_ui_tests', 'aster_rewrite_tests', 'aster_linked_input_tests',
            'aster_style_export_tests', 'aster_workspace_tests',
-           'aster_integration_tests', 'aster_update_tests']
+           'aster_integration_tests', 'aster_update_tests', 'aster_download_tests']
 
 def failure_excerpt(output):
     lines = output.splitlines()

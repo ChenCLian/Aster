@@ -23,6 +23,7 @@ plugins="$("$qmake" -query QT_INSTALL_PLUGINS)"
 qt_bin="$("$qmake" -query QT_INSTALL_BINS)"
 gsl_prefix="${GSL_PREFIX:-$(brew --prefix gsl)}"
 blas_prefix="${OPENBLAS_ROOT:-$(brew --prefix openblas)}"
+archive_prefix="${ARCHIVE_PREFIX:-$(brew --prefix libarchive)}"
 mkdir -p "$stage"
 ditto "$build/bin/Aster.app" "$stage/Aster.app"
 app="$stage/Aster.app"
@@ -41,7 +42,7 @@ done
 [[ -f "$plugin_dest/tls/libqsecuretransportbackend.dylib" ]] || { echo 'Qt SecureTransport TLS plugin required' >&2; exit 1; }
 # SecureTransport uses macOS system TLS; do not ship the optional OpenSSL backend.
 rm -f "$plugin_dest/tls/libqopensslbackend.dylib"
-deploy_args=(-no-plugins -no-strip -always-overwrite "-libpath=$gsl_prefix/lib" "-libpath=$blas_prefix/lib")
+deploy_args=(-no-plugins -no-strip -always-overwrite "-libpath=$gsl_prefix/lib" "-libpath=$blas_prefix/lib" "-libpath=$archive_prefix/lib")
 # Include dependencies used only by the staged plugins (for example QtSvg).
 while IFS= read -r -d '' plugin; do
   deploy_args+=("-executable=$plugin")
@@ -49,12 +50,12 @@ done < <(find "$plugin_dest" -type f -name '*.dylib' -print0)
 "$qt_bin/macdeployqt" "$app" "${deploy_args[@]}"
 mkdir -p "$app/Contents/Resources"
 printf '[Paths]\nPlugins=PlugIns\n' > "$app/Contents/Resources/qt.conf"
-library_args=(--library-dir "$gsl_prefix/lib" --library-dir "$blas_prefix/lib" --library-dir "$qt_prefix/lib")
-notice_args=(--dependency-prefix "$gsl_prefix" --dependency-prefix "$blas_prefix")
+library_args=(--library-dir "$gsl_prefix/lib" --library-dir "$blas_prefix/lib" --library-dir "$archive_prefix/lib" --library-dir "$qt_prefix/lib")
+notice_args=(--dependency-prefix "$gsl_prefix" --dependency-prefix "$blas_prefix" --dependency-prefix "$archive_prefix")
 if command -v brew >/dev/null 2>&1; then
   # The staged libgfortran may use @rpath to load its GCC siblings. Use the
   # installed dependencies of either numerical library to locate their kegs.
-  formulas="$(brew deps --union --installed --formula gsl openblas)"
+  formulas="$(brew deps --union --installed --formula gsl openblas libarchive)"
   while IFS= read -r formula; do
     [[ -n "$formula" ]] || continue
     prefix="$(brew --prefix "$formula")"
@@ -122,8 +123,10 @@ Check the release notes for this package's signing status.
 Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
 Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Gatekeeper and startup help: FAQ.md.
-Updates: Settings > Check for updates opens the public release page.
+Updates: Settings > Check for updates can download, verify and extract a new package.
+Older releases without download information open the public release page instead.
 Close Aster before replacing the app. Keep your database and settings separately.
 EOF
+python3 "$script_dir/download_metadata.py" stamp "$stage" --platform "macos-$arch"
 ditto -c -k --sequesterRsrc --keepParent "$stage" "$output/$name.zip"
 echo "Created $output/$name.zip"

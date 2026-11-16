@@ -4,6 +4,7 @@
 #define ASTER_UI_SOURCE_PANEL_H
 #include "ui/workflow/workflow_document.h"
 #include <QWidget>
+#include <functional>
 #include <QQueue>
 class QComboBox;
 class QListWidget;
@@ -23,6 +24,7 @@ class SourcePanel : public QWidget
     void selectRoot(NodeId root);
     void selectDataset(NodeId root, QUuid dataset);
     void moveSelectedDatasets();
+    void setBeforeInputRemoval(std::function<bool()> guard) { m_beforeInputRemoval = std::move(guard); }
     NodeId root() const;
     SourceItem currentSource() const;
     void addFiles(const QStringList &files);
@@ -47,6 +49,7 @@ class SourcePanel : public QWidget
     void dropEvent(QDropEvent *) override;
 
   private:
+    std::function<bool()> m_beforeInputRemoval;
     void showFileOptions();
     struct OptionsEdit {
         NodeId root;

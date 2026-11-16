@@ -227,6 +227,11 @@ Copy-Item -LiteralPath $app -Destination (Join-Path $stage "Aster.exe")
 # system D3D compiler redistributable is needed for these views.
 & $deploy @deployArgs --dir $stage (Join-Path $stage "Aster.exe")
 if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
+# The final-package smoke test must use the deployed plugin, not the Qt SDK.
+$offscreen = Join-Path (Split-Path $qtRoot) "plugins/platforms/qoffscreen.dll"
+if (!(Test-Path -LiteralPath $offscreen -PathType Leaf)) { throw "Matching Qt offscreen plugin is missing: $offscreen" }
+Copy-Item -LiteralPath $offscreen -Destination (Join-Path $stage "platforms/qoffscreen.dll")
+
 # Aster opens only QSQLITE connections. windeployqt can also copy optional
 # SQL plugins whose database clients are not part of this application.
 # Prune only the new deployment directory, before collecting DLL dependencies.
@@ -297,7 +302,7 @@ foreach ($folder in @("licenses", "resources")) {
         }
     }
 }
-foreach ($port in @("gsl", "openblas", "lapack", "lapack-reference")) {
+foreach ($port in @("gsl", "openblas", "lapack", "lapack-reference", "libarchive")) {
     $copyright = Join-Path $dependencyRoot "share/$port/copyright"
     if (Test-Path -LiteralPath $copyright) { Copy-Item -LiteralPath $copyright -Destination (Join-Path $notices "$port-copyright.txt") }
 }
@@ -305,6 +310,18 @@ $qtLicenses = Join-Path (Split-Path $qtRoot) "LICENSES"
 if (Test-Path -LiteralPath $qtLicenses) { Copy-Item -LiteralPath $qtLicenses -Destination (Join-Path $notices "Qt") -Recurse }
 foreach ($document in @("README.md", "AUTHORS.md", "RELEASE_NOTES.md", "QUICK_START.md", "FAQ.md", "LICENSE", "COPYRIGHT.md", "SOURCE_CODE.md")) {
     Copy-Item -LiteralPath (Join-Path $projectRoot $document) -Destination $stage
+}
+# This generated list is shared with Linux/macOS; Stage remains Python-free.
+$manualFiles = Get-Content -LiteralPath (Join-Path $projectRoot "resources/manual_files.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+foreach ($relative in $manualFiles) {
+    if ($relative -match '(^/|:|\\|(^|/)\.\.(/|$)|dependency-material|dependency-cache|release-assets)' -or $relative -eq 'config/local.pri') {
+        throw "Unsafe manual resource path: $relative"
+    }
+    $source = Join-Path $projectRoot $relative
+    if (!(Test-Path -LiteralPath $source -PathType Leaf)) { throw "Missing manual resource: $relative" }
+    $target = Join-Path $stage $relative
+    New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+    Copy-Item -LiteralPath $source -Destination $target
 }
 New-Item -ItemType Directory -Path (Join-Path $stage "resources/app") -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $projectRoot "resources/app/aster.png") -Destination (Join-Path $stage "resources/app/aster.png")
@@ -332,6 +349,9 @@ Check for updates: Settings -> Check for updates.
 This release checks GitHub releases and opens the browser; it does not auto-install.
 Releases: https://github.com/ChenCLian/Aster/releases
 "@ | Set-Content -LiteralPath (Join-Path $stage "START_HERE.txt") -Encoding UTF8
+# This marker identifies the extracted package; it is not a code signature.
+$packageMarker = [ordered]@{ schema = 1; version = $version; platform = "windows-x64" }
+[IO.File]::WriteAllText((Join-Path $stage "aster-package.json"), ($packageMarker | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
 # Stage intentionally leaves the pending marker. It is not a completed release.
 # The standalone collector installs verified materials and removes that marker.
 # Default Reuse and explicit Collect still fail if materials cannot be verified.

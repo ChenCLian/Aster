@@ -309,7 +309,7 @@
 - COCO 蒙特卡洛支持最多 20000 次模拟；COCO 蒙特卡洛与 eCOCO 的固定计算预算为每任务 100 亿估算工作单位，超限时显示预计工作量及当前设置允许的次数或窗口数。内存保护和取消功能保留。
 - 输入列表使用单行文件名与状态灯，悬停显示完整路径及状态。
 - 批量勾选提供“全选”“取消勾选”“清空全部”，筛选和分页保留已有勾选。
-- MTM 支持直接填写频率上限，控制保存及下游使用的输出范围；频谱估计、背景拟合和峰检测使用完整频谱。原有比例参数的兼容行为见 [FAQ](https://github.com/ChenCLian/Aster/blob/main/FAQ.md)。
+- MTM 支持直接填写频率上限，控制保存及下游使用的输出范围；频谱估计、背景拟合和峰检测使用完整频谱。原有比例参数的兼容行为见 [FAQ](../../FAQ.md)。
 
 ### 界面与绘图
 
@@ -343,15 +343,15 @@
 
 Linux 包以 Ubuntu 22.04 为构建基线，需兼容的系统库、X11/XWayland 图形环境和字体。其他发行版的兼容性需单独确认。
 
-默认 macOS 包使用 ad-hoc 签名，未经 Apple Developer ID 签名与公证；首次打开可能受到 Gatekeeper 限制。启动与字体问题见 [FAQ](https://github.com/ChenCLian/Aster/blob/main/FAQ.md)。
+默认 macOS 包使用 ad-hoc 签名，未经 Apple Developer ID 签名与公证；首次打开可能受到 Gatekeeper 限制。启动与字体问题见 [FAQ](../../FAQ.md)。
 
-项目源码可从对应 Release 的 **Source code (zip)** 或 **Source code (tar.gz)** 下载；版本标签须与程序构建提交一致，并包含完整项目源码、资源和构建脚本。各平台依赖源码与构建材料另附下载入口，详见 [SOURCE_CODE.md](https://github.com/ChenCLian/Aster/blob/main/SOURCE_CODE.md)。源码需要编译后使用。程序包无需额外下载独立 `.sha256` 文件。
+项目源码可从对应 Release 的 **Source code (zip)** 或 **Source code (tar.gz)** 下载；版本标签须与程序构建提交一致，并包含完整项目源码、资源和构建脚本。各平台依赖源码与构建材料另附下载入口，详见 [SOURCE_CODE.md](../../SOURCE_CODE.md)。源码需要编译后使用。程序包无需额外下载独立 `.sha256` 文件。
 
 ## 使用与更新
 
-第一次使用可从 [快速开始](https://github.com/ChenCLian/Aster/blob/main/QUICK_START.md) 中的正弦信号示例入手。即时预览不写入结果库，点击“运行流程”后保存完整结果。
+第一次使用可从 [快速开始](../../QUICK_START.md) 中的正弦信号示例入手。即时预览不写入结果库，点击“运行流程”后保存完整结果。
 
 “设置 → 检查更新”显示可用版本并打开下载页。本版使用完整程序包手动更新；安装新版前退出软件，保留原数据库和设置。
 
-[项目介绍](https://github.com/ChenCLian/Aster#readme) · [方法文档](https://github.com/ChenCLian/Aster/tree/main/docs/methods) · [反馈问题](https://github.com/ChenCLian/Aster/issues)
+[项目介绍](https://github.com/ChenCLian/Aster#readme) · [方法文档](../methods/) · [反馈问题](https://github.com/ChenCLian/Aster/issues)
 

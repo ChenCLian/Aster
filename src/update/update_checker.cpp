@@ -15,17 +15,24 @@ UpdateChecker::~UpdateChecker() {
     if(m_reply){disconnect(m_reply,nullptr,this,nullptr);m_reply->abort();m_reply->deleteLater();}
 }
 void UpdateChecker::check(const QString &current,bool includePrereleases) {
+    startCheck(current,includePrereleases,false);
+}
+void UpdateChecker::checkChannel(const QString &current,bool beta) {
+    startCheck(current,beta,beta);
+}
+void UpdateChecker::startCheck(const QString &current,bool includePrereleases,bool betaOnly) {
     if(m_busy)return;
-    m_current=ReleaseVersion::parse(current);m_includePrereleases=includePrereleases;
+    if(isAlphaVersion(current)){emit finished({UpdateResult::State::Failed,"update.alpha_development_only",{}});return;}
+    m_current=ReleaseVersion::parse(current);m_includePrereleases=includePrereleases;m_betaOnly=betaOnly;
     if(!m_config.valid()||!m_current){emit finished({UpdateResult::State::Failed,"update.error_config",{}});return;}
-    m_busy=true;m_releases.clear();m_page=1;requestPage();
+    m_busy=true;m_mirror=false;m_releases.clear();m_page=1;requestPage();
 }
 void UpdateChecker::requestPage() {
     m_body.clear();m_transportFailure.clear();
-    QNetworkRequest request(m_config.apiUrl(m_page));
-    request.setRawHeader("Accept","application/vnd.github+json");
+    QNetworkRequest request(m_config.apiUrl(m_page,m_mirror));
+    request.setRawHeader("Accept",m_mirror?"application/json":"application/vnd.github+json");
     request.setRawHeader("User-Agent","Aster-update-checker");
-    request.setRawHeader("X-GitHub-Api-Version",m_config.apiVersion.toLatin1());
+    if(!m_mirror)request.setRawHeader("X-GitHub-Api-Version",m_config.apiVersion.toLatin1());
     // Use the configured public endpoint; do not follow redirects or ignore TLS errors.
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);
     request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,QNetworkRequest::AlwaysNetwork);
@@ -64,20 +71,29 @@ void UpdateChecker::pageFinished() {
         else if(status>=400)failure="update.error_server";
         else if(networkError!=QNetworkReply::NoError||status!=200)failure="update.error_network";
     }
-    if(!failure.isEmpty()){finish({UpdateResult::State::Failed,failure,{}});return;}
-    const auto page=parseReleasePage(m_body,m_config,m_includePrereleases);
-    if(!page.errorKey.isEmpty()){finish({UpdateResult::State::Failed,page.errorKey,{}});return;}
+    if(!failure.isEmpty()){failed(failure);return;}
+    const auto page=parseReleasePage(m_body,m_config,m_includePrereleases,m_mirror);
+    if(!page.errorKey.isEmpty()){failed(page.errorKey);return;}
     m_releases+=page.releases;
     if(page.hasNext) {
-        if(m_page>=m_config.maximumPages){finish({UpdateResult::State::Failed,"update.error_page_limit",{}});return;}
+        if(m_page>=m_config.maximumPages){failed("update.error_page_limit");return;}
         ++m_page;requestPage();return;
     }
+    if(m_betaOnly)m_releases.removeIf([](const Release &release){
+        return release.version.prerelease.isEmpty() ||
+               release.version.prerelease.first().compare("beta",Qt::CaseInsensitive)!=0;
+    });
     const auto best=newestRelease(m_releases);
     if(!best){finish({UpdateResult::State::NoReleases,"update.none",{}});return;}
     const bool newer=best->version.compare(*m_current)>0;
     finish({newer?UpdateResult::State::Available:UpdateResult::State::Current,newer?"update.available":"update.current",best});
 }
+void UpdateChecker::failed(const QString &key){
+    if(m_config.mirrorFallback&&!m_mirror){m_mirror=true;m_releases.clear();m_page=1;requestPage();return;}
+    finish({UpdateResult::State::Failed,key,{}});
+}
 void UpdateChecker::finish(UpdateResult result) {
+    result.partial=m_mirror;
     m_busy=false;m_deadline.stop();m_body.clear();m_releases.clear();
     emit finished(std::move(result));
 }

@@ -1,0 +1,74 @@
+{
+  "version": "1.3.0-beta.20",
+  "date": "2026-11-16",
+  "status": "local_parameter_documentation_checks_passed_native_actions_pending",
+  "scope": "Targeted parameter lifecycle, paired inputs, reuse inspection and documentation cleanup; native Actions pending",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "configuration": "Release",
+    "strict_narrowing": true
+  },
+  "checks": {
+    "parameters": {
+      "passed": 783,
+      "failed": 0,
+      "skipped": 0
+    },
+    "paired_inputs": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    "help_ui": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "version_contact": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "release_tools": {
+      "total": 170,
+      "passed": 169,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable; native macOS CI remains pending"
+    },
+    "help_generator": {
+      "passed": 8
+    },
+    "reference": {
+      "tasks": 56,
+      "parameters": 261,
+      "languages": [
+        "zh",
+        "en"
+      ]
+    },
+    "compiled_version": "1.3.0-beta.20",
+    "bulk_5000_inputs_ms": 226
+  },
+  "source": {
+    "application_src_identical_to": "1.3.0-beta.19",
+    "algorithm_and_database_changes": false,
+    "refactoring": false,
+    "reuse_scan": "No cross-file exact 80-effective-line matches in project C++ implementations excluding third_party; not a semantic clone analysis"
+  },
+  "inherited_evidence": {
+    "update_release": "docs/validation_results/1.3.0-beta.19/checks.json",
+    "counted_as_new_tests": false
+  },
+  "not_run": [
+    "Windows/MSVC and macOS native build/deployment",
+    "Actual Actions execution",
+    "GitHub draft mutation or Gitee write",
+    "Real mirror anonymous download",
+    "Full numerical algorithm rerun",
+    "Large-package throughput/disk-full injection",
+    "Native font/DPI/Gatekeeper acceptance"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "version": "1.3.0-beta.2",
+  "documentation": {
+    "status": "content_version_links_and_bilingual_help_checked",
+    "local_file_links": 309,
+    "broken_links": 0,
+    "missing_help_resources": 0,
+    "help_catalogue": "56 tasks / 261 parameters; both generated references current",
+    "embedded_help_rebuilt": true,
+    "manual_updates": [
+      "Neutral preset name and reference attribution",
+      "Target count formulas, examples, invalid combinations and resource limits",
+      "Actual preview summary and hover details",
+      "Bilingual method/parameter help",
+      "Release notes, compatibility, review and validation scope"
+    ],
+    "historical_evidence": "Original versions and platform evidence retained; not counted as beta.2 native runs."
+  }
+}

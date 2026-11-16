@@ -28,7 +28,7 @@ Set `QT_QPA_PLATFORM=offscreen` for headless Linux. Remove it when checking a na
 | --- | --- |
 | import | Create 100/1000/10000 tiny files, four data rows each; select all and type an X unit. Assert every selected source receives the correct settings with no skipped files. File creation is outside timing. |
 | remove | Select all, click Remove and verify the current workflow has no remaining source files. |
-| numeric | 1001/10001/100001 samples; fixed window 200, hop 64, FFT 800, linear detrending and rectangular taper; also 20% span / 99.2% overlap / 4× padding. One warmup, ten measured executions per case. Large preset cases must return `EVOLUTION_BUDGET`; rejection time is not computation time. |
+| numeric | 1001/10001/100001 samples; fixed window 200, hop 64, FFT 800, linear detrending and rectangular taper; also 20% span / 4× padding with either legacy 99.2% overlap or a target of 500 windows. One warmup, ten measured executions per case. The target mode must succeed at 1001 and 10001 samples; the legacy overlap mode at 1001. Larger preset cases must return `EVOLUTION_BUDGET`; rejection time is not computation time. |
 | cancel | 400001 samples, window 256, hop 64, FFT 1024, maximum frequency 0.02. Request cancellation from another thread after approximately 5 ms and require a cancelled result. |
 | plot | 256×1024 grid, 900×650 widget. Ten warmup and 100 measured amplitude/interpolation changes with event processing. Verify the original encoded data hash is unchanged. |
 

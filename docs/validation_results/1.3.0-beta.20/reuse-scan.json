@@ -1,0 +1,4 @@
+{
+  "scope": "C++ implementation files excluding third_party; identical 80 nonempty noncomment-line blocks only",
+  "cross_file_matches": []
+}

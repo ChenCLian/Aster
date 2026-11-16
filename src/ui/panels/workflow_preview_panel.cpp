@@ -227,8 +227,11 @@ void WorkflowPreviewPanel::updateState()
             if (failed)
                 message = methodLabel(m_document->model().registry().find(failed->method)->descriptor) + " · " + message;
         }
-        m_status->setText(message); m_status->setToolTip(details);
-        m_resultPlot->clear(text("ui.preview_no_result"));
+        m_status->setText(state == State::Failed ? text("ui.preview_failed") : message);
+        m_status->setToolTip(details.isEmpty() ? message : details);
+        const bool explain = state == State::Failed ||
+            (state == State::Idle && !m_controller->message().isEmpty());
+        m_resultPlot->clear(explain ? message : text("ui.preview_no_result"));
         showSourceOutput();
         return;
     }
@@ -251,7 +254,27 @@ void WorkflowPreviewPanel::updateState()
     auto completed = text("ui.preview_complete").arg(current->executed.size());
     if (!notes.isEmpty())
         completed += text("ui.preview_warning_count").arg(notes.size());
-    m_status->setText(completed);
+    const auto &report = current->output.report;
+    if (node && (node->method == "evolution_fft" || node->method == "evolution_mtm") &&
+        report.contains("window_samples") && report.contains("step_samples") &&
+        report.contains("actual_overlap_percent") && report.contains("nfft"))
+    {
+        // Resolve from this node's actual input, after any upstream processing.
+        // The non-ready branch clears this text while settings/input change.
+        m_status->setText(text("ui.evolution_resolved")
+            .arg(report["window_samples"].toInt()).arg(report["step_samples"].toInt())
+            .arg(report["actual_overlap_percent"].toDouble(), 0, 'f', 2)
+            .arg(report["nfft"].toInt()));
+        if (!notes.isEmpty())
+            m_status->setText(m_status->text() + text("ui.preview_warning_count").arg(notes.size()));
+        m_status->setToolTip(completed + "\n" + text("ui.evolution_resolved_hint")
+            .arg(report["input_samples"].toInt()).arg(report["windows"].toInt())
+            .arg(report["window_span"].toDouble(), 0, 'g', 6)
+            .arg(report["window_step"].toDouble(), 0, 'g', 6)
+            .arg(report["unused_tail_samples"].toInt()) + "\n\n" + notes.join("\n\n"));
+    }
+    else
+        m_status->setText(completed);
     m_outputHint->setVisible(current->output.report["display_reduced"].toBool());
     showOutput();
 }

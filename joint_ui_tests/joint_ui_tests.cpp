@@ -146,6 +146,7 @@ class JointUiTests : public QObject
     void cancelDuringCalculation();
     void realPairWorkflow();
     void scopedManifestReplay();
+    void pairBatchIsolationAndReplay();
     void orbitalPairPorts();
     void restoreLogMetricFromUndefinedCoherence();
     void compoundDocumentSignals();
@@ -941,6 +942,48 @@ void JointUiTests::restoreLogMetricFromUndefinedCoherence()
     QVERIFY2(exportError.isEmpty(),qPrintable(exportError));
 }
 
+
+
+void JointUiTests::pairBatchIsolationAndReplay()
+{
+    Fixture f;const auto ds=f.doc.datasets(f.root);
+    const BatchPair other{QUuid::createUuid(),"other",{ds[1].id,"default"},{ds[2].id,"default"}};
+    QVERIFY(f.doc.setPairs(f.joint,{f.group(),other}).isEmpty());
+    auto p=f.doc.node(f.joint)->parameters;p["psd_window"]=128;p["psd_overlap"]=64;
+    QVERIFY(f.doc.setScopedParameters(f.joint,other.id,p).ok());
+    const auto frozen=f.doc.plan();QVERIFY(frozen.validation.ok());
+    const auto ordinary=f.doc.node(f.ordinary)->parameters;
+    p["psd_window"]=96;p["psd_overlap"]=48;p["psd_nfft"]=0;
+    QVERIFY(f.doc.setScopedParameters(f.joint,f.pair,p,true).ok());
+    QCOMPARE(f.doc.node(f.ordinary)->parameters,ordinary);
+    for(const auto &id:{f.pair,other.id})QCOMPARE(effectiveParameters(*f.doc.node(f.joint),id),p);
+    QVERIFY(f.doc.undo().ok());
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),f.pair)["psd_window"].toInt(),64);
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),other.id)["psd_window"].toInt(),128);
+    QVERIFY(f.doc.redo().ok());
+    const BatchPair future{QUuid::createUuid(),"future",{ds[0].id,"alternative"},{ds[2].id,"default"}};
+    QVERIFY(f.doc.setPairs(f.joint,{f.group(),other,future}).isEmpty());
+    QCOMPARE(effectiveParameters(*f.doc.node(f.joint),future.id),p);
+    // Reopen the serialized graph and grouping with the original bound sources.
+    const auto decoded=workflowFromJson(workflowToJson(f.doc.model().definition()));QVERIFY(decoded.validation.ok());
+    const auto groups=batchGroupingFromJson(batchGroupingToJson(f.doc.grouping()));QVERIFY(groups.validation.ok());
+    WorkflowDocument reopened(registry());auto draft=reopened.beginEdit();
+    draft.state.definition=decoded.definition;draft.state.sources=f.doc.sources();draft.state.grouping=groups.grouping;
+    const auto prepared=reopened.prepareEdit(std::move(draft));QVERIFY(prepared.validation.ok());
+    QVERIFY(reopened.commitEdit(prepared.edit).ok());
+    const auto plan=reopened.plan();QVERIFY(plan.validation.ok());
+    QTemporaryDir dir;const auto path=dir.filePath("batch-replay.sqlite");
+    const auto result=BatchRunner().run(plan,path,2);QVERIFY2(result.error.isEmpty(),qPrintable(result.error));
+    ResultRepository repo;QVERIFY(repo.open(path,false).isEmpty());int pairs=0;
+    for(const auto &item:result.items){
+        QVERIFY(item.persistence.saved());const auto saved=repo.load(item.persistence.recordId);QVERIFY(saved.ok());
+        if(!saved.run.provenance.contains("batch_pair"))continue;
+        QCOMPARE(saved.run.nodes[f.joint].state,NodeState::Succeeded);++pairs;
+    }
+    QCOMPARE(pairs,3);
+    QVERIFY(reopened.setPairs(f.joint,{f.group(),future}).isEmpty());const auto revision=reopened.revision();
+    QVERIFY(!reopened.setScopedParameters(f.joint,other.id,p,true).ok());QCOMPARE(reopened.revision(),revision);
+}
 
 void JointUiTests::scopedManifestReplay()
 {

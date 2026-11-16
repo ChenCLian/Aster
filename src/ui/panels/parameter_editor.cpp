@@ -214,6 +214,11 @@ ParameterEditor::~ParameterEditor()
 }
 void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
 {
+    // Rebuilding a focused form can emit editingFinished while its children
+    // are being deleted. Disconnect before clearing fields, just as in teardown.
+    m_commit.stop();
+    for (auto *field : m_fields)
+        disconnect(field, nullptr, this, nullptr);
     m_fields.clear();
     m_hiddenParameters = {};
     m_rows.clear();m_specs.clear();
@@ -258,34 +263,38 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
         m_form->addWidget(label);
     }
     QString lastGroup;
-    if (d.key == "evolution_fft") {
-        auto *preset = new QPushButton(text("ui.acycle_lah_preset"));
-        preset->setObjectName("acycleLahPreset");
-        preset->setToolTip(text("ui.acycle_lah_preset_hint"));
-        m_form->addWidget(preset);
-        connect(preset, &QPushButton::clicked, this, [this] {
-            const QJsonObject values{{"evo_window_mode", "span_percent"}, {"evo_window_percent", 20},
-                {"evo_step_mode", "overlap"}, {"evo_overlap_percent", 99.2},
-                {"evo_fft_mode", "multiple"}, {"evo_padding", 4},
-                {"evo_trend", "linear"}, {"evo_taper", "rectangular"},
-                {"evo_normalize", true}, {"evo_amplitude", true}};
-            for (auto it = values.begin(); it != values.end(); ++it) {
-                auto *field = m_fields.value(it.key());
+    if (!d.parameters.isEmpty()) {
+        auto *reset = new QPushButton(text("ui.reset_node_defaults"));
+        reset->setObjectName("resetNodeDefaults");
+        reset->setToolTip(text("ui.reset_node_defaults_hint"));
+        m_form->addWidget(reset);
+        // Defaults come from the same descriptor used by execution. No input is
+        // sampled here, and opening this panel never writes parameter overrides.
+        connect(reset, &QPushButton::clicked, this, [this] {
+            for (const auto &spec : m_specs) {
+                if (spec.perDatasetOnly) continue;
+                if (spec.editorHidden) { m_hiddenParameters[spec.key] = spec.defaultValue; continue; }
+                auto *field = m_fields.value(spec.key);
+                if (!field) continue;
                 const QSignalBlocker block(field);
-                if (auto *box = qobject_cast<QComboBox *>(field)) box->setCurrentIndex(box->findData(it.value().toString()));
-                else if (auto *box = qobject_cast<QCheckBox *>(field)) box->setChecked(it.value().toBool());
-                else if (auto *box = qobject_cast<QSpinBox *>(field)) box->setValue(it.value().toInt());
-                else if (auto *box = qobject_cast<QDoubleSpinBox *>(field)) box->setValue(it.value().toDouble());
+                const auto value = spec.defaultValue;
+                if (auto *box = qobject_cast<QComboBox *>(field)) box->setCurrentIndex(box->findData(value.toString()));
+                else if (auto *box = qobject_cast<QCheckBox *>(field)) box->setChecked(value.toBool());
+                else if (auto *box = qobject_cast<QSpinBox *>(field)) box->setValue(value.toInt());
+                else if (auto *box = qobject_cast<QDoubleSpinBox *>(field)) box->setValue(value.toDouble());
+                else if (auto *edit = qobject_cast<QLineEdit *>(field)) edit->setText(value.toString());
             }
             m_dirty = true; updateVisibility(); m_commit.start(); emit edited();
         });
     }
+    const auto normalized = r.normalize(d.key, n->parameters);
+    const auto parameters = normalized.validation.ok() ? normalized.parameters : n->parameters;
     for (const auto &p : d.parameters)
     {
-        if (p.editorHidden) { m_hiddenParameters[p.key] = n->parameters.value(p.key).isUndefined() ? p.defaultValue : n->parameters.value(p.key); continue; }
+        if (p.editorHidden) { m_hiddenParameters[p.key] = parameters.value(p.key).isUndefined() ? p.defaultValue : parameters.value(p.key); continue; }
         QWidget *field = nullptr;
         const auto value =
-            n->parameters.contains(p.key) ? n->parameters.value(p.key) : p.defaultValue;
+            parameters.contains(p.key) ? parameters.value(p.key) : p.defaultValue;
         auto dirty = [this]
         {
             m_dirty = true;

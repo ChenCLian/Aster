@@ -14,7 +14,7 @@ batch_tests.depends = core
     cross_spectrum_tests.depends = core io science
 }
 !contains(CONFIG, core_only):!contains(CONFIG, no_gui) {
-    SUBDIRS += desktop_ui desktop ui_tests joint_ui_tests rewrite_tests linked_input_tests style_export_tests workspace_tests integration_tests update_tests
+    SUBDIRS += desktop_ui desktop ui_tests joint_ui_tests rewrite_tests linked_input_tests style_export_tests workspace_tests integration_tests update_tests download_tests
     desktop_ui.depends = core io application
     desktop.depends = desktop_ui application science io core
     joint_ui_tests.depends = desktop_ui application science io core
@@ -24,6 +24,7 @@ batch_tests.depends = core
     style_export_tests.depends = desktop_ui application science io core
     workspace_tests.depends = desktop_ui application science io core
     integration_tests.depends = desktop_ui application science io core
+    download_tests.depends = core
     update_tests.depends = desktop_ui application science io core
 }
 # Optional descriptor exporter for generated parameter references.
@@ -56,5 +57,5 @@ DISTFILES += tools/ar1_global_validation/portable_random.h
 DISTFILES += resources/astronomy/solutions/La2010_README.TXT resources/astronomy/solutions/PT_README.txt
 
 DISTFILES += tools/release/package_windows.ps1 $$files($$PWD/tools/release/*.sh)
-DISTFILES += .github/workflows/build-desktop.yml
+DISTFILES += .github/workflows/build-desktop.yml .github/workflows/mirror-gitee.yml resources/manual_files.json
 DISTFILES += resources/app/aster-256.png

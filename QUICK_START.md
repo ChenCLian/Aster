@@ -1,6 +1,6 @@
-# Aster 1.3.0-beta.1 快速开始
+# Aster 1.3.0-beta.20 快速开始
 
-[使用手册](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md) · [软件介绍](README.md) · [常见问题](FAQ.md) · [发布说明](RELEASE_NOTES.md)
+[使用手册](docs/USER_GUIDE.md) · [软件介绍](README.md) · [常见问题](FAQ.md) · [发布说明](RELEASE_NOTES.md)
 
 ## 1. 下载、解压与启动
 
@@ -18,8 +18,8 @@
 Linux 启动示例，在下载目录打开终端后执行；将版本号替换为实际下载的版本。预发布版建议使用独立数据库，并保留原数据库备份。
 
 ```bash
-tar -xzf Aster-1.3.0-beta.1-linux-x64.tar.gz
-cd Aster-1.3.0-beta.1-linux-x64
+tar -xzf Aster-1.3.0-beta.20-linux-x64.tar.gz
+cd Aster-1.3.0-beta.20-linux-x64
 ./AppRun
 ```
 
@@ -91,7 +91,7 @@ Age_ka,d18O
 3. 保持默认段长 256、重叠 128、FFT 点数 0、Hann 窗和段内去均值。上方切换 A/B 检查实际输入，下方查看交叉谱及相干度。在主要谱峰 `0.25` 附近，应有接近 1 的平方相干度和接近 0° 的相位；弱功率频点不用于判断相位。
 4. 点击“运行流程”，打开配对名称对应的结果记录。预览只计算当前选中的配对，正式运行计算所有已配置配对。
 
-实际数据可来自不同普通处理支路或数据源根节点。相同采样间隔不保证起点和长度相同；双方必须在同一均匀坐标网格上，软件不会自动截取、插值或转换年龄基准。完整步骤见[交叉谱操作](https://github.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md#cross-spectrum)，限制与报错见 [FAQ](FAQ.md#cross-spectrum)。
+实际数据可来自不同普通处理支路或数据源根节点。相同采样间隔不保证起点和长度相同；双方必须在同一均匀坐标网格上，软件不会自动截取、插值或转换年龄基准。完整步骤见[交叉谱操作](docs/USER_GUIDE.md#cross-spectrum)，限制与报错见 [FAQ](FAQ.md#cross-spectrum)。
 
 ## 6. 预览与完整运行
 

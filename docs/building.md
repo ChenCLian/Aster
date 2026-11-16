@@ -1,6 +1,6 @@
 # 源码构建与开发
 
-适用版本：Aster 1.3.0-beta.1。
+适用版本：Aster 1.3.0-beta.20。
 
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 
@@ -15,6 +15,7 @@
 | Qt Test、QSQLITE 插件 | 自动化测试及 SQLite 数据库访问 |
 | LP64 LAPACK / OpenBLAS | 线性代数计算 |
 | GSL | 插值与统计计算 |
+| libarchive | 完整程序包的 ZIP / tar.gz 解压 |
 | PocketFFT、wavelib、CppLowess、QCustomPlot | 随源码提供，原许可保留 |
 
 线性代数和通用 FFT 后端固定为 **OpenBLAS/LAPACK + PocketFFT**。依赖配置见 [数值后端说明](numeric_backends.md)。
@@ -25,7 +26,7 @@
 
 1. 将源码解压到独立目录，为它创建单独的构建目录。
 2. 在 `config/local.pri` 中填写本机依赖路径；没有该文件时，可从 `config/local.pri.example` 创建。已有配置无需覆盖，不要提交该本地配置。
-3. 当前 vcpkg 配置需要 `gsl:x64-windows`、`openblas:x64-windows` 和 `lapack-reference:x64-windows`。
+3. 当前 vcpkg 配置需要 `gsl:x64-windows`、`openblas:x64-windows` 、`lapack-reference:x64-windows` 和 `libarchive:x64-windows`。
 4. Qt Creator 打开根目录 **`Aster.pro`**，选择 Kit 和 **Release**，运行 qmake，再构建整个工程。
 5. 运行配置选择 **desktop / Aster**。程序输出通常位于构建根目录的 **`bin/Aster.exe`**。
 
@@ -33,7 +34,7 @@
 
 ## Linux
 
-准备 Qt 6、QSQLITE、GSL 和 LP64 OpenBLAS/LAPACK 后，在包含 `Aster.pro` 的源码根目录执行以下命令。
+准备 Qt 6、QSQLITE、GSL、libarchive 开发包（Ubuntu 为 `libarchive-dev`）和 LP64 OpenBLAS/LAPACK 后，在包含 `Aster.pro` 的源码根目录执行以下命令。
 
 ```sh
 mkdir build-release
@@ -49,7 +50,7 @@ make -j4
 
 ## macOS
 
-使用对应架构的原生 macOS 环境构建 `.app`。没有 Mac 时，可从 Windows 在仓库 Actions 中启动随包工作流，分别构建 Apple Silicon 与 Intel 包。Qt、GSL 和 OpenBLAS/LAPACK 必须包含对应架构。签名、公证和原生验收见 [发布说明](release_maintenance_zh.md)。
+使用对应架构的原生 macOS 环境构建 `.app`。没有 Mac 时，可从 Windows 在仓库 Actions 中启动随包工作流，分别构建 Apple Silicon 与 Intel 包。Qt、GSL、libarchive 和 OpenBLAS/LAPACK 必须包含对应架构。Homebrew 安装 `gsl openblas libarchive`，并在 `config/local.pri` 设置 `ARCHIVE_PREFIX = <brew --prefix libarchive 的输出>`。签名、公证和原生验收见 [发布说明](release_maintenance_zh.md)。
 
 ## 打包与更新
 
@@ -59,8 +60,8 @@ make -j4
 
 - **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `Aster-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
 - **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1 -DependencyMode Stage` 部署 EXE、Qt 插件和第三方 DLL，再单独收集依赖源码与许可材料。已有同版本匹配材料时可用默认的 `Reuse` 模式离线复用；`Collect` 模式一次完成部署与收集。操作见[依赖材料说明](dependency_materials_zh.md#windows-本机打包)。项目源码通过独立导出命令生成普通目录。发布前应在未安装开发环境的 Windows 主机测试。
-- **检查更新：**“设置 → 检查更新”按需读取本项目的 GitHub Releases，比较版本并打开发布页。默认检查正式版；草稿不会作为可用更新。
-- **安装新版：**当前采用完整程序包手动更换；关闭软件后，将新版解压到新目录，再打开原数据库。
+- **检查更新：**正式版和 Beta 分开；Alpha 和草稿不进入更新候选。发布包含 `Aster-update.json` 时，可下载完整包、核对 SHA-256 并解压到新目录；缺少下载信息时保留浏览器入口。
+- **使用新版：**解压完成后打开目录，关闭旧版，再启动新版并打开原数据库。程序不会覆盖旧版、自动启动新版或删除用户数据。
 - **macOS / Linux：**`package_macos.sh`、`package_linux.sh` 收集各平台依赖并生成完整程序包。`.github/workflows/build-desktop.yml` 可在 GitHub 的原生系统上自动构建、测试和打包；不自动发布。
 
 源码导出、依赖材料收集/复用和发布校验需要 Python 3.10 或更高版本；Windows 的 `Stage` 部署模式不需要 Python。收集材料还需匹配的依赖安装记录。具体命令见 [发布与版本维护](release_maintenance_zh.md)，依赖源码、缓存和 Release 附件的管理见 [依赖材料](dependency_materials_zh.md)。

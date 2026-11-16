@@ -1,5 +1,7 @@
 # 显著性输出的适用边界
 
+面向使用者的公共解释：[中文](../concepts/statistical_interpretation.md) · [English](../concepts/statistical_interpretation_en.md)。本文保留方法限制和证据范围。
+
 ## 普通 MTM 与 FDR
 
 主谱、背景拟合与概率函数的数值正确性，和实际误报率等于名义水平，是不同的验证目标。普通 MTM 的 AR1/SWA 使用估计背景、固定 2K 近似自由度与带宽修正 FDR 约定。有限样本、强红噪声、谱泄漏、背景估计及频点相关性都可能使实际越线率偏离名义值；阈值未作经验倍率校准。

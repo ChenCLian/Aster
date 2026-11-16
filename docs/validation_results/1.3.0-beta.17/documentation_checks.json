@@ -1,0 +1,17 @@
+{
+  "version": "1.3.0-beta.17",
+  "documentation": {
+    "status": "reviewed",
+    "scope": [
+      "release notes",
+      "Chinese/English user guides",
+      "FAQ",
+      "building/libarchive dependency",
+      "third-party dependency entry",
+      "implementation plan",
+      "current validation"
+    ],
+    "embedded_help_rebuilt": true,
+    "generated_references": "current"
+  }
+}

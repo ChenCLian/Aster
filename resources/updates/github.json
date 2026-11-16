@@ -1,5 +1,7 @@
 {
   "owner": "ChenCLian",
   "repository": "Aster",
-  "api_version": "2026-03-10"
+  "api_version": "2026-03-10",
+  "package_metadata": "Aster-update.json",
+  "mirror_fallback": true
 }

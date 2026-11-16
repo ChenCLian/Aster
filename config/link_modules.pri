@@ -9,3 +9,5 @@ for(module, ASTER_MODULES) {
         PRE_TARGETDEPS += $$OUT_PWD/../lib/lib$${module}.a
     }
 }
+
+contains(ASTER_MODULES, aster_desktop_ui):include($$PWD/archive.pri)

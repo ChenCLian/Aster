@@ -102,9 +102,14 @@ class EvolutionAudit : public QObject
     void matchesExistingMtm();
     void invalidNumericsAndCancellation();
     void taskDefaultsAndTypes();
+    void defaultResolutionBudgets();
+    void savedLegacyDefaultsRemainStable();
     void absoluteLimitsAndLegacyWorkflows();
     void windowNormalization();
     void relativeWindowSettingsPreservePower();
+    void targetWindows_data();
+    void targetWindows();
+    void targetWindowsInvalidAndLegacy();
     void intervalSelection();
     void centeringAndStandardizing();
     void qualityInspection();
@@ -269,17 +274,26 @@ void EvolutionAudit::taskDefaultsAndTypes()
     auto normalized = reg.normalize("evolution_fft", {});
     QVERIFY(normalized.validation.ok());
     QCOMPARE(normalized.parameters["evo_window"].toInt(), 128);
-    QCOMPARE(normalized.parameters["evo_step"].toInt(), 16);
+    QCOMPARE(normalized.parameters["evo_step"].toInt(), 16); // inactive fixed-value fallback
+    QCOMPARE(normalized.parameters["evo_window_mode"].toString(),QString("span_percent"));
+    QCOMPARE(normalized.parameters["evo_step_mode"].toString(),QString("target_windows"));
+    QCOMPARE(normalized.parameters["evo_fft_mode"].toString(),QString("multiple"));
+    QCOMPARE(reg.normalize("evolution_fft",normalized.parameters).parameters,normalized.parameters);
+    const auto mtm=reg.normalize("evolution_mtm",{}).parameters;
+    QCOMPARE(mtm["evo_window_mode"].toString(),QString("samples"));
+    QVERIFY(!mtm["evo_normalize"].toBool());
+    auto conflicting=normalized.parameters; conflicting["evo_window"]=256;
+    QCOMPARE(reg.normalize("evolution_fft",conflicting).parameters["evo_window_mode"].toString(),QString("span_percent"));
     auto result = run("evolution_fft", makeData(sample()));
     QCOMPARE(result.state, NodeState::Succeeded);
     const auto *g = dataAs<GridData>(result.outputs["power_map"]);
     QVERIFY(g);
-    QCOMPARE(g->columns, qsizetype(9));
-    QCOMPARE(g->rows, qsizetype(65));
-    QCOMPARE(g->x.front(), 100 + 127 * .25 / 2);
+    QCOMPARE(g->columns, qsizetype(206));
+    QCOMPARE(g->rows, qsizetype(103));
+    QCOMPARE(g->x.front(), 100 + 50 * .25 / 2);
     QCOMPARE(g->xAxis.unit, QString("ka"));
     QCOMPARE(g->yAxis.unit, QString("1/ka"));
-    QCOMPARE(g->valueAxis.unit, QString("(permil)^2 * (ka)"));
+    QCOMPARE(g->valueAxis.unit, QString("1"));
     auto encoded = encodeData(result.outputs["power_map"]);
     QVERIFY(encoded.ok());
     auto decoded = decodeData(encoded.bytes);
@@ -295,6 +309,49 @@ void EvolutionAudit::taskDefaultsAndTypes()
     QVERIFY(!reg.normalize("evolution_fft", {{"evo_taper", "unknown"}}).validation.ok());
     QVERIFY(!reg.normalize("select_interval", {{"interval_action", "unknown"}}).validation.ok());
 }
+void EvolutionAudit::savedLegacyDefaultsRemainStable()
+{
+    const QJsonObject saved{{"evo_window_mode","samples"},{"evo_window_percent",20},
+        {"evo_window",128},{"evo_step_mode","samples"},{"evo_step",16},
+        {"evo_target_windows",500},{"evo_overlap_percent",99.2},
+        {"evo_fft_mode","length"},{"evo_padding",4},{"evo_nfft",0},
+        {"evo_trend","mean"},{"frequency_max",0},{"evo_frequency_ratio",1},
+        {"evo_normalize",false},{"evo_amplitude",false},{"evo_taper","hann"}};
+    QCOMPARE(registry().normalize("evolution_fft",saved).parameters,saved);
+    const auto s=sample();
+    const auto result=run("evolution_fft",makeData(s),saved);
+    QCOMPARE(result.state,NodeState::Succeeded);
+    const auto expected=numeric::evolutionarySpectrum(std::vector<double>(s.y.begin(),s.y.end()),.25,{});
+    QCOMPARE(dataAs<GridData>(result.outputs["power_map"])->values,
+        QVector<double>(expected.power.begin(),expected.power.end()));
+    auto old=saved;
+    for(const auto *key:{"evo_window_mode","evo_step_mode","evo_fft_mode"}) old.remove(key);
+    QCOMPARE(registry().normalize("evolution_fft",old).parameters,saved);
+    const auto older=run("evolution_fft",makeData(s),old);
+    QCOMPARE(dataAs<GridData>(older.outputs["power_map"])->values,
+        dataAs<GridData>(result.outputs["power_map"])->values);
+}
+
+void EvolutionAudit::defaultResolutionBudgets()
+{
+    for(int n:{39,501,1001,10001}) {
+        QElapsedTimer elapsed; elapsed.start();
+        const auto result=run("evolution_fft",makeData(sample(n)));
+        QCOMPARE(result.state,NodeState::Succeeded);
+        const auto *grid=dataAs<GridData>(result.outputs["power_map"]); QVERIFY(grid);
+        QVERIFY(grid->columns<=500);
+        QVERIFY(std::size_t(grid->values.size())<=numeric::EvolutionLimits::maxCells);
+        QCOMPARE(result.report["window_samples"].toInt(),int(std::llround((n-1)*.2)));
+        qInfo().nospace()<<"default FFT input="<<n<<" cells="<<grid->values.size()<<" elapsed_ms="<<elapsed.elapsed();
+    }
+    const auto tooShort=run("evolution_fft",makeData(sample(38)));
+    QCOMPARE(tooShort.state,NodeState::Failed);
+    QCOMPARE(tooShort.diagnostic().code,QString("EVOLUTION_PARAMETERS"));
+    const auto overBudget=run("evolution_fft",makeData(sample(20001)));
+    QCOMPARE(overBudget.state,NodeState::Failed);
+    QCOMPARE(overBudget.diagnostic().code,QString("EVOLUTION_BUDGET"));
+}
+
 void EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
 {
     const auto data = makeData(sample()); // spacing .25, Nyquist 2
@@ -316,7 +373,7 @@ void EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
         const auto cropped = dataAs<GridData>(absolute.outputs["power_map"]);
         const auto original = dataAs<GridData>(full.outputs["power_map"]);
         QCOMPARE(cropped->values, original->values.mid(0, cropped->values.size()));
-        QVERIFY(!full.report["normalization"].toString().contains("maximum"));
+        QCOMPARE(full.report["normalization"].toString().contains("maximum"), QString(method)=="evolution_fft");
     }
     auto s = sample(705);
     for (qsizetype i = 0; i < s.x.size(); ++i) s.x[i] = 4 + .2 * i;
@@ -352,12 +409,78 @@ void EvolutionAudit::relativeWindowSettingsPreservePower()
     auto tooLarge=controls; tooLarge["evo_padding"]=32; tooLarge["evo_window_percent"]=100;
     QCOMPARE(run("evolution_fft",makeData(sample(10000)),tooLarge).state,NodeState::Failed);
 }
+void EvolutionAudit::targetWindows_data()
+{
+    QTest::addColumn<int>("n"); QTest::addColumn<int>("window");
+    QTest::addColumn<int>("target"); QTest::addColumn<int>("step"); QTest::addColumn<int>("windows");
+    QTest::newRow("short") << 101 << 20 << 500 << 1 << 82;
+    QTest::newRow("one-sample-step") << 501 << 100 << 500 << 1 << 402;
+    QTest::newRow("round-up") << 1001 << 200 << 500 << 2 << 401;
+    QTest::newRow("long") << 10001 << 2000 << 500 << 17 << 471;
+    QTest::newRow("exact-target") << 1098 << 100 << 500 << 2 << 500;
+    QTest::newRow("one-window") << 128 << 128 << 500 << 1 << 1;
+    QTest::newRow("two-positions") << 129 << 128 << 500 << 1 << 2;
+    QTest::newRow("minimum-target") << 256 << 128 << 2 << 128 << 2;
+    QTest::newRow("minimum-contiguous-target") << 257 << 128 << 3 << 65 << 2;
+}
+void EvolutionAudit::targetWindows()
+{
+    QFETCH(int,n); QFETCH(int,window); QFETCH(int,target); QFETCH(int,step); QFETCH(int,windows);
+    const auto input=makeData(sample(n));
+    for (const char *method : {"evolution_fft", "evolution_mtm"})
+    {
+        // Large-input density/performance is exercised with FFT; MTM shares the resolver.
+        if (n>2000 && QString(method)=="evolution_mtm") continue;
+        const auto automatic=run(method,input,{{"evo_window",window},
+            {"evo_step_mode","target_windows"},{"evo_target_windows",target}});
+        QCOMPARE(automatic.state,NodeState::Succeeded);
+        QCOMPARE(automatic.report["target_windows"].toInt(),target);
+        QCOMPARE(automatic.report["step_samples"].toInt(),step);
+        QCOMPARE(automatic.report["windows"].toInt(),windows);
+        QVERIFY(windows<=target);
+        const auto manual=run(method,input,{{"evo_window",window},{"evo_step",step}});
+        QCOMPARE(manual.state,NodeState::Succeeded);
+        QCOMPARE(dataAs<GridData>(automatic.outputs["power_map"])->x,
+                 dataAs<GridData>(manual.outputs["power_map"])->x);
+        QCOMPARE(dataAs<GridData>(automatic.outputs["power_map"])->values,
+                 dataAs<GridData>(manual.outputs["power_map"])->values);
+        QCOMPARE(dataAs<SpectrumData>(automatic.outputs["mean_spectrum"])->power,
+                 dataAs<SpectrumData>(manual.outputs["mean_spectrum"])->power);
+    }
+}
+void EvolutionAudit::targetWindowsInvalidAndLegacy()
+{
+    for (const char *method : {"evolution_fft", "evolution_mtm"})
+    {
+        const auto input=makeData(sample(256));
+        for (int target : {0,1,20001})
+            QCOMPARE(run(method,input,{{"evo_step_mode","target_windows"},{"evo_target_windows",target}}).state,NodeState::Failed);
+        QCOMPARE(run(method,input,{{"evo_window",300},{"evo_step_mode","target_windows"}}).state,NodeState::Failed);
+        const auto tooSparse=run(method,makeData(sample(257)),
+            {{"evo_window",128},{"evo_step_mode","target_windows"},{"evo_target_windows",2}});
+        QCOMPARE(tooSparse.state,NodeState::Failed);
+        QCOMPARE(tooSparse.diagnostic().code,QString("EVOLUTION_TARGET_WINDOWS"));
+        QCOMPARE(tooSparse.diagnostic().context["minimum_target_windows"].toInt(),3);
+        const QJsonObject oldSettings{{"evo_window",128},{"evo_step",16},{"evo_nfft",0},
+            {"evo_trend","mean"},{"evo_normalize",false},{"evo_amplitude",false}};
+        const auto legacy=run(method,input,oldSettings);
+        QCOMPARE(legacy.state,NodeState::Succeeded);
+        QCOMPARE(legacy.report["window_samples"].toInt(),128);
+        QCOMPARE(legacy.report["step_samples"].toInt(),16);
+        QVERIFY(!legacy.report.contains("target_windows"));
+        auto modes=oldSettings; modes["evo_step_mode"]="samples"; modes["evo_window_mode"]="samples";
+        modes["evo_fft_mode"]="length"; modes["evo_target_windows"]=2;
+        const auto explicitLegacy=run(method,input,modes);
+        QCOMPARE(dataAs<GridData>(legacy.outputs["power_map"])->values,
+                 dataAs<GridData>(explicitLegacy.outputs["power_map"])->values);
+    }
+}
 void EvolutionAudit::windowNormalization()
 {
     for (const char *method : {"evolution_fft", "evolution_mtm"})
     {
         const auto s = sample();
-        const QJsonObject options{{"evo_window", 64}, {"evo_step", 32}, {"evo_nfft", 128}};
+        const QJsonObject options{{"evo_window", 64}, {"evo_step", 32}, {"evo_nfft", 128}, {"evo_normalize", false}};
         auto normalizedOptions = options;
         normalizedOptions["evo_normalize"] = true;
         const auto raw = run(method, makeData(s), options);

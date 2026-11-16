@@ -1,0 +1,8 @@
+test_all_patch_kinds_preserve_bytes_and_scope_without_base64_gem (test_brew_query.BrewQueryTests.test_all_patch_kinds_preserve_bytes_and_scope_without_base64_gem) ... ok
+test_formula_without_patches_needs_no_base64_gem (test_brew_query.BrewQueryTests.test_formula_without_patches_needs_no_base64_gem) ... ok
+test_version_changes_rebuild_consumers_without_cleaning (test_version_build.VersionBuildTests.test_version_changes_rebuild_consumers_without_cleaning) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 3.932s
+
+OK

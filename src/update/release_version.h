@@ -13,5 +13,7 @@ struct ReleaseVersion {
     static std::optional<ReleaseVersion> parse(QString text);
     int compare(const ReleaseVersion &other) const;
 };
+// Alpha builds are developer-only and never participate in online updates.
+bool isAlphaVersion(const QString &text);
 }
 #endif

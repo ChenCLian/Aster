@@ -1,0 +1,76 @@
+{
+  "version": "1.3.0-beta.12",
+  "checked_at_utc": "2026-11-16T01:42:10.427504+00:00",
+  "status": "targeted_new_feature_regressions_passed",
+  "scope": "Targeted lifecycle audit: pending parameter edits before input removal and pair management, stable duplicate-input selection, search-result freshness and cold-index Enter activation/cancellation. Includes related scope, undo/redo, import, move, preview and pair regressions.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "configuration": "Release",
+    "incremental_root_build": "passed",
+    "compiled_version": "1.3.0-beta.12",
+    "log": "build-final.log"
+  },
+  "reproduced_before_fix": {
+    "failures": 5,
+    "log": "before-fix-all.log",
+    "cases": [
+      "Pending parameter edit blocks UI after current input removal",
+      "Pending parameter commit closes newly opened pairing dialog",
+      "Duplicate non-file input labels change selected identity on refresh",
+      "Old help results remain actionable while query changes",
+      "Enter during cold help indexing does not open result"
+    ]
+  },
+  "qt_tests": {
+    "related_ui": {
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "ui-targeted.log"
+    },
+    "related_joint_ui": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true,
+      "log": "joint-targeted.log"
+    }
+  },
+  "python_tests": {
+    "help_generator": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "log": "generator-tests.log"
+    }
+  },
+  "changed_application_sources": [
+    "src/ui/panels/pairing_panel.cpp",
+    "src/ui/panels/source_panel.cpp",
+    "src/ui/panels/pairing_panel.h",
+    "src/ui/panels/source_panel.h",
+    "src/ui/app/main_window.cpp",
+    "src/ui/help/help_dialog.cpp",
+    "src/ui/help/help_dialog.h"
+  ],
+  "performance_observations": [
+    "QINFO  : UiTests::scopedMetadataDoesNotCopySamples() 5000-input bulk parameter edit milliseconds 168",
+    "QINFO  : UiTests::helpGlobalSearchAndCancellation() Help cold search milliseconds 164"
+  ],
+  "test_count_note": "Qt counts include init/cleanup; focused cases may overlap earlier releases. Previous full-suite counts are not current-run evidence.",
+  "unchanged_scope_verified": [
+    "Other application sources, including numerical methods, default descriptors and beta.11 bulk scope fix",
+    "Release scripts and desktop Actions"
+  ],
+  "not_run": [
+    "Full main UI suite in this batch (beta.10 record retained)",
+    "Complete numerical regression suite (no algorithm/default changes)",
+    "Windows/macOS native build and DPI/mouse acceptance",
+    "Linux clean-host package deployment",
+    "Cloud GitHub Actions",
+    "Whole-application stress tests"
+  ],
+  "previous_record": "../1.3.0-beta.11/checks.json"
+}

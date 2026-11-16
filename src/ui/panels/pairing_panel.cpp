@@ -71,6 +71,7 @@ void PairingPanel::refresh()
 void PairingPanel::editPairs()
 {
     if (m_document->editingLocked() || !m_document->node(m_node)) return;
+    if (m_beforePairEdit && !m_beforePairEdit()) return;
     for (auto* existing : findChildren<PairingDialog*>())
         if (existing->isVisible()) { existing->raise(); existing->activateWindow(); return; }
     auto* dialog = new PairingDialog(m_document, m_node, this);

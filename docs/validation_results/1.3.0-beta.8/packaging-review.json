@@ -1,0 +1,17 @@
+{
+  "version": "1.3.0-beta.8",
+  "shell_syntax": "passed",
+  "workflow_yaml": "parsed",
+  "platforms": [
+    "linux-x64",
+    "macos-arm64",
+    "macos-x86_64"
+  ],
+  "shared_qrc_compiled_by_desktop_ui": true,
+  "help_catalog_generated_and_checked_by_workflow": true,
+  "packaging_and_workflow_files_unchanged_from_beta7": true,
+  "version_source": "VERSION",
+  "cloud_actions_executed": false,
+  "native_macos_windows_packaging_executed": false,
+  "standalone_linux_release_bundle_built": false
+}

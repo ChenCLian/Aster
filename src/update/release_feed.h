@@ -5,14 +5,17 @@
 #include "update/release_version.h"
 #include <QJsonArray>
 #include <QUrl>
+#include <QDateTime>
 namespace aster::updates {
 struct UpdateConfig {
     QString owner, repository, apiVersion;
     int timeoutMs=15000, maximumPages=10;
     qsizetype maximumResponseBytes=2*1024*1024;
+    QString packageMetadata{};
+    bool mirrorFallback=false;
     static UpdateConfig fromJson(const QByteArray &json);
     bool valid() const;
-    QUrl apiUrl(int page) const;
+    QUrl apiUrl(int page, bool mirror=false) const;
     QUrl releasesUrl() const;
     QUrl releaseUrl(const QString &tag) const;
 };
@@ -20,6 +23,8 @@ struct Release {
     QString tag, name, notes;
     ReleaseVersion version;
     QUrl pageUrl;
+    QDateTime publishedAt;
+    QString source=QStringLiteral("GitHub");
 };
 struct FeedPage {
     QString errorKey;
@@ -27,7 +32,7 @@ struct FeedPage {
     bool hasNext=false;
     QVector<Release> releases;
 };
-FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases);
+FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases, bool mirror=false);
 std::optional<Release> newestRelease(const QVector<Release> &releases);
 }
 #endif

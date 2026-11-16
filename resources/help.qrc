@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/help">
+    <file alias="navigation.json">help_navigation.json</file>
     <file alias="LICENSE">../LICENSE</file>
     <file alias="COPYRIGHT.md">../COPYRIGHT.md</file>
     <file alias="SOURCE_CODE.md">../SOURCE_CODE.md</file>
@@ -23,6 +24,14 @@
     <file alias="docs/error_diagnostics.md">../docs/error_diagnostics.md</file>
     <file alias="docs/third_party.md">../docs/third_party.md</file>
     <file alias="docs/methods/outliers_and_transforms.md">../docs/methods/outliers_and_transforms.md</file>
+    <file alias="docs/concepts/spectral_parameters.md">../docs/concepts/spectral_parameters.md</file>
+    <file alias="docs/concepts/spectral_parameters_en.md">../docs/concepts/spectral_parameters_en.md</file>
+    <file alias="docs/methods/power_spectra.md">../docs/methods/power_spectra.md</file>
+    <file alias="docs/methods/power_spectra_en.md">../docs/methods/power_spectra_en.md</file>
+    <file alias="docs/concepts/sampling.md">../docs/concepts/sampling.md</file>
+    <file alias="docs/concepts/sampling_en.md">../docs/concepts/sampling_en.md</file>
+    <file alias="docs/methods/preprocessing.md">../docs/methods/preprocessing.md</file>
+    <file alias="docs/methods/preprocessing_en.md">../docs/methods/preprocessing_en.md</file>
     <file alias="docs/methods/README.md">../docs/methods/README.md</file>
     <file alias="docs/methods/acycle_compatibility.md">../docs/methods/acycle_compatibility.md</file>
     <file alias="docs/methods/cwt.md">../docs/methods/cwt.md</file>
@@ -50,5 +59,29 @@
     <file alias="resources/icons/dark/up.png">../resources/icons/dark/up.png</file>
     <file alias="resources/app/aster.png">../resources/app/aster.png</file>
     <file alias="resources/synthetic/NOTICE.md">../resources/synthetic/NOTICE.md</file>
+    <file alias="docs/concepts/data_processing.md">../docs/concepts/data_processing.md</file>
+    <file alias="docs/concepts/data_processing_en.md">../docs/concepts/data_processing_en.md</file>
+    <file alias="docs/methods/smoothing_trends.md">../docs/methods/smoothing_trends.md</file>
+    <file alias="docs/methods/smoothing_trends_en.md">../docs/methods/smoothing_trends_en.md</file>
+    <file alias="docs/methods/filter_usage.md">../docs/methods/filter_usage.md</file>
+    <file alias="docs/methods/filter_usage_en.md">../docs/methods/filter_usage_en.md</file>
+    <file alias="docs/methods/outliers_and_transforms_en.md">../docs/methods/outliers_and_transforms_en.md</file>
+    <file alias="docs/concepts/statistical_interpretation.md">../docs/concepts/statistical_interpretation.md</file>
+    <file alias="docs/concepts/statistical_interpretation_en.md">../docs/concepts/statistical_interpretation_en.md</file>
+    <file alias="docs/methods/spectral_inference.md">../docs/methods/spectral_inference.md</file>
+    <file alias="docs/methods/spectral_inference_en.md">../docs/methods/spectral_inference_en.md</file>
+    <file alias="docs/concepts/chronology_coordinates.md">../docs/concepts/chronology_coordinates.md</file>
+    <file alias="docs/concepts/chronology_coordinates_en.md">../docs/concepts/chronology_coordinates_en.md</file>
+    <file alias="docs/methods/chronology_usage.md">../docs/methods/chronology_usage.md</file>
+    <file alias="docs/methods/chronology_usage_en.md">../docs/methods/chronology_usage_en.md</file>
+    <file alias="docs/methods/coco_usage.md">../docs/methods/coco_usage.md</file>
+    <file alias="docs/methods/coco_usage_en.md">../docs/methods/coco_usage_en.md</file>
+    <file alias="docs/methods/astronomy_usage.md">../docs/methods/astronomy_usage.md</file>
+    <file alias="docs/methods/astronomy_usage_en.md">../docs/methods/astronomy_usage_en.md</file>
+    <file alias="docs/methods/data_sources.md">../docs/methods/data_sources.md</file>
+    <file alias="docs/methods/data_sources_en.md">../docs/methods/data_sources_en.md</file>
+    <file alias="docs/methods/selection_summary.md">../docs/methods/selection_summary.md</file>
+    <file alias="docs/methods/selection_summary_en.md">../docs/methods/selection_summary_en.md</file>
+    <file alias="docs/README_EN.md">../docs/README_EN.md</file>
   </qresource>
 </RCC>

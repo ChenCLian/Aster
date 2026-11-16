@@ -46,6 +46,9 @@ struct TaskDescriptor {
     // The ordinary graph keeps one parent; the batch plan explicitly resolves
     // dataset, output port and optional origin node for A and B.
     bool pairedInput = false;
+    // Pure, data-independent compatibility expansion before validation/defaults.
+    // Must preserve explicitly supplied settings; never resolve values from UI/input data.
+    std::function<QJsonObject(const QJsonObject &)> prepareParameters{};
 };
 
 using TaskFactory = std::function<std::unique_ptr<Task>(const QJsonObject&)>;

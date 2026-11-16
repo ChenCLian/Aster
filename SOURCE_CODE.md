@@ -17,7 +17,7 @@ The runnable package includes `SOURCE_DEPENDENCIES.md` with exact release-asset 
 
 ## Build information
 
-The project archive includes `docs/building.md` and [the third-party inventory](https://github.com/ChenCLian/Aster/blob/main/docs/third_party.md). [Build instructions are also available online](https://github.com/ChenCLian/Aster/blob/main/docs/building.md). Use the files in the matching source archive for a released version.
+The project archive includes `docs/building.md` and [the third-party inventory](docs/third_party.md). [Build instructions are also available online](docs/building.md). Use the files in the matching source archive for a released version.
 
 Personal configuration, user databases and build caches are excluded from the source archive. Configure local dependency paths from `config/local.pri.example`. Release build configurations, dependency recipes and required patches must remain available with the source materials.
 
@@ -25,4 +25,4 @@ Personal configuration, user databases and build caches are excluded from the so
 
 Preserve LICENSE, COPYRIGHT.md, this file and the original third-party notices. Binary redistribution requires the complete Corresponding Source under the applicable licenses, including required non-System-Library dependencies. A license text or a generic dependency homepage alone does not supply that source. Dataset redistribution is governed separately by the applicable source terms.
 
-Maintainers can export a clean `Aster-source-export-<version>/` directory with `python tools/release/package_source.py --output ../release-source` from the project root. The exporter creates neither an archive nor a separate checksum file. Source file hashes remain in `PACKAGE_MANIFEST.json`. Windows packaging verifies and reuses matching dependency materials by default; run the collector separately when materials are missing or dependencies change. Linux/macOS packaging collects dependency sources and records before completing the archive/signature. They do not publish releases. See [dependency materials](https://github.com/ChenCLian/Aster/blob/main/docs/dependency_materials_zh.md) and [release maintenance](https://github.com/ChenCLian/Aster/blob/main/docs/release_maintenance_zh.md).
+Maintainers can export a clean `Aster-source-export-<version>/` directory with `python tools/release/package_source.py --output ../release-source` from the project root. The exporter creates neither an archive nor a separate checksum file. Source file hashes remain in `PACKAGE_MANIFEST.json`. Windows packaging verifies and reuses matching dependency materials by default; run the collector separately when materials are missing or dependencies change. Linux/macOS packaging collects dependency sources and records before completing the archive/signature. They do not publish releases. See [dependency materials](docs/dependency_materials_zh.md) and [release maintenance](docs/release_maintenance_zh.md).

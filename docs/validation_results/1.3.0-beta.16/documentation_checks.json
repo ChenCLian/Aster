@@ -1,0 +1,16 @@
+{
+  "version": "1.3.0-beta.16",
+  "documentation": {
+    "status": "reviewed",
+    "content_rewritten": true,
+    "scope": [
+      "release notes",
+      "bilingual user update guidance",
+      "FAQ",
+      "three-phase implementation plan",
+      "validation evidence"
+    ],
+    "embedded_help_rebuilt": true,
+    "generated_parameter_reference": "56 tasks / 261 parameters; both languages current"
+  }
+}

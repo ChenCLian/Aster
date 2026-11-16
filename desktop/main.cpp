@@ -11,6 +11,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QMessageBox>
+#include <QTimer>
 #include "math/backend/numeric_backend.h"
 using namespace aster::ui;
 int main(int argc, char **argv)
@@ -27,8 +28,11 @@ int main(int argc, char **argv)
     parser.addOption({"database", "Use a SQLite result database", "path"});
     parser.addOption({"language", "Override UI language: zh or en", "language"});
     parser.addOption({"theme", "Override theme: light or dark", "theme"});
+    parser.addOption({"release-smoke-output", "Write a startup screenshot and exit (requires --database)", "png"});
     parser.process(app);
-    auto settings = AppSettings::load();
+    const bool smoke=parser.isSet("release-smoke-output");
+    if(smoke&&!parser.isSet("database")){QTextStream(stderr)<<"Release smoke checks require an isolated --database path\n";return 2;}
+    auto settings = smoke ? AppSettings{} : AppSettings::load();
     if (parser.isSet("numeric-backend")) {
         try {
             const auto info = aster::numeric::backend::backendInfo();
@@ -54,7 +58,13 @@ int main(int argc, char **argv)
     bool restart = false;
     {
         MainWindow window(settings, !parser.isSet("database"));
+        if(smoke)window.resize(1280,850);
         window.show();
+        if(smoke)QTimer::singleShot(1500,&window,[&]{
+            const bool saved=window.grab().save(parser.value("release-smoke-output"));
+            QTextStream(stdout) << (saved ? "Release UI screenshot saved\n" : "Release UI screenshot failed\n");
+            app.exit(saved?0:1);
+        });
         exitCode = app.exec();
         restart = window.restartRequested();
         settings = window.settings();

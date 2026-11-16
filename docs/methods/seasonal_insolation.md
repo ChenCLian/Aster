@@ -1,5 +1,7 @@
 # 月份与季节日照积分
 
+操作与输出解释：[中文](astronomy_usage.md#season) · [English](astronomy_usage_en.md#season)。共同约定见[深度、年龄与速率](../concepts/chronology_coordinates.md)。
+
 本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation_current.md)。
 
 ## 日照月份与季节积分

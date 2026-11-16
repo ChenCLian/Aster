@@ -1,0 +1,76 @@
+{
+  "version": "1.3.0-beta.19",
+  "date": "2026-11-16",
+  "status": "update_release_audit_local_passed_native_and_actions_pending",
+  "scope": "Update cancellation/retry/metadata fallback, release draft mutations, package-check freshness and related regressions.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "configuration": "Release",
+    "strict_narrowing": true,
+    "method": "Affected modules, application, update/download tests and help reference rebuilt"
+  },
+  "checks": {
+    "update_tests": {
+      "passed": 76,
+      "failed": 0,
+      "skipped": 0
+    },
+    "download_tests": {
+      "passed": 73,
+      "failed": 0,
+      "skipped": 0
+    },
+    "release_tools": {
+      "total": 170,
+      "passed": 169,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable; Homebrew Ruby query remains for macOS CI"
+    },
+    "help_generator": {
+      "passed": 8
+    },
+    "parameter_references": {
+      "tasks": 56,
+      "parameters": 261,
+      "languages": [
+        "zh",
+        "en"
+      ]
+    },
+    "workflow": "Four-platform matrix, shared concurrency, draft dependencies and opt-in mirror checked locally; no remote execution",
+    "shell": "Release shell syntax passed",
+    "final_resources": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "compiled_version": "1.3.0-beta.19"
+    }
+  },
+  "reproduced_before_fix": [
+    "Cancellation callbacks continued to initiate requests",
+    "Draft upload continued after a simulated publish; existing prerelease flag was not corrected",
+    "Failed package recheck retained an old successful report and screenshot"
+  ],
+  "structure": {
+    "changed_src": [
+      "src/ui/settings/update_dialog.cpp",
+      "src/update/package_download.cpp",
+      "src/update/package_download.h"
+    ],
+    "numerical_and_persistence_sources_unchanged": true,
+    "broad_refactor": false
+  },
+  "not_run": [
+    "Actual GitHub Actions run",
+    "Windows/MSVC and macOS native compilation or deployment",
+    "Windows PowerShell process tests (added to Windows CI)",
+    "Authenticated GitHub draft upload or Gitee write",
+    "Real mirror anonymous download",
+    "Full numerical algorithm regressions",
+    "Large-package throughput and disk-full injection",
+    "Native font/DPI and macOS Gatekeeper acceptance"
+  ]
+}

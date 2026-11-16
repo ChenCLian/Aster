@@ -1,0 +1,27 @@
+********* Start testing of DownloadTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : DownloadTests::initTestCase() entering
+PASS   : DownloadTests::initTestCase()
+INFO   : DownloadTests::cancelAtNotification() entering
+FAIL!  : DownloadTests::cancelAtNotification(metadata) Compared values are not the same
+   Actual   (manager.urls.size()): 1
+   Expected (0)                  : 0
+   Loc: [../../../rollback-work/source/download_tests/download_tests.cpp(69)]
+FAIL!  : DownloadTests::cancelAtNotification(source) Compared values are not the same
+   Actual   (manager.urls.size())                  : 2
+   Expected (at=="verifying"||at=="extracting"?2:1): 1
+   Loc: [../../../rollback-work/source/download_tests/download_tests.cpp(72)]
+FAIL!  : DownloadTests::cancelAtNotification(downloading) Compared values are not the same
+   Actual   (manager.urls.size())                  : 2
+   Expected (at=="verifying"||at=="extracting"?2:1): 1
+   Loc: [../../../rollback-work/source/download_tests/download_tests.cpp(72)]
+FAIL!  : DownloadTests::cancelAtNotification(zero-progress) Compared values are not the same
+   Actual   (manager.urls.size())                  : 2
+   Expected (at=="verifying"||at=="extracting"?2:1): 1
+   Loc: [../../../rollback-work/source/download_tests/download_tests.cpp(72)]
+PASS   : DownloadTests::cancelAtNotification(verifying)
+PASS   : DownloadTests::cancelAtNotification(extracting)
+INFO   : DownloadTests::cleanupTestCase() entering
+PASS   : DownloadTests::cleanupTestCase()
+Totals: 4 passed, 4 failed, 0 skipped, 0 blacklisted, 375ms
+********* Finished testing of DownloadTests *********

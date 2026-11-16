@@ -1,0 +1,535 @@
+{
+  "schema": 1,
+  "pages": [
+    {
+      "group": {
+        "zh": [
+          "快速入门"
+        ],
+        "en": [
+          "Getting started"
+        ]
+      },
+      "title": {
+        "zh": "文档索引",
+        "en": "Documentation index"
+      },
+      "path": {
+        "zh": "docs/README.md",
+        "en": "docs/README_EN.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "快速入门"
+        ],
+        "en": [
+          "Getting started"
+        ]
+      },
+      "title": {
+        "zh": "使用手册",
+        "en": "User guide"
+      },
+      "path": {
+        "zh": "docs/USER_GUIDE.md",
+        "en": "docs/USER_GUIDE_EN.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "快速入门"
+        ],
+        "en": [
+          "Getting started"
+        ]
+      },
+      "title": {
+        "zh": "下载与第一次分析",
+        "en": "Download and first analysis"
+      },
+      "path": {
+        "zh": "QUICK_START.md",
+        "en": "QUICK_START.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "输入与流程"
+        ],
+        "en": [
+          "Features",
+          "Inputs and workflows"
+        ]
+      },
+      "title": {
+        "zh": "数据来源与复用",
+        "en": "Data sources and reuse"
+      },
+      "path": {
+        "zh": "docs/methods/data_sources.md",
+        "en": "docs/methods/data_sources_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "数据处理"
+        ],
+        "en": [
+          "Features",
+          "Data processing"
+        ]
+      },
+      "title": {
+        "zh": "采样检查与重采样",
+        "en": "Sampling checks and resampling"
+      },
+      "path": {
+        "zh": "docs/methods/preprocessing.md",
+        "en": "docs/methods/preprocessing_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "数据处理"
+        ],
+        "en": [
+          "Features",
+          "Data processing"
+        ]
+      },
+      "title": {
+        "zh": "选段与序列摘要",
+        "en": "Selection and summaries"
+      },
+      "path": {
+        "zh": "docs/methods/selection_summary.md",
+        "en": "docs/methods/selection_summary_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "数据处理"
+        ],
+        "en": [
+          "Features",
+          "Data processing"
+        ]
+      },
+      "title": {
+        "zh": "平滑与去趋势",
+        "en": "Smoothing and detrending"
+      },
+      "path": {
+        "zh": "docs/methods/smoothing_trends.md",
+        "en": "docs/methods/smoothing_trends_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "数据处理"
+        ],
+        "en": [
+          "Features",
+          "Data processing"
+        ]
+      },
+      "title": {
+        "zh": "异常值与数值变换",
+        "en": "Outliers and value transforms"
+      },
+      "path": {
+        "zh": "docs/methods/outliers_and_transforms.md",
+        "en": "docs/methods/outliers_and_transforms_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "数据处理"
+        ],
+        "en": [
+          "Features",
+          "Data processing"
+        ]
+      },
+      "title": {
+        "zh": "滤波与振幅包络",
+        "en": "Filters and amplitude envelopes"
+      },
+      "path": {
+        "zh": "docs/methods/filter_usage.md",
+        "en": "docs/methods/filter_usage_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "频谱与时频分析"
+        ],
+        "en": [
+          "Features",
+          "Spectral and time-frequency analysis"
+        ]
+      },
+      "title": {
+        "zh": "FFT、Welch 与演化谱",
+        "en": "FFT, Welch and evolutionary spectra"
+      },
+      "path": {
+        "zh": "docs/methods/power_spectra.md",
+        "en": "docs/methods/power_spectra_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "频谱与时频分析"
+        ],
+        "en": [
+          "Features",
+          "Spectral and time-frequency analysis"
+        ]
+      },
+      "title": {
+        "zh": "谱估计与统计检验",
+        "en": "Spectral estimation and statistical tests"
+      },
+      "path": {
+        "zh": "docs/methods/spectral_inference.md",
+        "en": "docs/methods/spectral_inference_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "频谱与时频分析"
+        ],
+        "en": [
+          "Features",
+          "Spectral and time-frequency analysis"
+        ]
+      },
+      "title": {
+        "zh": "COCO 分析",
+        "en": "COCO analysis"
+      },
+      "path": {
+        "zh": "docs/methods/coco_usage.md",
+        "en": "docs/methods/coco_usage_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "年代模型与天文数据"
+        ],
+        "en": [
+          "Features",
+          "Chronology and astronomical data"
+        ]
+      },
+      "title": {
+        "zh": "年代模型与逐周期赋龄",
+        "en": "Age models and cycle tuning"
+      },
+      "path": {
+        "zh": "docs/methods/chronology_usage.md",
+        "en": "docs/methods/chronology_usage_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "年代模型与天文数据"
+        ],
+        "en": [
+          "Features",
+          "Chronology and astronomical data"
+        ]
+      },
+      "title": {
+        "zh": "天文曲线与日照",
+        "en": "Orbital curves and insolation"
+      },
+      "path": {
+        "zh": "docs/methods/astronomy_usage.md",
+        "en": "docs/methods/astronomy_usage_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "运行、结果与绘图"
+        ],
+        "en": [
+          "Features",
+          "Running, results and plots"
+        ]
+      },
+      "title": {
+        "zh": "即时预览",
+        "en": "Live preview"
+      },
+      "path": {
+        "zh": "docs/ui/live_preview.md",
+        "en": "docs/ui/live_preview.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能",
+          "运行、结果与绘图"
+        ],
+        "en": [
+          "Features",
+          "Running, results and plots"
+        ]
+      },
+      "title": {
+        "zh": "绘图与导出",
+        "en": "Plotting and export"
+      },
+      "path": {
+        "zh": "docs/ui/plotting.md",
+        "en": "docs/ui/plotting.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "通用概念与参数"
+        ],
+        "en": [
+          "Shared concepts and parameters"
+        ]
+      },
+      "title": {
+        "zh": "采样与插值",
+        "en": "Sampling and interpolation"
+      },
+      "path": {
+        "zh": "docs/concepts/sampling.md",
+        "en": "docs/concepts/sampling_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "通用概念与参数"
+        ],
+        "en": [
+          "Shared concepts and parameters"
+        ]
+      },
+      "title": {
+        "zh": "窗口、FFT 与频谱显示",
+        "en": "Windows, FFT and spectral display"
+      },
+      "path": {
+        "zh": "docs/concepts/spectral_parameters.md",
+        "en": "docs/concepts/spectral_parameters_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "通用概念与参数"
+        ],
+        "en": [
+          "Shared concepts and parameters"
+        ]
+      },
+      "title": {
+        "zh": "数据处理与单位",
+        "en": "Data processing and units"
+      },
+      "path": {
+        "zh": "docs/concepts/data_processing.md",
+        "en": "docs/concepts/data_processing_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "通用概念与参数"
+        ],
+        "en": [
+          "Shared concepts and parameters"
+        ]
+      },
+      "title": {
+        "zh": "统计结果的解释",
+        "en": "Interpreting statistical results"
+      },
+      "path": {
+        "zh": "docs/concepts/statistical_interpretation.md",
+        "en": "docs/concepts/statistical_interpretation_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "通用概念与参数"
+        ],
+        "en": [
+          "Shared concepts and parameters"
+        ]
+      },
+      "title": {
+        "zh": "年代、坐标与覆盖",
+        "en": "Chronology, coordinates and coverage"
+      },
+      "path": {
+        "zh": "docs/concepts/chronology_coordinates.md",
+        "en": "docs/concepts/chronology_coordinates_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "软件功能"
+        ],
+        "en": [
+          "Features"
+        ]
+      },
+      "title": {
+        "zh": "任务参数参考",
+        "en": "Task parameter reference"
+      },
+      "path": {
+        "zh": "docs/reference/task_parameters.md",
+        "en": "docs/reference/task_parameters_en.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "常见问题与排查"
+        ],
+        "en": [
+          "Troubleshooting"
+        ]
+      },
+      "title": {
+        "zh": "常见问题",
+        "en": "Frequently asked questions"
+      },
+      "path": {
+        "zh": "FAQ.md",
+        "en": "FAQ.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "常见问题与排查"
+        ],
+        "en": [
+          "Troubleshooting"
+        ]
+      },
+      "title": {
+        "zh": "错误诊断",
+        "en": "Error diagnostics"
+      },
+      "path": {
+        "zh": "docs/error_diagnostics.md",
+        "en": "docs/error_diagnostics.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "关于与引用"
+        ],
+        "en": [
+          "About and references"
+        ]
+      },
+      "title": {
+        "zh": "作者与联系",
+        "en": "Authors and contact"
+      },
+      "path": {
+        "zh": "AUTHORS.md",
+        "en": "AUTHORS.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "关于与引用"
+        ],
+        "en": [
+          "About and references"
+        ]
+      },
+      "title": {
+        "zh": "发布说明",
+        "en": "Release notes"
+      },
+      "path": {
+        "zh": "RELEASE_NOTES.md",
+        "en": "RELEASE_NOTES.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "关于与引用"
+        ],
+        "en": [
+          "About and references"
+        ]
+      },
+      "title": {
+        "zh": "许可与版权",
+        "en": "License and copyright"
+      },
+      "path": {
+        "zh": "docs/LICENSE_GUIDE_ZH.md",
+        "en": "COPYRIGHT.md"
+      }
+    },
+    {
+      "group": {
+        "zh": [
+          "关于与引用"
+        ],
+        "en": [
+          "About and references"
+        ]
+      },
+      "title": {
+        "zh": "第三方资料",
+        "en": "Third-party materials"
+      },
+      "path": {
+        "zh": "docs/third_party.md",
+        "en": "docs/third_party.md"
+      }
+    }
+  ]
+}

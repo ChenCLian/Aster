@@ -1,0 +1,95 @@
+{
+  "version": "1.3.0-beta.15",
+  "date": "2026-11-16",
+  "status": "rollback_targeted_checks_passed",
+  "scope": "Removal of automatic update experiment; restored manual release checking, retained local authors page and Alpha exclusion.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "configuration": "Release",
+    "strict_narrowing": true,
+    "desktop_and_settings_tests": "passed",
+    "unchanged_science_core_io_application_libraries_reused": true
+  },
+  "tests": {
+    "settings_release_checker": {
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "includes_init_cleanup": true
+    },
+    "release_tooling": {
+      "total": 140,
+      "passed": 138,
+      "failed": 0,
+      "skipped": 2,
+      "skip_reasons": [
+        "Ruby unavailable for Homebrew query",
+        "Qt6 qmake not on default PATH for standalone probe; actual build used explicit Qt6 path"
+      ]
+    },
+    "help_reference": {
+      "passed": 8,
+      "failed": 0
+    },
+    "generated_parameter_reference": {
+      "tasks": 56,
+      "parameters": 261,
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "status": "current"
+    }
+  },
+  "structure": {
+    "identical_files_under_src_vs_beta14": 337,
+    "unexpected_source_changes": [],
+    "removed_paths": [
+      "updater",
+      "install_tests",
+      "signed_update_tests",
+      "src/third_party/monocypher",
+      "src/third_party/miniz",
+      "config/signed_updates.pri",
+      "config/install_engine.pri",
+      "resources/updates/signed.json",
+      "src/update/signed_manifest.cpp",
+      "src/update/signed_update_client.cpp",
+      "src/update/install_runtime.cpp",
+      "src/update/install_transaction.cpp",
+      "tools/release/update_manifest.py",
+      "tools/release/install_manifest.py",
+      "tools/release/test_update_manifest.py",
+      "tools/release/test_install_manifest.py",
+      "tools/release/check_update_windows.ps1",
+      "tools/acceptance/update_probe_smoke.py",
+      "docs/development/signed_updates.md"
+    ],
+    "baseline_restored_build_packaging_actions": [
+      "Aster.pro",
+      "desktop/desktop.pro",
+      "desktop_ui/desktop_ui.pro",
+      "tools/release/package_windows.ps1",
+      "tools/release/package_macos.sh",
+      "tools/release/package_linux.sh",
+      "tools/release/run_tests.py",
+      ".github/workflows/build-desktop.yml",
+      "COPYRIGHT.md",
+      "SOURCE_CODE.md",
+      "docs/third_party.md",
+      "resources/help.qrc"
+    ],
+    "local_configuration_excluded_on_export": true,
+    "user_databases_and_settings_not_modified": true
+  },
+  "not_run": [
+    "Windows/MSVC build of beta.15",
+    "macOS native build",
+    "cloud Actions",
+    "native release packaging",
+    "full algorithm numeric rerun"
+  ],
+  "previous_windows_beta14_tests_are_not_beta15_evidence": true
+}

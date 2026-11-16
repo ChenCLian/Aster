@@ -1,0 +1,25 @@
+********* Start testing of JointUiTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : JointUiTests::initTestCase() entering
+PASS   : JointUiTests::initTestCase()
+INFO   : JointUiTests::pairBatchIsolationAndReplay() entering
+PASS   : JointUiTests::pairBatchIsolationAndReplay()
+INFO   : JointUiTests::scopedManifestReplay() entering
+PASS   : JointUiTests::scopedManifestReplay()
+INFO   : JointUiTests::realPairWorkflow() entering
+PASS   : JointUiTests::realPairWorkflow()
+INFO   : JointUiTests::identitiesAndInvalidation() entering
+PASS   : JointUiTests::identitiesAndInvalidation()
+INFO   : JointUiTests::downstreamPreviewAndPersistence() entering
+QWARN  : JointUiTests::downstreamPreviewAndPersistence() This plugin does not support propagateSizeHints()
+PASS   : JointUiTests::downstreamPreviewAndPersistence()
+INFO   : JointUiTests::restoredPairRefreshesPreview() entering
+PASS   : JointUiTests::restoredPairRefreshesPreview()
+INFO   : JointUiTests::previewPortsAndSupersededCallbacks() entering
+PASS   : JointUiTests::previewPortsAndSupersededCallbacks()
+INFO   : JointUiTests::documentEditLock() entering
+PASS   : JointUiTests::documentEditLock()
+INFO   : JointUiTests::cleanupTestCase() entering
+PASS   : JointUiTests::cleanupTestCase()
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 2850ms
+********* Finished testing of JointUiTests *********

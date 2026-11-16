@@ -19,6 +19,7 @@ class QStackedWidget;
 class QTableView;
 class QComboBox;
 class QLabel;
+class QTextBrowser;
 class QMenu;
 namespace aster::ui
 {
@@ -100,6 +101,7 @@ class PlotView : public QWidget
     bool eventFilter(QObject *watched, QEvent *event) override;
 
   private:
+    void setMessage(const QString &message);
     struct SavedView
     {
         PlotStyle style;
@@ -124,7 +126,7 @@ class PlotView : public QWidget
     QStackedWidget *m_stack;
     QTableView *m_table;
     NumericalTableModel *m_tableModel;
-    QLabel *m_empty;
+    QTextBrowser *m_empty;
     OutputReference m_reference;
     NodeResult m_result;
     QString m_port, m_viewKey;

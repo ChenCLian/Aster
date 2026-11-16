@@ -1,0 +1,83 @@
+{
+  "version": "1.3.0-beta.18",
+  "date": "2026-11-16",
+  "status": "phase3_local_checks_passed_remote_acceptance_pending",
+  "scope": "Release draft preparation, Gitee allow-list/source snapshots, repository-relative manual links, official-source fallback and related download redirects.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "compiler": "GCC 14.2",
+    "configuration": "Release",
+    "strict_narrowing": true,
+    "method": "Incremental affected module rebuild; separate download/UI/help-reference targets"
+  },
+  "checks": {
+    "update_tests": {
+      "passed": 75,
+      "failed": 0,
+      "skipped": 0
+    },
+    "download_tests": {
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0
+    },
+    "help_ui": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "release_tools": {
+      "total": 164,
+      "passed": 163,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "Ruby unavailable; Homebrew Ruby query executes on macOS CI"
+    },
+    "help_generator": {
+      "passed": 8
+    },
+    "reference": {
+      "tasks": 56,
+      "parameters": 261,
+      "languages": [
+        "zh",
+        "en"
+      ]
+    },
+    "startup": {
+      "version": "1.3.0-beta.18",
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "isolated_database_required": true
+    },
+    "workflows": "YAML parsed, four targets and dependencies inspected; remote workflows not executed",
+    "shell": "bash syntax checks passed"
+  },
+  "structure": {
+    "changed_src": [
+      "src/update/update_checker.cpp",
+      "src/update/release_feed.cpp",
+      "src/update/update_checker.h",
+      "src/update/package_download.cpp",
+      "src/update/release_feed.h",
+      "src/update/download_package.cpp",
+      "src/update/package_download.h",
+      "src/ui/settings/update_dialog.cpp",
+      "src/ui/help/help_dialog.cpp",
+      "src/ui/help/help_dialog.h"
+    ],
+    "numerical_and_persistence_sources_unchanged": true
+  },
+  "not_run": [
+    "Native Windows/MSVC and macOS build/deployment",
+    "Actual Actions four-platform run",
+    "Authenticated GitHub draft upload or Gitee source/attachment write",
+    "Real Aster mirror anonymous download after upload",
+    "Full numerical algorithm regression",
+    "Large-package throughput and disk-full injection",
+    "Native fonts/DPI, macOS signing/notarization acceptance"
+  ]
+}

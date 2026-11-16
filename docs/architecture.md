@@ -1,6 +1,6 @@
 # Aster 工作流契约
 
-适用版本：Aster 1.3.0-beta.1。
+适用版本：Aster 1.3.0-beta.20。
 
 ## 范围与依赖
 
@@ -79,7 +79,7 @@ JSON 用于参数、来源元信息、报告、工作流快照，不用于大型
 
 正常节点事件：Pending→Running→Succeeded。输入或工厂校验失败时可直接 Pending→Failed；不会为未执行的节点伪造 Running。
 
-失败节点的后继成为 Blocked，其他独立分支继续。运行存在成功节点和失败／阻断节点时为 PartialFailed；没有成功节点时为 Failed。这里 PartialFailed 表示存在可保留的成功节点结果，不保证某个最终科学分析分支已经完成。
+失败节点的后继成为 Blocked，其他独立分支继续。运行存在成功节点和失败／阻断节点时为 PartialFailed；没有成功节点时为 Failed。这里 PartialFailed 表示存在可保留的成功节点结果，不保证某个最终分析分支已经完成。
 
 取消采用共享原子标记和协作检查，不强制终止线程。已成功结果保留，尚未执行的节点变为 Cancelled；正在执行的任务要自行检查 token。任务的长循环定期检查。运行出现取消节点时汇总状态为 Cancelled。
 

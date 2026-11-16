@@ -162,3 +162,22 @@ QTabBar#inspectorSectionNav::tab:hover { background: @hover@; color: @text@; }
 QFrame#inspectorTarget { border: 1px solid @divider@; border-left: 3px solid @accent@; background: @surface@; }
 QLabel#activeStyleTarget { font-size: 10.5pt; font-weight: 600; color: @text@; }
 QFrame#settingsDivider { background: @divider@; border: 0; }
+
+/* Release window: one clear status, readable notes, quiet secondary actions. */
+QLabel#updateInstalled, QLabel#updateSourceLabel, QLabel#updateReleaseMeta, QLabel#updateManualHint { color: @muted@; font-size: 9pt; }
+QFrame#updateSummary { background: @field@; border: 1px solid @divider@; border-left: 3px solid @controlBorder@; border-radius: 6px; }
+QFrame#updateSummary[state="available"], QFrame#updateSummary[state="checking"] { border-left-color: @accent@; }
+QFrame#updateSummary[state="error"] { border-left-color: @error@; }
+QLabel#updateHeading { font-size: 15pt; font-weight: 600; }
+QLabel#updateStatus { font-size: 10pt; }
+QLabel#updateDiagnostics { background: @field@; border: 1px solid @divider@; padding: 8px; font-size: 9pt; }
+QTabBar#updateChannel::tab { padding: 8px 18px; margin-right: 4px; }
+QPushButton#updateCheck, QPushButton#updateReleases, QToolButton#updateDetails { background: transparent; border: 1px solid transparent; padding: 5px 7px; color: @muted@; }
+QPushButton#updateCheck:hover, QPushButton#updateReleases:hover, QToolButton#updateDetails:hover { color: @accent@; background: @hover@; }
+QPushButton#updateCheck:focus, QPushButton#updateReleases:focus, QToolButton#updateDetails:focus { border-color: @accent@; }
+QPushButton#updateCheck:disabled { color: @disabled@; }
+QPushButton[updateRole="primary"] { background: @accentFill@; color: @accentText@; border-color: @accentFill@; font-weight: 600; padding: 8px 18px; }
+QPushButton[updateRole="primary"]:hover { background: @accentHover@; }
+QPushButton[updateRole="primary"]:disabled { background: @disabledSurface@; color: @disabled@; border-color: @border@; }
+QPushButton[updateRole="primary"]:focus { border-color: @accentText@; }
+QTextBrowser#updateNotes { background: @surface@; border: 0; padding: 0; }

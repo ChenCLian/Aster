@@ -1,0 +1,63 @@
+{
+  "version": "1.3.0-beta.7",
+  "date": "2026-11-16",
+  "status": "targeted_documentation_and_help_checks_passed",
+  "scope": "C4b bilingual documentation for 14 age-model, cycle-count, target-period, COCO and astronomical-source tasks, with shared coordinate conventions. No algorithm or application src changes.",
+  "build": {
+    "platform": "Linux x86_64",
+    "qt": "6.8.2",
+    "configuration": "Release",
+    "incremental_build": "passed",
+    "compiled_version": "1.3.0-beta.7"
+  },
+  "qt_help_tests": {
+    "returncode": 0,
+    "seconds": 9.36,
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "functions": [
+      "helpCatalogueCoverageAndContext",
+      "helpLinksAndFallback",
+      "helpLanguageAndChapterReuse",
+      "helpReferenceVisibleLayout",
+      "helpDirectoryLinks",
+      "samplingGuidesStayOfflineAndReturnToParameter",
+      "parameterHelpTracksSelectedNode",
+      "spectralGuidesStayOfflineAndShareConcepts",
+      "dataProcessingGuidesStayOfflineAndReturn",
+      "statisticalGuidesStayOfflineAndReturn",
+      "chronologyGuidesStayOfflineAndReturn"
+    ],
+    "platform": "Linux Qt 6.8.2 offscreen",
+    "includes_init_cleanup": true
+  },
+  "help_generator_tests": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  },
+  "release_tooling_tests": {
+    "run": 142,
+    "passed": 142,
+    "failed": 0,
+    "skipped": 0
+  },
+  "content_checks": {
+    "registered_tasks_unchanged": 56,
+    "exposed_parameter_definitions_unchanged": 261,
+    "all_src_files_unchanged": true,
+    "old_anchors_preserved": true,
+    "bilingual_concept_anchors_match": true
+  },
+  "not_run": [
+    "Numerical algorithm regression and statistical calibration",
+    "Full desktop regression",
+    "Windows/macOS native builds and packaged binaries",
+    "Cloud Actions and clean-host packaging acceptance",
+    "Performance benchmarks",
+    "MATLAB/Acycle direct comparison",
+    "B-stage Qt interface implementation"
+  ],
+  "previous_record": "docs/validation_results/1.3.0-beta.6/checks.json"
+}

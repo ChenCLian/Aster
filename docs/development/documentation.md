@@ -1,6 +1,6 @@
 # 文档维护
 
-适用版本：Aster 1.3.0-beta.1。
+适用版本：Aster 1.3.0-beta.20。
 
 ## 面向读者组织内容
 
@@ -41,3 +41,24 @@ python -m unittest discover -s tools/help_reference -p "test_*.py"
 当前文档从 `docs/README.md` 进入；版本专属的检查报告放在 `docs/history/`，原始日志和结构化记录保存在 `docs/validation_results/<版本>/`。科学参照数据、测试工具、许可证及依赖来源属于项目材料，不作为临时文件删除。
 
 源码导出排除构建目录、下载缓存、发行程序和 Python 缓存；`package_source.py` 为本次导出重新生成 `PACKAGE_MANIFEST.json`，不能用旧清单说明已修改的源码。清理规则见[发布维护](../release_maintenance_zh.md)。
+
+## 内容检查与命名
+
+任务指南说明使用时机、输入要求、参数选择、输出含义和常见问题。多个任务共享的概念只维护一份正文，各任务补充自身差异并链接到公共主题；参数面板保持简洁，长说明放入帮助页面。
+
+修订时对照任务声明、算法入口和实际报告，保留方法与参数的稳定锚点，同步中英文操作含义。示例值明确标注为示例，不能混同程序默认值或适用于所有数据的推荐值。涉及算法或交互行为的修改应单独记录并测试。
+
+目录按功能或分析对象命名，例如“频谱与时频分析”“统计检验”“年代模型”“天文曲线与数据”；总入口称“方法说明”。避免使用不能区分功能的“科学分析”等宽泛名称。文献题名、程序标识和有明确定义的技术术语保持原样。
+
+交付说明与项目内容分层：补丁包外层放 PATCH_README、PATCH_MANIFEST，实际变更放在 patch/；完整源码包的交付说明放在 source/ 外。维护者只将项目内容合并到仓库。
+
+## 离线帮助目录与搜索
+
+`resources/help_navigation.json` 仅保存中英文分类、标题与页面路径；页面必须先收录到 `resources/help.qrc`。`src/ui/help/help_catalog.cpp` 统一解析 Markdown 章节和显式锚点，供目录、全文索引与正文跳转使用。参数参考仍由任务定义生成，不在目录文件手工复制参数或正文。
+
+全文索引按章节分批构建，搜索标题、正文和锚点标识；多个词需同时匹配。按界面语言去除已有译文的另一语言副本，未译资料保留并标记。新增页面后检查中英文目录、全文搜索及原有方法／参数锚点；共享概念放在通用目录，各任务通过链接引用同一正文。
+
+可运行 `aster_ui_tests helpTreeAndParameterSelection helpGlobalSearchAndCancellation helpFindAndReadingHistory helpNavigationResponsiveLayout`，并运行帮助生成器检查。正文在 Qt 资源中，修改后必须重新编译才能更新程序内帮助。
+
+
+全文搜索切换查询时立即清除旧结果，防止防抖等待期间点击过期章节。首次索引未就绪时的回车请求，绑定当前查询与导航序号；查询、语言或页面导航发生变化后取消旧请求。测试入口为 helpSearchDiscardsStaleResults 与 helpColdSearchEnterOpensResult。

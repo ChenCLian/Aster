@@ -24,6 +24,11 @@ std::optional<ReleaseVersion> ReleaseVersion::parse(QString text) {
     for(const auto &part:v.prerelease)if(numeric(part)&&part.size()>1&&part.startsWith('0'))return {};
     return v;
 }
+bool isAlphaVersion(const QString &text) {
+    const auto version = ReleaseVersion::parse(text);
+    return version && !version->prerelease.isEmpty() &&
+           version->prerelease.first().compare("alpha", Qt::CaseInsensitive) == 0;
+}
 int ReleaseVersion::compare(const ReleaseVersion &o) const {
     for(const auto &pair:{qMakePair(major,o.major),qMakePair(minor,o.minor),qMakePair(patch,o.patch)}) {
         const int c=numberCompare(pair.first,pair.second);if(c)return c;

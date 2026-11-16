@@ -1,0 +1,44 @@
+********* Start testing of EvolutionAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+PASS   : EvolutionAudit::initTestCase()
+PASS   : EvolutionAudit::references(fft_32_32_mean)
+PASS   : EvolutionAudit::references(fft_31_31_linear)
+PASS   : EvolutionAudit::references(fft_16_48_mean)
+PASS   : EvolutionAudit::references(fft_23_47_linear)
+PASS   : EvolutionAudit::references(mtm_32_32_mean)
+PASS   : EvolutionAudit::references(mtm_31_47_linear)
+PASS   : EvolutionAudit::references(mtm_32_64_mean)
+PASS   : EvolutionAudit::references(mtm_41_83_mean)
+PASS   : EvolutionAudit::physicalUnitsAndEndpoints()
+PASS   : EvolutionAudit::chirpAndWindowPlacement()
+PASS   : EvolutionAudit::matchesExistingMtm()
+PASS   : EvolutionAudit::invalidNumericsAndCancellation()
+PASS   : EvolutionAudit::taskDefaultsAndTypes()
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=39 cells=544 elapsed_ms=0
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=501 cells=80802 elapsed_ms=3
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=1001 cells=160801 elapsed_ms=8
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=10001 cells=1884471 elapsed_ms=103
+PASS   : EvolutionAudit::defaultResolutionBudgets()
+PASS   : EvolutionAudit::savedLegacyDefaultsRemainStable()
+PASS   : EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
+PASS   : EvolutionAudit::windowNormalization()
+PASS   : EvolutionAudit::relativeWindowSettingsPreservePower()
+PASS   : EvolutionAudit::targetWindows(short)
+PASS   : EvolutionAudit::targetWindows(one-sample-step)
+PASS   : EvolutionAudit::targetWindows(round-up)
+PASS   : EvolutionAudit::targetWindows(long)
+PASS   : EvolutionAudit::targetWindows(exact-target)
+PASS   : EvolutionAudit::targetWindows(one-window)
+PASS   : EvolutionAudit::targetWindows(two-positions)
+PASS   : EvolutionAudit::targetWindows(minimum-target)
+PASS   : EvolutionAudit::targetWindows(minimum-contiguous-target)
+PASS   : EvolutionAudit::targetWindowsInvalidAndLegacy()
+PASS   : EvolutionAudit::intervalSelection()
+PASS   : EvolutionAudit::centeringAndStandardizing()
+PASS   : EvolutionAudit::qualityInspection()
+PASS   : EvolutionAudit::workflowDatabaseAndFailure()
+PASS   : EvolutionAudit::concurrentSources()
+PASS   : EvolutionAudit::translationsAndCategories()
+PASS   : EvolutionAudit::cleanupTestCase()
+Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted, 523ms
+********* Finished testing of EvolutionAudit *********

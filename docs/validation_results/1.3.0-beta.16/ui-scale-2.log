@@ -1,0 +1,17 @@
+********* Start testing of UpdateTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : UpdateTests::initTestCase() entering
+PASS   : UpdateTests::initTestCase()
+INFO   : UpdateTests::updateWindowVisuals() entering
+PASS   : UpdateTests::updateWindowVisuals(zh-light-660)
+PASS   : UpdateTests::updateWindowVisuals(zh-light-520)
+PASS   : UpdateTests::updateWindowVisuals(zh-dark-660)
+PASS   : UpdateTests::updateWindowVisuals(zh-dark-520)
+PASS   : UpdateTests::updateWindowVisuals(en-light-660)
+PASS   : UpdateTests::updateWindowVisuals(en-light-520)
+PASS   : UpdateTests::updateWindowVisuals(en-dark-660)
+PASS   : UpdateTests::updateWindowVisuals(en-dark-520)
+INFO   : UpdateTests::cleanupTestCase() entering
+PASS   : UpdateTests::cleanupTestCase()
+Totals: 10 passed, 0 failed, 0 skipped, 0 blacklisted, 2146ms
+********* Finished testing of UpdateTests *********

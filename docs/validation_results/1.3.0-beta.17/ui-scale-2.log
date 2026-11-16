@@ -1,0 +1,17 @@
+********* Start testing of UpdateTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : UpdateTests::initTestCase() entering
+PASS   : UpdateTests::initTestCase()
+INFO   : UpdateTests::packageDownloadWindow() entering
+INFO   : UpdateTests::packageDownloadWindow(zh) testdata ../download_tests/fixtures/linux-x64.tar.gz was located at /workspace/scratch/e6f223d0ec44/rollback-work/source/update_tests/../download_tests/fixtures/linux-x64.tar.gz
+   Loc: [../../../rollback-work/source/update_tests/update_tests.cpp(523)]
+QWARN  : UpdateTests::packageDownloadWindow(zh) This plugin does not support propagateSizeHints()
+PASS   : UpdateTests::packageDownloadWindow(zh)
+INFO   : UpdateTests::packageDownloadWindow(en) testdata ../download_tests/fixtures/linux-x64.tar.gz was located at /workspace/scratch/e6f223d0ec44/rollback-work/source/update_tests/../download_tests/fixtures/linux-x64.tar.gz
+   Loc: [../../../rollback-work/source/update_tests/update_tests.cpp(523)]
+QWARN  : UpdateTests::packageDownloadWindow(en) This plugin does not support propagateSizeHints()
+PASS   : UpdateTests::packageDownloadWindow(en)
+INFO   : UpdateTests::cleanupTestCase() entering
+PASS   : UpdateTests::cleanupTestCase()
+Totals: 4 passed, 0 failed, 0 skipped, 0 blacklisted, 651ms
+********* Finished testing of UpdateTests *********

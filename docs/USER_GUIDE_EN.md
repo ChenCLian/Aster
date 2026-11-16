@@ -1,4 +1,8 @@
-# Aster 1.3.0-beta.1 User Guide
+# Aster 1.3.0-beta.20 User Guide
+
+[Classified contents](README_EN.md)
+
+Data-processing guidance: [Smoothing and detrending](methods/smoothing_trends_en.md) · [Standardization and units](concepts/data_processing_en.md#centering) · [Outliers and transformations](methods/outliers_and_transforms_en.md) · [Filtering and envelopes](methods/filter_usage_en.md).
 
 [中文手册](USER_GUIDE.md) · [Task and parameter reference](reference/task_parameters_en.md) · [Methods (Chinese)](methods/README.md) · [FAQ (Chinese)](../FAQ.md)
 
@@ -19,6 +23,8 @@ Build a task tree on the Tasks page, inspect the selected node's output preview,
 ## Input data
 
 Import delimited CSV, TXT, TSV or DAT files. Select a file and verify the delimiter, header, X/Y columns and units. Changes apply automatically to selected files. Bulk import settings copy column positions, not header names. Each file is checked; incompatible files retain their previous settings and are listed with reasons. Import and processing do not overwrite source files. Hover over a file for its full path and status.
+
+See the [data-source guide](methods/data_sources_en.md) for files, saved outputs, test signals and ODP records.
 
 Built-in sources include sine signals, synthetic orbital proxies, ODP records and astronomical curves. Independent sources are not repeated for each imported file. Check the age/depth axis, provenance and sampling of ODP data. Coordinate units are metadata; changing a unit label does not convert the numbers. Use an age-model task to transform depth to age.
 
@@ -43,53 +49,76 @@ Add a source, then use downstream or branch controls to connect processing and a
 
 When several compatible outputs are available, the chooser opens near the source node. Rows have a consistent height and the default output is bold. More than eight choices enable search and scrolling. Hover for the full name; click or press Enter to confirm. Escape or clicking outside cancels without adding a task. A single compatible output connects directly.
 
-Click the small “+” on an existing connection, or drop a task there, to insert a step. To replace an ordinary node, use its context menu or drop another task onto the node. The review dialog lists the new input and the output for each downstream branch. Check their meaning: compatible data types do not imply equivalent scientific content. Ambiguous outputs require an explicit choice. The new method starts with its own defaults; adjust them in Step settings after confirmation. Replacement preserves downstream branches; insertion preserves existing nodes.
+Click the small “+” on an existing connection, or drop a task there, to insert a step. To replace an ordinary node, use its context menu or drop another task onto the node. When the input and every downstream connection have exactly one compatible output, the edit is applied immediately without a selection dialog. Otherwise, the review dialog lists the new input and the output for each downstream branch. Check their meaning: compatible data types do not imply equivalent scientific content. Ambiguous outputs require an explicit choice. The new method starts with its own defaults; adjust them in Step settings after the edit. Replacement preserves downstream branches; insertion preserves existing nodes.
 
-Nothing changes before confirmation. Cancel leaves the workflow untouched; one undo restores an insertion or replacement. Source nodes, joint nodes and edits directly involving joint inputs or outputs are not enabled. Insertion requires room for the whole downstream subtree in the logical grid. If no placement is available, the workflow remains unchanged and an explanation is shown.
+When a choice is needed, nothing changes before confirmation and Cancel leaves the workflow untouched. One undo restores either an immediate or a confirmed insertion or replacement. Source nodes, joint nodes and edits directly involving joint inputs or outputs are not enabled. Insertion requires room for the whole downstream subtree in the logical grid. If no placement is available, the workflow remains unchanged and an explanation is shown.
 
 Valid parameter changes update the preview. Decimal parameters in Step settings accept scientific notation such as `1e-15`, within the declared range. Confirm with Enter or Tab; changing nodes or running the workflow also commits the current edit. A numeric editor accepts wheel changes only after deliberate click or Tab focus. A closed choice list ignores wheel selection. FFT, Welch and MTM require suitable regularly spaced input; inspect sampling and resample explicitly when necessary, or consider Lomb–Scargle for irregular sampling. Compare detrended and original branches when investigating long trends.
 
 For continuous wavelet analysis, choose the calculation convention by its power definition. The default is variance-normalized, scale-corrected power; the alternative is raw power (Torrence–Compo). Their scale ranges and AR(1) estimates also differ. This choice affects computation, while log axes, reversed axes and colors only affect plotting. See the [wavelet method guide (Chinese)](methods/cwt.md).
 
+## Sampling inspection and resampling
+
+Use Sampling and gap inspection to inspect order, duplicate X and intervals without modifying the series. Use Sort and deduplicate for cleanup only, and Sort, deduplicate and resample when a new grid is required. No-resampling mode still sorts and deduplicates. See [task instructions](methods/preprocessing_en.md) for outputs and endpoint behavior, and [shared sampling concepts](concepts/sampling_en.md) for spacing and interpolation guidance.
+
 <a id="evolution-spectrum"></a>
 ## Evolutionary FFT and MTM
 
-Evolutionary spectra estimate power in moving windows of a strictly increasing, regularly sampled series. Window length accepts samples or a percentage of the input span; step accepts samples or overlap percentage. Enter the maximum frequency directly in reciprocal X units, such as 1/m or 1/ka. Zero selects Nyquist automatically; larger values are clamped to Nyquist. Saved legacy ratios remain active until the maximum-frequency field is explicitly edited, including re-entering and confirming zero. The limit crops the saved map and mean spectrum; narrowing it does not improve resolution.
+Evolutionary spectra estimate power in complete moving windows to describe changes with time or depth. Choose a research scale and window length first, then position density, FFT length and normalization. Input must already be strictly increasing and uniform; no preprocessing is inserted automatically.
 
-For sample spacing dx, N input samples, window length L and step S:
+See the [task guide](methods/power_spectra_en.md#evolution-settings) for setup and outputs, and [shared parameters](concepts/spectral_parameters_en.md) for windows, tapers, padding, units and display mapping.
 
-- Endpoint span is (L-1)*dx; Fourier duration is L*dx; physical step is S*dx.
-- The number of complete windows is floor((N-L)/S)+1. No samples are synthesized at either end.
-- FFT length 0 uses L; an explicit length must be at least L. Frequency spacing is 1/(FFT length*dx). Zero padding densifies the grid without increasing physical frequency resolution.
+### Evolutionary spectrum preset and resolved settings
 
-For example, 705 samples at spacing 0.2 with window 128, step 16 and FFT 0 produce a 37-by-65 map. Window 100, step 1, FFT 400 and maximum frequency 2 produce 606-by-161. This illustrates the conversion, not a universal parameter recommendation. Smaller steps and longer FFTs increase computation. Preview and result views may sample the grid to fit the display; CSV retains the complete calculated outputs.
+New evolutionary FFT tasks already use the preset by default, without a separate Apply action. It is an editable starting configuration, not a universal recommendation. It changes both calculation and display settings. See [preset details](methods/power_spectra_en.md#preset) for values, sources and cross-software comparisons.
 
-Normalize each window is off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum then contain dimensionless relative power. This supports comparison of periodic structure but removes absolute power differences between windows. The normalization reference is independent of output cropping. Neither output supplies a significance test, and the mean window spectrum is not the full-record estimate.
+Resolved length, step, overlap and FFT length appear between the lower node-output selector and its plot after a successful preview. This is output-preview information, not the right-hand parameter editor or the Results page. Hover for counts, spans and tail information; also inspect the calculation report for reproduction.
 
-Preview and result heatmaps retain discrete cells and linear color mapping by default. In the result plot's heatmap settings, logarithmic color mapping and smooth display remain available without altering calculated values. Parameter help explains the same conversions.
+<a id="parameter-scope"></a>
+## Parameters for each dataset
 
-
-
-
-### Acycle LAH-style preset and amplitude display
-
-The evolutionary FFT editor offers an editable preset: 20% of input span, 99.2% overlap, 4× FFT length, local linear detrending, rectangular taper, per-window normalization and smooth amplitude display. The current frequency limit is preserved. Every control remains editable. This follows the main LAH calculation/display choices, not every Acycle version or GUI default.
-
-Percentage mode resolves L=round((N−1)*percent/100), S=max(1,round(L*(1−overlap/100))). The report records actual counts and rounded overlap. Increase the percentage if L is below 8; no silent enlargement occurs. Overlapping windows are not independent observations. Zero padding densifies bins without improving true resolution. Existing work/memory limits still apply.
-
-Amplitude display takes the square root of non-negative power. Normalized maps show relative amplitude; otherwise they show square root of PSD, not signal amplitude. Database, CSV, probes and mean spectra retain power. The heatmap style editor switches back to power; changing quantity resets manual color limits. There is no added 2D smoothing, automatic resampling or time-end padding. Strict LAH boundary compatibility remains deferred.
-
-### Parameters for each dataset
+| Operation | Scope |
+| --- | --- |
+| Left import settings | Reading configuration for selected files |
+| Right node parameters | Current dataset or pair at the selected node |
+| Right batch-settings button | All datasets or pairs at this node in the current workflow |
+| Results plot style | Display of the current plot object; no database-value changes |
 
 Select an input and a task node. Parameter edits apply to that dataset at the selected node; joint nodes and their descendants use the selected pair. A fixed footer identifies the scope and provides **Apply to all data in this workflow** (or **Apply to all pairs in this workflow** for paired tasks) without scrolling through long forms. It unifies this node’s settings within the current analysis workflow and sets defaults for future inputs in that workflow. Undo restores the prior individual settings.
+
+### Automatic settings and restoring defaults
+
+Opening the editor does not determine parameters. Each node has base settings; each dataset or pair can override them.
+
+| State | Effective settings |
+| --- | --- |
+| Never run or never opened in the editor | Node base settings plus any saved input-specific overrides |
+| Open or switch the editor only | Read effective settings; do not write overrides or resolved counts |
+| Edit the current dataset | Store differences from the node base settings for that input |
+| Apply to all datasets/pairs in this workflow | Unify this node’s base rules and clear the corresponding individual overrides |
+
+Automatic values are resolved during each preview and run from **this dataset’s actual upstream output**. Changes to input length, spacing or upstream processing trigger new resolution. Batch application copies rules; intentionally fixed sample counts remain fixed. Other nodes and workflows are unaffected.
+
+| Setting | Automatic behavior |
+| --- | --- |
+| Evolutionary window, step and FFT length | Select span percentage, target window count/overlap and window-length multiple |
+| Resampling interval | Select mean, median, minimum or maximum spacing instead of fixed spacing |
+| FFT length or frequency fields labelled “0 = automatic” | Enter 0; the task resolves it using its own definition and input |
+| Parameters with estimation switches, such as AR(1) coefficient | Enable the estimation option; each input is estimated separately |
+
+**Restore default parameters** resets all defaults at this node for the current dataset/pair, including automatic modes. It retains point-level outlier decisions. To restore just one automatic setting, use its selector or zero value. To restore this node across the workflow, reset first and then use the batch button. Parameter edits support undo. Opening an old workflow does not replace explicitly saved settings.
+
+Batch application preserves each existing input’s point-level keep/exclude decisions; future inputs do not inherit those decisions. If the source dataset or pair has been removed, select a valid input before applying settings.
+
+Preview failures show the main reason and suggested action in the node-output plot area in larger text. Long messages scroll and can be copied without shrinking the font.
 
 Point-level keep/exclude decisions are never copied to other inputs. Applying detection rules retains each dataset's point decisions. Changes to input values invalidate old point decisions and require review.
 
 Use **Move** beside Remove to send selected files to an existing or new tree. Destination and **Copy processing steps** are separate choices. Existing destinations use their own processing settings; copying steps to a new tree retains the selected data's node settings. Input identities and import options remain unchanged. Existing pair references are not silently retargeted; copied joint nodes need new pair configuration. The move can be undone.
 
-### Outliers and value transforms
+## Outliers and value transforms
 
-**Data processing → Cleanup → Outlier detection and handling** offers Hampel, global MAD and Y bounds. The default only marks points. Exclusion or local-median replacement must be selected explicitly; original samples and a point decision log are retained. In the node preview, right-click a curve to keep or exclude an individual point. Direct entry of replacement values is not provided. Genuine geological events may produce extreme values.
+**Data processing → Cleanup → Outlier detection and handling** offers Hampel, global MAD and Y bounds. The default only marks points unless manual exclusions are present. Exclusion or local-median replacement must be selected explicitly; original samples and a point decision log are retained. In the node preview, right-click a curve to keep or exclude an individual point; manual exclusion still applies in mark-only mode. Direct entry of replacement values is not provided. Genuine geological events may produce extreme values.
 
 **Data processing → Amplitude → Value transformation** offers ln, log10, asinh and tanh. These change amplitude interpretation and downstream statistics; they do not classify outliers. Logarithms require positive values. asinh accepts signed values; tanh saturates. Missing intervals and hiatus filling are not inferred automatically.
 
@@ -132,7 +161,7 @@ Preview runs in the background up to the selected node and does not create datab
 
 ## Run and inspect results
 
-Run workflow saves complete outputs with parameters, method versions and diagnostic information. Editing parameters does not modify existing records: run again to create new ones.
+Run workflow saves the outputs actually produced by tasks, with parameters, method versions and diagnostics. It cannot restore content explicitly omitted by a method. For example, sampling-detail row limits differ from preview decimation; see [display and output limits (Chinese)](ui/live_preview.md#display-limits). Editing parameters does not modify existing records: run again to create new ones.
 
 The bottom **Steps and outputs** area has two resizable columns. Choose a step on the left and check outputs on the right. Opening a record shows the default output of its last successful graphical step, or the last successful table if no graphical output exists. Clicking a step shows its default output.
 
@@ -194,6 +223,8 @@ SQLite stores results. Changing the database path does not copy or delete record
 
 Browsing a record and checking it for a bulk operation are separate. Filtering and pagination retain checks. Select all checks every matching record, including unloaded pages. Uncheck removes checks from current filter matches. Clear all removes all checks, including records outside the filter; it does not delete data. Delete checked requires confirmation. Back up before bulk deletion and inspect the count outside the current filter.
 
+Print filenames exports IDs and source names for all matching records, including unloaded pages, independently of checked records. It is not a numerical-output export. Output CSV and Use as data source are on the right-hand Export tab; see [saved-output reuse](methods/data_sources_en.md#database) for references and database retention.
+
 <a id="shortcuts"></a>
 
 ## Keyboard shortcuts
@@ -216,11 +247,23 @@ Panel shortcuts apply only on Tasks. Main-window navigation does not activate th
 
 ## Help
 
-Press F1 in the main window or choose Settings → User guide. Click a parameter's question mark to open the matching manual section. Method help opens the method's section. The user guide and parameter reference follow the interface language. Chinese entries without a translation use English. Detailed scientific documents are currently in Chinese.
+The collapsible left-hand contents tree groups Getting started, Features, Shared concepts and parameters, Troubleshooting, and About and references. Task-specific defaults appear under Features → Task parameter reference. Shared sampling, spectral and statistical topics have one authoritative page linked from multiple tasks. Opening method or parameter help expands and selects the matching chapter. The path above the document shows its location; Home returns to this guide.
 
-The built-in viewer supports Back, Forward and Find on page. Enter searches forward with wraparound; Ctrl+F focuses the search field. The manual works offline. View on GitHub opens the matching online page. Missing local pages or sections fall back to GitHub; online documentation reflects the repository's current version.
+| Purpose | Action |
+| --- | --- |
+| Search all built-in help | Use Search all help on the left; select a result to open its section |
+| Find a word on the current page | Click Find in page or press Ctrl+F; Enter/Next moves forward and Previous moves backward |
+| Focus full-text search | Ctrl+Shift+F; Command+Shift+F on macOS |
+| Return to a reading position | Back/Forward preserves the scroll position when leaving a page |
+| Return to the contents tree | Clear the left search box; the document and history remain |
 
-Settings → Contact us opens the authors and contact page. Settings → License opens the offline copyright notice, license terms and source information.
+Full-text search is case-insensitive. Space-separated terms must all occur in the same section. Parameter identifiers such as `evo_target_windows` are searchable. Only compiled help is indexed, not external online material. Search uses the interface language, with untranslated built-in material retained and marked “中文” where appropriate. The first search builds the index in small batches with progress feedback. Clearing the query or closing the window stops pending search work.
+
+Find in page shows the current match number and total, with wraparound. F3/Shift+F3, or the platform’s Find next/previous shortcuts, also move between matches. This is independent of the left-hand search. Hover for full titles; drag the divider to resize the contents pane.
+
+Press F1 in the main window or choose Settings → User guide. Parameter question marks open the matching parameter section; method help opens the method section. The built-in manual works offline. View on GitHub opens the matching online page. Missing local pages or sections fall back to GitHub; online documentation may be newer than the installed version.
+
+Settings → Contact us opens the authors and contact page in the built-in offline manual. Settings → License opens the offline copyright notice, license terms and source information.
 
 <a id="troubleshooting"></a>
 
@@ -230,4 +273,4 @@ Missing Chinese glyphs usually require a CJK font; Linux/WSL instructions are in
 
 COCO requires a depth axis. The metre-valued composite-depth labels `mcd` and `rmcd` are accepted with depth unit `m`, preserving the source depth reference. Resampling does not convert age to depth. COCO Monte Carlo allows 19–20000 simulations, subject to a separate fixed budget of 10 billion estimated work units per task. All scan-adjusted p values being one can be a valid result. See the [COCO FAQ (Chinese)](../FAQ.md#coco-units) for interpretation and budget diagnostics.
 
-Settings can check releases and open the download page. This version uses complete-package manual updates without background installation. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.
+Opening Settings → Check for updates checks the selected channel once. Stable and Beta are separate; Beta builds initially select Beta. Release notes support expandable details, and diagnostic information stays collapsed until requested. When package information is available, choose a destination and select Download and extract. Aster downloads the full package over official HTTPS, verifies SHA-256 and extracts into a new folder. Automatic source selection may retry an identical package from another listed source; a manually selected source does not switch. Existing destination folders are never replaced. Temporary files are cleaned after completion. Open the folder, close the old application and start the new version yourself. Older releases without package information keep the browser download button. Alpha builds are developer-only and do not participate in online version checks. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.

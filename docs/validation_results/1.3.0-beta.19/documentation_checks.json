@@ -1,0 +1,10 @@
+{
+  "version": "1.3.0-beta.19",
+  "documentation": {
+    "status": "targeted_update_release_review",
+    "scope": "Release behavior, first Actions instructions, validation records and mechanical version synchronization; comprehensive documentation cleanup remains pending",
+    "parameter_references_current": true,
+    "relative_links_checked": true,
+    "native_visual_review": "pending"
+  }
+}

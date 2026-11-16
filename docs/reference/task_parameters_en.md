@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.3.0-beta.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.3.0-beta.20. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -72,10 +72,14 @@ Choice labels match the interface; identifiers used in saved settings are retain
 
 Y′ = scale × Y + offset; X is unchanged.
 
+[Task guide and selection criteria](../concepts/data_processing_en.md#centering)
+
 <a id="m-affine-p-factor"></a>
 ### Scale
 
 Y′ = scale factor × Y + offset. A negative factor reverses the sign of Y; X is unchanged.
+
+[Shared concepts and details](../concepts/data_processing_en.md#centering)
 
 Default: ` 1 `
 
@@ -85,6 +89,8 @@ Range: ` -1e+100 ≤ factor ≤ 1e+100 `
 ### Offset
 
 Constant added to Y after scaling, in the same units as Y. X is unchanged.
+
+[Shared concepts and details](../concepts/data_processing_en.md#centering)
 
 Default: ` 0 `
 
@@ -98,10 +104,14 @@ Outputs: ` series `
 
 Assigns ages by interpolation in a depth–age control table, with explicit boundary behavior.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#apply)
+
 <a id="m-apply_age_model-p-chrono_model_file"></a>
 ### Depth–age table
 
 Choose a depth–age table with at least two rows, including CSV exported by Sedimentation rate to age model. Default columns 1 and 2; max 4 MiB/100000 controls. Both columns must increase strictly; no automatic cleanup.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#files)
 
 Default: empty string
 
@@ -109,6 +119,8 @@ Default: empty string
 ### Delimiter
 
 Uses the normal import parser: automatic, comma, tab or whitespace. Blank lines and # comments are ignored.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#apply)
 
 Default: Automatic (` auto `)
 
@@ -119,6 +131,8 @@ Values: Automatic (` auto `), Comma (` comma `), Tab (` tab `), Whitespace (` wh
 
 Auto detection examines the selected columns. Yes consumes the first row; No parses it as data. Invalid numeric rows fail rather than being skipped.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#apply)
+
 Default: Auto detect (` auto `)
 
 Values: Auto detect (` auto `), Header present (` yes `), No header (` no `)
@@ -127,6 +141,8 @@ Values: Auto detect (` auto `), Header present (` yes `), No header (` no `)
 ### Depth column (1-based)
 
 One-based control-table depth column; must differ from the age column.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#apply)
 
 Default: ` 1 `
 
@@ -137,6 +153,8 @@ Range: ` 1 ≤ chrono_depth_column ≤ 10000 `
 
 One-based control-table age column. Uncertainty columns are not interpreted as confidence intervals.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#apply)
+
 Default: ` 2 `
 
 Range: ` 1 ≤ chrono_age_column ≤ 10000 `
@@ -145,6 +163,8 @@ Range: ` 1 ≤ chrono_age_column ≤ 10000 `
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -155,6 +175,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Default ka (1000 years). Used for the first age and output; for Apply age model it is also the unit of the control-table age column, not inferred from its header.
 
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
+
 Default: ` ka `
 
 Values: ` yr `, ` ka `, ` Ma `
@@ -163,6 +185,8 @@ Values: ` yr `, ` ka `, ` Ma `
 ### Age reference
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#epoch)
 
 Default: Unspecified (` unspecified `)
 
@@ -173,6 +197,8 @@ Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 200
 
 Unit of the control-table depth column, converted to the input depth unit. The age column uses the Age unit setting.
 
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
+
 Default: ` m `
 
 Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
@@ -181,6 +207,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 ### Outside control range
 
 Default rejects uncovered data without deleting rows. Explicit linear extrapolation extends endpoint secants and reports the count. No automatic resampling follows.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#coverage)
 
 Default: Reject outside range (` reject `)
 
@@ -192,12 +220,16 @@ Outputs: ` aged_series `, ` age_model `, ` age_intervals `
 <a id="m-ar1_global"></a>
 ## AR1 background global test
 
-Global test under the AR1 null, nominal level 5%, over all positive frequencies. Requires 64–1024 regularly spaced, non-constant samples. Only internal LOWESS is replayed in reference simulations; other preprocessing must preserve the model assumptions.
+One-record global test under stationary Gaussian AR1 noise, nominal level 5%. Tests positive interior Fourier bins, excluding DC and even-length Nyquist. Requires 64–1024 regular, nonconstant samples. Only internal LOWESS is replayed in references; other preprocessing still requires checking model assumptions.
+
+[Task guide and output interpretation](../methods/spectral_inference_en.md#ar1)
 
 <a id="m-ar1_global-p-ar1_precision"></a>
 ### Simulation precision
 
-Standard precision uses 199 analysis simulations; fine uses 999 and takes longer. Parameter screening uses 999 simulations.
+Each reference model uses 999 screening simulations. Standard mode uses the first 199 for analysis statistics; fine uses 999. These are not totals for the task; fine mode costs more and may exceed budgets.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#ar1)
 
 Default: Standard (199 analysis simulations) (` standard `)
 
@@ -208,6 +240,8 @@ Values: Standard (199 analysis simulations) (` standard `), Fine (999; slower) (
 
 Controls the reference simulations. Fix the seed for reproducibility rather than selecting it to obtain significance.
 
+[Shared concepts and details](../concepts/statistical_interpretation_en.md#background)
+
 Default: ` 202611021 `
 
 Range: ` 0 ≤ ar1_seed ≤ 2147483647 `
@@ -217,12 +251,16 @@ Range: ` 0 ≤ ar1_seed ≤ 2147483647 `
 
 Applies the same internal LOWESS to the observation and each reference simulation. Upstream workflow steps are not replayed.
 
+[Shared concepts and details](../concepts/statistical_interpretation_en.md#background)
+
 Default: ` false `
 
 <a id="m-ar1_global-p-ar1_fraction"></a>
 ### Internal LOWESS window fraction
 
 Fraction of samples in each internal LOWESS neighborhood. Used only when internal LOWESS is enabled; robust iterations are fixed at zero.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#ar1)
 
 Default: ` 0.35 `
 
@@ -232,6 +270,8 @@ Range: ` 0.05 ≤ ar1_fraction ≤ 1 `
 ### Reuse matching reference simulations
 
 Reuses reference simulations with matching settings. Disabling this regenerates them without changing the test definition.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#ar1)
 
 Default: ` true `
 
@@ -243,10 +283,14 @@ Outputs: ` ar1_global_test `, ` spectrum `, ` ar1_global_background `, ` ar1_ana
 
 Forward–backward Butterworth high-pass filtering of regularly sampled data.
 
+[Task guide and selection criteria](../methods/filter_usage_en.md#butterworth)
+
 <a id="m-butterworth_highpass-p-butter_cutoff"></a>
 ### Single-pass cutoff frequency
 
 In inverse X units; uniform sampling required. Cutoff/Nyquist must be 0.0001–0.9999. Gain is 1/sqrt(2) at the single-pass cutoff and 0.5 after both passes. The response curve shows the combined amplitude gain.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0.05 `
 
@@ -255,7 +299,9 @@ Range: ` 0 ≤ butter_cutoff ≤ 1000000000000 `
 <a id="m-butterworth_highpass-p-butter_order"></a>
 ### Single-pass order
 
-1–10, default 4. Two passes double the effective order. Each end uses 3×(order+1) points of odd reflection; the record must be longer. Low-pass preserves DC; finite-record edge effects remain.
+1–10, default 4; two passes double the effective order. Each end uses 3×(order+1) points of odd reflection; input must be longer. Low-pass preserves a constant baseline, not necessarily the exact sample mean of every finite record.
+
+[Shared concepts and details](../methods/filter_usage_en.md#butterworth)
 
 Default: ` 4 `
 
@@ -269,10 +315,14 @@ Outputs: ` filtered `, ` filter_response `
 
 Forward–backward Butterworth low-pass filtering of regularly sampled data.
 
+[Task guide and selection criteria](../methods/filter_usage_en.md#butterworth)
+
 <a id="m-butterworth_lowpass-p-butter_cutoff"></a>
 ### Single-pass cutoff frequency
 
 In inverse X units; uniform sampling required. Cutoff/Nyquist must be 0.0001–0.9999. Gain is 1/sqrt(2) at the single-pass cutoff and 0.5 after both passes. The response curve shows the combined amplitude gain.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0.05 `
 
@@ -281,7 +331,9 @@ Range: ` 0 ≤ butter_cutoff ≤ 1000000000000 `
 <a id="m-butterworth_lowpass-p-butter_order"></a>
 ### Single-pass order
 
-1–10, default 4. Two passes double the effective order. Each end uses 3×(order+1) points of odd reflection; the record must be longer. Low-pass preserves DC; finite-record edge effects remain.
+1–10, default 4; two passes double the effective order. Each end uses 3×(order+1) points of odd reflection; input must be longer. Low-pass preserves a constant baseline, not necessarily the exact sample mean of every finite record.
+
+[Shared concepts and details](../methods/filter_usage_en.md#butterworth)
 
 Default: ` 4 `
 
@@ -293,12 +345,16 @@ Outputs: ` filtered `, ` filter_response `
 <a id="m-clean_series"></a>
 ## Sort and deduplicate
 
-Sorts X/Y pairs by increasing X and merges duplicate X values using the selected rule. No resampling.
+Sorts paired X/Y samples by increasing X and handles exactly equal X values. It does not interpolate or create a regular grid. Y values at duplicate X are averaged by default; first, last and error policies are also available. At least two finite samples and two distinct X values after cleanup are required. Use Sampling and gap inspection first if you want to inspect without changing the series.
+
+[Instructions and output interpretation](../methods/preprocessing_en.md#cleanup)
 
 <a id="m-clean_series-p-duplicate_policy"></a>
 ### Duplicate X
 
-Duplicate means exactly equal X, not repeated Y. Average combines Y; first/last refer to original input order.
+Handles exactly equal X, not repeated Y or approximately equal coordinates. Average combines Y. First and last follow the input order received by this node, not Y magnitude. Choose error to review duplicate records before combining them.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#duplicates)
 
 Default: Average (` average `)
 
@@ -312,10 +368,14 @@ Outputs: ` series `
 
 Evaluates a fixed-target COCO scan with simulated series; results depend on the targets, rate range and noise model.
 
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
+
 <a id="m-coco_monte_carlo-p-chrono_depth_unit"></a>
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -326,6 +386,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: Manual periods (` manual `)
 
 Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
@@ -335,6 +397,8 @@ Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint
 
 Enter 2–16 positive periods separated by commas or spaces. Defaults 405,125,95,41,24,22,19 ka are a modern example; use age-appropriate periods for older records. All frequencies must be below the band limit.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 405, 125, 95, 41, 24, 22, 19 `
 
 Shown when: ` coco_target ` = ` manual `
@@ -343,6 +407,8 @@ Shown when: ` coco_target ` = ` manual `
 ### Geological age (Ma)
 
 0–4000 million years before present; default 300 Ma. Waltham (2015) envelope model, not an orbital phase solution.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: ` 300 `
 
@@ -355,12 +421,16 @@ Shown when: ` coco_target ` = ` waltham_midpoint `
 
 Positive powers, one per period, not amplitudes. Defaults 1,1,1,0.64,0.36,0.36,0.36 correspond to amplitudes 1,1,1,0.8,0.6,0.6,0.6. No adaptive fitting.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 1, 1, 1, 0.64, 0.36, 0.36, 0.36 `
 
 <a id="m-coco_monte_carlo-p-coco_rate_min"></a>
 ### Minimum rate (cm/ka)
 
 Positive sedimentation rate. X must be increasing, uniformly sampled depth; no automatic sorting or resampling.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.5 `
 
@@ -371,6 +441,8 @@ Range: ` 1e-09 ≤ coco_rate_min ≤ 1000000000 `
 
 Upper bound; rates are minimum plus integer multiples of the step. No off-grid endpoint is appended.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 20 `
 
 Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
@@ -379,6 +451,8 @@ Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
 ### Rate step (cm/ka)
 
 At most 2000 rates. The full band and every target must be resolved; excluded candidates remain in the diagnostic table.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.1 `
 
@@ -389,6 +463,8 @@ Range: ` 1e-09 ≤ coco_rate_step ≤ 1000000000 `
 
 Default 0.06. Compare non-DC bins up to this limit; short ancient precession periods may require a higher limit. The full band must lie within candidate Nyquist.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 0.06 `
 
 Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
@@ -397,6 +473,8 @@ Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
 ### Padding factor
 
 1–4; FFT length is the next power of two at least factor times N. Padding refines the grid, not physical resolution.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 2 `
 
@@ -407,6 +485,8 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: Remove mean (` mean `)
 
 Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
@@ -416,6 +496,8 @@ Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
 
 Default: fixed-parameter Gaussian AR(1); rho=0 is white noise. Random spectral peaks are a literature reference model, not a general time-series false-positive guarantee.
 
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
+
 Default: Fixed-parameter AR(1) (` fixed_ar1 `)
 
 Values: Fixed-parameter AR(1) (` fixed_ar1 `), Random peaks (reference model) (` random_peaks `)
@@ -424,6 +506,8 @@ Values: Fixed-parameter AR(1) (` fixed_ar1 `), Random peaks (reference model) (`
 ### AR(1) coefficient rho
 
 Specify independently of the tested data. Fitting rho to this series does not give an exact test. Default 0; |rho|<1. Replay detrending, FFT and rate scanning on stationary Gaussian AR(1) draws; upstream processing is not replayed.
+
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
 
 Default: ` 0 `
 
@@ -436,6 +520,8 @@ Shown when: ` coco_null ` = ` fixed_ar1 `
 
 0: count strict local periodogram peaks, excluding zero and Nyquist frequencies; otherwise use the specified count. Simulated peaks have random positions and heights, with width 2 Rayleigh frequency-resolution units. No red-noise background subtraction.
 
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ coco_null_peaks ≤ 8192 `
@@ -447,6 +533,8 @@ Shown when: ` coco_null ` = ` random_peaks `
 
 Default 199; minimum p resolution is 1/(B+1). Increase B for final analyses when budget permits; predeclare the target, band and rate grid.
 
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
+
 Default: ` 199 `
 
 Range: ` 19 ≤ coco_simulations ≤ 20000 `
@@ -456,6 +544,8 @@ Range: ` 19 ≤ coco_simulations ≤ 20000 `
 
 A fixed seed reproduces the same input and parameters; tasks do not share mutable RNG state. Do not select a seed by its result.
 
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
+
 Default: ` 1729 `
 
 Range: ` 0 ≤ coco_seed ≤ 2147483647 `
@@ -464,6 +554,8 @@ Range: ` 0 ≤ coco_seed ≤ 2147483647 `
 ### Test level alpha
 
 Default 0.05; must be at least 1/(B+1). Decide using p<=alpha; the critical value is a plotting aid. After selecting a best rate, use the scan-adjusted or global-scan p value.
+
+[Use and output interpretation](../methods/coco_usage_en.md#monte-carlo)
 
 Default: ` 0.05 `
 
@@ -477,10 +569,14 @@ Outputs: ` correlation `, ` scan_diagnostics `, ` best_observed `, ` best_target
 
 Scans candidate sedimentation rates against fixed target periods. A scan optimum alone does not validate an age model.
 
+[Use and output interpretation](../methods/coco_usage_en.md#scan)
+
 <a id="m-coco_scan-p-chrono_depth_unit"></a>
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -491,6 +587,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: Manual periods (` manual `)
 
 Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
@@ -500,6 +598,8 @@ Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint
 
 Enter 2–16 positive periods separated by commas or spaces. Defaults 405,125,95,41,24,22,19 ka are a modern example; use age-appropriate periods for older records. All frequencies must be below the band limit.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 405, 125, 95, 41, 24, 22, 19 `
 
 Shown when: ` coco_target ` = ` manual `
@@ -508,6 +608,8 @@ Shown when: ` coco_target ` = ` manual `
 ### Geological age (Ma)
 
 0–4000 million years before present; default 300 Ma. Waltham (2015) envelope model, not an orbital phase solution.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: ` 300 `
 
@@ -520,12 +622,16 @@ Shown when: ` coco_target ` = ` waltham_midpoint `
 
 Positive powers, one per period, not amplitudes. Defaults 1,1,1,0.64,0.36,0.36,0.36 correspond to amplitudes 1,1,1,0.8,0.6,0.6,0.6. No adaptive fitting.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 1, 1, 1, 0.64, 0.36, 0.36, 0.36 `
 
 <a id="m-coco_scan-p-coco_rate_min"></a>
 ### Minimum rate (cm/ka)
 
 Positive sedimentation rate. X must be increasing, uniformly sampled depth; no automatic sorting or resampling.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.5 `
 
@@ -536,6 +642,8 @@ Range: ` 1e-09 ≤ coco_rate_min ≤ 1000000000 `
 
 Upper bound; rates are minimum plus integer multiples of the step. No off-grid endpoint is appended.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 20 `
 
 Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
@@ -544,6 +652,8 @@ Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
 ### Rate step (cm/ka)
 
 At most 2000 rates. The full band and every target must be resolved; excluded candidates remain in the diagnostic table.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.1 `
 
@@ -554,6 +664,8 @@ Range: ` 1e-09 ≤ coco_rate_step ≤ 1000000000 `
 
 Default 0.06. Compare non-DC bins up to this limit; short ancient precession periods may require a higher limit. The full band must lie within candidate Nyquist.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 0.06 `
 
 Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
@@ -563,6 +675,8 @@ Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
 
 1–4; FFT length is the next power of two at least factor times N. Padding refines the grid, not physical resolution.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 2 `
 
 Range: ` 1 ≤ coco_padding ≤ 4 `
@@ -571,6 +685,8 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 ### Spectral detrending
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: Remove mean (` mean `)
 
@@ -584,10 +700,14 @@ Outputs: ` correlation `, ` scan_diagnostics `, ` best_observed `, ` best_target
 
 Estimate cross spectra, magnitude-squared coherence and phase for explicitly paired, aligned series from ordinary nodes in the same workspace. Phase uses conj(A) × B along increasing numeric X. No significance threshold is supplied.
 
+[Task guide and output interpretation](../methods/spectral_inference_en.md#cross)
+
 <a id="m-cross_spectrum-p-psd_window"></a>
 ### Segment points
 
 Samples per segment. At least two complete segments are required; the length is not shortened automatically.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#cross)
 
 Default: ` 256 `
 
@@ -598,6 +718,8 @@ Range: ` 8 ≤ psd_window ≤ 262144 `
 
 Overlapping samples between segments; must be smaller than the segment length.
 
+[Shared concepts and details](../concepts/spectral_parameters_en.md#overlap)
+
 Default: ` 128 `
 
 Range: ` 0 ≤ psd_overlap ≤ 262143 `
@@ -606,6 +728,8 @@ Range: ` 0 ≤ psd_overlap ≤ 262143 `
 ### FFT points
 
 0 uses the segment length. A specified value must be at least the segment length; zero padding does not improve original resolving power.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#fft-padding)
 
 Default: ` 0 `
 
@@ -616,6 +740,8 @@ Range: ` 0 ≤ psd_nfft ≤ 262144 `
 
 Periodic Hann or rectangular window; both series use the same window and density normalization.
 
+[Shared concepts and details](../concepts/spectral_parameters_en.md#taper-trend)
+
 Default: Periodic Hann (` hann `)
 
 Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
@@ -624,6 +750,8 @@ Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 ### Segment detrending
 
 Remove the mean or a linear trend from each segment, or leave each segment unchanged. With rectangular-window mean or linear removal, DC coherence and phase are undefined.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#cross)
 
 Default: Remove mean (` mean `)
 
@@ -637,10 +765,14 @@ Outputs: ` cross_spectrum `
 
 Continuous wavelet time-frequency analysis of regularly sampled data, with power, cone of influence and applicable local significance outputs.
 
+[Task guide and output interpretation](../methods/spectral_inference_en.md#wavelet)
+
 <a id="m-cwt-p-method"></a>
 ### Wavelet convention
 
 Default variance-normalized, scale-corrected mode divides power by the input sample variance and wavelet scale. Raw-power mode displays squared wavelet-coefficient magnitude. Scale ranges and AR(1) background estimates also differ. Switching modes recalculates the result.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#wavelet)
 
 Default: Variance-normalized, scale-corrected (` acycle_cwt `)
 
@@ -651,6 +783,8 @@ Values: Variance-normalized, scale-corrected (` acycle_cwt `), Raw power (Torren
 
 Morlet, Paul or DOG mother wavelet. Scale-to-period conversion and cone-of-influence conventions depend on the mother.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#wavelet)
+
 Default: Morlet (` morlet `)
 
 Values: Morlet (` morlet `), Paul (` paul `), Derivative of Gaussian (DOG) (` dog `)
@@ -659,6 +793,8 @@ Values: Morlet (` morlet `), Paul (` paul `), Derivative of Gaussian (DOG) (` do
 ### Wavelet parameter
 
 Morlet requires a frequency parameter of at least 5; Paul requires an integer order; DOG requires an even integer order.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#wavelet)
 
 Default: ` 6 `
 
@@ -669,6 +805,8 @@ Range: ` 1 ≤ parameter ≤ 20 `
 
 Spacing between scales in log2 units. Smaller values refine the scale grid at greater computational and memory cost, without increasing the resolution of the input.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#wavelet)
+
 Default: ` 0.1 `
 
 Range: ` 0.02 ≤ dj ≤ 1 `
@@ -677,6 +815,8 @@ Range: ` 0.02 ≤ dj ≤ 1 `
 ### Compute nominal local 95% threshold
 
 Computes the nominal local 95% AR1 threshold and power ratio. A ratio above 1 exceeds the local threshold; it is not a global test of the time-frequency map.
+
+[Shared concepts and details](../concepts/statistical_interpretation_en.md#local-global)
 
 Default: ` true `
 
@@ -688,10 +828,14 @@ Outputs: ` power `, ` coi `, ` raw_power `, ` scale_corrected_power `, ` signifi
 
 Assigns ages cycle by cycle from selected peaks or troughs; depends on extremum selection, missing cycles and interval selection.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 <a id="m-cycle_age_model-p-chrono_depth_unit"></a>
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -702,6 +846,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Default ka (1000 years). Used for the first age and output; for Apply age model it is also the unit of the control-table age column, not inferred from its header.
 
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
+
 Default: ` ka `
 
 Values: ` yr `, ` ka `, ` Ma `
@@ -710,6 +856,8 @@ Values: ` yr `, ` ka `, ` Ma `
 ### Age reference
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#epoch)
 
 Default: Unspecified (` unspecified `)
 
@@ -720,6 +868,8 @@ Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 200
 
 Manual by default. Model midpoint uses the selected Waltham envelope midpoint, converted from ka to the Age unit. It is not a measured period.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 Default: Manual duration (` manual `)
 
 Values: Manual duration (` manual `), Target model midpoint (` model_midpoint `)
@@ -728,6 +878,8 @@ Values: Manual duration (` manual `), Target model midpoint (` model_midpoint `)
 ### Cycle duration
 
 Default 41 in Age unit (default ka). One full cycle between consecutive selected peaks OR troughs, never alternating peaks and troughs.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
 
 Default: ` 41 `
 
@@ -740,6 +892,8 @@ Shown when: ` cycle_period_source ` = ` manual `
 
 0–4000 million years before present; default 300 Ma. Waltham (2015) envelope model, not an orbital phase solution.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
+
 Default: ` 300 `
 
 Range: ` 0 ≤ target_age_ma ≤ 4000 `
@@ -750,6 +904,8 @@ Shown when: ` cycle_period_source ` = ` model_midpoint `
 ### Target component
 
 Obliquity and four climatic-precession components vary with age. Five eccentricity frequency envelopes are fixed approximations from Table 1.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: Obliquity (` obliquity `)
 
@@ -762,6 +918,8 @@ Shown when: ` cycle_period_source ` = ` model_midpoint `
 
 Choose peaks or troughs of a suitable signal; filter explicitly beforehand if needed. Flat tops/bottoms count once, at the central sample (left of two central samples). Endpoints are excluded.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 Default: Peaks (` peak `)
 
 Values: Peaks (` peak `), Troughs (` trough `)
@@ -770,6 +928,8 @@ Values: Peaks (` peak `), Troughs (` trough `)
 ### Minimum local relief
 
 Default 0 in Y units. Peak height above the higher adjacent inter-peak valley; troughs use the inverted signal. This is not global peak prominence.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
 
 Default: ` 0 `
 
@@ -780,6 +940,8 @@ Range: ` 0 ≤ cycle_min_relief ≤ 1000000000000 `
 
 Default 0 in Input depth unit. Retain stronger local relief first; ties prefer earlier markers. Equality is allowed. Suppression changes cycle counts and cannot detect missing cycles.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ cycle_min_distance ≤ 1000000000000 `
@@ -789,6 +951,8 @@ Range: ` 0 ≤ cycle_min_distance ≤ 1000000000000 `
 
 By default, the first marker is assigned an age of one full period. Choose a specified age to enter an absolute or relative age when a dated marker is available.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 Default: One full period (` one_period `)
 
 Values: One full period (` one_period `), Specified age (` specified `)
@@ -797,6 +961,8 @@ Values: One full period (` one_period `), Specified age (` specified `)
 ### Specified first age
 
 Age of the FIRST selected marker, in Age unit. It is not the first input row. Ages increase with depth.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
 
 Default: ` 0 `
 
@@ -809,6 +975,8 @@ Shown when: ` cycle_first_age_mode ` = ` specified `
 
 Off by default: model contains selected markers only. When enabled, extend the first/last age-depth secants to the input ends; this adds no independent age constraint.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#cycles)
+
 Default: ` false `
 
 Outputs: ` age_model `, ` selected_extrema `, ` cycle_anchors `, ` interval_rates `
@@ -819,6 +987,8 @@ Outputs: ` age_model `, ` selected_extrema `, ` cycle_anchors `, ` interval_rate
 
 Reads a saved grid output for use in a workflow.
 
+[Use and output interpretation](../methods/data_sources_en.md#database)
+
 Outputs: ` data `
 
 
@@ -826,6 +996,8 @@ Outputs: ` data `
 ## Database Series
 
 Reads a saved data series for use in a workflow.
+
+[Use and output interpretation](../methods/data_sources_en.md#database)
 
 Outputs: ` data `
 
@@ -835,6 +1007,8 @@ Outputs: ` data `
 
 Reads a saved spectrum output for use in a workflow.
 
+[Use and output interpretation](../methods/data_sources_en.md#database)
+
 Outputs: ` data `
 
 
@@ -842,6 +1016,8 @@ Outputs: ` data `
 ## Database Table
 
 Reads a saved numerical table for use in a workflow.
+
+[Use and output interpretation](../methods/data_sources_en.md#database)
 
 Outputs: ` data `
 
@@ -851,6 +1027,8 @@ Outputs: ` data `
 
 Subtracts the arithmetic mean from Y; X and units are unchanged.
 
+[Task guide and selection criteria](../concepts/data_processing_en.md#centering)
+
 Outputs: ` series `
 
 
@@ -859,10 +1037,14 @@ Outputs: ` series `
 
 Estimates a local LOWESS trend and outputs detrended data and the trend separately. The window is a fraction of samples.
 
+[Task guide and selection criteria](../methods/smoothing_trends_en.md#lowess)
+
 <a id="m-detrend_lowess-p-fraction"></a>
 ### Window fraction
 
 Fraction of samples in a local LOWESS window, not a physical X-axis width.
+
+[Shared concepts and details](../concepts/data_processing_en.md#neighborhoods)
 
 Default: ` 0.35 `
 
@@ -873,6 +1055,8 @@ Range: ` 0.001 ≤ fraction ≤ 1 `
 
 0: ordinary LOWESS. Positive values enable robust reweighting; 5 is a common rLOWESS setting.
 
+[Shared concepts and details](../methods/smoothing_trends_en.md#lowess)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ iterations ≤ 10 `
@@ -880,7 +1064,9 @@ Range: ` 0 ≤ iterations ≤ 10 `
 <a id="m-detrend_lowess-p-retain_mean"></a>
 ### Retain original mean
 
-Adds the original mean back after detrending. The trend output is unchanged.
+After subtracting the fitted trend, add the mean of that trend to preserve the input mean. This is not simply adding the input mean. The trend output is unchanged.
+
+[Shared concepts and details](../methods/smoothing_trends_en.md#lowess)
 
 Default: ` false `
 
@@ -892,10 +1078,14 @@ Outputs: ` detrended `, ` trend `
 
 Orbital eccentricity. La2010 covers 0–249999 ka and ZB covers 0–300000 ka; table coverage does not imply reliable orbital phase throughout.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#orbital)
+
 <a id="m-eccentricity_source-p-eccentricity_solution"></a>
 ### Orbital solution
 
 La2010 native spacing: 1 ka; ZB: 1.6 ka. Only eccentricity is supplied; no tilt/precession is borrowed from other solutions. Treat phases earlier than ~50 Ma (La2010) or ~66 Ma (ZB) with caution.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#orbital)
 
 Default: La2010a (` la2010a `)
 
@@ -906,6 +1096,8 @@ Values: La2010a (` la2010a `), La2010b (` la2010b `), La2010c (` la2010c `), La2
 
 Positive age into the past, in ka before J2000; not BP relative to 1950.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ orbit_start_ka ≤ 300000 `
@@ -915,6 +1107,8 @@ Range: ` 0 ≤ orbit_start_ka ≤ 300000 `
 
 Last data ages: La2010 249999 ka; ZB 300000 ka; PT 100000 ka. Requests outside the selected table fail; no extrapolation.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ orbit_end_ka ≤ 300000 `
@@ -923,6 +1117,8 @@ Range: ` 0 ≤ orbit_end_ka ≤ 300000 `
 ### Output spacing (ka)
 
 Uniform output age grid, at most one million samples. Linear scalar interpolation; shortest-arc axial-angle interpolation. Finer output adds no independent orbital information; coarse output can alias and is not automatically filtered.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -936,10 +1132,14 @@ Outputs: ` eccentricity `
 
 Weighted combination of standardized eccentricity, obliquity and climatic precession from La2004.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#etp)
+
 <a id="m-etp_source-p-age_start_ka"></a>
 ### Start age (ka)
 
 Age before J2000, positive into the past; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -950,6 +1150,8 @@ Range: ` 0 ≤ age_start_ka ≤ 50000 `
 
 Older end of the interval, at most 50000 ka before J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ age_end_ka ≤ 50000 `
@@ -958,6 +1160,8 @@ Range: ` 0 ≤ age_end_ka ≤ 50000 `
 ### Age spacing (ka)
 
 La2004 native spacing is 1 ka. Finer spacing interpolates; seasonal integration allows at most 20000 ages.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -968,6 +1172,8 @@ Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
 
 Weight of the standardized eccentricity component; zero excludes it.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#etp)
+
 Default: ` 1 `
 
 Range: ` -1000 ≤ etp_e ≤ 1000 `
@@ -977,6 +1183,8 @@ Range: ` -1000 ≤ etp_e ≤ 1000 `
 
 Weight of the standardized obliquity component; zero excludes it.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#etp)
+
 Default: ` 1 `
 
 Range: ` -1000 ≤ etp_t ≤ 1000 `
@@ -985,6 +1193,8 @@ Range: ` -1000 ≤ etp_t ≤ 1000 `
 ### Precession weight
 
 Weight of standardized climatic precession; the default is −1. Changing its sign reverses the component.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#etp)
 
 Default: ` -1 `
 
@@ -998,10 +1208,14 @@ Outputs: ` etp `
 
 Runs fixed-target COCO scans in moving windows to display candidate sedimentation rates along the record.
 
+[Use and output interpretation](../methods/coco_usage_en.md#evolution)
+
 <a id="m-evolution_coco-p-chrono_depth_unit"></a>
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -1012,6 +1226,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Manual periods by default. Optional Waltham midpoints select E405, E124, E95, obliquity, P1, P2 and P4; this does not load a La2004 time series.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: Manual periods (` manual `)
 
 Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint `)
@@ -1021,6 +1237,8 @@ Values: Manual periods (` manual `), Waltham model midpoints (` waltham_midpoint
 
 Enter 2–16 positive periods separated by commas or spaces. Defaults 405,125,95,41,24,22,19 ka are a modern example; use age-appropriate periods for older records. All frequencies must be below the band limit.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 405, 125, 95, 41, 24, 22, 19 `
 
 Shown when: ` coco_target ` = ` manual `
@@ -1029,6 +1247,8 @@ Shown when: ` coco_target ` = ` manual `
 ### Geological age (Ma)
 
 0–4000 million years before present; default 300 Ma. Waltham (2015) envelope model, not an orbital phase solution.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: ` 300 `
 
@@ -1041,12 +1261,16 @@ Shown when: ` coco_target ` = ` waltham_midpoint `
 
 Positive powers, one per period, not amplitudes. Defaults 1,1,1,0.64,0.36,0.36,0.36 correspond to amplitudes 1,1,1,0.8,0.6,0.6,0.6. No adaptive fitting.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 1, 1, 1, 0.64, 0.36, 0.36, 0.36 `
 
 <a id="m-evolution_coco-p-coco_rate_min"></a>
 ### Minimum rate (cm/ka)
 
 Positive sedimentation rate. X must be increasing, uniformly sampled depth; no automatic sorting or resampling.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.5 `
 
@@ -1057,6 +1281,8 @@ Range: ` 1e-09 ≤ coco_rate_min ≤ 1000000000 `
 
 Upper bound; rates are minimum plus integer multiples of the step. No off-grid endpoint is appended.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 20 `
 
 Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
@@ -1065,6 +1291,8 @@ Range: ` 1e-09 ≤ coco_rate_max ≤ 1000000000 `
 ### Rate step (cm/ka)
 
 At most 2000 rates. The full band and every target must be resolved; excluded candidates remain in the diagnostic table.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 0.1 `
 
@@ -1075,6 +1303,8 @@ Range: ` 1e-09 ≤ coco_rate_step ≤ 1000000000 `
 
 Default 0.06. Compare non-DC bins up to this limit; short ancient precession periods may require a higher limit. The full band must lie within candidate Nyquist.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: ` 0.06 `
 
 Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
@@ -1083,6 +1313,8 @@ Range: ` 1e-09 ≤ coco_max_frequency ≤ 1000000 `
 ### Padding factor
 
 1–4; FFT length is the next power of two at least factor times N. Padding refines the grid, not physical resolution.
+
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
 
 Default: ` 2 `
 
@@ -1093,6 +1325,8 @@ Range: ` 1 ≤ coco_padding ≤ 4 `
 
 Default removes only the mean; none or linear detrending is optional. Apply the same rule to data and target bases. No red-noise removal or implicit LOWESS.
 
+[Use and output interpretation](../methods/coco_usage_en.md#targets)
+
 Default: Remove mean (` mean `)
 
 Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
@@ -1102,6 +1336,8 @@ Values: None (` none `), Remove mean (` mean `), Linear detrending (` linear `)
 
 Full windows only, at least two. Each window must resolve the specified target; adjust the window or target if too short. No automatic resampling.
 
+[Use and output interpretation](../methods/coco_usage_en.md#evolution)
+
 Default: ` 512 `
 
 Range: ` 16 ≤ ecoco_window ≤ 131072 `
@@ -1110,6 +1346,8 @@ Range: ` 16 ≤ ecoco_window ≤ 131072 `
 ### Window step (samples)
 
 1 to the window length. At most 512 full windows; an incomplete trailing window is omitted and reported, never padded.
+
+[Use and output interpretation](../methods/coco_usage_en.md#evolution)
 
 Default: ` 128 `
 
@@ -1121,21 +1359,30 @@ Outputs: ` correlation_map `, ` best_rate `, ` best_correlation `, ` window_diag
 <a id="m-evolution_fft"></a>
 ## Evolutionary FFT
 
-One-sided power spectral density in complete moving windows. X must be strictly increasing and regularly spaced. Optional normalization by each window's maximum power is off by default. No significance test.
+One-sided PSD in complete moving windows, showing how cycle structure varies with time/depth. X must be strictly increasing and regularly spaced; explicitly clean/resample first if needed. Map columns are window centers and rows are frequencies. The mean of window spectra is not the full-record spectrum.
+Choose window length for the cycles of interest, then choose step samples, overlap or target window count. New tasks default to 20% span, target 500 windows, 4× FFT, linear detrending, rectangular taper, per-window normalization and square-root power display. All remain editable; this is not a universal optimum. Successful previews show resolved window samples, step, overlap and FFT samples.
+Greater overlap densifies window positions; FFT padding densifies frequencies. Neither improves true frequency resolution. Per-window normalization removes absolute strength differences. Amplitude colors and interpolation do not change stored power. Only complete windows are used, without whole-series end padding or significance testing. See the user guide for preset attribution and cross-software comparison limits.
+Automatic modes resolve independently from each actual upstream input, whether or not its editor was opened. Batch actions copy rules. Restore default parameters affects the current input; use the batch action afterwards to reset other inputs.
+
+[Instructions and output interpretation](../methods/power_spectra_en.md#evolution-settings)
 
 <a id="m-evolution_fft-p-evo_window_mode"></a>
 ### Window definition
 
-Use samples or a percentage of the input coordinate span. Existing workflows retain sample-based defaults.
+Define the window in samples or as a percentage of this node's input X span, after upstream processing. Longer windows separate nearby frequencies better but localize short changes less precisely. Include enough cycles for your question. The 20% preset is a starting point, not a universal optimum. New tasks and legacy workflows still default to sample counts.
 
-Default: Samples (` samples `)
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
+
+Default: Percentage of input span (` span_percent `)
 
 Values: Samples (` samples `), Percentage of input span (` span_percent `)
 
 <a id="m-evolution_fft-p-evo_window_percent"></a>
 ### Window / input span (%)
 
-Window samples L=round((N−1)*percent/100). At least 8 samples; increase the percentage for short inputs. No silent enlargement. Actual endpoint span is (L−1)*dx.
+L=round((N−1)×percentage/100), using this node’s actual input N and rounding positive half-integers upward. At least 8 samples; no automatic enlargement. Under this rule 100% gives N−1 samples; use sample mode to include all N. Endpoint span is (L−1)×dx. Choose the periods of interest first; overlap cannot compensate for an overly short window.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
 
 Default: ` 20 `
 
@@ -1148,6 +1395,8 @@ Shown when: ` evo_window_mode ` = ` span_percent `
 
 Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and the Fourier duration is L*dx. For example, 100 samples at spacing 0.2 give a Fourier duration of 20. Require at least 8 samples and no more than the input length. Choose the window for the periods of interest.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
+
 Default: ` 128 `
 
 Range: ` 8 ≤ evo_window ≤ 262144 `
@@ -1157,16 +1406,33 @@ Shown when: ` evo_window_mode ` = ` samples `
 <a id="m-evolution_fft-p-evo_step_mode"></a>
 ### Step definition
 
-Enter step samples directly or derive them from adjacent-window overlap.
+Samples: move by a fixed number of samples for exact reproduction. Overlap: derive the step from window length and overlap percentage. Target window count: derive an integer step from this node's actual input and window length so the complete-window count does not exceed the target; useful across inputs of different lengths. None changes the sampling interval or pads the boundaries. Saved workflows keep their mode until you change it or apply the preset.
 
-Default: Samples (` samples `)
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
 
-Values: Samples (` samples `), Overlap (` overlap `)
+Default: Target window count (` target_windows `)
+
+Values: Samples (` samples `), Overlap (` overlap `), Target window count (` target_windows `)
+
+<a id="m-evolution_fft-p-evo_target_windows"></a>
+### Target window count
+
+Controls map sampling along time/depth, not the number of independent observations. For N input samples, L window samples and target K, step S=max(1,ceil((N−L)/(K−1))). Only complete windows are used. Their count does not exceed K and may be noticeably lower because steps are integers. For N=1001, L=200, K=500, the step is 2, yielding 401 windows and 99% overlap. Short inputs are not padded with repeated windows. Larger targets usually cost more; FFT, grid and work budgets still apply. If the target is too small and would make the step exceed window length, increase the target or window length as prompted; intervening sections are not skipped.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
+
+Default: ` 500 `
+
+Range: ` 2 ≤ evo_target_windows ≤ 20000 `
+
+Shown when: ` evo_step_mode ` = ` target_windows `
 
 <a id="m-evolution_fft-p-evo_overlap_percent"></a>
 ### Window overlap (%)
 
-Step S=max(1,round(L*(1−overlap/100))). The report records actual overlap after rounding. High overlap gives a more continuous map; adjacent windows are not independent observations.
+Used only in Overlap mode. Step S=max(1,round(L×(1−overlap/100))); actual overlap is 100×(1−S/L), recorded in the preview and report. For a 100-sample window, 99.2% requests a one-sample step, giving 99% in practice. Greater overlap samples window positions more densely but adds neither independent observations nor true frequency resolution. 99.2% is not a universal optimum.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
 
 Default: ` 99.2 `
 
@@ -1179,6 +1445,8 @@ Shown when: ` evo_step_mode ` = ` overlap `
 
 Step S in samples; the physical step is S*spacing. The number of complete windows is floor((N-L)/S)+1. For 705 samples and a 128-sample window, step 16 gives 37 windows; step 1 gives 578. Only complete windows are used; unused tail samples are reported. Smaller steps increase computation.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
+
 Default: ` 16 `
 
 Range: ` 1 ≤ evo_step ≤ 262144 `
@@ -1190,14 +1458,18 @@ Shown when: ` evo_step_mode ` = ` samples `
 
 Enter FFT samples directly or use a multiple of the window samples.
 
-Default: Explicit FFT samples (` length `)
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
+
+Default: Window sample multiplier (` multiple `)
 
 Values: Explicit FFT samples (` length `), Window sample multiplier (` multiple `)
 
 <a id="m-evolution_fft-p-evo_padding"></a>
 ### FFT / window samples
 
-FFT samples = window samples × multiplier. Zero padding densifies frequency bins without improving true resolving power. Memory and work limits still apply.
+FFT samples = window samples × multiplier. Zero padding each extracted window densifies the frequency grid without adding observations or improving true frequency resolution. This differs from padding both ends of the full series: this task uses complete windows only. Larger multipliers usually cost more memory and computation; budgets still apply.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
 
 Default: ` 4 `
 
@@ -1210,6 +1482,8 @@ Shown when: ` evo_fft_mode ` = ` multiple `
 
 0 uses the window length; an explicit value must be at least that length. Frequency spacing is 1/(FFT length*sample spacing). For spacing 0.2 and FFT length 400 it is 0.0125. Zero padding densifies the grid, without improving the window's physical frequency resolution.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ evo_nfft ≤ 262144 `
@@ -1221,7 +1495,9 @@ Shown when: ` evo_fft_mode ` = ` length `
 
 Each window removes its mean or fitted linear trend before spectral estimation.
 
-Default: Remove mean (` mean `)
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
+
+Default: Remove linear trend (` linear `)
 
 Values: Remove mean (` mean `), Remove linear trend (` linear `)
 
@@ -1229,6 +1505,8 @@ Values: Remove mean (` mean `), Remove linear trend (` linear `)
 ### Maximum frequency
 
 In reciprocal input X units, such as 1/m or 1/ka. 0 automatically uses Nyquist, 1/(2*sample spacing); larger limits are clamped to Nyquist. Crops the output map and mean spectrum only; at least two bins must remain. A saved legacy ratio stays active until this field is explicitly edited.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0 `
 
@@ -1246,23 +1524,29 @@ Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
 <a id="m-evolution_fft-p-evo_normalize"></a>
 ### Normalize each window
 
-Off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum become dimensionless relative power. This aids comparison of periodic structure but removes absolute power differences between windows. The output frequency limit does not change the normalization reference.
+Off: retain PSD and compare absolute power across windows. On: divide each window by its full one-sided maximum power. The map and mean spectrum become relative power, useful for comparing cycle positions. Strong and weak windows can then have equally bright peaks, so color no longer compares absolute strength. All-zero windows remain zero; frequency cropping does not change the denominator.
 
-Default: ` false `
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#normalization)
+
+Default: ` true `
 
 <a id="m-evolution_fft-p-evo_amplitude"></a>
-### Default map: amplitude display
+### Default map: square root of power
 
-Display the map as square root of power with smooth rendering. With per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Change the display in heatmap styles.
+Initially display square roots of nonnegative power with smooth rendering. After per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Switch the display in heatmap styles.
 
-Default: ` false `
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#display)
+
+Default: ` true `
 
 <a id="m-evolution_fft-p-evo_taper"></a>
 ### FFT taper
 
 Periodic Hann or rectangular taper, normalized by its squared-energy sum for PSD units.
 
-Default: Periodic Hann (` hann `)
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
+
+Default: Rectangular (` rectangular `)
 
 Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 
@@ -1272,12 +1556,17 @@ Outputs: ` power_map `, ` mean_spectrum `
 <a id="m-evolution_mtm"></a>
 ## Evolutionary MTM
 
-Adaptive MTM spectra in complete moving windows. Optional normalization by each window's maximum power is off by default. The map describes power variation with position; no whole-map significance test is provided.
+Adaptive MTM spectra in complete moving windows, showing cycle structure across time/depth. X must be strictly increasing and regularly spaced; there is no implicit resampling. Choose a window containing enough cycles, then a sample step, overlap or target window count. The latter resolves an integer step from this node's actual input; the number of windows does not exceed the target.
+NW controls the smoothing/resolution tradeoff in spectral estimation. Target count controls window-position density, a different choice. Successful previews show resolved window samples, step, overlap and FFT samples. Per-window normalization is off by default; enabling it removes absolute power differences between windows. The arithmetic mean of window spectra is not full-record MTM. No pointwise or whole-map significance test is provided, and no boundary padding is added.
+
+[Instructions and output interpretation](../methods/power_spectra_en.md#evolution-settings)
 
 <a id="m-evolution_mtm-p-evo_window_mode"></a>
 ### Window definition
 
-Use samples or a percentage of the input coordinate span. Existing workflows retain sample-based defaults.
+Define the window in samples or as a percentage of this node's input X span, after upstream processing. Longer windows separate nearby frequencies better but localize short changes less precisely. Include enough cycles for your question. The 20% preset is a starting point, not a universal optimum. New tasks and legacy workflows still default to sample counts.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
 
 Default: Samples (` samples `)
 
@@ -1286,7 +1575,9 @@ Values: Samples (` samples `), Percentage of input span (` span_percent `)
 <a id="m-evolution_mtm-p-evo_window_percent"></a>
 ### Window / input span (%)
 
-Window samples L=round((N−1)*percent/100). At least 8 samples; increase the percentage for short inputs. No silent enlargement. Actual endpoint span is (L−1)*dx.
+L=round((N−1)×percentage/100), using this node’s actual input N and rounding positive half-integers upward. At least 8 samples; no automatic enlargement. Under this rule 100% gives N−1 samples; use sample mode to include all N. Endpoint span is (L−1)×dx. Choose the periods of interest first; overlap cannot compensate for an overly short window.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
 
 Default: ` 20 `
 
@@ -1299,6 +1590,8 @@ Shown when: ` evo_window_mode ` = ` span_percent `
 
 Enter samples. With spacing dx and length L, the endpoint span is (L-1)*dx and the Fourier duration is L*dx. For example, 100 samples at spacing 0.2 give a Fourier duration of 20. Require at least 8 samples and no more than the input length. Choose the window for the periods of interest.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
+
 Default: ` 128 `
 
 Range: ` 8 ≤ evo_window ≤ 262144 `
@@ -1308,16 +1601,33 @@ Shown when: ` evo_window_mode ` = ` samples `
 <a id="m-evolution_mtm-p-evo_step_mode"></a>
 ### Step definition
 
-Enter step samples directly or derive them from adjacent-window overlap.
+Samples: move by a fixed number of samples for exact reproduction. Overlap: derive the step from window length and overlap percentage. Target window count: derive an integer step from this node's actual input and window length so the complete-window count does not exceed the target; useful across inputs of different lengths. None changes the sampling interval or pads the boundaries. Saved workflows keep their mode until you change it or apply the preset.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
 
 Default: Samples (` samples `)
 
-Values: Samples (` samples `), Overlap (` overlap `)
+Values: Samples (` samples `), Overlap (` overlap `), Target window count (` target_windows `)
+
+<a id="m-evolution_mtm-p-evo_target_windows"></a>
+### Target window count
+
+Controls map sampling along time/depth, not the number of independent observations. For N input samples, L window samples and target K, step S=max(1,ceil((N−L)/(K−1))). Only complete windows are used. Their count does not exceed K and may be noticeably lower because steps are integers. For N=1001, L=200, K=500, the step is 2, yielding 401 windows and 99% overlap. Short inputs are not padded with repeated windows. Larger targets usually cost more; FFT, grid and work budgets still apply. If the target is too small and would make the step exceed window length, increase the target or window length as prompted; intervening sections are not skipped.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
+
+Default: ` 500 `
+
+Range: ` 2 ≤ evo_target_windows ≤ 20000 `
+
+Shown when: ` evo_step_mode ` = ` target_windows `
 
 <a id="m-evolution_mtm-p-evo_overlap_percent"></a>
 ### Window overlap (%)
 
-Step S=max(1,round(L*(1−overlap/100))). The report records actual overlap after rounding. High overlap gives a more continuous map; adjacent windows are not independent observations.
+Used only in Overlap mode. Step S=max(1,round(L×(1−overlap/100))); actual overlap is 100×(1−S/L), recorded in the preview and report. For a 100-sample window, 99.2% requests a one-sample step, giving 99% in practice. Greater overlap samples window positions more densely but adds neither independent observations nor true frequency resolution. 99.2% is not a universal optimum.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
 
 Default: ` 99.2 `
 
@@ -1330,6 +1640,8 @@ Shown when: ` evo_step_mode ` = ` overlap `
 
 Step S in samples; the physical step is S*spacing. The number of complete windows is floor((N-L)/S)+1. For 705 samples and a 128-sample window, step 16 gives 37 windows; step 1 gives 578. Only complete windows are used; unused tail samples are reported. Smaller steps increase computation.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
+
 Default: ` 16 `
 
 Range: ` 1 ≤ evo_step ≤ 262144 `
@@ -1341,6 +1653,8 @@ Shown when: ` evo_step_mode ` = ` samples `
 
 Enter FFT samples directly or use a multiple of the window samples.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
+
 Default: Explicit FFT samples (` length `)
 
 Values: Explicit FFT samples (` length `), Window sample multiplier (` multiple `)
@@ -1348,7 +1662,9 @@ Values: Explicit FFT samples (` length `), Window sample multiplier (` multiple 
 <a id="m-evolution_mtm-p-evo_padding"></a>
 ### FFT / window samples
 
-FFT samples = window samples × multiplier. Zero padding densifies frequency bins without improving true resolving power. Memory and work limits still apply.
+FFT samples = window samples × multiplier. Zero padding each extracted window densifies the frequency grid without adding observations or improving true frequency resolution. This differs from padding both ends of the full series: this task uses complete windows only. Larger multipliers usually cost more memory and computation; budgets still apply.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
 
 Default: ` 4 `
 
@@ -1361,6 +1677,8 @@ Shown when: ` evo_fft_mode ` = ` multiple `
 
 0 uses the window length; an explicit value must be at least that length. Frequency spacing is 1/(FFT length*sample spacing). For spacing 0.2 and FFT length 400 it is 0.0125. Zero padding densifies the grid, without improving the window's physical frequency resolution.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ evo_nfft ≤ 262144 `
@@ -1372,6 +1690,8 @@ Shown when: ` evo_fft_mode ` = ` length `
 
 Each window removes its mean or fitted linear trend before spectral estimation.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
+
 Default: Remove mean (` mean `)
 
 Values: Remove mean (` mean `), Remove linear trend (` linear `)
@@ -1380,6 +1700,8 @@ Values: Remove mean (` mean `), Remove linear trend (` linear `)
 ### Maximum frequency
 
 In reciprocal input X units, such as 1/m or 1/ka. 0 automatically uses Nyquist, 1/(2*sample spacing); larger limits are clamped to Nyquist. Crops the output map and mean spectrum only; at least two bins must remain. A saved legacy ratio stays active until this field is explicitly edited.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0 `
 
@@ -1397,21 +1719,27 @@ Range: ` 0.001 ≤ evo_frequency_ratio ≤ 1 `
 <a id="m-evolution_mtm-p-evo_normalize"></a>
 ### Normalize each window
 
-Off by default, preserving physical PSD. When enabled, divide each window by its maximum power over the full one-sided spectrum; all-zero windows remain zero. Both the map and mean window spectrum become dimensionless relative power. This aids comparison of periodic structure but removes absolute power differences between windows. The output frequency limit does not change the normalization reference.
+Off: retain PSD and compare absolute power across windows. On: divide each window by its full one-sided maximum power. The map and mean spectrum become relative power, useful for comparing cycle positions. Strong and weak windows can then have equally bright peaks, so color no longer compares absolute strength. All-zero windows remain zero; frequency cropping does not change the denominator.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#normalization)
 
 Default: ` false `
 
 <a id="m-evolution_mtm-p-evo_amplitude"></a>
-### Default map: amplitude display
+### Default map: square root of power
 
-Display the map as square root of power with smooth rendering. With per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Change the display in heatmap styles.
+Initially display square roots of nonnegative power with smooth rendering. After per-window normalization this is relative amplitude; otherwise it is square root of PSD, not signal amplitude. Database, CSV, probes and mean spectrum retain power. Switch the display in heatmap styles.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#display)
 
 Default: ` false `
 
 <a id="m-evolution_mtm-p-evo_nw"></a>
 ### Time-bandwidth NW
 
-NW=1 or 1.25–32, and NW < window/2. Tapers: 2 at NW=1, otherwise round(2×NW)−1.
+NW controls MTM spectral smoothing/resolution within each window, not the count of moving positions. Require NW=1 or 1.25–32, with NW<window samples/2. NW=1 uses 2 DPSS tapers; otherwise round(2×NW)−1. Larger NW generally smooths more and may merge nearby peaks.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
 
 Default: ` 2 `
 
@@ -1423,12 +1751,16 @@ Outputs: ` power_map `, ` mean_spectrum `
 <a id="m-fft_spectrum"></a>
 ## FFT power spectrum
 
-One-sided FFT power spectral density for regularly sampled data, with explicit detrending and taper choices.
+Estimates one-sided PSD from the full input. X must be strictly increasing and uniform, with at least 8 samples; no automatic resampling. Choose the input interval, detrending and taper before padding. FFT length 0 uses the full input; explicit length cannot be shorter. PSD peak height is not signal amplitude. No significance thresholds are supplied.
+
+[Instructions and output interpretation](../methods/power_spectra_en.md#fft)
 
 <a id="m-fft_spectrum-p-psd_nfft"></a>
 ### FFT points
 
-0 uses record/segment length. Explicit values cannot be shorter; maximum 262144. Zero padding densifies the grid, not the physical resolution.
+0 uses the full input length, not the next power of two. Explicit length must accommodate the entire input; maximum 262144. Additional points densify the frequency grid without extending observations or improving true resolution.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
 
 Default: ` 0 `
 
@@ -1439,6 +1771,8 @@ Range: ` 0 ≤ psd_nfft ≤ 262144 `
 
 One-sided physical PSD normalized by the sum of squared window weights; periodic Hann by default.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
+
 Default: Periodic Hann (` hann `)
 
 Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
@@ -1447,6 +1781,8 @@ Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 ### Segment detrending
 
 FFT detrends the full record; Welch detrends each segment before estimating its spectrum.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
 
 Default: Remove mean (` mean `)
 
@@ -1460,12 +1796,16 @@ Outputs: ` spectrum `
 
 Columns, headers and units are configured in the input data panel.
 
+[Use and output interpretation](../methods/data_sources_en.md#files)
+
 Edit file-reading settings in the input panel. Displayed column numbers start at 1; internal column parameters start at 0.
 
 <a id="m-file_source-p-delimiter"></a>
 ### Delimiter
 
 Selects the column delimiter or automatic detection. File-reading options are configured per file in the input panel.
+
+[Use and output interpretation](../methods/data_sources_en.md#files)
 
 Values: Automatic (` auto `), Comma (` comma `), Tab (` tab `), Whitespace (` whitespace `)
 
@@ -1474,10 +1814,14 @@ Values: Automatic (` auto `), Comma (` comma `), Tab (` tab `), Whitespace (` wh
 
 A header row is not read as numeric data. Automatic detection examines the selected columns.
 
+[Use and output interpretation](../methods/data_sources_en.md#files)
+
 <a id="m-file_source-p-x_column"></a>
 ### X column (zero-based)
 
 Selects the X column for age, depth or another independent coordinate. Displayed column numbers start at 1.
+
+[Use and output interpretation](../methods/data_sources_en.md#files)
 
 Range: ` 0 ≤ x_column ≤ 10000 `
 
@@ -1486,12 +1830,16 @@ Range: ` 0 ≤ x_column ≤ 10000 `
 
 Selects the measured Y values. This must differ from the X column; displayed column numbers start at 1.
 
+[Use and output interpretation](../methods/data_sources_en.md#files)
+
 Range: ` 0 ≤ y_column ≤ 10000 `
 
 <a id="m-file_source-p-skip_invalid_rows"></a>
 ### Skip invalid numeric rows
 
 When enabled, rows with empty, nonnumeric, NaN or infinite selected X/Y are dropped and counted; otherwise import fails. Completely blank lines are ignored. Preview and execution share this reader.
+
+[Use and output interpretation](../methods/data_sources_en.md#files)
 
 Outputs: ` series `
 
@@ -1501,10 +1849,14 @@ Outputs: ` series `
 
 Uniform sampling required. Removes the mean; band edges are half-power points. Gaussian zero-pads before filtering.
 
+[Task guide and selection criteria](../methods/filter_usage_en.md#bandpass)
+
 <a id="m-gaussian_filter-p-lower_frequency"></a>
 ### Lower frequency
 
 Cycles per X unit (e.g. 1/ka). Require 0 < lower < upper < 0.5 / spacing. Values are not periods.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0.02 `
 
@@ -1514,6 +1866,8 @@ Range: ` 0 ≤ lower_frequency ≤ 1000000000000 `
 ### Upper frequency
 
 The amplitude gain is 1/sqrt(2) at both band edges; the corresponding power gain is 1/2.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0.06 `
 
@@ -1527,10 +1881,14 @@ Outputs: ` filtered `, ` envelope `, ` filter_response `
 
 Envelope of the selected parent output; no filtering is inserted. Narrow-band signals give the clearest amplitude interpretation.
 
+[Task guide and selection criteria](../methods/filter_usage_en.md#hilbert)
+
 <a id="m-hilbert_envelope-p-hilbert_remove_mean"></a>
 ### Remove mean first
 
 Off matches hilbert(input). On computes the envelope of input minus its mean. Band-pass outputs are already demeaned before filtering.
+
+[Shared concepts and details](../methods/filter_usage_en.md#hilbert)
 
 Default: ` false `
 
@@ -1542,18 +1900,24 @@ Outputs: ` envelope `, ` quadrature `
 
 Supplies a bound data series to the workflow.
 
+[Use and output interpretation](../methods/data_sources_en.md#bound)
+
 Outputs: ` series `
 
 
 <a id="m-insolation_map"></a>
 ## La2004 latitude–age insolation map
 
-Latitude–age map of daily mean insolation at a specified solar longitude or 365-day calendar date, using La2004.
+La2004 daily mean insolation across latitude and age at a specified solar longitude or fixed non-leap date; not a seasonal integral map.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
 
 <a id="m-insolation_map-p-age_start_ka"></a>
 ### Start age (ka)
 
 Age before J2000, positive into the past; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -1564,6 +1928,8 @@ Range: ` 0 ≤ age_start_ka ≤ 50000 `
 
 Older end of the interval, at most 50000 ka before J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ age_end_ka ≤ 50000 `
@@ -1573,6 +1939,8 @@ Range: ` 0 ≤ age_end_ka ≤ 50000 `
 
 La2004 native spacing is 1 ka. Finer spacing interpolates; seasonal integration allows at most 20000 ages.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 1 `
 
 Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
@@ -1581,6 +1949,8 @@ Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
 ### Solar longitude (°)
 
 0° vernal equinox, 90° June solstice, 180° autumnal equinox, 270° December solstice.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
 
 Default: ` 90 `
 
@@ -1593,6 +1963,8 @@ Shown when: ` season_basis ` = ` solar_longitude `
 
 Radiation at 1 AU. Default 1365 W/m² is explicit and adjustable.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
+
 Default: ` 1365 `
 
 Range: ` 1 ≤ solar_constant ≤ 10000 `
@@ -1602,6 +1974,8 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: Solar longitude (` solar_longitude `)
 
 Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
@@ -1610,6 +1984,8 @@ Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calend
 ### Start month
 
 Month 1–12; February has 28 days in the declared fixed calendar.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 6 `
 
@@ -1622,6 +1998,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 
 Daily task evaluates the chosen date at noon. Seasonal task starts at midnight.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: ` 21 `
 
 Range: ` 1 ≤ day_start ≤ 31 `
@@ -1633,6 +2011,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 
 North is positive and south negative. The southern boundary must be smaller than the northern boundary.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
+
 Default: ` -90 `
 
 Range: ` -90 ≤ latitude_start_deg ≤ 90 `
@@ -1642,6 +2022,8 @@ Range: ` -90 ≤ latitude_start_deg ≤ 90 `
 
 Northern bound of the latitude grid; north is positive and south is negative. Must exceed the southern bound.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
+
 Default: ` 90 `
 
 Range: ` -90 ≤ latitude_end_deg ≤ 90 `
@@ -1650,6 +2032,8 @@ Range: ` -90 ≤ latitude_end_deg ≤ 90 `
 ### Latitude step (°)
 
 At most 361 latitudes, 20000 ages and 2000000 cells. A non-integral final interval is omitted.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#map)
 
 Default: ` 5 `
 
@@ -1661,12 +2045,16 @@ Outputs: ` insolation_map `
 <a id="m-insolation_source"></a>
 ## La2004 daily mean insolation
 
-Daily mean top-of-atmosphere insolation. Calendar dates use a fixed 365-day year with the vernal equinox at noon on March 21.
+Top-of-atmosphere daily mean irradiance in W/m². Select solar longitude or a fixed non-leap month/day; dates are not year-specific historical Gregorian conversions.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#daily)
 
 <a id="m-insolation_source-p-age_start_ka"></a>
 ### Start age (ka)
 
 Age before J2000, positive into the past; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -1677,6 +2065,8 @@ Range: ` 0 ≤ age_start_ka ≤ 50000 `
 
 Older end of the interval, at most 50000 ka before J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ age_end_ka ≤ 50000 `
@@ -1685,6 +2075,8 @@ Range: ` 0 ≤ age_end_ka ≤ 50000 `
 ### Age spacing (ka)
 
 La2004 native spacing is 1 ka. Finer spacing interpolates; seasonal integration allows at most 20000 ages.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -1695,6 +2087,8 @@ Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
 
 North is positive, south negative; both poles ±90° are supported.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#daily)
+
 Default: ` 65 `
 
 Range: ` -90 ≤ latitude_deg ≤ 90 `
@@ -1703,6 +2097,8 @@ Range: ` -90 ≤ latitude_deg ≤ 90 `
 ### Solar longitude (°)
 
 0° vernal equinox, 90° June solstice, 180° autumnal equinox, 270° December solstice.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#daily)
 
 Default: ` 90 `
 
@@ -1715,6 +2111,8 @@ Shown when: ` season_basis ` = ` solar_longitude `
 
 Radiation at 1 AU. Default 1365 W/m² is explicit and adjustable.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#daily)
+
 Default: ` 1365 `
 
 Range: ` 1 ≤ solar_constant ≤ 10000 `
@@ -1724,6 +2122,8 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: Solar longitude (` solar_longitude `)
 
 Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
@@ -1732,6 +2132,8 @@ Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calend
 ### Start month
 
 Month 1–12; February has 28 days in the declared fixed calendar.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 6 `
 
@@ -1743,6 +2145,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 ### Start day
 
 Daily task evaluates the chosen date at noon. Seasonal task starts at midnight.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 21 `
 
@@ -1758,6 +2162,8 @@ Outputs: ` insolation `
 
 Fits and subtracts the least-squares line of Y against X, with separate residual and trend outputs.
 
+[Task guide and selection criteria](../methods/smoothing_trends_en.md#linear)
+
 Outputs: ` detrended `, ` trend `
 
 
@@ -1766,10 +2172,14 @@ Outputs: ` detrended `, ` trend `
 
 Analyzes irregular sampling directly. Floating-mean fitted power is normalized to 0–1; it is not PSD or a significance probability.
 
+[Task guide and output interpretation](../methods/spectral_inference_en.md#lomb)
+
 <a id="m-lomb_scargle-p-ls_min_frequency"></a>
 ### Start frequency (0 = auto)
 
 In inverse X units. 0 uses 1/record span. Uses the actual uneven X coordinates, without interpolation or sorting; at least 5 samples.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#lomb)
 
 Default: ` 0 `
 
@@ -1780,6 +2190,8 @@ Range: ` 0 ≤ ls_min_frequency ≤ 1000000000000 `
 
 0 uses 0.5/median adjacent spacing. This is a search heuristic, not a strict Nyquist limit for uneven sampling. A custom upper limit may be larger or smaller.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#lomb)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ ls_max_frequency ≤ 1000000000000 `
@@ -1788,6 +2200,8 @@ Range: ` 0 ≤ ls_max_frequency ≤ 1000000000000 `
 ### Frequency grid density
 
 Spacing is 1/(record span × density), default 5. A denser search does not increase physical resolution. At most 65536 frequencies and 50 million sample-frequency pairs. Output is normalized fit power (0–1), not PSD or significance probability.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#lomb)
 
 Default: ` 5 `
 
@@ -1801,10 +2215,14 @@ Outputs: ` periodogram `
 
 Returns orbital-period targets and model ranges at a specified geological age, not an orbital phase solution.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
+
 <a id="m-milankovitch_period-p-target_age_ma"></a>
 ### Geological age (Ma)
 
 0–4000 million years before present; default 300 Ma. Waltham (2015) envelope model, not an orbital phase solution.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: ` 300 `
 
@@ -1814,6 +2232,8 @@ Range: ` 0 ≤ target_age_ma ≤ 4000 `
 ### Target component
 
 Obliquity and four climatic-precession components vary with age. Five eccentricity frequency envelopes are fixed approximations from Table 1.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#periods)
 
 Default: Obliquity (` obliquity `)
 
@@ -1827,10 +2247,14 @@ Outputs: ` target_period `, ` lunar_distance `, ` earth_day `, ` mean_obliquity 
 
 Smooths a series with a centered window measured in samples, shortened at the ends.
 
+[Task guide and selection criteria](../methods/smoothing_trends_en.md#moving-average)
+
 <a id="m-moving_average-p-smooth_window"></a>
 ### Window points
 
 Odd, at most 501 and no larger than the input. A point-count window. Moving mean clips edges; SG fits the first/last full window at the edges.
+
+[Shared concepts and details](../concepts/data_processing_en.md#neighborhoods)
 
 Default: ` 11 `
 
@@ -1842,12 +2266,16 @@ Outputs: ` series `
 <a id="m-mtm"></a>
 ## Multitaper spectrum (MTM)
 
-Multitaper power spectra require regular sampling. AR1 95% and SWA 95% are approximate pointwise thresholds, not global spectrum tests. FDR q=0.05 uses a bandwidth dependence correction; a fitted background does not guarantee an actual 5% false discovery rate. Peak outcomes: 1 passed, 0 not passed, -1 not evaluated or unavailable. Local peaks alone do not establish significant cycles.
+Multitaper power spectra require regular sampling. AR1 95% and SWA 95% are approximate pointwise thresholds, not global spectrum tests. FDR q=0.05 uses a bandwidth dependence correction; actual FDR control has not been established for fitted backgrounds. Peak outcomes: 1 passed, 0 not passed, -1 not evaluated or unavailable. Local peaks alone do not establish significant cycles.
+
+[Task guide and output interpretation](../methods/spectral_inference_en.md#mtm)
 
 <a id="m-mtm-p-nw"></a>
 ### Time-bandwidth NW
 
 Time–half-bandwidth product. Must equal 1 or be at least 1.25, and remain below half the sample count. Increasing it usually reduces variance and broadens peaks.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#mtm)
 
 Default: ` 2 `
 
@@ -1858,6 +2286,8 @@ Range: ` 1 ≤ nw ≤ 32 `
 
 0 uses the input length. Zero padding refines the frequency grid but does not improve physical spectral resolution.
 
+[Shared concepts and details](../concepts/spectral_parameters_en.md#fft-padding)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ nfft ≤ 4000000 `
@@ -1866,6 +2296,8 @@ Range: ` 0 ≤ nfft ≤ 4000000 `
 ### Maximum frequency
 
 In inverse input-axis units (e.g. 1/ka). Crops the spectrum, thresholds and peak table, affecting saved and downstream data; fitting and peak detection use the full spectrum. 0 selects automatic; values above Nyquist are capped. See the guide for legacy ratios.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#mtm)
 
 Default: ` 0 `
 
@@ -1885,12 +2317,16 @@ Range: ` 0.001 ≤ fmax_ratio ≤ 1 `
 
 Fits an AR1 background and produces nominal pointwise thresholds. This is distinct from the separate AR1 global test.
 
+[Shared concepts and details](../concepts/statistical_interpretation_en.md#background)
+
 Default: ` true `
 
 <a id="m-mtm-p-swa"></a>
 ### SWA background and FDR
 
 Produces SWA backgrounds, nominal thresholds and FDR curves. With fitted backgrounds, actual false discovery rates are not guaranteed to match nominal levels.
+
+[Shared concepts and details](../concepts/statistical_interpretation_en.md#fdr)
 
 Default: ` true `
 
@@ -1899,12 +2335,16 @@ Default: ` true `
 
 Fits the AR1 background in log-power space. Does not change the displayed axis scale of the power spectrum.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#mtm)
+
 Default: ` false `
 
 <a id="m-mtm-p-smooth_window"></a>
 ### Background smoothing fraction
 
 Smoothing window as a fraction of spectral bins, from 0.05 to 0.25. This is not a sample count and does not modify the input series.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#mtm)
 
 Default: ` 0.2 `
 
@@ -1915,6 +2355,8 @@ Range: ` 0.05 ≤ smooth_window ≤ 0.25 `
 
 Default 0.1% of the full spectrum power range. Suppresses tiny tail oscillations; lowering it preserves weaker peaks. 0 disables this amplitude filter. Not a statistical significance test. Absolute and relative thresholds both apply; roundoff-sized fluctuations are excluded.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
+
 Default: ` 0.1 `
 
 Range: ` 0 ≤ peak_relative_prominence ≤ 100 `
@@ -1923,6 +2365,8 @@ Range: ` 0 ≤ peak_relative_prominence ≤ 100 `
 ### Minimum prominence
 
 Absolute prominence in PSD units. 0 disables the absolute threshold; the relative threshold can still apply. Peak detection does not establish statistical significance.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
 
 Default: ` 0 `
 
@@ -1933,6 +2377,8 @@ Range: ` 0 ≤ peak_prominence ≤ 1e+100 `
 
 Minimum index distance between retained peaks. Stronger prominence wins, then height.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
+
 Default: ` 3 `
 
 Range: ` 1 ≤ peak_distance ≤ 1000000 `
@@ -1941,6 +2387,8 @@ Range: ` 1 ≤ peak_distance ≤ 1000000 `
 ### Minimum width (bins)
 
 Width at half prominence, measured in frequency bins. Zero disables this filter.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
 
 Default: ` 0 `
 
@@ -1951,6 +2399,8 @@ Range: ` 0 ≤ peak_width ≤ 1000000 `
 
 Minimum PSD at the peak, independent of the significance curves. Zero retains all nonnegative candidates.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
+
 Default: ` 0 `
 
 Range: ` 0 ≤ peak_height ≤ 1e+100 `
@@ -1959,6 +2409,8 @@ Range: ` 0 ≤ peak_height ≤ 1e+100 `
 ### Prominence radius (bins)
 
 0 searches the full spectrum. A positive radius limits baseline search to that many bins on each side, changing prominence and width.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#peaks)
 
 Default: ` 0 `
 
@@ -1971,6 +2423,8 @@ Outputs: ` spectrum `, ` peaks `, ` ar1_smoothed `, ` ar1_background `, ` ar1_90
 ## MTM AR1 simulation test (experimental)
 
 Archived experimental test, hidden from the task catalogue. Approximate bootstrap with an estimated correlation coefficient does not replace the AR1 global test.
+
+[Task guide and output interpretation](../methods/spectral_inference_en.md#legacy)
 
 <a id="m-mtm_ar1_simulation-p-nw"></a>
 ### Time-bandwidth NW
@@ -2022,12 +2476,16 @@ Range: ` 0 ≤ mc_seed ≤ 2147483647 `
 
 Estimates the AR1 coefficient from the input. This is an approximate parametric bootstrap, not a known-background test.
 
+[Shared concepts and details](../methods/spectral_inference_en.md#legacy)
+
 Default: ` true `
 
 <a id="m-mtm_ar1_simulation-p-mc_fixed_rho"></a>
 ### Independent rho (used only if estimation is off)
 
 Used when estimation is disabled. Specify it in advance from independent information, rather than treating an estimate from the current data as known.
+
+[Shared concepts and details](../methods/spectral_inference_en.md#legacy)
 
 Default: ` 0 `
 
@@ -2043,10 +2501,14 @@ South China Sea, 0–5021 ka BP. Tian et al. (2002) astronomical chronology; the
 Source: PANGAEA.132801 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.132801
 
+[Use and output interpretation](../methods/data_sources_en.md#odp)
+
 <a id="m-odp1143_d18o-p-example_axis"></a>
 ### Horizontal axis
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
+
+[Use and output interpretation](../methods/data_sources_en.md#odp)
 
 Default: Published age model (` age `)
 
@@ -2062,10 +2524,14 @@ Eastern equatorial Pacific, about 3–1835 ka BP. Author-interpolated data from 
 Source: PANGAEA.60254 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.60254
 
+[Use and output interpretation](../methods/data_sources_en.md#odp)
+
 <a id="m-odp846_d13c-p-example_axis"></a>
 ### Horizontal axis
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
+
+[Use and output interpretation](../methods/data_sources_en.md#odp)
 
 Default: Published age model (` age `)
 
@@ -2081,10 +2547,14 @@ Eastern equatorial Pacific, about 3–1835 ka BP. Author-interpolated data from 
 Source: PANGAEA.60254 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.60254
 
+[Use and output interpretation](../methods/data_sources_en.md#odp)
+
 <a id="m-odp846_d18o-p-example_axis"></a>
 ### Horizontal axis
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
+
+[Use and output interpretation](../methods/data_sources_en.md#odp)
 
 Default: Published age model (` age `)
 
@@ -2100,10 +2570,14 @@ Equatorial Atlantic, about 17862–26517 ka. Pälike et al. (2006); uses the opt
 Source: PANGAEA.743431 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.743431
 
+[Use and output interpretation](../methods/data_sources_en.md#odp)
+
 <a id="m-odp926_d13c-p-example_axis"></a>
 ### Horizontal axis
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
+
+[Use and output interpretation](../methods/data_sources_en.md#odp)
 
 Default: Published age model (` age `)
 
@@ -2119,10 +2593,14 @@ Equatorial Atlantic, about 17862–26517 ka. Pälike et al. (2006); uses the opt
 Source: PANGAEA.743431 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.743431
 
+[Use and output interpretation](../methods/data_sources_en.md#odp)
+
 <a id="m-odp926_lightness-p-example_axis"></a>
 ### Horizontal axis
 
 Select the published age or composite-depth column without interpolation. Source citation, chronology and omitted-row counts are saved on the Sources tab. Resample explicitly for methods requiring uniform spacing.
+
+[Use and output interpretation](../methods/data_sources_en.md#odp)
 
 Default: Published age model (` age `)
 
@@ -2136,10 +2614,14 @@ Outputs: ` series `
 
 La2004 eccentricity, obliquity and climatic precession, with ages referenced to J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#orbital)
+
 <a id="m-orbital_source-p-age_start_ka"></a>
 ### Start age (ka)
 
 Age before J2000, positive into the past; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -2150,6 +2632,8 @@ Range: ` 0 ≤ age_start_ka ≤ 50000 `
 
 Older end of the interval, at most 50000 ka before J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ age_end_ka ≤ 50000 `
@@ -2158,6 +2642,8 @@ Range: ` 0 ≤ age_end_ka ≤ 50000 `
 ### Age spacing (ka)
 
 La2004 native spacing is 1 ka. Finer spacing interpolates; seasonal integration allows at most 20000 ages.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -2169,14 +2655,16 @@ Outputs: ` eccentricity `, ` obliquity `, ` precession `
 <a id="m-outlier_handling"></a>
 ## Outlier detection and handling
 
-Detect unusual values using Hampel local MAD, global MAD, or Y bounds. Mark only is the default and leaves values unchanged. Exclusion and local-median replacement are explicit choices; source files remain unchanged.
-The MAD rule is |y−median| > multiplier × 1.4826 × MAD. When MAD is zero, values differing from the median are flagged. Genuine geological events can be flagged; detection is a screening aid. Windows count neighboring samples and do not infer hiatus boundaries.
-Right-click a curve in this node’s preview to keep, exclude, or restore automatic classification of a point. Decisions belong only to the current dataset and expire when input values change. In the decision log, action is 0 kept, 1 excluded, 2 replaced; score=-1 means unavailable. Excluded result_value entries are -1 and must be interpreted with action. Exclusion does not fill gaps; subsequent equally-spaced analyses may require explicit resampling.
+Detect candidates with Hampel, global MAD or Y bounds. Mark-only leaves values unchanged unless a manual exclusion is present. Exclusion does not fill gaps; median replacement uses local node-input values. Manual decisions override detection and expire when input changes. Extremes are not necessarily errors; see the task guide.
+
+[Task guide and selection criteria](../methods/outliers_and_transforms_en.md#outliers)
 
 <a id="m-outlier_handling-p-outlier_method"></a>
 ### Detection method
 
 Hampel targets local spikes. Global MAD compares the whole record and may flag trends or different stratigraphic regimes. Bounds use the original Y unit.
+
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#outliers)
 
 Default: Hampel (local MAD) (` hampel `)
 
@@ -2187,6 +2675,8 @@ Values: Hampel (local MAD) (` hampel `), Global MAD (` mad `), Y bounds (` bound
 
 An odd window of at least 3 points. Edges use available neighbors. Used by Hampel detection and local-median replacement; short windows may flag genuine short-period signals.
 
+[Shared concepts and details](../concepts/data_processing_en.md#neighborhoods)
+
 Default: ` 11 `
 
 Range: ` 3 ≤ outlier_window ≤ 1001 `
@@ -2196,6 +2686,8 @@ Range: ` 3 ≤ outlier_window ≤ 1001 `
 
 Multiplier of 1.4826 × MAD, default 3. With zero MAD, values differing from the median are flagged. Not used by bounds detection.
 
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#outliers)
+
 Default: ` 3 `
 
 Range: ` 0.1 ≤ outlier_threshold ≤ 1000 `
@@ -2204,6 +2696,8 @@ Range: ` 0.1 ≤ outlier_threshold ≤ 1000 `
 ### Lower Y bound
 
 Values below this bound are flagged; equality is retained. Uses the Y unit.
+
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#outliers)
 
 Default: ` -1e+100 `
 
@@ -2216,6 +2710,8 @@ Shown when: ` outlier_method ` = ` bounds `
 
 Values above this bound are flagged; equality is retained. Uses the Y unit.
 
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#outliers)
+
 Default: ` 1e+100 `
 
 Range: ` -1e+100 ≤ outlier_upper ≤ 1e+100 `
@@ -2225,7 +2721,9 @@ Shown when: ` outlier_method ` = ` bounds `
 <a id="m-outlier_handling-p-outlier_action"></a>
 ### Action on detected points
 
-Mark only is the default. Exclusion removes X/Y pairs without filling gaps. Replacement uses the original local-window median. Both record all point decisions. Manual keep/exclude decisions take precedence.
+Mark-only leaves values unchanged unless manually excluded. Exclusion removes X/Y points without filling gaps; replacement uses the original local input median. Manual exclusion still applies in mark/replace mode; manual retention prevents automatic exclusion/replacement.
+
+[Shared concepts and details](../concepts/data_processing_en.md#decisions)
 
 Default: Mark only (` mark `)
 
@@ -2239,10 +2737,14 @@ Outputs: ` series `, ` original `, ` outliers `, ` outlier_audit `
 
 Obliquity, climatic precession and precession angle. Defaults: Ed=1, Td=1; NOAA PT tables are supported. These tables do not provide all orbital elements required for insolation.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#pt)
+
 <a id="m-precession_tilt_source-p-pt_table_path"></a>
 ### PT data table (optional)
 
 Leave empty for embedded Ed=1, Td=1. Download other tables from NOAA study 35174 and retain PT.DeX.XXXXTdY.YYYY.dat filenames. Native times are irregular; scalar values are interpolated on the output age grid. Clear the path to restore the default.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#pt)
 
 Default: empty string
 
@@ -2250,6 +2752,8 @@ Default: empty string
 ### Start age (ka)
 
 Positive age into the past, in ka before J2000; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -2260,6 +2764,8 @@ Range: ` 0 ≤ orbit_start_ka ≤ 100000 `
 
 Last data ages: La2010 249999 ka; ZB 300000 ka; PT 100000 ka. Requests outside the selected table fail; no extrapolation.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ orbit_end_ka ≤ 100000 `
@@ -2268,6 +2774,8 @@ Range: ` 0 ≤ orbit_end_ka ≤ 100000 `
 ### Output spacing (ka)
 
 Uniform output age grid, at most one million samples. Linear scalar interpolation; shortest-arc axial-angle interpolation. Finer output adds no independent orbital information; coarse output can alias and is not automatically filtered.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -2279,12 +2787,17 @@ Outputs: ` obliquity `, ` precession `, ` axial_precession `
 <a id="m-preprocess"></a>
 ## Sort, deduplicate and resample
 
-Sorts by X, merges duplicate X values and resamples at the specified interval. Missing values follow the import policy.
+Sorts paired X/Y samples and handles duplicate X, then creates a grid and interpolates using the selected spacing. Defaults to the median cleaned adjacent interval and linear interpolation. No-resampling mode still sorts and deduplicates, but skips interpolation.
+The grid starts at the smallest X without extrapolation. An endpoint off the grid is not appended. A denser grid adds estimates, not observations, and does not reconstruct missing sections. Split discontinuous records when necessary; this task does not automatically forbid interpolation across large gaps.
+
+[Instructions and output interpretation](../methods/preprocessing_en.md#resampling)
 
 <a id="m-preprocess-p-duplicate_policy"></a>
 ### Duplicate X
 
-Duplicate means exactly equal X, not repeated Y. Average combines Y; first/last refer to original input order.
+Handles exactly equal X, not repeated Y or approximately equal coordinates. Average combines Y. First and last follow the input order received by this node, not Y magnitude. Choose error to review duplicate records before combining them.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#duplicates)
 
 Default: Average (` average `)
 
@@ -2293,7 +2806,9 @@ Values: Average (` average `), Keep first Y (` first `), Keep last Y (` last `),
 <a id="m-preprocess-p-spacing_mode"></a>
 ### Spacing
 
-Keeps the cleaned sampling positions, or creates a regular grid from the mean, median, minimum, maximum or specified spacing of cleaned X values.
+After sorting and duplicate handling, use the mean, median, minimum, maximum or specified adjacent interval to create the grid. No resampling retains cleaned coordinates and ignores interpolation settings. Minimum spacing may produce many output points; maximum spacing may lose short-scale variation. A finer grid adds no observations.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#spacing)
 
 Default: Median interval (` median `)
 
@@ -2302,7 +2817,9 @@ Values: No resampling (` none `), Mean interval (` mean `), Median interval (` m
 <a id="m-preprocess-p-spacing"></a>
 ### Fixed interval
 
-Specified sampling interval in X units. Used only in fixed-spacing mode.
+Used only with fixed/specified spacing, in X units. For X in ka, 0.1 means 0.1 ka; editing a unit label does not convert values. Spacing must allow at least two grid points within the range and respect output-size and floating-point resolution limits.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#spacing)
 
 Default: ` 1 `
 
@@ -2313,7 +2830,9 @@ Shown when: ` spacing_mode ` = ` fixed `
 <a id="m-preprocess-p-interpolation"></a>
 ### Interpolation
 
-Linear is the default. Cubic is a natural cubic spline; Akima is a local piecewise cubic method. No method is silently forced.
+Linear joins adjacent observations. Natural cubic spline uses zero endpoint second derivatives; Akima constructs piecewise cubics from local slopes. They require at least 2, 3 and 5 distinct X values after cleanup, respectively. Insufficient samples cause an error, not an automatic method change. Used only when resampling; inspect peaks and long gaps rather than assuming a smoother curve is more accurate.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#interpolation)
 
 Default: Linear (` linear `)
 
@@ -2325,12 +2844,17 @@ Outputs: ` series `
 <a id="m-sampling_check"></a>
 ## Sampling and gap inspection
 
-Checks X ordering, duplicates, regular spacing and large gaps. Preserves the input series; detail table limited to 4096 rows.
+Inspects X order, duplicate coordinates, regularity and large intervals without changing the input series. Read the summary first, then the interval and gap details. Flags identify locations to inspect and do not establish a sedimentary hiatus.
+Statistics cover the full input. Each detail table retains at most the first 4096 rows in input order; inspection is not restricted to 4096 samples. Truncation is recorded in the calculation report, and export cannot restore unretained details. Preview display budgets are a separate limit.
+
+[Instructions and output interpretation](../methods/preprocessing_en.md#inspection)
 
 <a id="m-sampling_check-p-gap_factor"></a>
 ### Gap threshold multiplier
 
-Flags positive adjacent intervals greater than this multiple of their median. A flag does not by itself prove a sedimentary hiatus.
+Flags adjacent positive intervals strictly greater than median positive interval × factor; equality is not flagged. Default 3; increasing it reduces flags. Negative and zero intervals do not enter the median. Check ordering first for unordered input; the statistic is unavailable when there are no positive intervals.
+
+[Shared concepts and selection guidance](../concepts/sampling_en.md#gaps)
 
 Default: ` 3 `
 
@@ -2344,10 +2868,14 @@ Outputs: ` series `, ` sampling_intervals `, ` sampling_gaps `, ` sampling_summa
 
 Local polynomial smoothing of regularly sampled data. The window must be odd and exceed the polynomial degree.
 
+[Task guide and selection criteria](../methods/smoothing_trends_en.md#savitzky-golay)
+
 <a id="m-savitzky_golay-p-smooth_window"></a>
 ### Window points
 
 Odd, at most 501 and no larger than the input. A point-count window. Moving mean clips edges; SG fits the first/last full window at the edges.
+
+[Shared concepts and details](../concepts/data_processing_en.md#neighborhoods)
 
 Default: ` 11 `
 
@@ -2357,6 +2885,8 @@ Range: ` 1 ≤ smooth_window ≤ 501 `
 ### Polynomial degree
 
 0–5 and smaller than the window. Requires uniform sampling; default degree 2. Smoothing only, without differentiation.
+
+[Shared concepts and details](../methods/smoothing_trends_en.md#savitzky-golay)
 
 Default: ` 2 `
 
@@ -2368,12 +2898,16 @@ Outputs: ` series `
 <a id="m-seasonal_insolation"></a>
 ## La2004 seasonal insolation
 
-Seasonal mean insolation, integrated energy and duration. Fixed 365-day calendar, with the vernal equinox at noon on March 21; the end date is excluded.
+Seasonal mean irradiance, accumulated energy and duration. Date intervals exclude the end day. Fixed non-leap dates map to the prescribed year length; see seasonal conventions.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 <a id="m-seasonal_insolation-p-age_start_ka"></a>
 ### Start age (ka)
 
 Age before J2000, positive into the past; not BP relative to 1950.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 0 `
 
@@ -2384,6 +2918,8 @@ Range: ` 0 ≤ age_start_ka ≤ 50000 `
 
 Older end of the interval, at most 50000 ka before J2000.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
+
 Default: ` 2000 `
 
 Range: ` 0 ≤ age_end_ka ≤ 50000 `
@@ -2392,6 +2928,8 @@ Range: ` 0 ≤ age_end_ka ≤ 50000 `
 ### Age spacing (ka)
 
 La2004 native spacing is 1 ka. Finer spacing interpolates; seasonal integration allows at most 20000 ages.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#grid)
 
 Default: ` 1 `
 
@@ -2402,6 +2940,8 @@ Range: ` 0.001 ≤ age_step_ka ≤ 50000 `
 
 North is positive, south negative; both poles ±90° are supported.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: ` 65 `
 
 Range: ` -90 ≤ latitude_deg ≤ 90 `
@@ -2410,6 +2950,8 @@ Range: ` -90 ≤ latitude_deg ≤ 90 `
 ### Solar constant (W/m²)
 
 Radiation at 1 AU. Default 1365 W/m² is explicit and adjustable.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 1365 `
 
@@ -2420,6 +2962,8 @@ Range: ` 1 ≤ solar_constant ≤ 10000 `
 
 Choose solar longitude or Gregorian month lengths without leap days. The 365 calendar slots span 365.24219876 24-hour days; equinox is fixed at March 21 noon. This is not a historical Gregorian reconstruction.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: Solar longitude (` solar_longitude `)
 
 Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calendar (` calendar_365 `)
@@ -2428,6 +2972,8 @@ Values: Solar longitude (` solar_longitude `), Month/day · fixed 365-day calend
 ### Start month
 
 Month 1–12; February has 28 days in the declared fixed calendar.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 6 `
 
@@ -2440,6 +2986,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 
 Daily task evaluates the chosen date at noon. Seasonal task starts at midnight.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: ` 1 `
 
 Range: ` 1 ≤ day_start ≤ 31 `
@@ -2450,6 +2998,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 ### Start longitude (°)
 
 Forward integration in solar longitude with Kepler time weighting, not an unweighted longitude average.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 90 `
 
@@ -2462,6 +3012,8 @@ Shown when: ` season_basis ` = ` solar_longitude `
 
 End <= start wraps forward; equal bounds mean a complete year.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: ` 180 `
 
 Range: ` 0 ≤ season_end_deg ≤ 360 `
@@ -2473,6 +3025,8 @@ Shown when: ` season_basis ` = ` solar_longitude `
 
 Ending month, from 1 to 12, in the fixed no-leap calendar. The end date is excluded from the integration interval.
 
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
+
 Default: ` 9 `
 
 Range: ` 1 ≤ month_end ≤ 12 `
@@ -2483,6 +3037,8 @@ Shown when: ` season_basis ` = ` calendar_365 `
 ### End day (exclusive)
 
 Midnight at the end date, excluded. June 1 to September 1 includes June–August. Same dates mean a full year; earlier end dates wrap forward.
+
+[Use and output interpretation](../methods/astronomy_usage_en.md#season)
 
 Default: ` 1 `
 
@@ -2498,10 +3054,14 @@ Outputs: ` season_mean `, ` season_energy `, ` season_duration `
 
 Integrates positive sedimentation rates into a depth–age model with explicit interval rules and units.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#rate)
+
 <a id="m-sedrate_to_age-p-chrono_depth_unit"></a>
 ### Input depth unit
 
 Actual unit of input X, default m. Must match nonempty input metadata; otherwise this explicit declaration is used with a warning.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
 
 Default: ` m `
 
@@ -2512,6 +3072,8 @@ Values: ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
 
 Default ka (1000 years). Used for the first age and output; for Apply age model it is also the unit of the control-table age column, not inferred from its header.
 
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
+
 Default: ` ka `
 
 Values: ` yr `, ` ka `, ` Ma `
@@ -2520,6 +3082,8 @@ Values: ` yr `, ` ka `, ` Ma `
 ### Age reference
 
 Records the reference only; no epoch shift is applied. BP1950 and J2000 use their named epochs; relative is user-defined. Age increases with depth. Unspecified is not assumed to be before present.
+
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#epoch)
 
 Default: Unspecified (` unspecified `)
 
@@ -2530,6 +3094,8 @@ Values: Unspecified (` unspecified `), Before 1950 (BP) (` BP1950 `), Before 200
 
 Y must be a positive sedimentation rate, default cm/ka. Existing metadata must match; kyr/ka and Myr/Ma aliases are accepted. Zero/negative rates cannot encode hiatuses or erosion here.
 
+[Use and output interpretation](../concepts/chronology_coordinates_en.md#units)
+
 Default: ` cm/ka `
 
 Values: ` cm/ka `, ` m/ka `, ` mm/ka `, ` cm/yr `, ` m/yr `, ` mm/yr `, ` cm/Ma `, ` m/Ma `
@@ -2539,6 +3105,8 @@ Values: ` cm/ka `, ` m/ka `, ` mm/ka `, ` cm/yr `, ` m/yr `, ` mm/yr `, ` cm/Ma 
 
 Assigned to the FIRST input depth, default 0 in the selected age unit; not automatically tied to depth zero.
 
+[Use and output interpretation](../methods/chronology_usage_en.md#rate)
+
 Default: ` 0 `
 
 Range: ` -1000000000000 ≤ chrono_first_age ≤ 1000000000000 `
@@ -2547,6 +3115,8 @@ Range: ` -1000000000000 ≤ chrono_first_age ≤ 1000000000000 `
 ### Rate between samples
 
 Default left-constant: each interval uses its left-end sedimentation rate to calculate the age increment; the final rate is validated but unused. Linear-rate mode integrates the reciprocal of a linearly varying rate, not the reciprocal of a mean rate.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#rate)
 
 Default: Left-constant (` left `)
 
@@ -2560,10 +3130,14 @@ Outputs: ` age_model `
 
 Keeps or removes X/Y samples in a closed interval, preserving row order. No interpolation or gap closure.
 
+[Use and output interpretation](../methods/selection_summary_en.md#interval)
+
 <a id="m-select_interval-p-interval_action"></a>
 ### Operation
 
 Keeps or removes samples within the interval. Both endpoints are included.
+
+[Use and output interpretation](../methods/selection_summary_en.md#interval)
 
 Default: Keep interval (` keep `)
 
@@ -2574,6 +3148,8 @@ Values: Keep interval (` keep `), Remove interval (` remove `)
 
 Uses the current X-axis unit; the lower bound is included.
 
+[Use and output interpretation](../methods/selection_summary_en.md#interval)
+
 Default: ` 0 `
 
 Range: ` -1e+100 ≤ interval_lower ≤ 1e+100 `
@@ -2582,6 +3158,8 @@ Range: ` -1e+100 ≤ interval_lower ≤ 1e+100 `
 ### Upper X bound
 
 Uses the current X-axis unit; the upper bound is included and must not be below the lower bound.
+
+[Use and output interpretation](../methods/selection_summary_en.md#interval)
 
 Default: ` 1 `
 
@@ -2595,6 +3173,8 @@ Outputs: ` series `
 
 Descriptive statistics for sample count, location and dispersion; leaves the input unchanged.
 
+[Use and output interpretation](../methods/selection_summary_en.md#summary)
+
 Outputs: ` summary `
 
 
@@ -2603,10 +3183,14 @@ Outputs: ` summary `
 
 Sine signal with an optional linear trend; zero slope gives a pure sine.
 
+[Use and output interpretation](../methods/data_sources_en.md#sine)
+
 <a id="m-sine_source-p-count"></a>
 ### Sample count
 
 Number of generated samples. X starts at zero and ends at (sample count − 1) × sampling interval.
+
+[Use and output interpretation](../methods/data_sources_en.md#sine)
 
 Default: ` 128 `
 
@@ -2617,6 +3201,8 @@ Range: ` 2 ≤ count ≤ 1000000 `
 
 X spacing between adjacent samples, in the same units as the period.
 
+[Use and output interpretation](../methods/data_sources_en.md#sine)
+
 Default: ` 0.25 `
 
 Range: ` 1e-09 ≤ step ≤ 1000000 `
@@ -2625,6 +3211,8 @@ Range: ` 1e-09 ≤ step ≤ 1000000 `
 ### Period
 
 Period of the sinusoid in X units. Frequency is the reciprocal of the period.
+
+[Use and output interpretation](../methods/data_sources_en.md#sine)
 
 Default: ` 4 `
 
@@ -2635,6 +3223,8 @@ Range: ` 1e-09 ≤ period ≤ 1000000000 `
 
 Amplitude of the sinusoidal component about its centerline. Peak-to-peak amplitude is twice its absolute value.
 
+[Use and output interpretation](../methods/data_sources_en.md#sine)
+
 Default: ` 2 `
 
 Range: ` -1000000000000 ≤ amplitude ≤ 1000000000000 `
@@ -2643,6 +3233,8 @@ Range: ` -1000000000000 ≤ amplitude ≤ 1000000000000 `
 ### Linear slope
 
 Linear trend increment per X unit. Zero adds no linear trend.
+
+[Use and output interpretation](../methods/data_sources_en.md#sine)
 
 Default: ` 0.15 `
 
@@ -2656,10 +3248,14 @@ Outputs: ` series `
 
 Subtracts the mean from Y and divides by the selected standard deviation to obtain a dimensionless series. Not defined for constant series.
 
+[Task guide and selection criteria](../concepts/data_processing_en.md#centering)
+
 <a id="m-standardize-p-standardize_sd"></a>
 ### Standard deviation
 
 Subtracts the mean and divides by the standard deviation: N−1 for sample SD, N for population SD. Constant series cannot be standardized.
+
+[Shared concepts and details](../concepts/data_processing_en.md#centering)
 
 Default: Sample (N − 1) (` sample `)
 
@@ -2674,10 +3270,14 @@ Outputs: ` series `
 Synthetic record combining five precession terms, five eccentricity difference-frequency terms, variable sedimentation rate and AR1 noise; not an actual orbital solution or age determination.
 Algorithm reference: AstroGeoFit 1.1 (GPL-3.0-or-later). Depth template: PANGAEA.817206 (CC BY 3.0).
 
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
+
 <a id="m-synthetic_orbital-p-synthetic_grid"></a>
 ### Depth grid
 
 ODP 1260 uses 2679 original irregular depth positions, not measured Fe. Custom grid is uniform in depth.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ODP 1260 depth template (2679) (` odp1260 `)
 
@@ -2687,6 +3287,8 @@ Values: ODP 1260 depth template (2679) (` odp1260 `), Custom uniform depth (` un
 ### Start depth (m)
 
 Only for a custom uniform grid. Relative age starts at zero at the first depth.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ` 80.02 `
 
@@ -2699,6 +3301,8 @@ Shown when: ` synthetic_grid ` = ` uniform `
 
 Positive depth span; end = start + thickness.
 
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
+
 Default: ` 55.46 `
 
 Range: ` 0.001 ≤ synthetic_span_m ≤ 10000 `
@@ -2709,6 +3313,8 @@ Shown when: ` synthetic_grid ` = ` uniform `
 ### Sample count
 
 32–100000; sparse sampling may alias high-frequency precession terms.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ` 2679 `
 
@@ -2721,6 +3327,8 @@ Shown when: ` synthetic_grid ` = ` uniform `
 
 Same seed and all parameters reproduce the result. Aster streams differ from NumPy for the same seed.
 
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
+
 Default: ` 20261104 `
 
 Range: ` 0 ≤ synthetic_seed ≤ 2147483647 `
@@ -2729,6 +3337,8 @@ Range: ` 0 ≤ synthetic_seed ≤ 2147483647 `
 ### Realization index
 
 Change the index to generate another realization; changing output or repeating preview does not redraw it.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ` 0 `
 
@@ -2739,6 +3349,8 @@ Range: ` 0 ≤ synthetic_realization ≤ 2147483647 `
 
 Must be below the maximum. Eight inverse-rate knots are smoothed, interpolated and clipped.
 
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
+
 Default: ` 1 `
 
 Range: ` 0.01 ≤ synthetic_rate_min ≤ 1000 `
@@ -2747,6 +3359,8 @@ Range: ` 0.01 ≤ synthetic_rate_min ≤ 1000 `
 ### Maximum rate (cm/kyr)
 
 cm/kyr; inverse rate 0.1/rate is Myr/m, integrated over depth by the trapezoidal rule.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ` 5 `
 
@@ -2757,6 +3371,8 @@ Range: ` 0.01 ≤ synthetic_rate_max ≤ 1000 `
 
 Clean variance = 1, noise variance = 1/SNR. The sum is standardized again to form proxy. Not a significance threshold.
 
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
+
 Default: ` 2 `
 
 Range: ` 0.01 ≤ synthetic_snr ≤ 10000 `
@@ -2765,6 +3381,8 @@ Range: ` 0.01 ≤ synthetic_snr ≤ 10000 `
 ### AR1 correlation per sample
 
 Indexed by adjacent samples with 256 burn-in points; not a fixed-distance/time correlation on irregular grids.
+
+[Use and output interpretation](../methods/data_sources_en.md#synthetic)
 
 Default: ` 0.5 `
 
@@ -2778,10 +3396,14 @@ Outputs: ` series `, ` clean_signal `, ` scaled_noise `, ` age_model `, ` sedime
 
 Uniform sampling required. Removes the mean; uses an N-point periodic filter and a separate amplitude envelope.
 
+[Task guide and selection criteria](../methods/filter_usage_en.md#bandpass)
+
 <a id="m-taner_filter-p-lower_frequency"></a>
 ### Lower frequency
 
 Cycles per X unit (e.g. 1/ka). Require 0 < lower < upper < 0.5 / spacing. Values are not periods.
+
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
 
 Default: ` 0.02 `
 
@@ -2792,6 +3414,8 @@ Range: ` 0 ≤ lower_frequency ≤ 1000000000000 `
 
 The amplitude gain is 1/sqrt(2) at both band edges; the corresponding power gain is 1/2.
 
+[Shared concepts and details](../concepts/spectral_parameters_en.md#frequency)
+
 Default: ` 0.06 `
 
 Range: ` 0 ≤ upper_frequency ≤ 1000000000000 `
@@ -2800,6 +3424,8 @@ Range: ` 0 ≤ upper_frequency ≤ 1000000000000 `
 ### Roll-off exponent q
 
 Controls the Taner filter band-edge decay parameter c=10^q, with q=12 by default; this is not dB per octave.
+
+[Shared concepts and details](../methods/filter_usage_en.md#bandpass)
 
 Default: ` 12 `
 
@@ -2814,10 +3440,14 @@ Outputs: ` filtered `, ` envelope `, ` filter_response `
 Compute ln(y/s), log10(y/s), asinh(y/s), or tanh(y/s), with positive scale s. X is unchanged and output is dimensionless. Logarithms require all Y > 0; no offset is added automatically. asinh accepts positive, negative, and zero values and compresses large magnitudes. tanh maps values to −1…1 and saturates at extremes.
 These transformations change amplitude meaning and downstream statistics. They do not classify outliers or fill missing intervals. Record the function and scale and compare against the original record.
 
+[Task guide and selection criteria](../methods/outliers_and_transforms_en.md#transforms)
+
 <a id="m-value_transform-p-value_transform"></a>
 ### Transformation
 
 Logarithms require positive values. asinh handles signed values; tanh is bounded and saturates. Transformation is not outlier removal.
+
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#transforms)
 
 Default: Inverse hyperbolic sine (asinh) (` asinh `)
 
@@ -2827,6 +3457,8 @@ Values: Natural logarithm (ln) (` ln `), Base-10 logarithm (` log10 `), Inverse 
 ### Scale parameter
 
 Positive scale in the input Y unit. The function acts on y/s and returns a dimensionless value. Choose the scale for the research question; it is not estimated automatically.
+
+[Shared concepts and details](../methods/outliers_and_transforms_en.md#transforms)
 
 Default: ` 1 `
 
@@ -2838,12 +3470,16 @@ Outputs: ` series `
 <a id="m-welch_spectrum"></a>
 ## Welch power spectrum
 
-Averages tapered segment spectra for regular sampling, with separate segment-length and overlap settings.
+Averages PSDs from complete segments, each detrended and tapered. X must be strictly increasing and uniform. Choose segment length before overlap in samples, which must be smaller than length. The default 256-sample segment is not automatically shortened. FFT 0 uses segment length. Incomplete tail segments are not padded; overlapping segments are not independent. Use an evolutionary spectrum to retain position-dependent estimates.
+
+[Instructions and output interpretation](../methods/power_spectra_en.md#welch)
 
 <a id="m-welch_spectrum-p-psd_window"></a>
 ### Segment points
 
-At least 8 samples and no larger than the input. Complete segments only; no automatic shortening or edge padding.
+Samples per spectral estimate: at least 8 and no more than current input length. Longer segments generally improve separation but reduce the number averaged; shorter segments do the reverse. Only complete segments are used; the default 256 is not automatically shortened.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#windows)
 
 Default: ` 256 `
 
@@ -2852,7 +3488,9 @@ Range: ` 8 ≤ psd_window ≤ 262144 `
 <a id="m-welch_spectrum-p-psd_overlap"></a>
 ### Overlap points
 
-Must be smaller than the segment length. Default 128 of 256 samples (50%); check this value after changing the segment length.
+Shared samples between adjacent segments, not a percentage. Must be smaller than segment length. Step = segment length − overlap; default 128/256 means 50%. Recheck after changing length. More overlap does not add independent observations.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#overlap)
 
 Default: ` 128 `
 
@@ -2861,7 +3499,9 @@ Range: ` 0 ≤ psd_overlap ≤ 262143 `
 <a id="m-welch_spectrum-p-psd_nfft"></a>
 ### FFT points
 
-0 uses record/segment length. Explicit values cannot be shorter; maximum 262144. Zero padding densifies the grid, not the physical resolution.
+0 uses each segment length, not full input length. Explicit length must accommodate a segment; maximum 262144. Padding applies within extracted segments, without completing the record tail or adding independent observations.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#fft-padding)
 
 Default: ` 0 `
 
@@ -2872,6 +3512,8 @@ Range: ` 0 ≤ psd_nfft ≤ 262144 `
 
 One-sided physical PSD normalized by the sum of squared window weights; periodic Hann by default.
 
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
+
 Default: Periodic Hann (` hann `)
 
 Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
@@ -2880,6 +3522,8 @@ Values: Periodic Hann (` hann `), Rectangular (` rectangular `)
 ### Segment detrending
 
 FFT detrends the full record; Welch detrends each segment before estimating its spectrum.
+
+[Shared concepts and selection guidance](../concepts/spectral_parameters_en.md#taper-trend)
 
 Default: Remove mean (` mean `)
 

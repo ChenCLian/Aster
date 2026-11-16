@@ -9,6 +9,12 @@
 #include "ui/panels/parameter_editor.h"
 #include "ui/help/help_dialog.h"
 #include <QTextBrowser>
+#include <QFileDialog>
+#include <QCryptographicHash>
+#include <QTabBar>
+#include <QDir>
+#include <QScopeGuard>
+#include <QTextDocument>
 #include "ui/workflow/workflow_document.h"
 #include "ui/app/main_window.h"
 #include "ui/settings/language_catalog.h"
@@ -96,6 +102,59 @@ protected:QNetworkReply *createRequest(Operation op,const QNetworkRequest &r,QIO
 class UpdateTests:public QObject {
  Q_OBJECT
 private slots:
+
+
+ void cancelMetadataCheckKeepsCancelledState(){
+  auto cfg=config();cfg.packageMetadata="Aster-update.json";cfg.mirrorFallback=true;
+  FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,"{}",10000}};
+  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
+  auto *downloader=dialog.findChild<PackageDownload*>();QVERIFY(downloader);QTRY_COMPARE(manager.requests.size(),2);QVERIFY(downloader->busy());
+  QTest::mouseClick(dialog.findChild<QPushButton*>("updateCancel"),Qt::LeftButton);
+  QVERIFY(!downloader->busy());QCOMPARE(dialog.findChild<QLabel*>("updateHeading")->text(),aster::ui::text("update.cancelled_heading"));
+  QCOMPARE(dialog.findChild<QPushButton*>("updateOpen")->text(),aster::ui::text("update.retry"));QCOMPARE(manager.requests.size(),2);
+  dialog.reject();
+ }
+ void giteePartialResultNeverClaimsLatest(){
+  auto cfg=config();cfg.mirrorFallback=true;FakeManager manager;manager.responses={{503,"[]"},{200,"[]"}};
+  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
+  QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!dialog.findChild<UpdateChecker*>()->busy());
+  QCOMPARE(dialog.findChild<QLabel*>("updateHeading")->text(),aster::ui::text("update.mirror_no_new"));
+  QCOMPARE(dialog.findChild<QLabel*>("updateStatus")->text(),aster::ui::text("update.source_partial_hint"));
+  const auto screenshots=qEnvironmentVariable("ASTER_UPDATE_SCREENSHOT_DIR");
+  if(!screenshots.isEmpty()){QDir().mkpath(screenshots);QVERIFY(dialog.grab().save(screenshots+"/gitee-partial.png"));}
+  dialog.reject();
+ }
+ void giteeFallback_data(){QTest::addColumn<QString>("mode");for(const auto *mode:{"timeout","server","pagination","both-fail","current","empty","alpha"})QTest::newRow(mode)<<QString(mode);}
+ void giteeFallback(){
+  QFETCH(QString,mode);auto cfg=config();cfg.mirrorFallback=true;cfg.timeoutMs=30;
+  FakeManager manager;QJsonArray rows;auto mirrored=release(mode=="current"?"v1.0.0":"v1.1.0");mirrored.remove("draft");rows.append(mirrored);rows.append(release("v9.0.0-alpha.1",true));
+  if(mode=="pagination"){QJsonArray page;for(int i=0;i<100;++i)page.append(release("v99.0.0"));manager.responses.append({200,json(page)});}
+  manager.responses.append(mode=="timeout"?ReplyData{200,"[]",300}:ReplyData{503,"[]"});
+  manager.responses.append(mode=="both-fail"?ReplyData{503,"[]"}:ReplyData{200,mode=="empty"?QByteArray("[]"):json(rows)});
+  UpdateChecker checker(cfg,nullptr,&manager);QSignalSpy done(&checker,&UpdateChecker::finished);
+  checker.check(mode=="alpha"?"1.0.0-alpha.1":"1.0.0",true);
+  if(done.isEmpty())QVERIFY(done.wait());QCOMPARE(done.size(),1);
+  const auto result=qvariant_cast<UpdateResult>(done[0][0]);
+  if(mode=="alpha"){QVERIFY(manager.requests.isEmpty());return;}
+  QVERIFY(result.partial);QCOMPARE(manager.requests.last().url(),cfg.apiUrl(1,true));
+  QVERIFY(!manager.requests.last().hasRawHeader("Authorization"));QVERIFY(!manager.requests.last().hasRawHeader("X-GitHub-Api-Version"));
+  if(mode=="both-fail")QCOMPARE(result.state,UpdateResult::State::Failed);
+  else if(mode=="empty")QCOMPARE(result.state,UpdateResult::State::NoReleases);
+  else {QVERIFY(result.release);QCOMPARE(result.release->source,QString("Gitee"));QCOMPARE(result.release->pageUrl.host(),QString("gitee.com"));QCOMPARE(result.release->tag,mode=="current"?QString("v1.0.0"):QString("v1.1.0"));}
+ }
+
+ void alphaExcludedFromLegacyChecker() {
+  FakeManager manager; UpdateChecker checker(config(),nullptr,&manager);
+  QSignalSpy done(&checker,&UpdateChecker::finished);
+  checker.check("1.3.0-alpha.1",true);
+  QCOMPARE(done.size(),1);
+  QCOMPARE(qvariant_cast<UpdateResult>(done[0][0]).messageKey,QString("update.alpha_development_only"));
+  QVERIFY(manager.requests.isEmpty()); QVERIFY(!checker.busy());
+  // Even a mistakenly published Alpha marked as a stable release is excluded.
+  const auto page=parseReleasePage(json({release("v99.0.0-alpha.1",false),release("v1.3.0-beta.14",true)}),config(),true);
+  QVERIFY(page.errorKey.isEmpty()); QCOMPARE(page.releases.size(),1);
+  QCOMPARE(page.releases.first().tag,QString("v1.3.0-beta.14"));
+ }
  void compiledVersionMatchesSettingsAndHelp() {
   QCOMPARE(QCoreApplication::applicationVersion(), QStringLiteral(ASTER_VERSION));
   aster::ui::SettingsDialog dialog({});
@@ -295,9 +354,9 @@ private slots:
    QVERIFY(help && !help->toolTip().isEmpty());
    QVERIFY(help->mapTo(&dialog,QPoint()).y()<language->geometry().top());
    aster::ui::UpdateDialog updates;
-   QVERIFY(updates.findChild<QLabel*>("updateStatus")->text().isEmpty());
-   auto *notes=updates.findChild<QPlainTextEdit*>("updateNotes");
-   QVERIFY(notes->placeholderText().isEmpty());
+   QVERIFY(!updates.findChild<QLabel*>("updateStatus")->text().isEmpty());
+   auto *notes=updates.findChild<QTextBrowser*>("updateNotes");
+   QVERIFY(notes);
    QVERIFY(notes->isReadOnly());
    QVERIFY(!updates.findChild<UpdateChecker*>()->busy());
   }
@@ -395,8 +454,174 @@ private slots:
   connect(&server,&QTcpServer::newConnection,this,[&]{auto *s=server.nextPendingConnection();connect(s,&QTcpSocket::readyRead,s,[&,s]{received+=s->readAll();if(!received.contains("\r\n\r\n"))return;s->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: "+QByteArray::number(payload.size())+"\r\n\r\n"+payload);s->disconnectFromHost();});connect(s,&QTcpSocket::disconnected,s,&QObject::deleteLater);});
   LoopbackManager m;m.port=server.serverPort();UpdateChecker c(config(),nullptr,&m);QSignalSpy done(&c,&UpdateChecker::finished);c.check("1.0.0");QVERIFY(done.wait());QCOMPARE(qvariant_cast<UpdateResult>(done[0][0]).state,UpdateResult::State::Available);QCOMPARE(m.requested,config().apiUrl(1));QVERIFY(received.contains("/repos/ChenCLian/Aster/releases?per_page=100&page=1"));QVERIFY(!received.toLower().contains("authorization:"));
  }
+ void updateWindowStatesAndChannels(){
+  FakeManager manager;
+  manager.responses={{500,"{}",1},{200,json({release("v99.0.0",false),release("v99.0.0-beta.2",true),release("v100.0.0-rc.1",true),release("v200.0.0-alpha.1",true)}),1},{200,json({release("v1.0.0",false),release("v99.0.0-beta.2",true)}),1}};
+  aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();
+  auto *client=dialog.findChild<UpdateChecker*>();auto *tabs=dialog.findChild<QTabBar*>("updateChannel");
+  auto *primary=dialog.findChild<QPushButton*>("updateOpen");auto *details=dialog.findChild<QToolButton*>("updateDetails");
+  QVERIFY(client && tabs && primary && details);QCOMPARE(tabs->currentIndex(),1);
+  QTRY_COMPARE(manager.requests.size(),1);QTRY_VERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("error"));
+  QVERIFY(primary->isEnabled());QVERIFY(details->isVisible());
+  details->click();QVERIFY(dialog.findChild<QLabel*>("updateDiagnostics")->isVisible());
+  QVERIFY(dialog.findChild<QLabel*>("updateDiagnostics")->text().contains("update.error_server"));
+  primary->click();QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("available"));
+  QVERIFY(dialog.findChild<QLabel*>("updateStatus")->text().contains("99.0.0-beta.2"));
+  QVERIFY(!details->isVisible());QVERIFY(!dialog.findChild<QLabel*>("updateDiagnostics")->isVisible());
+  tabs->setCurrentIndex(0);QTRY_COMPARE(manager.requests.size(),3);QTRY_VERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("current"));
+  QVERIFY(!primary->isEnabled());QVERIFY(dialog.findChild<QLabel*>("updateReleaseMeta")->text().contains("1.0.0"));
+  dialog.reject();
+ }
+ void updateWindowCancellationAndClose(){
+  FakeManager manager;manager.responses={{200,"[]",10000},{200,"[]",10000}};
+  aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();
+  auto *client=dialog.findChild<UpdateChecker*>();
+  QTRY_VERIFY(client->busy());QCOMPARE(manager.requests.size(),1);
+  dialog.findChild<QPushButton*>("updateCancel")->click();QVERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("cancelled"));
+  dialog.findChild<QPushButton*>("updateOpen")->click();QVERIFY(client->busy());
+  dialog.reject();QVERIFY(!client->busy());QTest::qWait(20);QCOMPARE(manager.requests.size(),2);
+  FakeManager closedManager;aster::ui::UpdateDialog closed(config(),nullptr,&closedManager);
+  closed.show();closed.reject();QTest::qWait(20);QVERIFY(closedManager.requests.isEmpty());
+ }
+ void updateWindowEmptyAndTimeout(){
+  FakeManager manager;manager.responses={{200,"[]",1},{200,"[]",10000}};
+  auto cfg=config();cfg.timeoutMs=25;aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
+  auto *client=dialog.findChild<UpdateChecker*>();
+  QTRY_COMPARE(manager.requests.size(),1);QTRY_VERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("empty"));
+  QVERIFY(!dialog.findChild<QPushButton*>("updateOpen")->isEnabled());
+  dialog.findChild<QPushButton*>("updateCheck")->click();QTRY_VERIFY(!client->busy());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("error"));
+  QCOMPARE(dialog.findChild<QLabel*>("updateStatus")->text(),aster::ui::text("update.error_timeout"));
+  dialog.reject();
+ }
+ void updateWindowAlphaStaysOffline(){
+  const auto previous=QCoreApplication::applicationVersion();
+  auto restore=qScopeGuard([&]{QCoreApplication::setApplicationVersion(previous);});
+  QCoreApplication::setApplicationVersion("1.3.0-alpha.99");FakeManager manager;
+  aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();QTest::qWait(20);
+  QVERIFY(manager.requests.isEmpty());QVERIFY(!dialog.findChild<QPushButton*>("updateCheck")->isEnabled());
+  QVERIFY(!dialog.findChild<QTabBar*>("updateChannel")->isEnabled());
+  QCOMPARE(dialog.findChild<QFrame*>("updateSummary")->property("state").toString(),QString("development"));
+  dialog.reject();
+ }
+ void updateWindowVisuals_data(){
+  QTest::addColumn<QString>("language");QTest::addColumn<QString>("theme");QTest::addColumn<int>("width");
+  for(const auto &language:{QString("zh"),QString("en")})for(const auto &theme:{QString("light"),QString("dark")})for(int width:{660,520})
+   QTest::newRow(qPrintable(language+"-"+theme+"-"+QString::number(width)))<<language<<theme<<width;
+ }
+ void updateWindowVisuals(){
+  QFETCH(QString,language);QFETCH(QString,theme);QFETCH(int,width);
+  auto restore=qScopeGuard([&]{aster::ui::setLanguage("zh");aster::ui::ThemeManager::instance().apply(*qApp,"light");});
+  aster::ui::setLanguage(language);aster::ui::ThemeManager::instance().apply(*qApp,theme);
+  auto item=release("v1.4.0-beta.1",true);item["published_at"]="2026-11-17T08:30:00Z";
+  item["body"]=language=="zh"?QString::fromUtf8("## 本次更新\n\n优化参数设置与批量处理，改善结果预览的操作体验。\n\n- 调整步骤设置中的提示与布局\n- 改善长文件名的显示\n- 保留原有数据与分析流程\n\n<details><summary>兼容性与使用说明</summary>\n\nDETAIL_BODY\n\n请将完整程序包解压到新的文件夹。\n</details>"):
+   QString("## What's new\n\nImproved parameter editing, batch processing and result previews.\n\n- Clearer step settings and guidance\n- Better display of long file names\n- Existing data and workflows are preserved\n\n<details><summary>Compatibility and usage</summary>\n\nDETAIL_BODY\n\nExtract the complete package into a new folder.\n</details>");
+  FakeManager manager;manager.responses={{200,json({item}),1},{500,"{}",1}};
+  aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.resize(width,580);dialog.show();
+  auto *client=dialog.findChild<UpdateChecker*>();QTRY_COMPARE(manager.requests.size(),1);QTRY_VERIFY(!client->busy());QTest::qWait(20);
+  QCOMPARE(dialog.width(),width);
+  auto *notes=dialog.findChild<QTextBrowser*>("updateNotes");QVERIFY(notes);
+  QVERIFY(!notes->toPlainText().contains("DETAIL_BODY"));
+  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("aster-note:1"))));
+  QVERIFY(notes->toPlainText().contains("DETAIL_BODY"));
+  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("aster-note:1"))));
+  QVERIFY(!notes->toPlainText().contains("DETAIL_BODY"));
+  QVERIFY(!notes->document()->resource(QTextDocument::ImageResource,QUrl("file:///etc/passwd")).isValid());
+  QVERIFY(!notes->document()->resource(QTextDocument::ImageResource,QUrl("https://example.invalid/image.png")).isValid());
+  QVERIFY(notes->height()>=90);QVERIFY(notes->horizontalScrollBar()->maximum()==0);
+  for(const auto *name:{"updateHeading","updateStatus","updateManualHint","updateOpen","updateClose","updateReleases"}) {
+   auto *widget=dialog.findChild<QWidget*>(name);QVERIFY(widget);
+   const QRect bounds(widget->mapTo(&dialog,QPoint()),widget->size());
+   QVERIFY2(dialog.rect().contains(bounds),name);
+  }
+  const auto screenshots=qEnvironmentVariable("ASTER_UPDATE_SCREENSHOT_DIR");
+  if(!screenshots.isEmpty()) {
+   QVERIFY(QDir().mkpath(screenshots));
+   const auto stem=language+"-"+theme+"-"+QString::number(width);
+   QVERIFY(dialog.grab().save(screenshots+"/"+stem+"-available.png"));
+   dialog.findChild<QPushButton*>("updateCheck")->click();QTRY_VERIFY(!client->busy());
+   dialog.findChild<QToolButton*>("updateDetails")->click();QTest::qWait(10);
+   QCOMPARE(dialog.width(),width);
+   QVERIFY(dialog.grab().save(screenshots+"/"+stem+"-error.png"));
+  }
+  dialog.reject();
+ }
+ void packageDownloadWindow_data(){
+  QTest::addColumn<QString>("language");QTest::newRow("zh")<<QString("zh");QTest::newRow("en")<<QString("en");
+ }
+ void packageDownloadWindow(){
+  QFETCH(QString,language);aster::ui::setLanguage(language);
+  const auto theme=language=="zh"?"light":"dark";aster::ui::ThemeManager::instance().apply(*qApp,theme);
+  const bool previous=QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,true);
+  auto restore=qScopeGuard([&]{QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,previous);aster::ui::setLanguage("zh");aster::ui::ThemeManager::instance().apply(*qApp,"light");});
+  const auto platform=aster::updates::nativeUpdatePlatform();const auto suffix=platform=="linux-x64"?".tar.gz":".zip";
+  const auto fixture=QString("../download_tests/fixtures/")+platform+suffix;
+  QFile file(QFINDTESTDATA(qPrintable(fixture)));QVERIFY(file.open(QIODevice::ReadOnly));const auto bytes=file.readAll();
+  const auto name=QString("Aster-99.0.0-beta.1-")+platform+suffix;
+  QJsonObject package{{"platform",platform},{"file",name},{"bytes",bytes.size()},{"unpacked_bytes",4096},{"sha256",QString(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex())},{"sources",QJsonArray{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/Aster/releases/download/v99.0.0-beta.1/"+name}}}}};
+  auto cfg=config();cfg.packageMetadata="Aster-update.json";
+  FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,QJsonDocument(QJsonObject{{"schema",1},{"version","99.0.0-beta.1"},{"packages",QJsonArray{package}}}).toJson()},{200,bytes},{200,bytes,10000}};
+  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);if(language=="en")dialog.resize(520,580);dialog.show();auto *downloader=dialog.findChild<aster::updates::PackageDownload*>();QVERIFY(downloader);
+  QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!downloader->busy());auto *button=dialog.findChild<QPushButton*>("updateOpen");
+  QCOMPARE(button->text(),aster::ui::text("update.download_extract"));QVERIFY(dialog.findChild<QComboBox*>("updateDownloadSource")->isVisible());
+  QTemporaryDir folder;QElapsedTimer timer;timer.start();QTimer picker;bool selected=false,timeout=false;
+  connect(&picker,&QTimer::timeout,&dialog,[&]{
+   if(auto *chooser=dialog.findChild<QFileDialog*>();chooser&&chooser->isVisible()){chooser->setDirectory(folder.path());QMetaObject::invokeMethod(chooser,"accept",Qt::DirectConnection);selected=true;picker.stop();}
+   else if(timer.elapsed()>5000){timeout=true;picker.stop();if(auto *modal=qobject_cast<QDialog*>(qApp->activeModalWidget()))modal->reject();}
+  });
+  picker.start(10);QTest::mouseClick(dialog.findChild<QPushButton*>("updateChooseDirectory"),Qt::LeftButton);picker.stop();QVERIFY(selected);QVERIFY(!timeout);
+  QVERIFY(dialog.findChild<QLabel*>("updateDestination")->text().contains(QDir::toNativeSeparators(folder.path())));
+  const auto screenshots=qEnvironmentVariable("ASTER_UPDATE_SCREENSHOT_DIR");
+  if(!screenshots.isEmpty()){QDir().mkpath(screenshots);QVERIFY(dialog.grab().save(screenshots+"/download-"+language+"-ready.png"));}
+  QSignalSpy done(downloader,&aster::updates::PackageDownload::finished);QTest::mouseClick(button,Qt::LeftButton);
+  QTRY_COMPARE(done.size(),1);QVERIFY(done[0][0].toBool());QVERIFY(!downloader->completedDirectory().isEmpty());QCOMPARE(button->text(),aster::ui::text("update.open_directory"));
+  if(!screenshots.isEmpty())QVERIFY(dialog.grab().save(screenshots+"/download-"+language+"-complete.png"));
+  QTest::keyClick(&dialog,Qt::Key_Escape);QVERIFY(!dialog.isVisible());
+ }
+ void settingsContactOpensLocalAuthorPage(){
+  for (const auto *language : {"zh", "en"}) {
+   aster::ui::setLanguage(language); QTemporaryDir dir; aster::ui::AppSettings settings;
+   settings.databasePath=dir.filePath("results.sqlite"); aster::ui::SettingsDialog dialog(settings);
+   auto *button=dialog.findChild<QPushButton*>("settingsContact"); QVERIFY(button);
+   button->click(); auto *help=dialog.findChild<aster::ui::HelpDialog*>("helpDialog"); QVERIFY(help);
+   QCOMPARE(help->currentTopic().path,QString("AUTHORS.md")); QVERIFY(help->isVisible());
+   QVERIFY(!QFile::exists(settings.databasePath)); help->close();
+  }
+  aster::ui::setLanguage("zh");
+ }
  void settingsWiringAndCatalogs(){for(auto lang:{"zh","en"}){aster::ui::setLanguage(lang);QTemporaryDir dir;aster::ui::AppSettings settings;settings.databasePath=dir.filePath("results.sqlite");aster::ui::SettingsDialog dialog(settings);auto *button=dialog.findChild<QPushButton*>("settingsCheckUpdates");QVERIFY(button);
-   bool opened=false;QTimer::singleShot(10,&dialog,[&]{auto *child=dialog.findChild<QDialog*>("updateDialog");if(child){opened=true;auto *input=child->findChild<QLineEdit*>("updateToken");QVERIFY(!input);QVERIFY(child->findChild<QPushButton*>("updateCheck")->isEnabled());QVERIFY(!child->findChild<QPushButton*>("updateOpen")->isEnabled());QVERIFY(child->findChild<QPushButton*>("updateReleases")->isEnabled());child->reject();}});button->click();QVERIFY(opened);QVERIFY(!QFile::exists(settings.databasePath));
+   bool opened=false,hasToken=false,controlsPresent=false,checkMatches=false,cancelMatches=false,releasesEnabled=false,stopped=false,timedOut=false;
+   QElapsedTimer elapsed;elapsed.start();QTimer poll;
+   connect(&poll,&QTimer::timeout,&dialog,[&]{
+    auto *child=dialog.findChild<QDialog*>("updateDialog");
+    if(child && child->isVisible()){
+     opened=true;hasToken=child->findChild<QLineEdit*>("updateToken")!=nullptr;
+     auto *client=child->findChild<UpdateChecker*>();
+     auto *check=child->findChild<QPushButton*>("updateCheck");
+     auto *cancel=child->findChild<QPushButton*>("updateCancel");
+     auto *download=child->findChild<QPushButton*>("updateOpen");
+     auto *releases=child->findChild<QPushButton*>("updateReleases");
+     controlsPresent=client && check && cancel && download && releases;
+     if(controlsPresent){
+      checkMatches=check->isEnabled()==(!isAlphaVersion(QCoreApplication::applicationVersion()) && !client->busy());
+      cancelMatches=cancel->isEnabled()==client->busy();releasesEnabled=releases->isEnabled();
+     }
+     // Never assert inside this callback: an early return would strand exec().
+     child->reject();stopped=client && !client->busy();poll.stop();
+    }else if(elapsed.elapsed()>5000){
+     timedOut=true;
+     if(auto *modal=qobject_cast<QDialog*>(qApp->activeModalWidget()))modal->reject();
+    }
+   });
+   poll.start(10);button->click();poll.stop();
+   QVERIFY(!timedOut);QVERIFY(opened);QVERIFY(!hasToken);QVERIFY(controlsPresent);
+   QVERIFY(checkMatches);QVERIFY(cancelMatches);QVERIFY(releasesEnabled);QVERIFY(stopped);
+   QVERIFY(!QFile::exists(settings.databasePath));
    QFile f(":/updates/github.json");QVERIFY(f.open(QIODevice::ReadOnly));QVERIFY(UpdateConfig::fromJson(f.readAll()).valid());
   }
   aster::ui::setLanguage("zh");

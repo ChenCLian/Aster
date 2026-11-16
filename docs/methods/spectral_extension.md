@@ -1,5 +1,9 @@
 # Lomb–Scargle 与 Butterworth
 
+操作与输出解释：[中文](spectral_inference.md#lomb) · [English](spectral_inference_en.md#lomb)。公共概念见[统计解释](../concepts/statistical_interpretation.md)。
+
+Butterworth 操作与输出解释见[滤波与振幅包络](filter_usage.md#butterworth)。
+
 本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation.md)。
 
 ## Lomb–Scargle

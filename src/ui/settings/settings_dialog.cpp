@@ -127,11 +127,10 @@ SettingsDialog::SettingsDialog(AppSettings settings, QWidget *parent)
     connect(manual, &QPushButton::clicked, this, [this] { openHelp(this, userGuideTopic()); });
     auto *contact = new QPushButton(text("ui.contact_us"));
     contact->setObjectName("settingsContact");
-    contact->setToolTip("GitHub");
+    contact->setToolTip(text("help.authors_contact"));
     supportRow->addWidget(contact, 1);
     connect(contact, &QPushButton::clicked, this, [this] {
-        if (!QDesktopServices::openUrl(QUrl("https://github.com/ChenCLian/Aster/blob/main/AUTHORS.md")))
-            QMessageBox::warning(this, text("ui.settings"), text("ui.open_link_failed"));
+        openHelp(this, {"AUTHORS.md", {}});
     });
     auto *updates = new QPushButton(text("update.check"));
     updates->setObjectName("settingsCheckUpdates");
