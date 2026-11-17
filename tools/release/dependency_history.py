@@ -137,6 +137,11 @@ def fetch(directory, platform, releases_limit=3):
 
 
 class PublishedHistory:
+    def __bool__(self):
+        # Actions configures the directory before fetching receipts. Missing,
+        # empty or rejected receipts must behave like history being disabled.
+        return bool(self.entries)
+
     def __init__(self, directory, platform):
         self.entries = []
         directory = Path(directory)

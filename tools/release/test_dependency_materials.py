@@ -192,6 +192,11 @@ class DependencyMaterialTests(unittest.TestCase):
         self.assertTrue(all(c['recipes'] and c['notices'] and c['sources'] for c in self.collection.components))
 
     def test_debian_collection_includes_distribution_patch_archive(self):
+        # Match Actions: this environment is configured before receipts are
+        # fetched. Collection must still take the ordinary full-download path.
+        with patch.dict('os.environ',{'ASTER_DEPENDENCY_HISTORY':str(self.base/'not-fetched')}):
+            self.collection=common.Collection(self.base/'materials',self.base/'cache','linux-x64','1.1.1')
+        self.assertFalse(self.collection.history)
         library=self.base/'libfixture.so.1';library.write_bytes(b'\x7fELFtest')
         self.collection.platform='linux-x64'
         native=self.base/'native';native.mkdir()

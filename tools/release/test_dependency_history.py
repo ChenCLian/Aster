@@ -78,6 +78,19 @@ class HistoryTests(unittest.TestCase):
             with self.assertRaises(ValueError): history.fetch(self.directory,self.platform)
         self.assertEqual(history.PublishedHistory(self.directory,self.platform).entries,[])
 
+    def test_configured_history_is_inactive_until_valid_receipts_exist(self):
+        with patch.dict('os.environ',{'ASTER_DEPENDENCY_HISTORY':str(self.directory)}):
+            self.assertFalse(self.collection().history)
+            index=self.directory/'index.json'
+            index.write_text(json.dumps({'schema':1,'platform':self.platform,'records':[]}))
+            self.assertFalse(self.collection().history)
+            index.write_text('invalid JSON')
+            self.assertFalse(self.collection().history)
+            self.install()
+            self.assertTrue(self.collection().history)
+            (self.directory/'records.zip').write_bytes(b'corrupt')
+            self.assertFalse(self.collection().history)
+
     def test_new_version_checksum_provider_or_removed_asset_cannot_reuse(self):
         c=self.collection(); record=dict(self.source)
         for key,value in [('version','2.9'),('provider','brew'),('id','other')]:
