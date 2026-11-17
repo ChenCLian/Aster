@@ -185,6 +185,8 @@ jobs:
         run: bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist 2>&1 | tee build-release/ci-logs/package.log
       - name: Package macOS
         if: runner.os == 'macOS'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
       - name: Resolve package path
         id: package-path

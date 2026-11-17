@@ -572,12 +572,45 @@ def same_brew_recipe(left, right):
     return normalized(left) == normalized(right)
 
 
+def brew_historical_recipe(recipe, revision, path):
+    """Find an identical recipe in bounded history rooted at the verified API head."""
+    endpoint = '/repos/Homebrew/homebrew-core/commits?' + urllib.parse.urlencode(
+        {'sha': revision, 'path': path, 'per_page': 20})
+    # Actions provides a short-lived token. Only gh receives it; it is never
+    # attached to source downloads, redirects, records or diagnostic arguments.
+    if os.environ.get('GH_TOKEN') and shutil.which('gh'):
+        payload = run(['gh', 'api', '--hostname', 'github.com', endpoint])
+    else:
+        payload = read_url('https://api.github.com' + endpoint)
+    try:
+        history = json.loads(payload)
+    except (ValueError, UnicodeError) as error:
+        raise MaterialError('Homebrew formula history returned invalid metadata') from error
+    if not isinstance(history, list):
+        raise MaterialError('Homebrew formula history must be a commit list')
+    seen = {revision}
+    installed = recipe.read_bytes()
+    for item in history[:20]:
+        commit = item.get('sha') if isinstance(item, dict) else None
+        if not isinstance(commit, str) or not re.fullmatch(r'[0-9a-fA-F]{40}', commit):
+            raise MaterialError('Homebrew formula history contains an invalid commit')
+        if commit in seen:
+            continue
+        seen.add(commit)
+        remote = read_url('https://raw.githubusercontent.com/Homebrew/homebrew-core/' + commit + '/' + path)
+        if same_brew_recipe(remote, installed):
+            return commit, remote
+    raise MaterialError('Homebrew API formula does not match the installed formula, and no matching recipe '
+                        'was found in its latest 20 changes; restore its original local patches')
+
+
 def brew_api_patch(recipe, relative, snapshot):
     """Recover missing API-install metadata, only for an identical keg formula.
 
     Bottle receipts can have a null tap_git_head when homebrew/core is not
     checked out. The API is a candidate, not an authority for an older keg:
-    require its full package version and checksummed, pinned formula to match.
+    require its full package version and a matching pinned formula. If today's
+    formula drifted, inspect only its latest 20 changes from the verified head.
     Never use HEAD, a different formula, or an unchecked patch as a fallback.
     """
     if not snapshot:
@@ -610,10 +643,13 @@ def brew_api_patch(recipe, relative, snapshot):
         remote = read_url(base + path)
         if hashlib.sha256(remote).hexdigest() != checksum.lower():
             raise MaterialError('Homebrew API formula checksum mismatch')
+        api_revision = revision
         if not same_brew_recipe(remote, recipe.read_bytes()):
-            raise MaterialError('Homebrew API formula does not match the installed formula; restore its original local patches')
+            revision, remote = brew_historical_recipe(recipe, revision, path)
         snapshot.update(api_url=url, name=name, version=version, tap_git_head=revision,
-                        ruby_source_path=path, ruby_source_sha256=checksum.lower(),
+                        api_tap_git_head=api_revision, api_ruby_source_sha256=checksum.lower(),
+                        recovery_method='current-api' if revision == api_revision else 'matching-history',
+                        ruby_source_path=path, ruby_source_sha256=hashlib.sha256(remote).hexdigest(),
                         installed_formula_sha256=hashlib.sha256(recipe.read_bytes()).hexdigest(),
                         formula_comparison='ignore-bottle-stanza-and-gnu-ftpmirror-prefix-only',
                         local_patch_checksums=info.get('local_patch_checksums') or {})

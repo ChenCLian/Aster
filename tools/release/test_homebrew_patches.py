@@ -51,12 +51,78 @@ class HomebrewPatchRecoveryTests(unittest.TestCase):
         self.calls.append(url)
         if url == 'https://formulae.brew.sh/api/formula/gcc.json':
             return json.dumps(self.api).encode()
+        if url.startswith('https://api.github.com/repos/Homebrew/homebrew-core/commits?'):
+            return json.dumps([{'sha': 'b' * 40}]).encode()
         self.assertIn('/' + 'b' * 40 + '/', url)
         return self.remote if url.endswith('.rb') else self.patch_data
 
     def recover(self):
-        with patch.object(providers, 'read_url', side_effect=self.download):
+        with patch.dict(providers.os.environ, {'GH_TOKEN': ''}), \
+                patch.object(providers, 'read_url', side_effect=self.download):
             return providers.brew_local_patch(self.recipe, self.receipt, self.relative)
+
+    def test_recipe_drift_recovers_only_matching_pinned_history(self):
+        installed = self.recipe.read_bytes()
+        self.remote += b'# later maintenance edit\n'
+        self.api['ruby_source_checksum']['sha256'] = sha(self.remote)
+        history_revision = 'c' * 40
+        def download(url):
+            if url.startswith('https://api.github.com/'):
+                self.assertIn('sha=' + 'b' * 40, url)
+                self.assertIn('path=Formula%2Fg%2Fgcc.rb', url)
+                return json.dumps([{'sha': 'b' * 40}, {'sha': history_revision}]).encode()
+            if '/' + history_revision + '/' in url:
+                self.calls.append(url)
+                return installed if url.endswith('.rb') else self.patch_data
+            return self.download(url)
+        snapshot = {}
+        with patch.dict(providers.os.environ, {'GH_TOKEN': ''}), \
+                patch.object(providers, 'read_url', side_effect=download):
+            data, origin = providers.brew_local_patch(self.recipe, self.receipt, self.relative, snapshot)
+        self.assertEqual(data, self.patch_data)
+        self.assertIn('/' + history_revision + '/', origin)
+        self.assertEqual(snapshot['tap_git_head'], history_revision)
+        self.assertEqual(snapshot['api_tap_git_head'], 'b' * 40)
+        self.assertEqual(snapshot['ruby_source_sha256'], sha(installed))
+        self.assertEqual(snapshot['api_ruby_source_sha256'], sha(self.remote))
+        self.assertEqual(snapshot['recovery_method'], 'matching-history')
+        self.assertEqual(self.recipe.read_bytes(), installed)
+        # A historical formula match never waives the patch checksum.
+        self.api['local_patch_checksums'][self.relative] = '0' * 64
+        with patch.dict(providers.os.environ, {'GH_TOKEN': ''}), \
+                patch.object(providers, 'read_url', side_effect=download), \
+                self.assertRaisesRegex(common.MaterialError, 'patch checksum mismatch'):
+            providers.brew_local_patch(self.recipe, self.receipt, self.relative)
+
+    def test_history_is_bounded_and_invalid_commits_fail_closed(self):
+        for history in [None, {}, [{'sha': 'HEAD'}], [{'sha': '../other'}]]:
+            with self.subTest(history=history), patch.dict(providers.os.environ, {'GH_TOKEN': ''}), \
+                    patch.object(providers, 'read_url', return_value=json.dumps(history).encode()), \
+                    self.assertRaises(common.MaterialError):
+                providers.brew_historical_recipe(self.recipe, 'b' * 40, 'Formula/g/gcc.rb')
+        history = [{'sha': f'{i:040x}'} for i in range(21)]
+        calls = []
+        def download(url):
+            calls.append(url)
+            if url.startswith('https://api.github.com/'):
+                return json.dumps(history).encode()
+            return b'not the installed recipe'
+        with patch.dict(providers.os.environ, {'GH_TOKEN': ''}), \
+                patch.object(providers, 'read_url', side_effect=download), \
+                self.assertRaisesRegex(common.MaterialError, 'latest 20 changes'):
+            providers.brew_historical_recipe(self.recipe, 'b' * 40, 'Formula/g/gcc.rb')
+        self.assertEqual(len(calls), 21)  # One history request and at most 20 recipes.
+
+    def test_actions_history_uses_scoped_gh_request(self):
+        with patch.dict(providers.os.environ, {'GH_TOKEN': 'fixture-token'}), \
+                patch.object(providers.shutil, 'which', return_value='/fixture/gh'), \
+                patch.object(providers, 'run', return_value='[]') as command, \
+                patch.object(providers, 'read_url', side_effect=AssertionError('no unauthenticated fallback')), \
+                self.assertRaisesRegex(common.MaterialError, 'does not match'):
+            providers.brew_historical_recipe(self.recipe, 'b' * 40, 'Formula/g/gcc.rb')
+        args = command.call_args.args[0]
+        self.assertEqual(args[:4], ['gh', 'api', '--hostname', 'github.com'])
+        self.assertNotIn('fixture-token', ' '.join(args))
 
     def test_api_install_without_receipt_revision_recovers_verified_patch(self):
         data, origin = self.recover()
