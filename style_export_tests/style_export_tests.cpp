@@ -348,12 +348,21 @@ void StyleExportTests::probeCompactReadout()
     auto style = view.style();
     style.curves["series"].name = "ID 34 · Selected curve";
     style.curves["series"].color = QColor("#007c66");
-    QVERIFY(view.applyStyle(style).isEmpty()); QTest::qWait(35);
-    auto *p = plot(view); auto *g = curve(view, "series"); QVERIFY(g);
+    // The peak is near the top-right legend. Font metrics differ on Windows;
+    // clicking a legend is deliberately not a probe gesture. Test the readout
+    // with the legend hidden rather than relying on a particular legend width.
+    style.legend = false;
+    QVERIFY(view.applyStyle(style).isEmpty());
+    auto *p = plot(view); QVERIFY(p);
+    QTRY_VERIFY(p->axisRect()->width() > 200);
+    p->replot();
+    auto *g = curve(view, "series"); QVERIFY(g);
     const auto point = g->coordsToPixels(19, exact).toPoint();
+    QVERIFY(p->axisRect()->rect().contains(point));
     QToolTip::showText(p->mapToGlobal(point), text("ui.probe_hint"), p);
     QTest::mouseClick(p, Qt::LeftButton, Qt::NoModifier, point);
     auto *bubble = p->findChild<QFrame *>("plotProbeBubble");
+    QVERIFY2(bubble, "Clicking the curve must create a probe readout");
     QVERIFY(bubble->isVisible()); QTRY_VERIFY(!QToolTip::isVisible());
     // The readout allows up to 340 logical pixels for translated controls and
     // platform fonts. Verify readability and containment, not a 300px font assumption.
@@ -363,9 +372,12 @@ void StyleExportTests::probeCompactReadout()
         QVERIFY(value->contentsRect().width() >= value->fontMetrics().horizontalAdvance(value->text()));
     QCOMPARE(bubble->findChildren<QLabel *>("plotProbeValue").size(), 2);
     QCOMPARE(bubble->findChildren<QLabel *>("plotProbeValue").last()->text(), QString("4.9713203"));
-    QVERIFY(bubble->findChild<QLabel *>("plotProbeSwatch")->isVisible());
-    QVERIFY(p->findChild<QFrame *>("plotProbeMarker")->styleSheet().contains("007c66"));
-    QTest::mouseClick(bubble->findChild<QToolButton *>("copyPlotProbe"), Qt::LeftButton);
+    auto *swatch = bubble->findChild<QLabel *>("plotProbeSwatch"); QVERIFY(swatch);
+    auto *marker = p->findChild<QFrame *>("plotProbeMarker"); QVERIFY(marker);
+    auto *copy = bubble->findChild<QToolButton *>("copyPlotProbe"); QVERIFY(copy);
+    QVERIFY(swatch->isVisible());
+    QVERIFY(marker->styleSheet().contains("007c66"));
+    QTest::mouseClick(copy, Qt::LeftButton);
     const auto copied = QApplication::clipboard()->text();
     QCOMPARE(copied.section('\n', 0, 0), style.curves["series"].name);
     QCOMPARE(copied.section('\n', 2, 2).section(": ", 1).toDouble(), exact);
@@ -380,8 +392,10 @@ void StyleExportTests::probeCompactReadout()
     style.x.label = "Very long coordinate <b>& label with a scientific unit";
     style.y.label = "A second lengthy coordinate label (arbitrary)";
     QVERIFY(view.applyStyle(style).isEmpty()); view.resize(380, 300); QTest::qWait(35);
-    g = curve(view, "series");
+    g = curve(view, "series"); QVERIFY(g);
+    p->replot();
     QTest::mouseClick(p, Qt::LeftButton, Qt::NoModifier, g->coordsToPixels(19, exact).toPoint());
+    bubble = visibleBubble(p); QVERIFY(bubble);
     QVERIFY(bubble->isVisible()); QVERIFY(p->rect().contains(bubble->geometry()));
     for (auto *value : bubble->findChildren<QLabel *>("plotProbeValue"))
         QVERIFY(value->width() >= value->fontMetrics().horizontalAdvance(value->text()));

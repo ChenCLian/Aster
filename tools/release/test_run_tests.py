@@ -82,7 +82,8 @@ class RunnerTests(unittest.TestCase):
         output = 'Totals: 3 passed, 0 failed, 0 skipped\nTotals: 4 passed, 0 failed, 0 skipped\n'
         code, calls = self.invoke(['one'], lambda *a, **k: self.emit(output, k))
         self.assertEqual(code, 0)
-        self.assertEqual(calls.call_args.args[0], [str(exe.resolve())])
+        self.assertEqual(calls.call_args.args[0], [str(exe.resolve()), '-o', '-,txt', '-v1'])
+        self.assertEqual(calls.call_args.kwargs['env']['QT_FORCE_STDERR_LOGGING'], '1')
         row = self.summary()[0]
         self.assertEqual((row['passed'], row['suites'], row['status']), (7, 2, 'passed'))
 
@@ -102,7 +103,7 @@ class RunnerTests(unittest.TestCase):
         code, calls = self.invoke(['one'], lambda *a, **k:
                                  self.emit('Totals: 3 passed, 0 failed, 0 skipped\n', k))
         self.assertEqual(code, 0)
-        self.assertEqual(calls.call_args.args[0], [str(exe.resolve())])
+        self.assertEqual(calls.call_args.args[0], [str(exe.resolve()), '-o', '-,txt', '-v1'])
         self.assertEqual(calls.call_args.kwargs['cwd'], real.resolve())
         self.assertEqual(self.summary()[0]['status'], 'passed')
 

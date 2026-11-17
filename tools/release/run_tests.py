@@ -34,7 +34,12 @@ def main():
         parser.error(f'Build directory does not exist: {build}')
     logs = build / 'test-results'
     logs.mkdir(exist_ok=True)
-    env = dict(os.environ, QT_QPA_PLATFORM='offscreen', OPENBLAS_NUM_THREADS='1')
+    # Windows hosted runners have no attached console. Qt's plain test logger
+    # otherwise sends stdout messages to OutputDebugString (lost to subprocess).
+    # Keep stdout as the destination: several executables call qExec repeatedly,
+    # so a Qt -o filename logger would truncate earlier suites on each qExec.
+    env = dict(os.environ, QT_QPA_PLATFORM='offscreen', OPENBLAS_NUM_THREADS='1',
+               QT_FORCE_STDERR_LOGGING='1')
     results = []
     summary = logs / 'summary.json'
     def checkpoint():
@@ -50,6 +55,7 @@ def main():
         log = logs / (name + '.txt')
         started = time.monotonic()
         code, status = None, 'failed'
+        print(f'START {name} (timeout {args.timeout}s)', flush=True)
         # Send output straight to disk so a timeout/launch error cannot discard
         # earlier diagnostics. subprocess.run kills/waits for a timed-out child.
         with log.open('w', encoding='utf-8') as stream:
@@ -58,7 +64,7 @@ def main():
                 stream.write(f'Missing test executable: {name}\n')
             else:
                 try:
-                    result = subprocess.run([str(exe)], cwd=build, env=env,
+                    result = subprocess.run([str(exe), '-o', '-,txt', '-v1'], cwd=build, env=env,
                                             stdout=stream, stderr=subprocess.STDOUT,
                                             timeout=args.timeout)
                     code = result.returncode

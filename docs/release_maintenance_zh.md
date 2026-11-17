@@ -54,12 +54,16 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 工作流 `.github/workflows/build-desktop.yml` 分别使用 Windows x64、Linux x64、macOS arm64 和 macOS x86_64 原生 runner。维护者不需要本机运行所有系统。
 
 1. 完成版本同步、参数参考生成与文档链接检查，提交源码并推送 GitHub。
-2. 打开 **Actions → Build desktop packages → Run workflow**，选择分支。`prepare_draft` 默认开启。
+2. 打开 **Actions → Build desktop packages → Run workflow**，选择分支。`platform` 默认 `all`，`check_only` 默认关闭，`prepare_draft` 默认开启。
 3. 四个平台分别构建、回归、收集依赖材料和打包，再从最终包解压启动，记录中英文截图。任何平台失败都会阻止草稿汇总。
 4. 成功后自动准备 `v<VERSION>` 草稿，包含四个程序包、项目源码、依赖材料、`Aster-update.json` 与 `SHA256SUMS.txt`。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
 5. 下载 `logs-*` 查看检查记录和截图，人工复核界面、公告与附件后再点击 Publish。无需提前创建草稿；需要先写公告也可以提前建立同标签草稿。
 
 首次验收先取消勾选 `prepare_draft`，并保持 `ENABLE_GITEE_MIRROR` 未启用。这样会构建、测试并上传 Actions 构件，不创建发布草稿。四个平台通过后再开启草稿准备。桌面发布工作流在仓库内串行执行，防止不同分支同时更新同版本附件。
+
+排查单个平台时，`platform` 可选择 `windows-x64`、`linux-x64`、`macos-arm64` 或 `macos-x86_64`，避免重跑其他平台。勾选 `check_only` 只构建、测试并上传日志，跳过打包、依赖材料收集及草稿创建；关闭后会继续验收最终程序包。仅在 `platform=all`、`check_only=false` 且 `prepare_draft=true` 时汇总四个平台的发布草稿。修改代码并推送后应对新提交启动 **Run workflow**；重跑旧运行仍使用旧提交。
+
+依赖安装前会校验 15 份内置资源的原始字节，包括示例数据、轨道表和模拟深度模板。仓库 `.gitattributes` 禁止对这些数据做换行转换；出现校验错误时恢复原始资源，不要修改预期 SHA-256 或关闭校验。Windows 回归启动器强制 Qt 日志进入可采集输出，记录具体测试函数，并保留同一程序内所有测试套件的统计。
 
 草稿上传期间不要点击 Publish。脚本在编辑及每次上传前重新查询草稿状态，发现已发布或标签变化会停止；查询与上传是分开的网络操作，不能替代平台级原子锁。必须等待草稿任务成功结束，再人工发布。复用草稿时按版本校正正式版/Beta 标记，保留已有标题和公告。
 

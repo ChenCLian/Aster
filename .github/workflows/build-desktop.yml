@@ -3,6 +3,20 @@ name: Build desktop packages
 on:
   workflow_dispatch:
     inputs:
+      platform:
+        description: Platform to check (release drafts require all)
+        type: choice
+        default: all
+        options:
+          - all
+          - windows-x64
+          - linux-x64
+          - macos-arm64
+          - macos-x86_64
+      check_only:
+        description: Build and test only; skip packaging and release draft
+        type: boolean
+        default: false
       prepare_draft:
         description: Prepare a GitHub Release draft after all four packages pass
         type: boolean
@@ -20,36 +34,43 @@ defaults:
     shell: bash
 
 jobs:
+  plan:
+    name: Select platforms and verify bundled resources
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Verify resource checksums
+        run: python3 tools/release/check_resource_integrity.py
+      - name: Select requested targets
+        id: targets
+        env:
+          ASTER_TARGET: ${{ inputs.platform }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          targets = json.loads(Path('tools/release/desktop_targets.json').read_text())
+          requested = os.environ['ASTER_TARGET']
+          if requested != 'all':
+              targets = [item for item in targets if item['target'] == requested]
+          if not targets:
+              raise SystemExit('Unknown desktop target')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write('matrix=' + json.dumps(targets, separators=(',', ':')) + '\n')
+          PYTHON
+
   package:
+    needs: plan
     name: ${{ matrix.target }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - target: windows-x64
-            os: windows-2022
-            qt-host: windows
-            qt-arch: win64_msvc2022_64
-            arch: x86_64
-            archive-ext: zip
-          - target: linux-x64
-            os: ubuntu-22.04
-            qt-host: linux
-            qt-arch: linux_gcc_64
-            arch: x86_64
-            archive-ext: tar.gz
-          - target: macos-arm64
-            os: macos-15
-            qt-host: mac
-            qt-arch: clang_64
-            arch: arm64
-            archive-ext: zip
-          - target: macos-x86_64
-            os: macos-15-intel
-            qt-host: mac
-            qt-arch: clang_64
-            arch: x86_64
-            archive-ext: zip
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     env:
@@ -70,6 +91,8 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - name: Verify checked-out resource bytes
+        run: python3 tools/release/check_resource_integrity.py 2>&1 | tee build-release/ci-logs/resource-integrity.log
       - name: Check release version and documentation
         run: |
           python3 tools/release/update_version.py --check 2>&1 | tee build-release/ci-logs/version-check.log
@@ -190,7 +213,7 @@ jobs:
       - name: Run regression tests
         run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
       - name: Package Windows
-        if: runner.os == 'Windows'
+        if: ${{ !inputs.check_only && runner.os == 'Windows' }}
         shell: pwsh
         run: |
           $qtBin = (& qmake -query QT_INSTALL_BINS).Trim()
@@ -198,14 +221,15 @@ jobs:
           $version = (Get-Content VERSION -Raw).Trim()
           Compress-Archive -LiteralPath "dist/Aster-$version-windows-x64" -DestinationPath "dist/Aster-$version-windows-x64.zip"
       - name: Package Linux
-        if: runner.os == 'Linux'
+        if: ${{ !inputs.check_only && runner.os == 'Linux' }}
         run: bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist 2>&1 | tee build-release/ci-logs/package.log
       - name: Package macOS
-        if: runner.os == 'macOS'
+        if: ${{ !inputs.check_only && runner.os == 'macOS' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
       - name: Resolve package path
+        if: ${{ !inputs.check_only }}
         id: package-path
         run: |
           version="$(tr -d '\r\n' < VERSION)"
@@ -213,8 +237,10 @@ jobs:
           test -f "$package"
           printf 'path=%s\n' "$package" >> "$GITHUB_OUTPUT"
       - name: Check final package
+        if: ${{ !inputs.check_only }}
         run: python3 tools/release/check_packaged.py '${{ steps.package-path.outputs.path }}' --version "$(tr -d '\r\n' < VERSION)" --platform '${{ matrix.target }}' --output build-release/package-acceptance
       - name: Upload package
+        if: ${{ !inputs.check_only }}
         uses: actions/upload-artifact@v6
         with:
           name: program-${{ matrix.target }}
@@ -223,6 +249,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Upload dependency sources and notices
+        if: ${{ !inputs.check_only }}
         uses: actions/upload-artifact@v6
         with:
           name: dependency-materials-${{ matrix.target }}
@@ -249,7 +276,7 @@ jobs:
   draft:
     name: Prepare reviewable release draft
     needs: package
-    if: inputs.prepare_draft
+    if: ${{ inputs.prepare_draft && !inputs.check_only && inputs.platform == 'all' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write

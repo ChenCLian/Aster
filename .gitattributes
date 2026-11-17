@@ -1,2 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# These resources are verified against published byte-level SHA-256 hashes.
+# Never rewrite their line endings during checkout or commit.
+/resources/examples/*.tsv -text
+/resources/astronomy/la2004/*.ASC -text
+/resources/astronomy/solutions/*.qz -text
+/resources/synthetic/depth_m.txt -text
+
+# Shell entry points must also work in a Windows checkout.
+*.sh text eol=lf
