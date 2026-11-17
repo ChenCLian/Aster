@@ -42,7 +42,9 @@ def run(archive,version,platform,output):
 def _run_checks(archive, version, platform, output):
     inspect_package(archive, version, platform)
     with tempfile.TemporaryDirectory(prefix='aster-package-check-') as td:
-        temp=Path(td)
+        # Compare canonical paths on both sides. Windows TEMP can use an 8.3
+        # short name while resolve() expands each extracted file to a long name.
+        temp=Path(td).resolve()
         if platform.startswith('macos'):
             subprocess.run(['/usr/bin/ditto','-x','-k',str(archive.resolve()),str(temp)],check=True)
         elif platform=='linux-x64':

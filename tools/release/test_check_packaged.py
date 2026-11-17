@@ -3,10 +3,57 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import zipfile
+from contextlib import nullcontext
 from unittest.mock import patch
 import check_packaged as c
 
 class PackagedChecksTests(unittest.TestCase):
+    def package(self, base, extra=None):
+        version='1.3.1-beta.1';platform='windows-x64'
+        name=f'Aster-{version}-{platform}'
+        archive=base/(name+'.zip')
+        with zipfile.ZipFile(archive,'w') as z:
+            z.writestr(name+'/aster-package.json',json.dumps(dict(schema=1,version=version,platform=platform)))
+            z.writestr(name+'/Aster.exe',b'fixture, not executable')
+            for key,value in (extra or {}).items():z.writestr(key,value)
+        return archive,version,platform
+
+    def test_alias_staging_root_keeps_package_inside_and_probes_all_modes(self):
+        with tempfile.TemporaryDirectory() as td:
+            base=Path(td).resolve();actual=base/'actual';actual.mkdir()
+            # Portable alias: normalizes to actual without requiring Windows
+            # symlink privileges. Exercises the same root/target mismatch as
+            # expanded Windows short names or linked temporary directories.
+            alias=actual/'..'/'actual'
+            archive,version,platform=self.package(base)
+            calls=[]
+            def startup(command,folder,env,log):
+                self.assertEqual(folder,actual/f'Aster-{version}-{platform}')
+                self.assertTrue(Path(command[0]).is_file())
+                calls.append(command)
+                if '--release-smoke-output' in command:
+                    Path(command[-1]).write_bytes(b'screenshot fixture')
+                log.write_text('fixture startup')
+                return subprocess.CompletedProcess(command,0,'Aster_Workspace '+version if '--version' in command else '')
+            with patch.object(c.tempfile,'TemporaryDirectory',return_value=nullcontext(str(alias))),patch.object(c,'probe',side_effect=startup):
+                c.run(archive,version,platform,base/'report')
+            self.assertEqual(len(calls),4)
+            self.assertEqual(json.loads((base/'report/result.json').read_text())['status'],'passed')
+
+    def test_alias_root_still_rejects_escape_before_extraction_or_execution(self):
+        with tempfile.TemporaryDirectory() as td:
+            base=Path(td).resolve();actual=base/'actual';actual.mkdir()
+            alias=actual/'..'/'actual'
+            archive,version,platform=self.package(base,{'../escaped.txt':'must not extract'})
+            with patch.object(c.tempfile,'TemporaryDirectory',return_value=nullcontext(str(alias))),patch.object(c,'probe') as startup:
+                with self.assertRaisesRegex(ValueError,'Archive path escapes staging'):
+                    c.run(archive,version,platform,base/'report')
+                startup.assert_not_called()
+            self.assertFalse((base/'escaped.txt').exists())
+            self.assertEqual(list(actual.iterdir()),[])
+            self.assertEqual(json.loads((base/'report/result.json').read_text())['status'],'failed')
+
     def test_failed_rerun_clears_stale_success_and_screenshots(self):
         with tempfile.TemporaryDirectory() as td:
             out=Path(td);(out/'result.json').write_text('{"status":"passed"}')
