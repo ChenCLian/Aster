@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QComboBox>
+#include <QAbstractSpinBox>
 #include <QResizeEvent>
 #include <algorithm>
 namespace aster::ui
@@ -46,6 +47,13 @@ class StyleSection : public QFrame
     }
     void addRow(QWidget *field)
     {
+        if (auto *spin = qobject_cast<QAbstractSpinBox *>(field))
+        {
+            // The native Minimum policy treats the preferred width as a hard
+            // minimum (notably with fallback fonts). Allow shrinking to the
+            // spin box's own minimumSizeHint; keep its editor and step buttons.
+            spin->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        }
         if (auto *combo = qobject_cast<QComboBox *>(field))
         {
             combo->setMinimumWidth(0);

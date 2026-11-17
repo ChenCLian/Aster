@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include <QTabBar>
 #include "ui/common/wrapping_button.h"
+#include "ui/panels/style_section.h"
+#include "ui/common/numeric_editor.h"
 #include "../tests/support/workspace_fixture.h"
 #include "ui/panels/source_panel.h"
 #include <QtTest>
@@ -178,6 +180,7 @@ class StyleExportTests : public QObject
     void narrowInspectorLayout();
     void wrappedControlsRemainInteractive();
     void wrappedControlsReserveTextHeight();
+    void inspectorNumericFieldsCanShrink();
     void resultsPageStyleIntegration();
     void resultsPageStyleIntegration_data();
     void csvTypesPrecisionAndLocale();
@@ -781,6 +784,19 @@ void StyleExportTests::narrowInspectorLayout()
             if (area->isVisible())
             {
                 QCOMPARE(area->horizontalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
+                // Print the responsible layout item, not only the scrollbar
+                // range, if a platform/font combination overflows again.
+                if (area->horizontalScrollBar()->maximum() > 0) {
+                    qInfo() << "Inspector section" << tabs->tabText(i)
+                            << "viewport" << area->viewport()->size()
+                            << "font" << area->font();
+                    for (auto *field : area->widget()->findChildren<QWidget *>())
+                        if (field->isVisible() && field->sizeHint().width() > area->viewport()->width()-16)
+                            qInfo() << field->metaObject()->className() << field->objectName()
+                                    << "size" << field->size() << "hint" << field->sizeHint()
+                                    << "minimum hint" << field->minimumSizeHint()
+                                    << "policy" << field->sizePolicy();
+                }
                 QTRY_COMPARE(area->horizontalScrollBar()->maximum(), 0);
                 QCOMPARE(area->widget()->width(), area->viewport()->width());
                 for (auto *button : area->findChildren<QAbstractButton *>()) if (button->isVisible()) {
@@ -866,6 +882,28 @@ void StyleExportTests::wrappedControlsReserveTextHeight()
     host.resize(700, 100); host.setFont(smallFont);
     QTRY_VERIFY(verifyHeight(check) && verifyHeight(button));
     QTRY_VERIFY(button->minimumHeight() < tallMinimum);
+}
+void StyleExportTests::inspectorNumericFieldsCanShrink()
+{
+    StyleSection section("A");
+    auto *spin = new DecimalEditor;
+    spin->setRange(6,32); spin->setSuffix(" pt"); spin->setSingleStep(.5);
+    spin->setValue(10);
+    auto font = spin->font(); font.setPointSize(18); spin->setFont(font);
+    section.addRow(spin);
+    section.ensurePolished(); spin->ensurePolished();
+    const int compactWidth = spin->minimumSizeHint().width();
+    const auto margins = section.layout()->contentsMargins();
+    const int sectionWidth = compactWidth + margins.left() + margins.right();
+    QVERIFY(section.minimumSizeHint().width() <= sectionWidth);
+    section.resize(sectionWidth,180); section.show();
+    QTRY_COMPARE(section.width(),sectionWidth);
+    QVERIFY(spin->width() >= compactWidth);
+    spin->setFocus(); spin->selectAll();
+    QTest::keyClicks(spin,"18.5"); QTest::keyClick(spin,Qt::Key_Return);
+    QCOMPARE(spin->value(),18.5);
+    QTest::keyClick(spin,Qt::Key_Up);
+    QCOMPARE(spin->value(),19.0);
 }
 void StyleExportTests::resultsPageStyleIntegration_data()
 {
