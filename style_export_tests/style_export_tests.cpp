@@ -25,6 +25,7 @@
 #include <QHelpEvent>
 #include <QToolTip>
 #include <QFormLayout>
+#include <QProxyStyle>
 #include <QListWidget>
 #include <QDir>
 #include <QHBoxLayout>
@@ -176,6 +177,7 @@ class StyleExportTests : public QObject
     void narrowInspectorLayout_data();
     void narrowInspectorLayout();
     void wrappedControlsRemainInteractive();
+    void wrappedControlsReserveTextHeight();
     void resultsPageStyleIntegration();
     void resultsPageStyleIntegration_data();
     void csvTypesPrecisionAndLocale();
@@ -751,15 +753,19 @@ void StyleExportTests::narrowInspectorLayout_data()
 {
     QTest::addColumn<QString>("language");
     QTest::addColumn<int>("fontSize");
-    for (const auto &language : QStringList{"zh", "en"}) for (int points : {10, 14})
-        QTest::newRow(qPrintable(language + QString::number(points))) << language << points;
+    QTest::addColumn<QString>("theme");
+    for (const auto &language : QStringList{"zh", "en"}) for (int points : {10, 14, 18})
+        for (const auto &theme : QStringList{"light", "dark"})
+            QTest::newRow(qPrintable(language + QString::number(points) + theme)) << language << points << theme;
 }
 void StyleExportTests::narrowInspectorLayout()
 {
     QFETCH(QString, language); QFETCH(int, fontSize);
+    QFETCH(QString, theme);
     const auto savedFont = qApp->font();
     struct Restore { QFont font; ~Restore(){setLanguage("zh");qApp->setFont(font);} } restore{savedFont};
     setLanguage(language);
+    QVERIFY(ThemeManager::instance().apply(*qApp, theme).isEmpty());
     auto font=savedFont; font.setPointSize(fontSize); qApp->setFont(font);
     PlotView view;
     view.showOutput(spectrum(), "spectrum");
@@ -784,7 +790,7 @@ void StyleExportTests::narrowInspectorLayout()
                         .arg(button->heightForWidth(button->width()));
                     QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(context));
                     if(button->hasHeightForWidth())
-                        QVERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
+                        QTRY_VERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
                 }
             }
         for (auto *c : editor.findChildren<QComboBox *>())
@@ -819,6 +825,47 @@ void StyleExportTests::wrappedControlsRemainInteractive()
     host.resize(600, 400);
     QTRY_VERIFY(check->height() < narrowHeight);
     QCOMPARE(check->text(), QString("Show the local confidence boundary with a long label"));
+}
+void StyleExportTests::wrappedControlsReserveTextHeight()
+{
+    // Exercise a style whose text insets need more height than its native
+    // single-line size hint. This reproduces the sizing disagreement without
+    // requiring the Windows font set on every test host.
+    class InsetStyle : public QProxyStyle {
+    public:
+        InsetStyle() : QProxyStyle("Fusion") {}
+        QRect subElementRect(SubElement element, const QStyleOption *option,
+                             const QWidget *widget = nullptr) const override
+        {
+            auto result = QProxyStyle::subElementRect(element, option, widget);
+            if (element == SE_CheckBoxContents || element == SE_PushButtonContents)
+                result.adjust(0, 5, 0, -5);
+            return result;
+        }
+    };
+    QWidget host;
+    auto *style = new InsetStyle;
+    style->setParent(&host);
+    auto *layout = new QVBoxLayout(&host);
+    auto *check = new WrappingCheckBox("Follow theme colors");
+    auto *button = new WrappingPushButton("Choose a background image for this figure");
+    for (QAbstractButton *control : {static_cast<QAbstractButton *>(check), static_cast<QAbstractButton *>(button)}) {
+        control->setStyle(style);
+        layout->addWidget(control);
+    }
+    layout->addStretch();
+    host.resize(200, 80); host.show();
+    const auto verifyHeight = [](QAbstractButton *control) {
+        return control->height() >= control->heightForWidth(control->width());
+    };
+    QTRY_VERIFY(verifyHeight(check) && verifyHeight(button));
+    const auto smallFont = host.font();
+    auto largeFont = smallFont; largeFont.setPointSize(18); host.setFont(largeFont);
+    QTRY_VERIFY(verifyHeight(check) && verifyHeight(button));
+    const int tallMinimum = button->minimumHeight();
+    host.resize(700, 100); host.setFont(smallFont);
+    QTRY_VERIFY(verifyHeight(check) && verifyHeight(button));
+    QTRY_VERIFY(button->minimumHeight() < tallMinimum);
 }
 void StyleExportTests::resultsPageStyleIntegration_data()
 {

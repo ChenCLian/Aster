@@ -162,6 +162,40 @@ class RunnerTests(unittest.TestCase):
         self.assertIn('partial 中文', output)
         self.assertIn('Timed out after 1 seconds', output)
 
+    def test_legacy_console_encoding_does_not_interrupt_failed_run(self):
+        for name in ['one', 'two']: self.executable(name)
+        raw = io.BytesIO()
+        console = io.TextIOWrapper(raw, encoding='cp1252', errors='strict')
+        self.addCleanup(console.close)
+        diagnostic = 'FAIL! : Example 中文 \ufffd\nTotals: 2 passed, 1 failed, 0 skipped\n'
+        def run(args, **kwargs):
+            return self.emit(diagnostic if Path(args[0]).name == 'one' else
+                             'Totals: 3 passed, 0 failed, 0 skipped\n', kwargs,
+                             1 if Path(args[0]).name == 'one' else 0)
+        with patch.object(runner, 'TARGETS', ['one', 'two']), patch.object(sys, 'argv',
+                ['run_tests', str(self.build)]), patch.object(runner.subprocess, 'run',
+                side_effect=run) as calls, contextlib.redirect_stdout(console), \
+                contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit): runner.main()
+        console.flush()
+        self.assertEqual(calls.call_count, 2)
+        self.assertEqual([r['status'] for r in self.summary()], ['failed', 'passed'])
+        self.assertIn('Example 中文 \ufffd', raw.getvalue().decode('utf-8'))
+        self.assertEqual((self.log / 'one.txt').read_text(encoding='utf-8'), diagnostic)
+
+    def test_non_utf8_child_bytes_are_preserved_and_reported(self):
+        self.executable('one')
+        real_run = subprocess.run
+        payload = b'FAIL! : background image\x85\nTotals: 1 passed, 1 failed, 0 skipped\n'
+        def run(args, **kwargs):
+            return real_run([sys.executable, '-c',
+                            'import os; os.write(1, ' + repr(payload) + '); raise SystemExit(1)'],
+                           **kwargs)
+        code, _ = self.invoke(['one'], run)
+        self.assertNotEqual(code, 0)
+        self.assertEqual(self.summary()[0]['failed'], 1)
+        self.assertEqual((self.log / 'one.txt').read_bytes(), payload)
+
 
 if __name__ == '__main__':
     unittest.main()

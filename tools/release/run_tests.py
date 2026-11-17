@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import time
 
 TARGETS = ['aster_core_tests', 'aster_batch_tests', 'aster_analysis_tests', 'aster_cross_spectrum_tests', 'aster_ui_tests', 'aster_joint_ui_tests', 'aster_rewrite_tests', 'aster_linked_input_tests',
@@ -22,6 +23,11 @@ def failure_excerpt(output):
     return '\n'.join(lines[index] for index in sorted(selected))
 
 def main():
+    # Hosted Windows pipes may default to cp1252. A diagnostic containing CJK
+    # text or a replacement character must not abort the remaining targets.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8', errors='backslashreplace')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('build', type=Path)
     parser.add_argument('--timeout', type=int, default=900,

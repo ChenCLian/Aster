@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QFormLayout>
 #include <QComboBox>
 #include <QListWidget>
 #include <QLabel>
@@ -149,8 +150,13 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     m_count->setObjectName("Muted");
     // Keep localized file counts from squeezing the action button labels.
     filesLayout->addWidget(m_count);
-    auto *fileActions = new QHBoxLayout;
-    fileActions->addStretch(1);
+    auto *fileActions = new QFormLayout;
+    // Keep the help button beside Remove. If both actions cannot fit on one
+    // row, let the form move the second group below Move instead of clipping.
+    fileActions->setRowWrapPolicy(QFormLayout::WrapLongRows);
+    fileActions->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+    fileActions->setContentsMargins(0, 0, 0, 0);
+    fileActions->setSpacing(6);
     auto *remove = new WrappingPushButton(text("ui.remove_short"));
     remove->setToolTip(text("ui.remove_selected_inputs"));
     remove->setObjectName("removeSourceInput");
@@ -159,14 +165,18 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     move->setObjectName("moveSourceInputs");
     move->setProperty("selectionAction", true);
     move->setToolTip(text("ui.move_inputs_hint"));
-    fileActions->addWidget(move);
     connect(move,&QPushButton::clicked,this,&SourcePanel::moveInputsRequested);
-    fileActions->addWidget(remove);
+    auto *removeActions = new QWidget;
+    auto *removeLayout = new QHBoxLayout(removeActions);
+    removeLayout->setContentsMargins(0, 0, 0, 0);
+    removeLayout->setSpacing(6);
+    removeLayout->addWidget(remove, 1);
     auto *help = new QToolButton;
     help->setText("?"); help->setObjectName("sourceSelectionHelp");
     help->setToolTip(text("ui.input_selection_help"));
     help->setAccessibleName(text("ui.input_selection_help"));
-    fileActions->addWidget(help);
+    removeLayout->addWidget(help);
+    fileActions->addRow(move, removeActions);
     connect(help, &QToolButton::clicked, this, [this] { openHelp(window(), userGuideTopic("input-selection")); });
     filesLayout->addLayout(fileActions);
     m_selectionHint = new QLabel;

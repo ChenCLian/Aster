@@ -4521,11 +4521,24 @@ void UiTests::sourceActionsFitNarrowPanel()
                     .arg(button->minimumSizeHint().width()).arg(button->minimumSizeHint().height());
                 QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(context));
                 if(button->hasHeightForWidth())
-                    QVERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
+                    QTRY_VERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
                 const auto position=button->mapTo(&panel,QPoint(0,0));
                 QVERIFY2(position.x()>=0 && position.x()+button->width()<=panel.width(),qPrintable(context));
             }
         }
+        // Force the two action labels to exceed the available row width even
+        // on hosts with compact fonts, then verify wrapping and recovery.
+        auto *move=panel.findChild<QAbstractButton*>("moveSourceInputs");
+        auto *remove=panel.findChild<QAbstractButton*>("removeSourceInput");
+        move->setMinimumWidth(110); remove->setMinimumWidth(110);
+        panel.resize(220,700);
+        QTRY_VERIFY(remove->mapTo(&panel,QPoint()).y() >=
+                    move->mapTo(&panel,QPoint(0,move->height())).y());
+        QCOMPARE(panel.width(),220);
+        QVERIFY(move->width()>=110 && remove->width()>=110);
+        panel.resize(500,700);
+        QTRY_VERIFY(remove->mapTo(&panel,QPoint()).y() <
+                    move->mapTo(&panel,QPoint(0,move->height())).y());
     }
 }
 void UiTests::evolutionPresetIsEditable()

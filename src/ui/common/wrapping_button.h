@@ -8,6 +8,8 @@
 #include <QStyleOptionButton>
 #include <QStyleOptionFocusRect>
 #include <QTextBoundaryFinder>
+#include <QResizeEvent>
+#include <QShowEvent>
 #include <algorithm>
 #include <type_traits>
 
@@ -28,6 +30,11 @@ template <class Base> class WrappingButton : public Base
         this->setSizePolicy(policy);
     }
     bool hasHeightForWidth() const override { return true; }
+    QSize sizeHint() const override
+    {
+        const auto natural = Base::sizeHint();
+        return {natural.width(), heightForWidth(natural.width())};
+    }
     QSize minimumSizeHint() const override
     {
         const auto natural = Base::sizeHint();
@@ -43,7 +50,7 @@ template <class Base> class WrappingButton : public Base
             start = end;
         }
         return {std::min(natural.width(), wordWidth + natural.width() - content.width()),
-                natural.height()};
+                heightForWidth(natural.width())};
     }
     int heightForWidth(int width) const override
     {
@@ -54,6 +61,22 @@ template <class Base> class WrappingButton : public Base
         return std::max(natural.height(), bounds.height() + natural.height() - content.height());
     }
   protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        Base::resizeEvent(event);
+        fitHeight();
+    }
+    void showEvent(QShowEvent *event) override
+    {
+        Base::showEvent(event);
+        fitHeight();
+    }
+    void changeEvent(QEvent *event) override
+    {
+        Base::changeEvent(event);
+        if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange)
+            fitHeight();
+    }
     bool hitButton(const QPoint &point) const override { return this->rect().contains(point); }
     void paintEvent(QPaintEvent *) override
     {
@@ -76,6 +99,14 @@ template <class Base> class WrappingButton : public Base
         }
     }
   private:
+    void fitHeight()
+    {
+        // heightForWidth is a preferred height; nested, constrained layouts can
+        // shrink it to the native one-line minimum. Reserve the full painted
+        // text height and release it again when the column widens/font shrinks.
+        const int required = heightForWidth(this->width());
+        if (this->minimumHeight() != required) this->setMinimumHeight(required);
+    }
     static constexpr bool isCheck = std::is_same_v<Base, QCheckBox>;
     int textFlags() const
     {
