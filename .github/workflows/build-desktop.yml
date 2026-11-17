@@ -174,7 +174,7 @@ jobs:
           foreach ($tool in @('cl.exe', 'link.exe', 'lib.exe', 'nmake.exe')) {
             $expected = Join-Path $msvcBin $tool
             if (-not (Test-Path -LiteralPath $expected -PathType Leaf)) { throw "Missing MSVC tool: $expected" }
-            $resolved = (Get-Command $tool -CommandType Application -ErrorAction Stop).Source
+            $resolved = (Get-Command $tool -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
             if ($resolved -ne $expected) { throw "Unexpected tool resolution: $tool -> $resolved" }
             "$tool -> $resolved" | Tee-Object -FilePath build-release/ci-logs/environment.log -Append
           }
