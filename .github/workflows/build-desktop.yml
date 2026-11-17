@@ -146,6 +146,7 @@ jobs:
         shell: pwsh
         run: ./tools/release/test_windows_packaging.ps1
       - name: Configure
+        if: runner.os != 'Windows'
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
@@ -154,18 +155,34 @@ jobs:
             qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | tee ci-logs/configure.log
           fi
       - name: Build
+        if: runner.os != 'Windows'
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
             make -j3 2>&1 | tee ci-logs/build.log
           else
-            if [[ "$RUNNER_OS" == Windows ]]; then
-              # A dash avoids Git Bash converting /NOLOGO to a Windows path.
-              nmake -NOLOGO 2>&1 | tee ci-logs/build.log
-            else
-              make -j2 2>&1 | tee ci-logs/build.log
-            fi
+            make -j2 2>&1 | tee ci-logs/build.log
           fi
+      - name: Configure and build Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:VCToolsInstallDir) { throw 'MSVC environment was not initialized.' }
+          $msvcBin = Join-Path $env:VCToolsInstallDir 'bin\Hostx64\x64'
+          $env:PATH = "$msvcBin;$env:PATH"
+          foreach ($tool in @('cl.exe', 'link.exe', 'lib.exe', 'nmake.exe')) {
+            $expected = Join-Path $msvcBin $tool
+            if (-not (Test-Path -LiteralPath $expected -PathType Leaf)) { throw "Missing MSVC tool: $expected" }
+            $resolved = (Get-Command $tool -CommandType Application -ErrorAction Stop).Source
+            if ($resolved -ne $expected) { throw "Unexpected tool resolution: $tool -> $resolved" }
+            "$tool -> $resolved" | Tee-Object -FilePath build-release/ci-logs/environment.log -Append
+          }
+          Set-Location build-release
+          & qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | Tee-Object -FilePath ci-logs/configure.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $msvcBin 'nmake.exe') /NOLOGO 2>&1 | Tee-Object -FilePath ci-logs/build.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Check generated parameter references
         run: |
           python3 -m unittest discover -s tools/help_reference -p 'test_*.py' 2>&1 | tee build-release/ci-logs/help-generator-tests.log
