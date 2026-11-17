@@ -160,7 +160,8 @@ jobs:
             make -j3 2>&1 | tee ci-logs/build.log
           else
             if [[ "$RUNNER_OS" == Windows ]]; then
-              nmake /NOLOGO 2>&1 | tee ci-logs/build.log
+              # A dash avoids Git Bash converting /NOLOGO to a Windows path.
+              nmake -NOLOGO 2>&1 | tee ci-logs/build.log
             else
               make -j2 2>&1 | tee ci-logs/build.log
             fi
