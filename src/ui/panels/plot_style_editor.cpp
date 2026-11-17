@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/common/segmented_selector.h"
 #include "ui/panels/color_button.h"
@@ -112,13 +113,13 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     m_axisLabel = new QLineEdit;
     m_axisLabel->setObjectName("axisLabel");
     af->addRow(text("ui.axis_title"), m_axisLabel);
-    m_log = new QCheckBox(text("ui.logarithmic_scale"));
+    m_log = new WrappingCheckBox(text("ui.logarithmic_scale"));
     m_log->setObjectName("axisLog");
-    m_reverse = new QCheckBox(text("ui.reverse_direction"));
+    m_reverse = new WrappingCheckBox(text("ui.reverse_direction"));
     m_reverse->setObjectName("axisReverse");
-    m_grid = new QCheckBox(text("ui.show_grid"));
+    m_grid = new WrappingCheckBox(text("ui.show_grid"));
     m_grid->setObjectName("axisGrid");
-    m_manual = new QCheckBox(text("ui.set_display_limits"));
+    m_manual = new WrappingCheckBox(text("ui.set_display_limits"));
     m_manual->setObjectName("axisManual");
     af->addRow(m_log);
     af->addRow(m_reverse);
@@ -128,7 +129,7 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     m_upper = number("axisUpper");
     af->addRow(text("ui.lower_original_coordinates"), m_lower);
     af->addRow(text("ui.upper_original_coordinates"), m_upper);
-    auto *capture = new QPushButton(text("ui.use_current_view_limits"));
+    auto *capture = new WrappingPushButton(text("ui.use_current_view_limits"));
     capture->setObjectName("capturePlotRange");
     af->addRow(capture);
     auto *logNote =
@@ -152,13 +153,13 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     StyleSection *pf = nullptr;
     auto section = [&](const QString &label) { pf = new StyleSection(label); cl->addWidget(pf); };
     section(text("ui.style_curve_identity"));
-    m_visible = new QCheckBox(text("ui.visible"));
+    m_visible = new WrappingCheckBox(text("ui.visible"));
     m_visible->setObjectName("curveVisible");
     pf->addRow(m_visible);
     m_curveName = new QLineEdit;
     m_curveName->setObjectName("curveName");
     pf->addRow(text("ui.legend_label"), m_curveName);
-    m_inLegend = new QCheckBox(text("ui.include_in_legend"));
+    m_inLegend = new WrappingCheckBox(text("ui.include_in_legend"));
     pf->addRow(m_inLegend);
     section(text("ui.style_curve_line"));
     m_color = new ColorButton;
@@ -169,7 +170,7 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     m_width->setSingleStep(.25);
     m_width->setObjectName("curveWidth");
     pf->addRow(text("ui.line_width"), m_width);
-    m_line = new QCheckBox(text("ui.connect_points"));
+    m_line = new WrappingCheckBox(text("ui.connect_points"));
     pf->addRow(m_line);
     m_pen = combo("curvePen");
     m_pen->addItems({text("ui.solid"), text("ui.dash"), text("ui.dot"), text("ui.dash_dot"),
@@ -192,16 +193,16 @@ PlotStyleEditor::PlotStyleEditor(PlotView *view, QWidget *parent) : QWidget(pare
     m_markerSize->setDecimals(1);
     m_markerSize->setSingleStep(1);
     pf->addRow(text("ui.marker_size"), m_markerSize);
-    m_markerFilled = new QCheckBox(text("ui.custom_marker_fill"));
+    m_markerFilled = new WrappingCheckBox(text("ui.custom_marker_fill"));
     pf->addRow(m_markerFilled);
     m_markerColor = new ColorButton;
     pf->addRow(text("ui.marker_fill"), m_markerColor);
     m_markerBorder = new ColorButton;
-    m_customBorder = new QCheckBox(text("ui.custom_marker_border"));
+    m_customBorder = new WrappingCheckBox(text("ui.custom_marker_border"));
     pf->addRow(m_customBorder);
     pf->addRow(text("ui.marker_border_color"), m_markerBorder);
     section(text("ui.style_curve_fill"));
-    m_fill = new QCheckBox(text("ui.fill_to_baseline"));
+    m_fill = new WrappingCheckBox(text("ui.fill_to_baseline"));
     m_fill->setObjectName("curveFill");
     pf->addRow(m_fill);
     m_fillColor = new ColorButton;

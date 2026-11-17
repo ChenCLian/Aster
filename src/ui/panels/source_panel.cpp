@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/panels/source_panel.h"
 #include "ui/common/presentation.h"
@@ -94,9 +95,11 @@ class SourceFileDelegate : public QStyledItemDelegate
                           opt.fontMetrics.elidedText(name, Qt::ElideMiddle, rect.width()));
         painter->restore();
     }
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &) const override
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
-        return {100, std::max(32, option.fontMetrics.height() + 14)};
+        auto opt = option;
+        initStyleOption(&opt, index);
+        return {100, std::max(32, opt.fontMetrics.height() + 14)};
     }
 };
 } // namespace
@@ -148,11 +151,13 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     filesLayout->addWidget(m_count);
     auto *fileActions = new QHBoxLayout;
     fileActions->addStretch(1);
-    auto *remove = new QPushButton(text("ui.remove_short"));
+    auto *remove = new WrappingPushButton(text("ui.remove_short"));
     remove->setToolTip(text("ui.remove_selected_inputs"));
     remove->setObjectName("removeSourceInput");
-    auto *move = new QPushButton(text("ui.move_inputs"));
+    remove->setProperty("selectionAction", true);
+    auto *move = new WrappingPushButton(text("ui.move_inputs"));
     move->setObjectName("moveSourceInputs");
+    move->setProperty("selectionAction", true);
     move->setToolTip(text("ui.move_inputs_hint"));
     fileActions->addWidget(move);
     connect(move,&QPushButton::clicked,this,&SourcePanel::moveInputsRequested);

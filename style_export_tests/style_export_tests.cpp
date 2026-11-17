@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include <QTabBar>
+#include "ui/common/wrapping_button.h"
 #include "../tests/support/workspace_fixture.h"
 #include "ui/panels/source_panel.h"
 #include <QtTest>
@@ -172,7 +173,9 @@ class StyleExportTests : public QObject
     void styleCacheIsolatesAndReleasesData();
     void oldCurveMenuCannotChangeNewOutput();
     void parameterEditorAppliesBothAxesAndCurves();
+    void narrowInspectorLayout_data();
     void narrowInspectorLayout();
+    void wrappedControlsRemainInteractive();
     void resultsPageStyleIntegration();
     void resultsPageStyleIntegration_data();
     void csvTypesPrecisionAndLocale();
@@ -744,14 +747,26 @@ void StyleExportTests::parameterEditorAppliesBothAxesAndCurves()
     QVERIFY(!editor.apply());
     QVERIFY(!view.style().y.manualRange);
 }
+void StyleExportTests::narrowInspectorLayout_data()
+{
+    QTest::addColumn<QString>("language");
+    QTest::addColumn<int>("fontSize");
+    for (const auto &language : QStringList{"zh", "en"}) for (int points : {10, 14})
+        QTest::newRow(qPrintable(language + QString::number(points))) << language << points;
+}
 void StyleExportTests::narrowInspectorLayout()
 {
+    QFETCH(QString, language); QFETCH(int, fontSize);
+    const auto savedFont = qApp->font();
+    struct Restore { QFont font; ~Restore(){setLanguage("zh");qApp->setFont(font);} } restore{savedFont};
+    setLanguage(language);
+    auto font=savedFont; font.setPointSize(fontSize); qApp->setFont(font);
     PlotView view;
     view.showOutput(spectrum(), "spectrum");
     PlotStyleEditor editor(&view);
     editor.resize(275, 440);
     editor.show();
-    auto *tabs = editor.findChild<QTabWidget *>("plotStyleSections");
+    auto *tabs = editor.findChild<QTabWidget *>("plotStyleSections"); QVERIFY(tabs);
     for (int i = 0; i < tabs->count(); ++i)
     {
         tabs->setCurrentIndex(i);
@@ -760,7 +775,17 @@ void StyleExportTests::narrowInspectorLayout()
             if (area->isVisible())
             {
                 QCOMPARE(area->horizontalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-                QCOMPARE(area->horizontalScrollBar()->maximum(), 0);
+                QTRY_COMPARE(area->horizontalScrollBar()->maximum(), 0);
+                QCOMPARE(area->widget()->width(), area->viewport()->width());
+                for (auto *button : area->findChildren<QAbstractButton *>()) if (button->isVisible()) {
+                    const auto context=QString("%1: %2 width=%3 min=%4 height=%5 required=%6")
+                        .arg(tabs->tabText(i),button->text()).arg(button->width())
+                        .arg(button->minimumSizeHint().width()).arg(button->height())
+                        .arg(button->heightForWidth(button->width()));
+                    QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(context));
+                    if(button->hasHeightForWidth())
+                        QVERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
+                }
             }
         for (auto *c : editor.findChildren<QComboBox *>())
             if (c->isVisible())
@@ -769,6 +794,31 @@ void StyleExportTests::narrowInspectorLayout()
                 QVERIFY(p.x() >= 0 && p.x() + c->width() <= editor.width());
             }
     }
+}
+void StyleExportTests::wrappedControlsRemainInteractive()
+{
+    QWidget host;
+    auto *layout = new QVBoxLayout(&host);
+    auto *check = new WrappingCheckBox("Show the local confidence boundary with a long label");
+    auto *button = new WrappingPushButton("Choose a background image for this figure");
+    layout->addWidget(check); layout->addWidget(button); layout->addStretch();
+    host.resize(160, 400); host.show();
+    QSignalSpy toggles(check, &QCheckBox::toggled);
+    QSignalSpy clicks(button, &QPushButton::clicked);
+    QTRY_VERIFY(check->height() > 2 * check->fontMetrics().height());
+    const auto narrowHeight = check->height();
+    // Wrapped lines below the native one-line indicator remain clickable.
+    QTest::mouseClick(check, Qt::LeftButton, Qt::NoModifier, QPoint(check->width()/2, check->height()-5));
+    QCOMPARE(toggles.size(), 1); QVERIFY(check->isChecked());
+    check->setFocus(); QTest::keyClick(check, Qt::Key_Space);
+    QCOMPARE(toggles.size(), 2); QVERIFY(!check->isChecked());
+    QTest::mouseClick(button, Qt::LeftButton, Qt::NoModifier, QPoint(button->width()/2, button->height()-5));
+    QCOMPARE(clicks.size(), 1);
+    button->setFocus(); QTest::keyClick(button, Qt::Key_Space);
+    QCOMPARE(clicks.size(), 2);
+    host.resize(600, 400);
+    QTRY_VERIFY(check->height() < narrowHeight);
+    QCOMPARE(check->text(), QString("Show the local confidence boundary with a long label"));
 }
 void StyleExportTests::resultsPageStyleIntegration_data()
 {

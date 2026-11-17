@@ -152,3 +152,5 @@ HEADERS += ../src/ui/results/plot_recipe.h ../src/io/database/grid_sampling.h
 include(../config/archive.pri)
 SOURCES += ../src/update/download_package.cpp ../src/update/package_download.cpp
 HEADERS += ../src/update/download_package.h ../src/update/package_download.h
+
+HEADERS += ../src/ui/common/wrapping_button.h

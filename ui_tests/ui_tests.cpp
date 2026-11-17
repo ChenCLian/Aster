@@ -3524,7 +3524,11 @@ void UiTests::compactInputStatesAndFrequencyEditor()
         // Adding the MTM node refreshes SourcePanel and replaces its list items.
         // Reacquire the item instead of dereferencing the previous model entry.
         item = list->item(0); QVERIFY(item);
-        QVERIFY(list->visualItemRect(item).height() <= panel.fontMetrics().height() + 18);
+        // The delegate uses the list's font, not the surrounding panel's font.
+        // Respect its 32px minimum when the platform supplies a small font.
+        QTRY_VERIFY2(list->visualItemRect(item).height() <= std::max(32, list->fontMetrics().height() + 18),
+                 qPrintable(QString("row=%1 listFont=%2 panelFont=%3")
+                     .arg(list->visualItemRect(item).height()).arg(list->fontMetrics().height()).arg(panel.fontMetrics().height())));
         if (!capture.isEmpty())
         {
             QDir().mkpath(capture);
@@ -4500,15 +4504,27 @@ void UiTests::batchImportPreservesConcurrentOptions()
 }
 void UiTests::sourceActionsFitNarrowPanel()
 {
-    struct Restore { ~Restore(){setLanguage("zh");} } restore;
-    for(const auto &language:QStringList{"zh","en"}) {
-        setLanguage(language);WorkflowDocument doc(makeScientificRegistry());SourcePanel panel(&doc);
-        panel.resize(270,700);panel.show();QTest::qWait(10);
-        for(const auto &name:QStringList{"moveSourceInputs","removeSourceInput"}) {
-            const auto *button=panel.findChild<QPushButton*>(name);QVERIFY(button);
-            QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(language+" "+name));
-            const auto position=button->mapTo(&panel,QPoint(0,0));
-            QVERIFY(position.x()>=0 && position.x()+button->width()<=panel.width());
+    const auto savedFont = qApp->font();
+    struct Restore { QFont font; ~Restore(){setLanguage("zh");qApp->setFont(font);} } restore{savedFont};
+    for(const auto &language:QStringList{"zh","en"}) for(int points:{10,14}) {
+        setLanguage(language);
+        auto font=savedFont; font.setPointSize(points); qApp->setFont(font);
+        WorkflowDocument doc(makeScientificRegistry()); SourcePanel panel(&doc);
+        panel.show();
+        for(int width:{220,270,340}) {
+            panel.resize(width,700); QTest::qWait(20);
+            QCOMPARE(panel.width(),width);
+            for(const auto &name:QStringList{"moveSourceInputs","removeSourceInput","sourceSelectionHelp"}) {
+                const auto *button=panel.findChild<QAbstractButton*>(name);QVERIFY(button);
+                const auto context=QString("%1 %2pt width=%3 %4 size=%5x%6 min=%7x%8")
+                    .arg(language).arg(points).arg(width).arg(name).arg(button->width()).arg(button->height())
+                    .arg(button->minimumSizeHint().width()).arg(button->minimumSizeHint().height());
+                QVERIFY2(button->width()>=button->minimumSizeHint().width(),qPrintable(context));
+                if(button->hasHeightForWidth())
+                    QVERIFY2(button->height()>=button->heightForWidth(button->width()),qPrintable(context));
+                const auto position=button->mapTo(&panel,QPoint(0,0));
+                QVERIFY2(position.x()>=0 && position.x()+button->width()<=panel.width(),qPrintable(context));
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/panels/axis_details_editor.h"
 #include "ui/common/presentation.h"
@@ -22,7 +23,7 @@ AxisDetailsEditor::AxisDetailsEditor(QWidget *p) : QWidget(p)
     section(text("ui.style_axis_ticks"));
     auto check = [&](QCheckBox *&b, QString name, QString label)
     {
-        b = new QCheckBox(label);
+        b = new WrappingCheckBox(label);
         b->setObjectName(name);
         f->addRow(b);
     };

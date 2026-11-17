@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/panels/canvas_details_editor.h"
 #include "ui/panels/style_section.h"
@@ -35,7 +36,7 @@ CanvasDetailsEditor::CanvasDetailsEditor(QWidget *parent) : QWidget(parent)
     font(m_legendFont, "plotLegendFontSize", text("ui.legend_font_size"));
     auto *background = new StyleSection(text("ui.background"));
     layout->addWidget(background);
-    m_theme = new QCheckBox(text("ui.follow_theme_colors"));
+    m_theme = new WrappingCheckBox(text("ui.follow_theme_colors"));
     m_theme->setObjectName("plotFollowTheme");
     m_theme->setToolTip(text("ui.canvas_and_primary_axis_colors_follow_theme"));
     background->addRow(m_theme);
@@ -45,7 +46,7 @@ CanvasDetailsEditor::CanvasDetailsEditor(QWidget *parent) : QWidget(parent)
     m_image = new QLineEdit;
     m_image->setObjectName("plotBackgroundImage");
     background->addRow(text("ui.background_image_clear_path_to_remove"), m_image);
-    auto *browse = new QPushButton(text("ui.choose_background_image"));
+    auto *browse = new WrappingPushButton(text("ui.choose_background_image"));
     background->addRow(browse);
     connect(browse, &QPushButton::clicked, this, [this]
     {
@@ -53,11 +54,11 @@ CanvasDetailsEditor::CanvasDetailsEditor(QWidget *parent) : QWidget(parent)
                                                        "Images (*.png *.jpg *.jpeg *.bmp)");
         if (!path.isEmpty()) m_image->setText(path);
     });
-    m_aspect = new QCheckBox(text("ui.keep_image_aspect_ratio"));
+    m_aspect = new WrappingCheckBox(text("ui.keep_image_aspect_ratio"));
     background->addRow(m_aspect);
     auto *legend = new StyleSection(text("ui.style_legend_layout"));
     layout->addWidget(legend);
-    m_legend = new QCheckBox(text("ui.show_legend"));
+    m_legend = new WrappingCheckBox(text("ui.show_legend"));
     m_legend->setObjectName("plotLegend");
     legend->addRow(m_legend);
     m_position = new ChoiceEditor;
@@ -65,7 +66,7 @@ CanvasDetailsEditor::CanvasDetailsEditor(QWidget *parent) : QWidget(parent)
     m_position->addItems({text("ui.top_right"), text("ui.top_left"), text("ui.bottom_right"), text("ui.bottom_left")});
     legend->addRow(text("ui.legend_position"), m_position);
     connect(m_legend, &QCheckBox::toggled, m_position, &QWidget::setEnabled);
-    m_swap = new QCheckBox(text("ui.swap_x_y_orientation"));
+    m_swap = new WrappingCheckBox(text("ui.swap_x_y_orientation"));
     m_swap->setObjectName("swapPlotAxes");
     legend->addRow(m_swap);
     auto *scope = new StyleNote(text("ui.changes_apply_to_this_output_of_this_record_and_are_kept_for"));

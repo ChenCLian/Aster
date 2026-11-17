@@ -181,3 +181,6 @@ QPushButton[updateRole="primary"]:hover { background: @accentHover@; }
 QPushButton[updateRole="primary"]:disabled { background: @disabledSurface@; color: @disabled@; border-color: @border@; }
 QPushButton[updateRole="primary"]:focus { border-color: @accentText@; }
 QTextBrowser#updateNotes { background: @surface@; border: 0; padding: 0; }
+
+/* Keep input actions readable without a fixed width that can clip larger fonts. */
+QToolButton#sourceSelectionHelp { padding: 3px; }
