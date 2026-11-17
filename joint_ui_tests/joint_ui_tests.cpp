@@ -1128,7 +1128,9 @@ void JointUiTests::batchDirectoryRefreshCoalesces()
     window.runner()->batchReady(batch);
     QTRY_COMPARE_WITH_TIMEOUT(busy.count(),2,5000);
     QTRY_VERIFY_WITH_TIMEOUT(!window.results()->databaseBusy(),5000);
-    if (!partialError) QCOMPARE(window.results()->recordId(),receipt.recordId);
+    // Directory queries and record loading use independent workers. The
+    // directory becoming idle does not mean the selected record is loaded.
+    if (!partialError) QTRY_COMPARE_WITH_TIMEOUT(window.results()->recordId(),receipt.recordId,5000);
     const auto finished=status->text(); QVERIFY(finished!=cancelling);
     QTest::qWait(200); // A stale delayed refresh must not fire after completion.
     QCOMPARE(busy.count(),2); QCOMPARE(status->text(),finished);
