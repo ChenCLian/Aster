@@ -298,6 +298,11 @@ class Collection:
         self.licenses.mkdir(parents=True, exist_ok=True)
         self.components, self.inventory, self.errors = [], [], []
         self.source_caches = []
+        self.history = None
+        history = os.environ.get('ASTER_DEPENDENCY_HISTORY')
+        if history and not plan_only:
+            from dependency_history import PublishedHistory
+            self.history = PublishedHistory(history, platform)
 
     def component(self, name, version, provider):
         if any(c['id'] == safe_name(name) and c['version'] != str(version) for c in self.components):
@@ -326,6 +331,8 @@ class Collection:
                   'asset':filename, 'status':'planned'}
         component['sources'].append(record)
         if self.plan_only:
+            return None
+        if self.history and self.history.source(self, component, record, extract):
             return None
         print(f"Collecting {component['id']} {component['version']}: {filename}", flush=True)
         cached = download(url, self.cache, algorithm, expected,

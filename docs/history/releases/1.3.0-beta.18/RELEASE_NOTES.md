@@ -9,4 +9,4 @@
 - 文档采用同一份 Markdown 正文：仓库与本地使用相对链接，内置手册解析本地页面，发布公告自动拼接对应平台和版本的文档地址。
 - 补充最终程序包的中文/英文启动截图和日志。截图用于人工复核；自动启动通过不能保证字体和排版完全正常。
 
-本地验证范围见[验证记录](../../../validation_current.md)。本次未实际执行远程 Actions 或向 Gitee 上传；Windows/macOS 原生打包和 Gitee 真实附件接口仍需首次流水线验收。
+本地验证范围见[验证记录](../../../validation_results/1.3.0-beta.18/checks.json)。本次未实际执行远程 Actions 或向 Gitee 上传；Windows/macOS 原生打包和 Gitee 真实附件接口仍需首次流水线验收。

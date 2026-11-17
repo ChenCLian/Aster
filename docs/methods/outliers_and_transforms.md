@@ -1,6 +1,6 @@
 # 异常值与数值变换
 
-适用版本：Aster 1.3.0-beta.20。
+适用版本：Aster 1.3.1-beta.1。
 
 [公共概念](../concepts/data_processing.md) · [English](outliers_and_transforms_en.md)
 

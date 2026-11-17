@@ -35,6 +35,7 @@ private slots:
     void constantOverflowAndCancellation();
     void invalidInputsAndBudgets();
     void workflowPersistenceAndUnits();
+    void envelopeInputAndUnitlessAxes();
     void insolationMapMatchesEveryLatitude();
     void mapValidationAndPersistence();
     void concurrentAndLarge();
@@ -125,10 +126,38 @@ void FilterAudit::invalidInputsAndBudgets(){
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument,responseGain(Shape::Taner,.1,.05,.2,0));
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument,bandpass({1,2},1,Shape::Gaussian,.1,.5));
 }
+void FilterAudit::envelopeInputAndUnitlessAxes(){
+    const auto registry=makeScientificRegistry();
+    auto d=signal(); d.yAxis={"Y", ""};
+    for(bool demean:{false,true}) {
+        const auto result=registry.create("hilbert_envelope",{{"hilbert_remove_mean",demean}})->execute({makeData(d)},{});
+        QCOMPARE(result.state,NodeState::Succeeded);
+        const auto* analysed=dataAs<SeriesData>(result.outputs["signal"]);
+        const auto* envelope=dataAs<SeriesData>(result.outputs["envelope"]);
+        QVERIFY(analysed); QVERIFY(envelope);
+        QCOMPARE(analysed->yAxis.name,d.yAxis.name);
+        QVERIFY(compatibleCurveAxes(result.outputs["envelope"],makeData(d)));
+        for(qsizetype i=0;i<d.y.size();++i) {
+            QVERIFY(std::abs(analysed->y[i]-(d.y[i]-(demean?2.:0.)))<1e-12);
+            QVERIFY(envelope->y[i]+1e-12>=std::abs(analysed->y[i]));
+        }
+    }
+    for(const auto* method:{"gaussian_filter","taner_filter"}) {
+        const auto result=registry.create(method,{{"lower_frequency",.08},{"upper_frequency",.18}})->execute({makeData(d)},{});
+        QCOMPARE(result.state,NodeState::Succeeded);
+        QVERIFY(compatibleCurveAxes(result.outputs["filtered"],makeData(d)));
+        QVERIFY(compatibleCurveAxes(result.outputs["filtered"],result.outputs["envelope"]));
+        QVERIFY(!compatibleCurveAxes(result.outputs["filter_response"],result.outputs["filtered"]));
+    }
+}
 void FilterAudit::workflowPersistenceAndUnits(){
     WorkflowModel model(makeScientificRegistry());const auto root=model.addRoot("input_series",{0,0}).nodeId;
     const auto filter=model.addChild(root,ChildSlot::Down,"taner_filter",{{"lower_frequency",.08},{"upper_frequency",.18}}).nodeId;
     const auto child=model.addChild(filter,ChildSlot::Down,"hilbert_envelope").nodeId;
+    auto legacy=model.definition();
+    for(auto& node:legacy.nodes) if(node.method=="taner_filter" || node.method=="hilbert_envelope") node.methodVersion=1;
+    WorkflowModel reopened(makeScientificRegistry());
+    QVERIFY(reopened.replaceDefinition(legacy).ok());
     const auto raw=makeData(signal());const auto run=WorkflowExecutor().run({model.freeze().snapshot,root,{"AM",raw,{}}});
     QCOMPARE(run.state,RunState::Succeeded);const auto f=run.nodes[filter],h=run.nodes[child];
     QCOMPARE(dataAs<SeriesData>(f.outputs["envelope"])->y,dataAs<SeriesData>(h.outputs["envelope"])->y);

@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.3.0-beta.20。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.3.1-beta.1。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.0-beta.20` 对应 `v1.3.0-beta.20`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.1-beta.1` 对应 `v1.3.1-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -269,7 +269,7 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 ## 创建 GitHub Release
 
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
-2. 打开 **Releases → Draft a new release**，创建指向该提交的标签，例如 `v1.3.0-beta.20`，标题填写 `Aster 1.3.0-beta.20`。
+2. 确认 `VERSION` 为正式版或 beta（alpha 仅用于开发测试，不发布更新）。打开 **Releases → Draft a new release**，创建指向已测试提交、带 `v` 前缀的对应版本标签。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
 4. 使用上述 Actions 时草稿附件已自动准备；手动发布则上传程序包、生成的 `Aster-update.json` 和各平台 `release-assets/` 中的全部文件。Windows 目录由维护者压缩；Actions 程序和依赖材料构件均先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
 5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。
@@ -321,3 +321,6 @@ GitHub 为 Release 附件记录 SHA-256 摘要，可通过附件 API 的 `digest
 - [Qt macOS 部署](https://doc.qt.io/qt-6/macos-deployment.html)
 - [Apple 应用公证](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
 - [GitHub Release 管理](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+
+
+依赖材料跨版本复用由已发布记录和源码校验值自动决定，详见[自动清单](dependency_materials_zh.md#跨版本复用与自动清单)。新增依赖后同时核对构建配置、Actions 安装命令、第三方说明和生成的清单。Actions 的 `check_only` 允许测试 alpha；打包、草稿和更新渠道只接受正式版或 beta。回归运行器每 15 秒输出当前程序的等待时间及最近日志，超时上限按单个测试可执行文件计算。

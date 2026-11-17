@@ -1,0 +1,1182 @@
+********* Start testing of AnalysisTests *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : AnalysisTests::initTestCase() entering
+PASS   : AnalysisTests::initTestCase()
+INFO   : AnalysisTests::structuredAlgorithmDiagnostics() entering
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(lowess-duplicate)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(lowess-descending)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(preprocess-duplicate-policy)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(preprocess-distinct-count)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(preprocess-interpolation-count)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(preprocess-grid)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(linear-degenerate)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(mtm-nonuniform)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(mtm-nw)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(wavelet-count)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(wavelet-nonuniform)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(wavelet-paul-order)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(wavelet-dog-order)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(wavelet-grid)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(affine-output-range)
+PASS   : AnalysisTests::structuredAlgorithmDiagnostics(summary-output-range)
+INFO   : AnalysisTests::directValidInputNeedsNoPreprocessingNode() entering
+PASS   : AnalysisTests::directValidInputNeedsNoPreprocessingNode()
+INFO   : AnalysisTests::fileProbeAndFrozenOptions() entering
+PASS   : AnalysisTests::fileProbeAndFrozenOptions()
+INFO   : AnalysisTests::frequencySearchAndMetadata() entering
+PASS   : AnalysisTests::frequencySearchAndMetadata()
+INFO   : AnalysisTests::databaseV1Migration() entering
+PASS   : AnalysisTests::databaseV1Migration()
+INFO   : AnalysisTests::databaseMigrationRollback() entering
+PASS   : AnalysisTests::databaseMigrationRollback()
+INFO   : AnalysisTests::batchCollectsAnyCompletedInput() entering
+PASS   : AnalysisTests::batchCollectsAnyCompletedInput()
+INFO   : AnalysisTests::scientificCatalogue() entering
+PASS   : AnalysisTests::scientificCatalogue()
+INFO   : AnalysisTests::quotedUtf8File() entering
+PASS   : AnalysisTests::quotedUtf8File()
+INFO   : AnalysisTests::missingValuePolicies() entering
+PASS   : AnalysisTests::missingValuePolicies()
+INFO   : AnalysisTests::readerBoundsAndCancellation() entering
+PASS   : AnalysisTests::readerBoundsAndCancellation()
+INFO   : AnalysisTests::deferredFileSource() entering
+PASS   : AnalysisTests::deferredFileSource()
+INFO   : AnalysisTests::preprocessSortDuplicatesAndResample() entering
+PASS   : AnalysisTests::preprocessSortDuplicatesAndResample()
+INFO   : AnalysisTests::preprocessingErrors() entering
+PASS   : AnalysisTests::preprocessingErrors()
+INFO   : AnalysisTests::lowessMatchesReference() entering
+PASS   : AnalysisTests::lowessMatchesReference()
+INFO   : AnalysisTests::lowessParameterIsolation() entering
+PASS   : AnalysisTests::lowessParameterIsolation()
+INFO   : AnalysisTests::foundationReferences() entering
+INFO   : AnalysisTests::foundationReferences() testdata fixtures/foundation_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/foundation_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/analysis_tests.cpp(307)]
+INFO   : AnalysisTests::foundationReferences() testdata fixtures/lowess_statsmodels_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/lowess_statsmodels_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/analysis_tests.cpp(318)]
+PASS   : AnalysisTests::foundationReferences(irregular_ols)
+PASS   : AnalysisTests::foundationReferences(translated_ols)
+PASS   : AnalysisTests::foundationReferences(unsorted_duplicate_ols)
+PASS   : AnalysisTests::foundationReferences(degenerate_ols)
+PASS   : AnalysisTests::foundationReferences(summary_population)
+PASS   : AnalysisTests::foundationReferences(summary_single)
+PASS   : AnalysisTests::foundationReferences(summary_offset)
+PASS   : AnalysisTests::foundationReferences(affine_negative)
+PASS   : AnalysisTests::foundationReferences(affine_overflow_rejected)
+PASS   : AnalysisTests::foundationReferences(sine_quarters)
+PASS   : AnalysisTests::foundationReferences(sorted_duplicate_average)
+PASS   : AnalysisTests::foundationReferences(duplicate_error)
+PASS   : AnalysisTests::foundationReferences(spacing_mean)
+PASS   : AnalysisTests::foundationReferences(spacing_median)
+PASS   : AnalysisTests::foundationReferences(spacing_min)
+PASS   : AnalysisTests::foundationReferences(spacing_max)
+PASS   : AnalysisTests::foundationReferences(spacing_fixed)
+PASS   : AnalysisTests::foundationReferences(interp_linear)
+PASS   : AnalysisTests::foundationReferences(interp_cubic)
+PASS   : AnalysisTests::foundationReferences(interp_akima)
+PASS   : AnalysisTests::foundationReferences(two_point_linear)
+PASS   : AnalysisTests::foundationReferences(two_point_cubic_rejected)
+PASS   : AnalysisTests::foundationReferences(akima_insufficient)
+PASS   : AnalysisTests::foundationReferences(unrepresentable_grid)
+PASS   : AnalysisTests::foundationReferences(lowess_weighted_ls)
+PASS   : AnalysisTests::foundationReferences(lowess_linear_0)
+PASS   : AnalysisTests::foundationReferences(lowess_linear_3)
+PASS   : AnalysisTests::foundationReferences(lowess_duplicate_rejected)
+PASS   : AnalysisTests::foundationReferences(lowess_robust_outlier)
+PASS   : AnalysisTests::foundationReferences(lowess_ordinary_outlier)
+PASS   : AnalysisTests::foundationReferences(lowess_retain_mean)
+PASS   : AnalysisTests::foundationReferences(lowess_tiny_window)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.2_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.2_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.2_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.35_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.35_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.35_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.7_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.7_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_regular_0.7_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.2_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.2_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.2_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.35_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.35_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.35_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.7_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.7_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_31_irregular_0.7_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.2_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.2_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.2_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.35_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.35_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.35_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.7_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.7_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_regular_0.7_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.2_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.2_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.2_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.35_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.35_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.35_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.7_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.7_1)
+PASS   : AnalysisTests::foundationReferences(external_lowess_128_irregular_0.7_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_translated_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_tiny_unit_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_large_unit_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_span_overflow_0)
+PASS   : AnalysisTests::foundationReferences(external_lowess_translated_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_tiny_unit_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_large_unit_3)
+PASS   : AnalysisTests::foundationReferences(external_lowess_span_overflow_3)
+INFO   : AnalysisTests::lowessMeanAndRobustness() entering
+PASS   : AnalysisTests::lowessMeanAndRobustness()
+INFO   : AnalysisTests::mtmMatchesScipy() entering
+INFO   : AnalysisTests::mtmMatchesScipy() testdata fixtures/mtm_scipy.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/mtm_scipy.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/analysis_tests.cpp(460)]
+PASS   : AnalysisTests::mtmMatchesScipy()
+INFO   : AnalysisTests::mtmPeakAndIntegral() entering
+PASS   : AnalysisTests::mtmPeakAndIntegral()
+INFO   : AnalysisTests::mtmPeakTestCodes() entering
+PASS   : AnalysisTests::mtmPeakTestCodes()
+INFO   : AnalysisTests::outlierHandlingAndTransforms() entering
+PASS   : AnalysisTests::outlierHandlingAndTransforms()
+INFO   : AnalysisTests::mtmShortConstantAndCutoff() entering
+PASS   : AnalysisTests::mtmShortConstantAndCutoff()
+INFO   : AnalysisTests::mtmAbsoluteFrequencyLimit() entering
+PASS   : AnalysisTests::mtmAbsoluteFrequencyLimit()
+INFO   : AnalysisTests::mtmTinyCutoffAndWorkspace() entering
+PASS   : AnalysisTests::mtmTinyCutoffAndWorkspace()
+INFO   : AnalysisTests::rejectIrregularAxis() entering
+PASS   : AnalysisTests::rejectIrregularAxis()
+INFO   : AnalysisTests::largeOriginDoesNotHideIrregularSampling() entering
+PASS   : AnalysisTests::largeOriginDoesNotHideIrregularSampling()
+INFO   : AnalysisTests::mtmIndependentNodes() entering
+PASS   : AnalysisTests::mtmIndependentNodes()
+INFO   : AnalysisTests::waveletWrapperMatchesLibrary() entering
+PASS   : AnalysisTests::waveletWrapperMatchesLibrary()
+INFO   : AnalysisTests::waveletPeakAndConstant() entering
+PASS   : AnalysisTests::waveletPeakAndConstant()
+INFO   : AnalysisTests::waveletParameterValidation() entering
+PASS   : AnalysisTests::waveletParameterValidation()
+INFO   : AnalysisTests::dataCodecAllTypes() entering
+PASS   : AnalysisTests::dataCodecAllTypes()
+INFO   : AnalysisTests::dataCodecRejectsCorruption() entering
+PASS   : AnalysisTests::dataCodecRejectsCorruption()
+INFO   : AnalysisTests::repositoryRoundTrip() entering
+PASS   : AnalysisTests::repositoryRoundTrip()
+INFO   : AnalysisTests::repositoryAtomicRollback() entering
+PASS   : AnalysisTests::repositoryAtomicRollback()
+INFO   : AnalysisTests::repositoryRejectsOldSchema() entering
+PASS   : AnalysisTests::repositoryRejectsOldSchema()
+INFO   : AnalysisTests::repositoryThreadGuard() entering
+PASS   : AnalysisTests::repositoryThreadGuard()
+INFO   : AnalysisTests::batchFilesAndGenerator() entering
+PASS   : AnalysisTests::batchFilesAndGenerator()
+INFO   : AnalysisTests::batchFailureIsolation() entering
+PASS   : AnalysisTests::batchFailureIsolation()
+INFO   : AnalysisTests::batchSaveFailureAndRetry() entering
+PASS   : AnalysisTests::batchSaveFailureAndRetry()
+INFO   : AnalysisTests::lateSaveFailureRollsBackAndRetries() entering
+PASS   : AnalysisTests::lateSaveFailureRollsBackAndRetries()
+INFO   : AnalysisTests::batchCancellationAndObserver() entering
+PASS   : AnalysisTests::batchCancellationAndObserver()
+INFO   : AnalysisTests::fullScientificRoundTrip() entering
+PASS   : AnalysisTests::fullScientificRoundTrip()
+INFO   : AnalysisTests::cleanupTestCase() entering
+PASS   : AnalysisTests::cleanupTestCase()
+Totals: 135 passed, 0 failed, 0 skipped, 0 blacklisted, 570ms
+********* Finished testing of AnalysisTests *********
+********* Start testing of SpectralAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : SpectralAudit::initTestCase() entering
+PASS   : SpectralAudit::initTestCase()
+INFO   : SpectralAudit::relativeProminenceAndRoundoff() entering
+PASS   : SpectralAudit::relativeProminenceAndRoundoff()
+INFO   : SpectralAudit::constantMtmHasNoPeaks() entering
+PASS   : SpectralAudit::constantMtmHasNoPeaks()
+INFO   : SpectralAudit::references() entering
+INFO   : SpectralAudit::references() testdata fixtures/spectral_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/spectral_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/spectral_audit.cpp(88)]
+PASS   : SpectralAudit::references(mtm_dense_32_1_1)
+PASS   : SpectralAudit::references(mtm_dense_64_2_1)
+PASS   : SpectralAudit::references(mtm_dense_127_3_0.2)
+PASS   : SpectralAudit::references(mtm_dense_151_3_4)
+PASS   : SpectralAudit::references(mtm_dense_65_4_1)
+PASS   : SpectralAudit::references(ar1_0_1_False)
+PASS   : SpectralAudit::references(ar1_0_1_True)
+PASS   : SpectralAudit::references(ar1_0_1e-20_False)
+PASS   : SpectralAudit::references(ar1_0_1e-20_True)
+PASS   : SpectralAudit::references(ar1_0_1e+20_False)
+PASS   : SpectralAudit::references(ar1_0_1e+20_True)
+PASS   : SpectralAudit::references(ar1_0.7_1_False)
+PASS   : SpectralAudit::references(ar1_0.7_1_True)
+PASS   : SpectralAudit::references(ar1_0.7_1e-20_False)
+PASS   : SpectralAudit::references(ar1_0.7_1e-20_True)
+PASS   : SpectralAudit::references(ar1_0.7_1e+20_False)
+PASS   : SpectralAudit::references(ar1_0.7_1e+20_True)
+PASS   : SpectralAudit::references(ar1_-0.6_1_False)
+PASS   : SpectralAudit::references(ar1_-0.6_1_True)
+PASS   : SpectralAudit::references(ar1_-0.6_1e-20_False)
+PASS   : SpectralAudit::references(ar1_-0.6_1e-20_True)
+PASS   : SpectralAudit::references(ar1_-0.6_1e+20_False)
+PASS   : SpectralAudit::references(ar1_-0.6_1e+20_True)
+PASS   : SpectralAudit::references(ar1_0.98_1_False)
+PASS   : SpectralAudit::references(ar1_0.98_1_True)
+PASS   : SpectralAudit::references(ar1_0.98_1e-20_False)
+PASS   : SpectralAudit::references(ar1_0.98_1e-20_True)
+PASS   : SpectralAudit::references(ar1_0.98_1e+20_False)
+PASS   : SpectralAudit::references(ar1_0.98_1e+20_True)
+PASS   : SpectralAudit::references(ar1_noisy_median_False)
+PASS   : SpectralAudit::references(ar1_noisy_median_True)
+PASS   : SpectralAudit::references(fdr_full_100)
+PASS   : SpectralAudit::references(fdr_full_1e+20)
+PASS   : SpectralAudit::references(swa_7_unit_1)
+PASS   : SpectralAudit::references(swa_7_unit_1e-07)
+PASS   : SpectralAudit::references(swa_7_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_32_unit_1)
+PASS   : SpectralAudit::references(swa_32_unit_1e-07)
+PASS   : SpectralAudit::references(swa_32_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_33_unit_1)
+PASS   : SpectralAudit::references(swa_33_unit_1e-07)
+PASS   : SpectralAudit::references(swa_33_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_57_unit_1)
+PASS   : SpectralAudit::references(swa_57_unit_1e-07)
+PASS   : SpectralAudit::references(swa_57_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_128_unit_1)
+PASS   : SpectralAudit::references(swa_128_unit_1e-07)
+PASS   : SpectralAudit::references(swa_128_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_257_unit_1)
+PASS   : SpectralAudit::references(swa_257_unit_1e-07)
+PASS   : SpectralAudit::references(swa_257_unit_10000000.0)
+PASS   : SpectralAudit::references(swa_513_unit_1)
+PASS   : SpectralAudit::references(swa_513_unit_1e-07)
+PASS   : SpectralAudit::references(swa_513_unit_10000000.0)
+PASS   : SpectralAudit::references(peaks_plateau_0)
+PASS   : SpectralAudit::references(peaks_plateau_3)
+PASS   : SpectralAudit::references(peaks_plateau_8)
+PASS   : SpectralAudit::references(peaks_nested_0)
+PASS   : SpectralAudit::references(peaks_nested_3)
+PASS   : SpectralAudit::references(peaks_nested_8)
+PASS   : SpectralAudit::references(peaks_equal_0)
+PASS   : SpectralAudit::references(peaks_equal_3)
+PASS   : SpectralAudit::references(peaks_equal_8)
+PASS   : SpectralAudit::references(peaks_endpoints_0)
+PASS   : SpectralAudit::references(peaks_endpoints_3)
+PASS   : SpectralAudit::references(peaks_endpoints_8)
+PASS   : SpectralAudit::references(peaks_negative_0)
+PASS   : SpectralAudit::references(peaks_negative_3)
+PASS   : SpectralAudit::references(peaks_negative_8)
+PASS   : SpectralAudit::references(peaks_noise_0)
+PASS   : SpectralAudit::references(peaks_noise_3)
+PASS   : SpectralAudit::references(peaks_noise_8)
+PASS   : SpectralAudit::references(fdr_empty)
+PASS   : SpectralAudit::references(fdr_none)
+PASS   : SpectralAudit::references(fdr_tiny)
+PASS   : SpectralAudit::references(fdr_ties)
+PASS   : SpectralAudit::references(fdr_random)
+INFO   : SpectralAudit::amplitudeAndSamplingUnits() entering
+PASS   : SpectralAudit::amplitudeAndSamplingUnits()
+INFO   : SpectralAudit::intermediateRangeErrors() entering
+PASS   : SpectralAudit::intermediateRangeErrors()
+INFO   : SpectralAudit::fdrScaleInvariance() entering
+PASS   : SpectralAudit::fdrScaleInvariance()
+INFO   : SpectralAudit::realEndpointsAndDegreesOfFreedom() entering
+PASS   : SpectralAudit::realEndpointsAndDegreesOfFreedom()
+INFO   : SpectralAudit::distancePrefersProminence() entering
+PASS   : SpectralAudit::distancePrefersProminence()
+INFO   : SpectralAudit::rejectsInvalidInput() entering
+PASS   : SpectralAudit::rejectsInvalidInput()
+INFO   : SpectralAudit::workflowMetadataAndDensityUnits() entering
+PASS   : SpectralAudit::workflowMetadataAndDensityUnits()
+INFO   : SpectralAudit::cleanupTestCase() entering
+PASS   : SpectralAudit::cleanupTestCase()
+Totals: 88 passed, 0 failed, 0 skipped, 0 blacklisted, 226ms
+********* Finished testing of SpectralAudit *********
+********* Start testing of WaveletAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : WaveletAudit::initTestCase() entering
+PASS   : WaveletAudit::initTestCase()
+INFO   : WaveletAudit::references() entering
+INFO   : WaveletAudit::references() testdata fixtures/wavelet_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/wavelet_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/wavelet_audit.cpp(60)]
+PASS   : WaveletAudit::references(morlet_5_n47_dt0.25)
+PASS   : WaveletAudit::references(morlet_6_n47_dt0.25)
+PASS   : WaveletAudit::references(morlet_8_n47_dt0.25)
+PASS   : WaveletAudit::references(morlet_20_n47_dt0.25)
+PASS   : WaveletAudit::references(morlet_5_n47_dt3.5)
+PASS   : WaveletAudit::references(morlet_6_n47_dt3.5)
+PASS   : WaveletAudit::references(morlet_8_n47_dt3.5)
+PASS   : WaveletAudit::references(morlet_20_n47_dt3.5)
+PASS   : WaveletAudit::references(morlet_5_n64_dt0.25)
+PASS   : WaveletAudit::references(morlet_6_n64_dt0.25)
+PASS   : WaveletAudit::references(morlet_8_n64_dt0.25)
+PASS   : WaveletAudit::references(morlet_20_n64_dt0.25)
+PASS   : WaveletAudit::references(morlet_5_n64_dt3.5)
+PASS   : WaveletAudit::references(morlet_6_n64_dt3.5)
+PASS   : WaveletAudit::references(morlet_8_n64_dt3.5)
+PASS   : WaveletAudit::references(morlet_20_n64_dt3.5)
+PASS   : WaveletAudit::references(paul_1_n47_dt0.25)
+PASS   : WaveletAudit::references(paul_4_n47_dt0.25)
+PASS   : WaveletAudit::references(paul_10_n47_dt0.25)
+PASS   : WaveletAudit::references(paul_20_n47_dt0.25)
+PASS   : WaveletAudit::references(paul_1_n47_dt3.5)
+PASS   : WaveletAudit::references(paul_4_n47_dt3.5)
+PASS   : WaveletAudit::references(paul_10_n47_dt3.5)
+PASS   : WaveletAudit::references(paul_20_n47_dt3.5)
+PASS   : WaveletAudit::references(paul_1_n64_dt0.25)
+PASS   : WaveletAudit::references(paul_4_n64_dt0.25)
+PASS   : WaveletAudit::references(paul_10_n64_dt0.25)
+PASS   : WaveletAudit::references(paul_20_n64_dt0.25)
+PASS   : WaveletAudit::references(paul_1_n64_dt3.5)
+PASS   : WaveletAudit::references(paul_4_n64_dt3.5)
+PASS   : WaveletAudit::references(paul_10_n64_dt3.5)
+PASS   : WaveletAudit::references(paul_20_n64_dt3.5)
+PASS   : WaveletAudit::references(dog_2_n47_dt0.25)
+PASS   : WaveletAudit::references(dog_6_n47_dt0.25)
+PASS   : WaveletAudit::references(dog_20_n47_dt0.25)
+PASS   : WaveletAudit::references(dog_2_n47_dt3.5)
+PASS   : WaveletAudit::references(dog_6_n47_dt3.5)
+PASS   : WaveletAudit::references(dog_20_n47_dt3.5)
+PASS   : WaveletAudit::references(dog_2_n64_dt0.25)
+PASS   : WaveletAudit::references(dog_6_n64_dt0.25)
+PASS   : WaveletAudit::references(dog_20_n64_dt0.25)
+PASS   : WaveletAudit::references(dog_2_n64_dt3.5)
+PASS   : WaveletAudit::references(dog_6_n64_dt3.5)
+PASS   : WaveletAudit::references(dog_20_n64_dt3.5)
+INFO   : WaveletAudit::timeUnitInvariance() entering
+PASS   : WaveletAudit::timeUnitInvariance(subnormal)
+PASS   : WaveletAudit::timeUnitInvariance(small)
+PASS   : WaveletAudit::timeUnitInvariance(ordinary)
+PASS   : WaveletAudit::timeUnitInvariance(large)
+INFO   : WaveletAudit::amplitudeAndOffsetInvariance() entering
+PASS   : WaveletAudit::amplitudeAndOffsetInvariance()
+INFO   : WaveletAudit::tinyPowerAndConstant() entering
+PASS   : WaveletAudit::tinyPowerAndConstant()
+INFO   : WaveletAudit::numericRangeErrors() entering
+PASS   : WaveletAudit::numericRangeErrors()
+INFO   : WaveletAudit::orderAndNominalPeriod() entering
+PASS   : WaveletAudit::orderAndNominalPeriod()
+INFO   : WaveletAudit::clippedLagAndMetadata() entering
+PASS   : WaveletAudit::clippedLagAndMetadata()
+INFO   : WaveletAudit::significanceFormulaAndValidation() entering
+PASS   : WaveletAudit::significanceFormulaAndValidation()
+INFO   : WaveletAudit::cleanupTestCase() entering
+PASS   : WaveletAudit::cleanupTestCase()
+Totals: 56 passed, 0 failed, 0 skipped, 0 blacklisted, 149ms
+********* Finished testing of WaveletAudit *********
+********* Start testing of TransferAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : TransferAudit::initTestCase() entering
+PASS   : TransferAudit::initTestCase()
+INFO   : TransferAudit::twoFileRootsKeepTheirBindings() entering
+PASS   : TransferAudit::twoFileRootsKeepTheirBindings(same-files-different-columns)
+PASS   : TransferAudit::twoFileRootsKeepTheirBindings(failure-does-not-affect-other-root)
+INFO   : TransferAudit::scientificPortsRejectWrongKinds() entering
+PASS   : TransferAudit::scientificPortsRejectWrongKinds()
+INFO   : TransferAudit::optionalSpectrumPortIsNotSubstituted() entering
+PASS   : TransferAudit::optionalSpectrumPortIsNotSubstituted()
+INFO   : TransferAudit::malformedOutputsStopAtProducer() entering
+PASS   : TransferAudit::malformedOutputsStopAtProducer(series-shape)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(series-nan)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(spectrum-negative-frequency)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(spectrum-negative-power)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(grid-shape)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(grid-overflow)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(grid-infinity)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(table-duplicate-columns)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(table-row-width)
+PASS   : TransferAudit::malformedOutputsStopAtProducer(table-nan)
+INFO   : TransferAudit::scientificConcurrencyMatchesSerial() entering
+PASS   : TransferAudit::scientificConcurrencyMatchesSerial()
+INFO   : TransferAudit::corruptTableCountsAndWidthsAreRejected() entering
+PASS   : TransferAudit::corruptTableCountsAndWidthsAreRejected()
+INFO   : TransferAudit::validShapeInvalidDomainIsIsolated() entering
+PASS   : TransferAudit::validShapeInvalidDomainIsIsolated()
+INFO   : TransferAudit::cancelWholeForestBeforeStarting() entering
+PASS   : TransferAudit::cancelWholeForestBeforeStarting()
+INFO   : TransferAudit::cleanupTestCase() entering
+PASS   : TransferAudit::cleanupTestCase()
+Totals: 20 passed, 0 failed, 0 skipped, 0 blacklisted, 99ms
+********* Finished testing of TransferAudit *********
+********* Start testing of MtmSimulationAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : MtmSimulationAudit::initTestCase() entering
+PASS   : MtmSimulationAudit::initTestCase()
+INFO   : MtmSimulationAudit::independentReference() entering
+INFO   : MtmSimulationAudit::independentReference() testdata fixtures/mtm_simulation_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/mtm_simulation_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/mtm_simulation_audit.cpp(210)]
+PASS   : MtmSimulationAudit::independentReference(0)
+PASS   : MtmSimulationAudit::independentReference(1)
+PASS   : MtmSimulationAudit::independentReference(2)
+PASS   : MtmSimulationAudit::independentReference(3)
+PASS   : MtmSimulationAudit::independentReference(4)
+INFO   : MtmSimulationAudit::locationScaleAndUnits() entering
+PASS   : MtmSimulationAudit::locationScaleAndUnits()
+INFO   : MtmSimulationAudit::invalidInput() entering
+PASS   : MtmSimulationAudit::invalidInput(constant)
+PASS   : MtmSimulationAudit::invalidInput(nan)
+PASS   : MtmSimulationAudit::invalidInput(short)
+PASS   : MtmSimulationAudit::invalidInput(budget)
+PASS   : MtmSimulationAudit::invalidInput(rho)
+PASS   : MtmSimulationAudit::invalidInput(alpha_resolution)
+PASS   : MtmSimulationAudit::invalidInput(empty_family)
+PASS   : MtmSimulationAudit::invalidInput(nw)
+PASS   : MtmSimulationAudit::invalidInput(sampling)
+INFO   : MtmSimulationAudit::deterministicIndependentRuns() entering
+PASS   : MtmSimulationAudit::deterministicIndependentRuns()
+INFO   : MtmSimulationAudit::cancellationDuringSimulation() entering
+PASS   : MtmSimulationAudit::cancellationDuringSimulation()
+INFO   : MtmSimulationAudit::workflowDatabaseAndFailureIsolation() entering
+PASS   : MtmSimulationAudit::workflowDatabaseAndFailureIsolation()
+INFO   : MtmSimulationAudit::empiricalRankExhaustive() entering
+PASS   : MtmSimulationAudit::empiricalRankExhaustive()
+INFO   : MtmSimulationAudit::empiricalFamilyAndTies() entering
+PASS   : MtmSimulationAudit::empiricalFamilyAndTies()
+INFO   : MtmSimulationAudit::empiricalReplayFailures() entering
+PASS   : MtmSimulationAudit::empiricalReplayFailures()
+INFO   : MtmSimulationAudit::empiricalResolutionBoundary() entering
+PASS   : MtmSimulationAudit::empiricalResolutionBoundary()
+INFO   : MtmSimulationAudit::ar1DistanceIndependentGaussianReference() entering
+PASS   : MtmSimulationAudit::ar1DistanceIndependentGaussianReference()
+INFO   : MtmSimulationAudit::ar1GridCoverageAndBudget() entering
+PASS   : MtmSimulationAudit::ar1GridCoverageAndBudget()
+INFO   : MtmSimulationAudit::nuisanceCombinationAndEmptySet() entering
+PASS   : MtmSimulationAudit::nuisanceCombinationAndEmptySet()
+INFO   : MtmSimulationAudit::nuisanceReferenceRanksAndInvalid() entering
+PASS   : MtmSimulationAudit::nuisanceReferenceRanksAndInvalid()
+INFO   : MtmSimulationAudit::nuisanceLagInvariance() entering
+PASS   : MtmSimulationAudit::nuisanceLagInvariance()
+INFO   : MtmSimulationAudit::nuisanceFiniteOrbitControl() entering
+PASS   : MtmSimulationAudit::nuisanceFiniteOrbitControl()
+INFO   : MtmSimulationAudit::reusableTapersParityAndIsolation() entering
+PASS   : MtmSimulationAudit::reusableTapersParityAndIsolation()
+INFO   : MtmSimulationAudit::ar1BackgroundFormulaAndInvalid() entering
+PASS   : MtmSimulationAudit::ar1BackgroundFormulaAndInvalid()
+INFO   : MtmSimulationAudit::cleanupTestCase() entering
+PASS   : MtmSimulationAudit::cleanupTestCase()
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 2439ms
+********* Finished testing of MtmSimulationAudit *********
+********* Start testing of AcycleAlignmentAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : AcycleAlignmentAudit::initTestCase() entering
+PASS   : AcycleAlignmentAudit::initTestCase()
+INFO   : AcycleAlignmentAudit::references() entering
+INFO   : AcycleAlignmentAudit::references() testdata fixtures/acycle_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/acycle_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/acycle_alignment_audit.cpp(61)]
+PASS   : AcycleAlignmentAudit::references(mtm_n64_nw1_fft64_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n64_nw1.25_fft64_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n96_nw2_fft96_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n127_nw2.5_fft127_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n128_nw3.5_fft256_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n256_nw2_fft256_logFalse)
+PASS   : AcycleAlignmentAudit::references(mtm_n96_nw2_fft96_logTrue)
+PASS   : AcycleAlignmentAudit::references(cwt_morlet_n47_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_paul_n47_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_dog_n47_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_morlet_n47_dt3.5)
+PASS   : AcycleAlignmentAudit::references(cwt_paul_n47_dt3.5)
+PASS   : AcycleAlignmentAudit::references(cwt_dog_n47_dt3.5)
+PASS   : AcycleAlignmentAudit::references(cwt_morlet_n64_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_paul_n64_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_dog_n64_dt0.25)
+PASS   : AcycleAlignmentAudit::references(cwt_morlet_n64_dt3.5)
+PASS   : AcycleAlignmentAudit::references(cwt_paul_n64_dt3.5)
+PASS   : AcycleAlignmentAudit::references(cwt_dog_n64_dt3.5)
+INFO   : AcycleAlignmentAudit::defaultsAndLegacyIdentity() entering
+PASS   : AcycleAlignmentAudit::defaultsAndLegacyIdentity()
+INFO   : AcycleAlignmentAudit::outputLimitDoesNotRefit() entering
+PASS   : AcycleAlignmentAudit::outputLimitDoesNotRefit()
+INFO   : AcycleAlignmentAudit::bandwidthFdrIsNotBy() entering
+PASS   : AcycleAlignmentAudit::bandwidthFdrIsNotBy()
+INFO   : AcycleAlignmentAudit::interpolationDefaultsAndEndpoint() entering
+PASS   : AcycleAlignmentAudit::interpolationDefaultsAndEndpoint()
+INFO   : AcycleAlignmentAudit::waveletUnitsAndInvalidInput() entering
+PASS   : AcycleAlignmentAudit::waveletUnitsAndInvalidInput()
+INFO   : AcycleAlignmentAudit::waveletStationarityGuard() entering
+PASS   : AcycleAlignmentAudit::waveletStationarityGuard()
+INFO   : AcycleAlignmentAudit::fftValidationAndShortSwa() entering
+PASS   : AcycleAlignmentAudit::fftValidationAndShortSwa()
+INFO   : AcycleAlignmentAudit::cleanupTestCase() entering
+PASS   : AcycleAlignmentAudit::cleanupTestCase()
+Totals: 28 passed, 0 failed, 0 skipped, 0 blacklisted, 164ms
+********* Finished testing of AcycleAlignmentAudit *********
+********* Start testing of BackendAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : BackendAudit::initTestCase() entering
+PASS   : BackendAudit::initTestCase()
+INFO   : BackendAudit::providerInformation() entering
+QINFO  : BackendAudit::providerInformation() portable / LAPACK DSTEVR LP64; OpenBLAS 0.3.29 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY Cooperlake MAX_THREADS=128 / PocketFFT (one thread) serialized LAPACK: false
+PASS   : BackendAudit::providerInformation()
+INFO   : BackendAudit::fftRoundtrip() entering
+PASS   : BackendAudit::fftRoundtrip(n1_rows1)
+PASS   : BackendAudit::fftRoundtrip(n1_rows3)
+PASS   : BackendAudit::fftRoundtrip(n2_rows1)
+PASS   : BackendAudit::fftRoundtrip(n2_rows3)
+PASS   : BackendAudit::fftRoundtrip(n7_rows1)
+PASS   : BackendAudit::fftRoundtrip(n7_rows3)
+PASS   : BackendAudit::fftRoundtrip(n16_rows1)
+PASS   : BackendAudit::fftRoundtrip(n16_rows3)
+PASS   : BackendAudit::fftRoundtrip(n127_rows1)
+PASS   : BackendAudit::fftRoundtrip(n127_rows3)
+PASS   : BackendAudit::fftRoundtrip(n256_rows1)
+PASS   : BackendAudit::fftRoundtrip(n256_rows3)
+PASS   : BackendAudit::fftRoundtrip(n257_rows1)
+PASS   : BackendAudit::fftRoundtrip(n257_rows3)
+PASS   : BackendAudit::fftRoundtrip(n1536_rows1)
+PASS   : BackendAudit::fftRoundtrip(n1536_rows3)
+INFO   : BackendAudit::directDft() entering
+PASS   : BackendAudit::directDft()
+INFO   : BackendAudit::selectedEigenpairs() entering
+PASS   : BackendAudit::selectedEigenpairs()
+INFO   : BackendAudit::repeatedEigenvaluesAndScalar() entering
+PASS   : BackendAudit::repeatedEigenvaluesAndScalar()
+INFO   : BackendAudit::rejectsInvalidDimensions() entering
+PASS   : BackendAudit::rejectsInvalidDimensions()
+INFO   : BackendAudit::rejectsNonFiniteAndComplexEndpoints() entering
+PASS   : BackendAudit::rejectsNonFiniteAndComplexEndpoints()
+INFO   : BackendAudit::independentConcurrentCalls() entering
+PASS   : BackendAudit::independentConcurrentCalls()
+INFO   : BackendAudit::nativeErrorCarriesStatus() entering
+PASS   : BackendAudit::nativeErrorCarriesStatus()
+INFO   : BackendAudit::paddingRejectsIntegerOverflow() entering
+PASS   : BackendAudit::paddingRejectsIntegerOverflow()
+INFO   : BackendAudit::cleanupTestCase() entering
+PASS   : BackendAudit::cleanupTestCase()
+Totals: 27 passed, 0 failed, 0 skipped, 0 blacklisted, 8ms
+********* Finished testing of BackendAudit *********
+********* Start testing of Ar1GlobalAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : Ar1GlobalAudit::initTestCase() entering
+PASS   : Ar1GlobalAudit::initTestCase()
+INFO   : Ar1GlobalAudit::productionStatisticParityAndUnits() entering
+PASS   : Ar1GlobalAudit::productionStatisticParityAndUnits()
+INFO   : Ar1GlobalAudit::invalidInputsAndBudget() entering
+PASS   : Ar1GlobalAudit::invalidInputsAndBudget()
+INFO   : Ar1GlobalAudit::cacheRoundTripAndCorruption() entering
+PASS   : Ar1GlobalAudit::cacheRoundTripAndCorruption()
+INFO   : Ar1GlobalAudit::cancellationAndWaiting() entering
+PASS   : Ar1GlobalAudit::cancellationAndWaiting()
+INFO   : Ar1GlobalAudit::immutableConcurrentEvaluation() entering
+PASS   : Ar1GlobalAudit::immutableConcurrentEvaluation()
+INFO   : Ar1GlobalAudit::workflowPersistenceAndProgress() entering
+PASS   : Ar1GlobalAudit::workflowPersistenceAndProgress()
+INFO   : Ar1GlobalAudit::cleanupTestCase() entering
+PASS   : Ar1GlobalAudit::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 103329ms
+********* Finished testing of Ar1GlobalAudit *********
+********* Start testing of AstronomyAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : AstronomyAudit::initTestCase() entering
+PASS   : AstronomyAudit::initTestCase()
+INFO   : AstronomyAudit::tableKnotsAndProvenance() entering
+INFO   : AstronomyAudit::tableKnotsAndProvenance() testdata fixtures/astronomy_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/astronomy_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/astronomy_audit.cpp(19)]
+PASS   : AstronomyAudit::tableKnotsAndProvenance()
+INFO   : AstronomyAudit::corruptionAndAngularInterpolation() entering
+PASS   : AstronomyAudit::corruptionAndAngularInterpolation()
+INFO   : AstronomyAudit::independentDailyIntegration() entering
+INFO   : AstronomyAudit::independentDailyIntegration() testdata fixtures/astronomy_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/astronomy_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/astronomy_audit.cpp(19)]
+PASS   : AstronomyAudit::independentDailyIntegration()
+INFO   : AstronomyAudit::physicalLimitsAndInvalidParameters() entering
+PASS   : AstronomyAudit::physicalLimitsAndInvalidParameters()
+INFO   : AstronomyAudit::acycleEtpExample() entering
+INFO   : AstronomyAudit::acycleEtpExample() testdata fixtures/acycle_etp_la2004.csv was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/acycle_etp_la2004.csv
+   Loc: [../../../ci-win6-work/source/analysis_tests/astronomy_audit.cpp(102)]
+QINFO  : AstronomyAudit::acycleEtpExample() Acycle bundled ETP example maximum absolute difference: 8.15672e-05
+PASS   : AstronomyAudit::acycleEtpExample()
+INFO   : AstronomyAudit::etpNormalizationAndWeights() entering
+PASS   : AstronomyAudit::etpNormalizationAndWeights()
+INFO   : AstronomyAudit::etpConstantAndSmallVariation() entering
+PASS   : AstronomyAudit::etpConstantAndSmallVariation()
+INFO   : AstronomyAudit::sourceContractsAndCancellation() entering
+PASS   : AstronomyAudit::sourceContractsAndCancellation()
+INFO   : AstronomyAudit::invalidGridsAndSampling() entering
+PASS   : AstronomyAudit::invalidGridsAndSampling()
+INFO   : AstronomyAudit::concurrentReaders() entering
+PASS   : AstronomyAudit::concurrentReaders()
+INFO   : AstronomyAudit::workflowPersistence() entering
+PASS   : AstronomyAudit::workflowPersistence()
+INFO   : AstronomyAudit::cleanupTestCase() entering
+PASS   : AstronomyAudit::cleanupTestCase()
+Totals: 13 passed, 0 failed, 0 skipped, 0 blacklisted, 183ms
+********* Finished testing of AstronomyAudit *********
+********* Start testing of SeasonalAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : SeasonalAudit::initTestCase() entering
+PASS   : SeasonalAudit::initTestCase()
+INFO   : SeasonalAudit::independentTimeWeightedReference() entering
+INFO   : SeasonalAudit::independentTimeWeightedReference() testdata fixtures/seasonal_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/seasonal_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/seasonal_audit.cpp(19)]
+QINFO  : SeasonalAudit::independentTimeWeightedReference() Season mean maximum absolute difference from independent time-weighted quadrature (W/m2): 4.14985e-09
+PASS   : SeasonalAudit::independentTimeWeightedReference()
+INFO   : SeasonalAudit::physicalInvariants() entering
+PASS   : SeasonalAudit::physicalInvariants()
+INFO   : SeasonalAudit::calendarValidationAndCancellation() entering
+PASS   : SeasonalAudit::calendarValidationAndCancellation()
+INFO   : SeasonalAudit::sourcePersistenceAndBudget() entering
+PASS   : SeasonalAudit::sourcePersistenceAndBudget()
+INFO   : SeasonalAudit::standaloneCleanupPolicies() entering
+PASS   : SeasonalAudit::standaloneCleanupPolicies()
+INFO   : SeasonalAudit::realImportPeaksAndFrequencySearch() entering
+PASS   : SeasonalAudit::realImportPeaksAndFrequencySearch()
+INFO   : SeasonalAudit::cleanupTestCase() entering
+PASS   : SeasonalAudit::cleanupTestCase()
+Totals: 8 passed, 0 failed, 0 skipped, 0 blacklisted, 23ms
+********* Finished testing of SeasonalAudit *********
+********* Start testing of FilterAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : FilterAudit::initTestCase() entering
+PASS   : FilterAudit::initTestCase()
+INFO   : FilterAudit::independentDftReference() entering
+INFO   : FilterAudit::independentDftReference() testdata fixtures/filter_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/filter_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/filter_audit.cpp(45)]
+QINFO  : FilterAudit::independentDftReference(gaussian-N15-q12) Maximum filter / direct-DFT error: 3.33067e-15
+PASS   : FilterAudit::independentDftReference(gaussian-N15-q12)
+QINFO  : FilterAudit::independentDftReference(taner-N15-q2) Maximum filter / direct-DFT error: 4.77396e-15
+PASS   : FilterAudit::independentDftReference(taner-N15-q2)
+QINFO  : FilterAudit::independentDftReference(taner-N15-q12) Maximum filter / direct-DFT error: 4.55191e-15
+PASS   : FilterAudit::independentDftReference(taner-N15-q12)
+QINFO  : FilterAudit::independentDftReference(gaussian-N16-q12) Maximum filter / direct-DFT error: 2.88658e-15
+PASS   : FilterAudit::independentDftReference(gaussian-N16-q12)
+QINFO  : FilterAudit::independentDftReference(taner-N16-q2) Maximum filter / direct-DFT error: 2.96985e-15
+PASS   : FilterAudit::independentDftReference(taner-N16-q2)
+QINFO  : FilterAudit::independentDftReference(taner-N16-q12) Maximum filter / direct-DFT error: 3.10862e-15
+PASS   : FilterAudit::independentDftReference(taner-N16-q12)
+QINFO  : FilterAudit::independentDftReference(gaussian-N33-q12) Maximum filter / direct-DFT error: 4.10783e-15
+PASS   : FilterAudit::independentDftReference(gaussian-N33-q12)
+QINFO  : FilterAudit::independentDftReference(taner-N33-q2) Maximum filter / direct-DFT error: 1.02141e-14
+PASS   : FilterAudit::independentDftReference(taner-N33-q2)
+QINFO  : FilterAudit::independentDftReference(taner-N33-q12) Maximum filter / direct-DFT error: 9.76996e-15
+PASS   : FilterAudit::independentDftReference(taner-N33-q12)
+QINFO  : FilterAudit::independentDftReference(gaussian-N64-q12) Maximum filter / direct-DFT error: 1.06581e-14
+PASS   : FilterAudit::independentDftReference(gaussian-N64-q12)
+QINFO  : FilterAudit::independentDftReference(taner-N64-q2) Maximum filter / direct-DFT error: 3.06422e-14
+PASS   : FilterAudit::independentDftReference(taner-N64-q2)
+QINFO  : FilterAudit::independentDftReference(taner-N64-q12) Maximum filter / direct-DFT error: 3.13083e-14
+PASS   : FilterAudit::independentDftReference(taner-N64-q12)
+INFO   : FilterAudit::gainAndPhaseInvariants() entering
+PASS   : FilterAudit::gainAndPhaseInvariants()
+INFO   : FilterAudit::hilbertEvenOddDcNyquist() entering
+PASS   : FilterAudit::hilbertEvenOddDcNyquist()
+INFO   : FilterAudit::constantOverflowAndCancellation() entering
+PASS   : FilterAudit::constantOverflowAndCancellation()
+INFO   : FilterAudit::invalidInputsAndBudgets() entering
+PASS   : FilterAudit::invalidInputsAndBudgets()
+INFO   : FilterAudit::workflowPersistenceAndUnits() entering
+PASS   : FilterAudit::workflowPersistenceAndUnits()
+INFO   : FilterAudit::envelopeInputAndUnitlessAxes() entering
+PASS   : FilterAudit::envelopeInputAndUnitlessAxes()
+INFO   : FilterAudit::insolationMapMatchesEveryLatitude() entering
+PASS   : FilterAudit::insolationMapMatchesEveryLatitude()
+INFO   : FilterAudit::mapValidationAndPersistence() entering
+PASS   : FilterAudit::mapValidationAndPersistence()
+INFO   : FilterAudit::concurrentAndLarge() entering
+QINFO  : FilterAudit::concurrentAndLarge() Two concurrent 65536-point Gaussian calls, ms: 286
+PASS   : FilterAudit::concurrentAndLarge()
+INFO   : FilterAudit::cleanupTestCase() entering
+PASS   : FilterAudit::cleanupTestCase()
+Totals: 23 passed, 0 failed, 0 skipped, 0 blacklisted, 311ms
+********* Finished testing of FilterAudit *********
+********* Start testing of OrbitalTablesAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : OrbitalTablesAudit::initTestCase() entering
+PASS   : OrbitalTablesAudit::initTestCase()
+INFO   : OrbitalTablesAudit::officialTables() entering
+INFO   : OrbitalTablesAudit::officialTables() testdata fixtures/orbital_tables_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/orbital_tables_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/orbital_tables_audit.cpp(21)]
+PASS   : OrbitalTablesAudit::officialTables(la2010a)
+PASS   : OrbitalTablesAudit::officialTables(la2010b)
+PASS   : OrbitalTablesAudit::officialTables(la2010c)
+PASS   : OrbitalTablesAudit::officialTables(la2010d)
+PASS   : OrbitalTablesAudit::officialTables(zb18a)
+PASS   : OrbitalTablesAudit::officialTables(zb20a)
+PASS   : OrbitalTablesAudit::officialTables(zb20b)
+PASS   : OrbitalTablesAudit::officialTables(zb20c)
+PASS   : OrbitalTablesAudit::officialTables(zb20d)
+PASS   : OrbitalTablesAudit::officialTables(pt_zb18a)
+INFO   : OrbitalTablesAudit::capabilitySeparation() entering
+PASS   : OrbitalTablesAudit::capabilitySeparation()
+INFO   : OrbitalTablesAudit::irregularTimeAndAngleWrap() entering
+PASS   : OrbitalTablesAudit::irregularTimeAndAngleWrap()
+INFO   : OrbitalTablesAudit::malformedFiles() entering
+PASS   : OrbitalTablesAudit::malformedFiles(empty)
+PASS   : OrbitalTablesAudit::malformedFiles(one-row)
+PASS   : OrbitalTablesAudit::malformedFiles(nan)
+PASS   : OrbitalTablesAudit::malformedFiles(infinity)
+PASS   : OrbitalTablesAudit::malformedFiles(ecc-range)
+PASS   : OrbitalTablesAudit::malformedFiles(duplicate)
+PASS   : OrbitalTablesAudit::malformedFiles(wrong-sign)
+PASS   : OrbitalTablesAudit::malformedFiles(missing-zero)
+PASS   : OrbitalTablesAudit::malformedFiles(wrong-schema)
+PASS   : OrbitalTablesAudit::malformedFiles(bad-tilt)
+PASS   : OrbitalTablesAudit::malformedFiles(bad-climate)
+PASS   : OrbitalTablesAudit::malformedFiles(bad-inc)
+PASS   : OrbitalTablesAudit::malformedFiles(wrong-header)
+INFO   : OrbitalTablesAudit::registryAndOutputs() entering
+PASS   : OrbitalTablesAudit::registryAndOutputs()
+INFO   : OrbitalTablesAudit::gridAndCoverageLimits() entering
+PASS   : OrbitalTablesAudit::gridAndCoverageLimits()
+INFO   : OrbitalTablesAudit::localPtFileAndProvenance() entering
+PASS   : OrbitalTablesAudit::localPtFileAndProvenance()
+INFO   : OrbitalTablesAudit::cancellationAndConcurrentReads() entering
+PASS   : OrbitalTablesAudit::cancellationAndConcurrentReads()
+INFO   : OrbitalTablesAudit::workflowPersistence() entering
+PASS   : OrbitalTablesAudit::workflowPersistence()
+INFO   : OrbitalTablesAudit::cleanupTestCase() entering
+PASS   : OrbitalTablesAudit::cleanupTestCase()
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 6591ms
+********* Finished testing of OrbitalTablesAudit *********
+********* Start testing of EvolutionAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : EvolutionAudit::initTestCase() entering
+PASS   : EvolutionAudit::initTestCase()
+INFO   : EvolutionAudit::references() entering
+INFO   : EvolutionAudit::references() testdata fixtures/evolution_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/evolution_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/evolution_audit.cpp(123)]
+PASS   : EvolutionAudit::references(fft_32_32_mean)
+PASS   : EvolutionAudit::references(fft_31_31_linear)
+PASS   : EvolutionAudit::references(fft_16_48_mean)
+PASS   : EvolutionAudit::references(fft_23_47_linear)
+PASS   : EvolutionAudit::references(mtm_32_32_mean)
+PASS   : EvolutionAudit::references(mtm_31_47_linear)
+PASS   : EvolutionAudit::references(mtm_32_64_mean)
+PASS   : EvolutionAudit::references(mtm_41_83_mean)
+INFO   : EvolutionAudit::physicalUnitsAndEndpoints() entering
+PASS   : EvolutionAudit::physicalUnitsAndEndpoints()
+INFO   : EvolutionAudit::chirpAndWindowPlacement() entering
+PASS   : EvolutionAudit::chirpAndWindowPlacement()
+INFO   : EvolutionAudit::matchesExistingMtm() entering
+PASS   : EvolutionAudit::matchesExistingMtm()
+INFO   : EvolutionAudit::invalidNumericsAndCancellation() entering
+PASS   : EvolutionAudit::invalidNumericsAndCancellation()
+INFO   : EvolutionAudit::taskDefaultsAndTypes() entering
+PASS   : EvolutionAudit::taskDefaultsAndTypes()
+INFO   : EvolutionAudit::defaultResolutionBudgets() entering
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=39 cells=544 elapsed_ms=2
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=501 cells=80802 elapsed_ms=30
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=1001 cells=160801 elapsed_ms=60
+QINFO  : EvolutionAudit::defaultResolutionBudgets() default FFT input=10001 cells=1884471 elapsed_ms=736
+PASS   : EvolutionAudit::defaultResolutionBudgets()
+INFO   : EvolutionAudit::savedLegacyDefaultsRemainStable() entering
+PASS   : EvolutionAudit::savedLegacyDefaultsRemainStable()
+INFO   : EvolutionAudit::absoluteLimitsAndLegacyWorkflows() entering
+PASS   : EvolutionAudit::absoluteLimitsAndLegacyWorkflows()
+INFO   : EvolutionAudit::windowNormalization() entering
+PASS   : EvolutionAudit::windowNormalization()
+INFO   : EvolutionAudit::relativeWindowSettingsPreservePower() entering
+PASS   : EvolutionAudit::relativeWindowSettingsPreservePower()
+INFO   : EvolutionAudit::targetWindows() entering
+PASS   : EvolutionAudit::targetWindows(short)
+PASS   : EvolutionAudit::targetWindows(one-sample-step)
+PASS   : EvolutionAudit::targetWindows(round-up)
+PASS   : EvolutionAudit::targetWindows(long)
+PASS   : EvolutionAudit::targetWindows(exact-target)
+PASS   : EvolutionAudit::targetWindows(one-window)
+PASS   : EvolutionAudit::targetWindows(two-positions)
+PASS   : EvolutionAudit::targetWindows(minimum-target)
+PASS   : EvolutionAudit::targetWindows(minimum-contiguous-target)
+INFO   : EvolutionAudit::targetWindowsInvalidAndLegacy() entering
+PASS   : EvolutionAudit::targetWindowsInvalidAndLegacy()
+INFO   : EvolutionAudit::intervalSelection() entering
+PASS   : EvolutionAudit::intervalSelection()
+INFO   : EvolutionAudit::centeringAndStandardizing() entering
+PASS   : EvolutionAudit::centeringAndStandardizing()
+INFO   : EvolutionAudit::qualityInspection() entering
+PASS   : EvolutionAudit::qualityInspection()
+INFO   : EvolutionAudit::workflowDatabaseAndFailure() entering
+PASS   : EvolutionAudit::workflowDatabaseAndFailure()
+INFO   : EvolutionAudit::concurrentSources() entering
+PASS   : EvolutionAudit::concurrentSources()
+INFO   : EvolutionAudit::translationsAndCategories() entering
+INFO   : EvolutionAudit::translationsAndCategories() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/evolution_audit.cpp(713)]
+INFO   : EvolutionAudit::translationsAndCategories() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/evolution_audit.cpp(714)]
+PASS   : EvolutionAudit::translationsAndCategories()
+INFO   : EvolutionAudit::cleanupTestCase() entering
+PASS   : EvolutionAudit::cleanupTestCase()
+Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted, 3328ms
+********* Finished testing of EvolutionAudit *********
+********* Start testing of BasicSignalAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : BasicSignalAudit::initTestCase() entering
+PASS   : BasicSignalAudit::initTestCase()
+INFO   : BasicSignalAudit::references() entering
+INFO   : BasicSignalAudit::references() testdata fixtures/basic_signal_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/basic_signal_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/basic_signal_audit.cpp(85)]
+PASS   : BasicSignalAudit::references(mean0)
+PASS   : BasicSignalAudit::references(sg1)
+PASS   : BasicSignalAudit::references(mean2)
+PASS   : BasicSignalAudit::references(sg3)
+PASS   : BasicSignalAudit::references(mean4)
+PASS   : BasicSignalAudit::references(sg5)
+PASS   : BasicSignalAudit::references(mean6)
+PASS   : BasicSignalAudit::references(sg7)
+PASS   : BasicSignalAudit::references(mean8)
+PASS   : BasicSignalAudit::references(sg9)
+PASS   : BasicSignalAudit::references(fft10)
+PASS   : BasicSignalAudit::references(welch11)
+PASS   : BasicSignalAudit::references(fft12)
+PASS   : BasicSignalAudit::references(welch13)
+PASS   : BasicSignalAudit::references(fft14)
+PASS   : BasicSignalAudit::references(welch15)
+PASS   : BasicSignalAudit::references(fft16)
+PASS   : BasicSignalAudit::references(welch17)
+INFO   : BasicSignalAudit::polynomialAndMeanEdges() entering
+PASS   : BasicSignalAudit::polynomialAndMeanEdges()
+INFO   : BasicSignalAudit::numericErrorsAndCancellation() entering
+PASS   : BasicSignalAudit::numericErrorsAndCancellation()
+INFO   : BasicSignalAudit::spectrumUnitsAndStreaming() entering
+PASS   : BasicSignalAudit::spectrumUnitsAndStreaming()
+INFO   : BasicSignalAudit::contractsAndFailures() entering
+PASS   : BasicSignalAudit::contractsAndFailures()
+INFO   : BasicSignalAudit::workflowDatabaseCsv() entering
+PASS   : BasicSignalAudit::workflowDatabaseCsv()
+INFO   : BasicSignalAudit::defaultsAndTranslations() entering
+INFO   : BasicSignalAudit::defaultsAndTranslations() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/basic_signal_audit.cpp(298)]
+INFO   : BasicSignalAudit::defaultsAndTranslations() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/basic_signal_audit.cpp(298)]
+PASS   : BasicSignalAudit::defaultsAndTranslations()
+INFO   : BasicSignalAudit::cleanupTestCase() entering
+PASS   : BasicSignalAudit::cleanupTestCase()
+Totals: 26 passed, 0 failed, 0 skipped, 0 blacklisted, 1973ms
+********* Finished testing of BasicSignalAudit *********
+********* Start testing of SpectralExtensionAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : SpectralExtensionAudit::initTestCase() entering
+PASS   : SpectralExtensionAudit::initTestCase()
+INFO   : SpectralExtensionAudit::reference() entering
+INFO   : SpectralExtensionAudit::reference() testdata fixtures/spectral_extension_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/spectral_extension_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/spectral_extension_audit.cpp(92)]
+PASS   : SpectralExtensionAudit::reference(lomb0)
+PASS   : SpectralExtensionAudit::reference(lomb1)
+PASS   : SpectralExtensionAudit::reference(lomb2)
+PASS   : SpectralExtensionAudit::reference(lomb3)
+PASS   : SpectralExtensionAudit::reference(lomb4)
+PASS   : SpectralExtensionAudit::reference(lomb5)
+PASS   : SpectralExtensionAudit::reference(lowpass6)
+PASS   : SpectralExtensionAudit::reference(highpass7)
+PASS   : SpectralExtensionAudit::reference(lowpass8)
+PASS   : SpectralExtensionAudit::reference(highpass9)
+PASS   : SpectralExtensionAudit::reference(lowpass10)
+PASS   : SpectralExtensionAudit::reference(highpass11)
+PASS   : SpectralExtensionAudit::reference(lowpass12)
+PASS   : SpectralExtensionAudit::reference(highpass13)
+PASS   : SpectralExtensionAudit::reference(lowpass14)
+PASS   : SpectralExtensionAudit::reference(highpass15)
+PASS   : SpectralExtensionAudit::reference(lowpass16)
+PASS   : SpectralExtensionAudit::reference(highpass17)
+PASS   : SpectralExtensionAudit::reference(lowpass18)
+PASS   : SpectralExtensionAudit::reference(highpass19)
+PASS   : SpectralExtensionAudit::reference(lowpass20)
+PASS   : SpectralExtensionAudit::reference(highpass21)
+PASS   : SpectralExtensionAudit::reference(lowpass22)
+PASS   : SpectralExtensionAudit::reference(highpass23)
+INFO   : SpectralExtensionAudit::lombInvariantsAndRanks() entering
+PASS   : SpectralExtensionAudit::lombInvariantsAndRanks()
+INFO   : SpectralExtensionAudit::lombValidationAndCancellation() entering
+PASS   : SpectralExtensionAudit::lombValidationAndCancellation()
+INFO   : SpectralExtensionAudit::butterworthIdentities() entering
+PASS   : SpectralExtensionAudit::butterworthIdentities()
+INFO   : SpectralExtensionAudit::butterworthValidationAndCancellation() entering
+PASS   : SpectralExtensionAudit::butterworthValidationAndCancellation()
+INFO   : SpectralExtensionAudit::defaultsTranslationsAndContracts() entering
+INFO   : SpectralExtensionAudit::defaultsTranslationsAndContracts() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/spectral_extension_audit.cpp(305)]
+INFO   : SpectralExtensionAudit::defaultsTranslationsAndContracts() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/spectral_extension_audit.cpp(305)]
+PASS   : SpectralExtensionAudit::defaultsTranslationsAndContracts()
+INFO   : SpectralExtensionAudit::workflowDatabaseCsv() entering
+PASS   : SpectralExtensionAudit::workflowDatabaseCsv()
+INFO   : SpectralExtensionAudit::cleanupTestCase() entering
+PASS   : SpectralExtensionAudit::cleanupTestCase()
+Totals: 32 passed, 0 failed, 0 skipped, 0 blacklisted, 305ms
+********* Finished testing of SpectralExtensionAudit *********
+********* Start testing of ChronologyAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : ChronologyAudit::initTestCase() entering
+PASS   : ChronologyAudit::initTestCase()
+INFO   : ChronologyAudit::reference() entering
+INFO   : ChronologyAudit::reference() testdata fixtures/chronology_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/chronology_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/chronology_audit.cpp(98)]
+PASS   : ChronologyAudit::reference(constant_left)
+PASS   : ChronologyAudit::reference(constant_linear_rate)
+PASS   : ChronologyAudit::reference(nonuniform_left)
+PASS   : ChronologyAudit::reference(nonuniform_linear_rate)
+PASS   : ChronologyAudit::reference(unit_Ma_left)
+PASS   : ChronologyAudit::reference(unit_Ma_linear_rate)
+PASS   : ChronologyAudit::reference(near_equal_left)
+PASS   : ChronologyAudit::reference(near_equal_linear_rate)
+PASS   : ChronologyAudit::reference(large_rate_ratio_left)
+PASS   : ChronologyAudit::reference(large_rate_ratio_linear_rate)
+PASS   : ChronologyAudit::reference(decreasing_left)
+PASS   : ChronologyAudit::reference(decreasing_linear_rate)
+PASS   : ChronologyAudit::reference(knots)
+PASS   : ChronologyAudit::reference(piecewise)
+PASS   : ChronologyAudit::reference(extrapolate)
+PASS   : ChronologyAudit::reference(nonzero_origin)
+INFO   : ChronologyAudit::analyticIdentities() entering
+PASS   : ChronologyAudit::analyticIdentities()
+INFO   : ChronologyAudit::invalidDataAndNumericRange() entering
+PASS   : ChronologyAudit::invalidDataAndNumericRange()
+INFO   : ChronologyAudit::cancellationAndBudgets() entering
+PASS   : ChronologyAudit::cancellationAndBudgets()
+INFO   : ChronologyAudit::unitConversions() entering
+PASS   : ChronologyAudit::unitConversions(m-cm-ka)
+PASS   : ChronologyAudit::unitConversions(cm-m-yr)
+PASS   : ChronologyAudit::unitConversions(mm-mm-Ma)
+PASS   : ChronologyAudit::unitConversions(ft-cm-ka)
+PASS   : ChronologyAudit::unitConversions(km-m-ka)
+INFO   : ChronologyAudit::parserParity() entering
+PASS   : ChronologyAudit::parserParity(bom-crlf)
+PASS   : ChronologyAudit::parserParity(plain)
+PASS   : ChronologyAudit::parserParity(tab)
+PASS   : ChronologyAudit::parserParity(numeric-consumed-header)
+PASS   : ChronologyAudit::parserParity(wrong-header)
+PASS   : ChronologyAudit::parserParity(bad-numeric)
+PASS   : ChronologyAudit::parserParity(bad-quotes)
+INFO   : ChronologyAudit::controlFilesAndSnapshots() entering
+PASS   : ChronologyAudit::controlFilesAndSnapshots()
+INFO   : ChronologyAudit::defaultsTranslationsContracts() entering
+INFO   : ChronologyAudit::defaultsTranslationsContracts() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/chronology_audit.cpp(362)]
+INFO   : ChronologyAudit::defaultsTranslationsContracts() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/chronology_audit.cpp(362)]
+PASS   : ChronologyAudit::defaultsTranslationsContracts()
+INFO   : ChronologyAudit::workflowDatabaseCsv() entering
+PASS   : ChronologyAudit::workflowDatabaseCsv()
+INFO   : ChronologyAudit::cleanupTestCase() entering
+PASS   : ChronologyAudit::cleanupTestCase()
+Totals: 36 passed, 0 failed, 0 skipped, 0 blacklisted, 51ms
+********* Finished testing of ChronologyAudit *********
+********* Start testing of CycleTuningAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : CycleTuningAudit::initTestCase() entering
+PASS   : CycleTuningAudit::initTestCase()
+INFO   : CycleTuningAudit::theoryReference() entering
+INFO   : CycleTuningAudit::theoryReference() testdata fixtures/cycle_tuning_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/cycle_tuning_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/cycle_tuning_audit.cpp(47)]
+PASS   : CycleTuningAudit::theoryReference(0)
+PASS   : CycleTuningAudit::theoryReference(1e-09)
+PASS   : CycleTuningAudit::theoryReference(1)
+PASS   : CycleTuningAudit::theoryReference(50)
+PASS   : CycleTuningAudit::theoryReference(100)
+PASS   : CycleTuningAudit::theoryReference(300)
+PASS   : CycleTuningAudit::theoryReference(600)
+PASS   : CycleTuningAudit::theoryReference(1000)
+PASS   : CycleTuningAudit::theoryReference(2000)
+PASS   : CycleTuningAudit::theoryReference(4000)
+INFO   : CycleTuningAudit::publishedValuesAndLimits() entering
+PASS   : CycleTuningAudit::publishedValuesAndLimits()
+INFO   : CycleTuningAudit::cyclesReference() entering
+INFO   : CycleTuningAudit::cyclesReference() testdata fixtures/cycle_tuning_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/cycle_tuning_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/cycle_tuning_audit.cpp(47)]
+PASS   : CycleTuningAudit::cyclesReference(peaks)
+PASS   : CycleTuningAudit::cyclesReference(troughs)
+PASS   : CycleTuningAudit::cyclesReference(correct_endpoint_secants)
+PASS   : CycleTuningAudit::cyclesReference(irregular_depth)
+PASS   : CycleTuningAudit::cyclesReference(flat_top_and_bottom)
+PASS   : CycleTuningAudit::cyclesReference(flat_troughs)
+PASS   : CycleTuningAudit::cyclesReference(exclude_flat_ends)
+PASS   : CycleTuningAudit::cyclesReference(local_relief)
+PASS   : CycleTuningAudit::cyclesReference(strongest_first_separation)
+PASS   : CycleTuningAudit::cyclesReference(equal_distance_allowed)
+PASS   : CycleTuningAudit::cyclesReference(exact_threshold)
+PASS   : CycleTuningAudit::cyclesReference(random_31)
+PASS   : CycleTuningAudit::cyclesReference(random_127)
+PASS   : CycleTuningAudit::cyclesReference(random_1001)
+INFO   : CycleTuningAudit::analyticAndAcycleConventions() entering
+PASS   : CycleTuningAudit::analyticAndAcycleConventions()
+INFO   : CycleTuningAudit::invalidAndCancelled() entering
+PASS   : CycleTuningAudit::invalidAndCancelled()
+INFO   : CycleTuningAudit::modelUnitConversion() entering
+PASS   : CycleTuningAudit::modelUnitConversion(yr)
+PASS   : CycleTuningAudit::modelUnitConversion(ka)
+PASS   : CycleTuningAudit::modelUnitConversion(Ma)
+INFO   : CycleTuningAudit::taskContractsAndTranslations() entering
+INFO   : CycleTuningAudit::taskContractsAndTranslations() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/cycle_tuning_audit.cpp(316)]
+INFO   : CycleTuningAudit::taskContractsAndTranslations() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/cycle_tuning_audit.cpp(316)]
+PASS   : CycleTuningAudit::taskContractsAndTranslations()
+INFO   : CycleTuningAudit::workflowPersistenceAndExports() entering
+PASS   : CycleTuningAudit::workflowPersistenceAndExports()
+INFO   : CycleTuningAudit::cleanupTestCase() entering
+PASS   : CycleTuningAudit::cleanupTestCase()
+Totals: 34 passed, 0 failed, 0 skipped, 0 blacklisted, 93ms
+********* Finished testing of CycleTuningAudit *********
+********* Start testing of CocoAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : CocoAudit::initTestCase() entering
+PASS   : CocoAudit::initTestCase()
+INFO   : CocoAudit::scipyReference() entering
+INFO   : CocoAudit::scipyReference() testdata fixtures/coco_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/coco_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_audit.cpp(91)]
+PASS   : CocoAudit::scipyReference(mean)
+PASS   : CocoAudit::scipyReference(linear)
+PASS   : CocoAudit::scipyReference(none)
+INFO   : CocoAudit::knownRatesAndPhase() entering
+PASS   : CocoAudit::knownRatesAndPhase(0)
+PASS   : CocoAudit::knownRatesAndPhase(0.3)
+PASS   : CocoAudit::knownRatesAndPhase(1.1)
+PASS   : CocoAudit::knownRatesAndPhase(2.5)
+INFO   : CocoAudit::invariantsAndGrid() entering
+PASS   : CocoAudit::invariantsAndGrid()
+INFO   : CocoAudit::excludedAndInvalid() entering
+PASS   : CocoAudit::excludedAndInvalid()
+INFO   : CocoAudit::budgetsAndCancellation() entering
+PASS   : CocoAudit::budgetsAndCancellation()
+INFO   : CocoAudit::adapterContracts() entering
+INFO   : CocoAudit::adapterContracts() testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_audit.cpp(278)]
+INFO   : CocoAudit::adapterContracts() testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_audit.cpp(278)]
+PASS   : CocoAudit::adapterContracts()
+INFO   : CocoAudit::workflowPersistence() entering
+PASS   : CocoAudit::workflowPersistence()
+INFO   : CocoAudit::cleanupTestCase() entering
+PASS   : CocoAudit::cleanupTestCase()
+Totals: 14 passed, 0 failed, 0 skipped, 0 blacklisted, 833ms
+********* Finished testing of CocoAudit *********
+********* Start testing of CocoAnalysisAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : CocoAnalysisAudit::initTestCase() entering
+INFO   : CocoAnalysisAudit::initTestCase() testdata fixtures/coco_analysis_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/coco_analysis_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(120)]
+PASS   : CocoAnalysisAudit::initTestCase()
+INFO   : CocoAnalysisAudit::generators() entering
+PASS   : CocoAnalysisAudit::generators()
+INFO   : CocoAnalysisAudit::monteCarloReference() entering
+INFO   : CocoAnalysisAudit::monteCarloReference() testdata fixtures/coco_analysis_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/coco_analysis_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(142)]
+PASS   : CocoAnalysisAudit::monteCarloReference(fixed_ar1mean)
+PASS   : CocoAnalysisAudit::monteCarloReference(fixed_ar1linear)
+PASS   : CocoAnalysisAudit::monteCarloReference(fixed_ar1none)
+PASS   : CocoAnalysisAudit::monteCarloReference(random_peaksmean)
+INFO   : CocoAnalysisAudit::evolutionReference() entering
+PASS   : CocoAnalysisAudit::evolutionReference()
+INFO   : CocoAnalysisAudit::invariantsAndConcurrentRuns() entering
+PASS   : CocoAnalysisAudit::invariantsAndConcurrentRuns()
+INFO   : CocoAnalysisAudit::invalidInputsAndBudgets() entering
+PASS   : CocoAnalysisAudit::invalidInputsAndBudgets()
+INFO   : CocoAnalysisAudit::odpLargeMonteCarlo() entering
+PASS   : CocoAnalysisAudit::odpLargeMonteCarlo(narrow-scan)
+PASS   : CocoAnalysisAudit::odpLargeMonteCarlo(default-scan)
+INFO   : CocoAnalysisAudit::workBudgetDiagnostic() entering
+PASS   : CocoAnalysisAudit::workBudgetDiagnostic()
+INFO   : CocoAnalysisAudit::cancellationAndProgress() entering
+PASS   : CocoAnalysisAudit::cancellationAndProgress()
+INFO   : CocoAnalysisAudit::adapterContracts() entering
+INFO   : CocoAnalysisAudit::adapterContracts(MC) testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(511)]
+INFO   : CocoAnalysisAudit::adapterContracts(MC) testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(511)]
+PASS   : CocoAnalysisAudit::adapterContracts(MC)
+INFO   : CocoAnalysisAudit::adapterContracts(eCOCO) testdata ../resources/i18n/zh.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/zh.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(511)]
+INFO   : CocoAnalysisAudit::adapterContracts(eCOCO) testdata ../resources/i18n/en.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/../resources/i18n/en.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/coco_analysis_audit.cpp(511)]
+PASS   : CocoAnalysisAudit::adapterContracts(eCOCO)
+INFO   : CocoAnalysisAudit::persistence() entering
+PASS   : CocoAnalysisAudit::persistence(MC)
+PASS   : CocoAnalysisAudit::persistence(eCOCO)
+INFO   : CocoAnalysisAudit::calibration() entering
+QINFO  : CocoAnalysisAudit::calibration() COCO Gaussian AR1 complete-null rho 0 rejections 8 / 200 Wilson95 0.0204056 0.0769321
+QINFO  : CocoAnalysisAudit::calibration() COCO Gaussian AR1 complete-null rho 0.7 rejections 15 / 200 Wilson95 0.0459749 0.120044
+QINFO  : CocoAnalysisAudit::calibration() COCO Gaussian AR1 complete-null rho 0.95 rejections 14 / 200 Wilson95 0.0421522 0.114055
+PASS   : CocoAnalysisAudit::calibration()
+INFO   : CocoAnalysisAudit::cleanupTestCase() entering
+PASS   : CocoAnalysisAudit::cleanupTestCase()
+Totals: 19 passed, 0 failed, 0 skipped, 0 blacklisted, 130207ms
+********* Finished testing of CocoAnalysisAudit *********
+********* Start testing of OdpExamplesAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : OdpExamplesAudit::initTestCase() entering
+PASS   : OdpExamplesAudit::initTestCase()
+INFO   : OdpExamplesAudit::allPublishedValues() entering
+INFO   : OdpExamplesAudit::allPublishedValues() testdata fixtures/odp_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/odp_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/odp_examples_audit.cpp(52)]
+PASS   : OdpExamplesAudit::allPublishedValues(odp846_d18o/age)
+PASS   : OdpExamplesAudit::allPublishedValues(odp846_d18o/depth)
+PASS   : OdpExamplesAudit::allPublishedValues(odp846_d13c/age)
+PASS   : OdpExamplesAudit::allPublishedValues(odp846_d13c/depth)
+PASS   : OdpExamplesAudit::allPublishedValues(odp1143_d18o/age)
+PASS   : OdpExamplesAudit::allPublishedValues(odp1143_d18o/depth)
+PASS   : OdpExamplesAudit::allPublishedValues(odp926_d13c/age)
+PASS   : OdpExamplesAudit::allPublishedValues(odp926_d13c/depth)
+PASS   : OdpExamplesAudit::allPublishedValues(odp926_lightness/age)
+PASS   : OdpExamplesAudit::allPublishedValues(odp926_lightness/depth)
+INFO   : OdpExamplesAudit::workflowAndPersistence() entering
+PASS   : OdpExamplesAudit::workflowAndPersistence(odp846_d18o)
+PASS   : OdpExamplesAudit::workflowAndPersistence(odp846_d13c)
+PASS   : OdpExamplesAudit::workflowAndPersistence(odp1143_d18o)
+PASS   : OdpExamplesAudit::workflowAndPersistence(odp926_d13c)
+PASS   : OdpExamplesAudit::workflowAndPersistence(odp926_lightness)
+INFO   : OdpExamplesAudit::cocoDepthWorkflow() entering
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp1143_d18o/coco_scan/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp846_d18o/coco_scan/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp926_d13c/coco_scan/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(coco_scan/reject-age)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(coco_scan/reject-wrong-scale)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp1143_d18o/coco_monte_carlo/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp846_d18o/coco_monte_carlo/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp926_d13c/coco_monte_carlo/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(coco_monte_carlo/reject-age)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(coco_monte_carlo/reject-wrong-scale)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp1143_d18o/evolution_coco/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp846_d18o/evolution_coco/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(odp926_d13c/evolution_coco/depth)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(evolution_coco/reject-age)
+PASS   : OdpExamplesAudit::cocoDepthWorkflow(evolution_coco/reject-wrong-scale)
+INFO   : OdpExamplesAudit::invalidAndCancellation() entering
+PASS   : OdpExamplesAudit::invalidAndCancellation()
+INFO   : OdpExamplesAudit::concurrentIndependentReads() entering
+PASS   : OdpExamplesAudit::concurrentIndependentReads()
+INFO   : OdpExamplesAudit::cleanupTestCase() entering
+PASS   : OdpExamplesAudit::cleanupTestCase()
+Totals: 34 passed, 0 failed, 0 skipped, 0 blacklisted, 30916ms
+********* Finished testing of OdpExamplesAudit *********
+********* Start testing of SyntheticAudit *********
+Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
+INFO   : SyntheticAudit::initTestCase() entering
+PASS   : SyntheticAudit::initTestCase()
+INFO   : SyntheticAudit::upstreamReference() entering
+INFO   : SyntheticAudit::upstreamReference() testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+INFO   : SyntheticAudit::upstreamReference(template) testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::upstreamReference(template)
+INFO   : SyntheticAudit::upstreamReference(uniform) testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::upstreamReference(uniform)
+INFO   : SyntheticAudit::upstreamReference(clipped) testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::upstreamReference(clipped)
+INFO   : SyntheticAudit::analyticConstantRate() entering
+INFO   : SyntheticAudit::analyticConstantRate() testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::analyticConstantRate()
+INFO   : SyntheticAudit::invalidMath() entering
+INFO   : SyntheticAudit::invalidMath() testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::invalidMath()
+INFO   : SyntheticAudit::taskDefaultsAndDeterminism() entering
+INFO   : SyntheticAudit::taskDefaultsAndDeterminism() testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::taskDefaultsAndDeterminism()
+INFO   : SyntheticAudit::invalidTaskAndCancellation() entering
+INFO   : SyntheticAudit::invalidTaskAndCancellation() testdata fixtures/synthetic_reference.json was located at /workspace/scratch/e6f223d0ec44/ci-win6-work/source/analysis_tests/fixtures/synthetic_reference.json
+   Loc: [../../../ci-win6-work/source/analysis_tests/synthetic_audit.cpp(31)]
+PASS   : SyntheticAudit::invalidTaskAndCancellation()
+INFO   : SyntheticAudit::concurrentIndependentRuns() entering
+PASS   : SyntheticAudit::concurrentIndependentRuns()
+INFO   : SyntheticAudit::workflowAndDatabase() entering
+PASS   : SyntheticAudit::workflowAndDatabase()
+INFO   : SyntheticAudit::cleanupTestCase() entering
+PASS   : SyntheticAudit::cleanupTestCase()
+Totals: 11 passed, 0 failed, 0 skipped, 0 blacklisted, 75ms
+********* Finished testing of SyntheticAudit *********

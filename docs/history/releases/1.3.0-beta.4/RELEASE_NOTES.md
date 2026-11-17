@@ -12,5 +12,5 @@
 算法、默认参数、方法版本与结果格式均不变。多级目录与全局搜索仍未接入 Qt 窗口；本次更新现有离线帮助内容。
 
 <!-- version-sync: off -->
-本包适用于已更新到 1.3.0-beta.3 的源码。仅覆盖 `patch/` 内的内容，然后重新运行 qmake 并构建。检查范围和未覆盖项见[本版验证记录](../../../validation_current.md)。
+本包适用于已更新到 1.3.0-beta.3 的源码。仅覆盖 `patch/` 内的内容，然后重新运行 qmake 并构建。检查范围和未覆盖项见[本版验证记录](../../../validation_results/1.3.0-beta.4/checks.json)。
 <!-- version-sync: on -->

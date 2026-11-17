@@ -491,6 +491,19 @@ def debian_sources(collection, binaries, owners):
             if collection.plan_only:
                 component['sources'] = [{'url':url, 'asset':name, 'status':'planned-apt-verified-download'} for name,url in locations.items()]
                 continue
+            if collection.history:
+                # Compare every source checksum with current signed apt metadata;
+                # a version string or previously successful flag is insufficient.
+                metadata = parse_control(run(['apt-cache', 'showsrc', '--only-source', source]))
+                exact = next((r for r in metadata if r.get('Version') == version and
+                              r.get('Package', source) == source), {})
+                expected_sources = {}
+                for line in exact.get('Checksums-Sha256', '').splitlines():
+                    fields = line.split()
+                    if len(fields) == 3: expected_sources[fields[2]] = fields[0]
+                if expected_sources and collection.history.debian(collection, component, expected_sources):
+                    for other in components[1:]: other['sources'] = list(component['sources'])
+                    continue
             destination = collection.cache / 'debian' / safe_name(source + '-' + version)
             destination.mkdir(parents=True, exist_ok=True)
             run(['apt-get', '-qq', '--download-only', '--only-source', 'source', source + '=' + version], cwd=destination)

@@ -1,0 +1,144 @@
+s.........Published dependency receipts: 1 (windows-x64)
+Published dependency receipts: 1 (windows-x64)
+.INCOMPLETE [new]: Missing source
+INCOMPLETE [new]: No license/attribution materials were collected
+INCOMPLETE [new]: No corresponding source or source recipe was collected
+....Reusing published source: vcpkg-gsl gsl.tar.gz
+....  downloading: https://example.org/s.tar
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+.  downloading: https://example.org/source.tar
+.....INCOMPLETE [unknown.so]: Runtime binary has no verified source owner; use the matching build environment or a supplement
+.Collecting brew-fixture 1.0_2: fixture-f0b67a072e18432b.tar.gz
+.Collecting brew-fixture 1.0_2: fixture-f0b67a072e18432b.tar.gz
+........Collecting fixture 1: same.tar.gz
+...Collecting fixture 1.0: fixture.tar.gz
+...Collecting vcpkg-gsl 1.0: gsl-34471e7823bbabe6.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-34471e7823bbabe6.tar.gz
+...INCOMPLETE [vcpkg-blas]: BLAS port contains missing or non-metadata files; cannot treat it as a routing port
+Collecting vcpkg-gsl 1.0: gsl-85b3327a3efbb53a.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: vcpkg.spdx.json
+Collecting vcpkg-gsl 1.0: gsl-85b3327a3efbb53a.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.INCOMPLETE [vcpkg-blas]: Required installed metadata file is missing: LICENSE.txt
+Collecting vcpkg-gsl 1.0: gsl-85b3327a3efbb53a.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.INCOMPLETE [vcpkg-blas]: Cannot recover recipe/patches matching installed SPDX; restore the original vcpkg checkout or supply exact recipes
+Collecting vcpkg-gsl 1.0: gsl-85b3327a3efbb53a.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.INCOMPLETE [vcpkg-gsl]: Required installed metadata file is missing: copyright
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.Collecting vcpkg-gsl 1.0: gsl-85b3327a3efbb53a.tar.gz
+Collecting vcpkg-openblas 1.0: openblas-85b3327a3efbb53a.tar.gz
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 404
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: Source checksum mismatch; no files were installed
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+...  metadata unavailable: https://ghfast.top/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Received an HTML page instead of source metadata)
+  metadata unavailable: https://gh-proxy.org/https://github.com/owner/repo/releases/download/v1/SHA256SUMS (Invalid Qt SHA-256 response)
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+  downloading: https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: HTTP 403
+....  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+  download rejected/unavailable: IncompleteRead
+  downloading: https://gh-proxy.org/https://github.com/owner/repo/archive/v1.0.tar.gz
+.INCOMPLETE [qt/qtbase]: offline
+INCOMPLETE [qt/qtimageformats]: offline
+INCOMPLETE [qt/qtsvg]: offline
+INCOMPLETE [qt/qttranslations]: offline
+.  downloading: https://ghfast.top/https://github.com/owner/repo/archive/v1.0.tar.gz
+.  reused verified local dependency source
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Dependency reuse failed: Materials must be successfully collected for this Aster version and windows-x64
+No downloads were attempted. Run collect_dependency_materials.py manually for this staged package.
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+INCOMPLETE [qt]: test failure
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Reused verified dependency materials offline: /tmp/tmpgqtuxqwy/materials
+Upload all files from: /tmp/tmpgqtuxqwy/materials/release-assets
+Reused verified dependency materials offline: /tmp/tmpgqtuxqwy/materials
+Upload all files from: /tmp/tmpgqtuxqwy/materials/release-assets
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+INCOMPLETE [qt.tar.gz]: Missing source asset or GitHub per-asset size limit exceeded
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+Reused verified dependency materials offline: /tmp/tmp1ilzlfqp/materials
+Upload all files from: /tmp/tmp1ilzlfqp/materials/release-assets
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.Collecting qt 6.12.0: qt.tar.gz
+Collecting vcpkg-gsl 2.8: vcpkg-gsl.tar.gz
+.............................................Collecting brew-gcc 16.2.0: gcc-e2ef6f339cb596ac.tar.gz
+Collecting brew-gcc 16.2.0: gcc-e2ef6f339cb596ac.tar.gz
+............................................../tmp/tmpqjtrr30u/export/Aster-source-export-1.1.1
+12 files; contents verified
+/tmp/tmpnbi0ep9k/export/Aster-source-export-1.1.1
+10 files; contents verified
+/tmp/tmp_3j61g6h/out/Aster-source-export-1.1.1
+10 files; contents verified
+Draft ready for review: v1.3.0-beta.18
+Mirror package: Aster-1.3.0-beta.18-linux-x64.tar.gz
+Mirror package: Aster-1.3.0-beta.18-macos-arm64.zip
+Mirror package: Aster-1.3.0-beta.18-macos-x86_64.zip
+Mirror package: Aster-1.3.0-beta.18-windows-x64.zip
+.Mirror package: Aster-1.3.0-beta.18-linux-x64.tar.gz
+..Mirror package: Aster-1.3.0-beta.18-linux-x64.tar.gz
+Mirror package: Aster-1.3.0-beta.18-macos-arm64.zip
+Mirror package: Aster-1.3.0-beta.18-macos-x86_64.zip
+Mirror package: Aster-1.3.0-beta.18-windows-x64.zip
+...............
+----------------------------------------------------------------------
+Ran 194 tests in 6.679s
+
+OK (skipped=1)

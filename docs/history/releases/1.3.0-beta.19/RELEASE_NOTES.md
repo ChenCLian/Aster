@@ -10,4 +10,4 @@
 - 最终包检查失败时覆盖旧成功记录并清理旧截图，保留超时前的诊断输出；为 Gitee 源码同步增加限时和错误详情。
 - Windows Actions 增加已有 PowerShell 打包流程回归。
 
-本地验证记录见[验证范围](../../../validation_current.md)。本版尚未执行远程 Actions、Windows/macOS 原生打包或 Gitee 上传。首次 Actions 建议关闭 `prepare_draft`，先验证四个平台；通过后再准备草稿和镜像。
+本地验证记录见[验证范围](../../../validation_results/1.3.0-beta.19/checks.json)。本版尚未执行远程 Actions、Windows/macOS 原生打包或 Gitee 上传。首次 Actions 建议关闭 `prepare_draft`，先验证四个平台；通过后再准备草稿和镜像。

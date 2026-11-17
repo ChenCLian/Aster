@@ -1,6 +1,6 @@
 # Documentation contents
 
-For Aster 1.3.0-beta.20. [Chinese](README.md) · [User guide](USER_GUIDE_EN.md) · [Parameter reference](reference/task_parameters_en.md)
+For Aster 1.3.1-beta.1. [Chinese](README.md) · [User guide](USER_GUIDE_EN.md) · [Parameter reference](reference/task_parameters_en.md)
 
 This topic index is also available as a collapsible contents tree in the built-in viewer. Full-text search is on the left; Find in page is separate in the document area.
 

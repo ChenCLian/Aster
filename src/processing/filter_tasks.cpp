@@ -43,8 +43,9 @@ NodeResult executeFilter(const TaskInput& input,const ExecutionContext& c,const 
                 throw std::length_error("Hilbert input exceeds sample budget");
         } else (void)filtering::fftLength(shape,std::size_t(data->y.size()));
         const auto cancel=[&]{return c.cancellation.isCancelled();};
-        const auto series=[&](const std::vector<double>& y,const QString& label) {
-            return makeData(SeriesData{data->x,QVector<double>(y.begin(),y.end()),data->xAxis,{label,data->yAxis.unit}});
+        const auto series=[&](const std::vector<double>& y) {
+            // Output names belong to ports/legends; preserve the physical axes.
+            return makeData(SeriesData{data->x,QVector<double>(y.begin(),y.end()),data->xAxis,data->yAxis});
         };
         std::vector<double> values(data->y.begin(),data->y.end());
         QMap<QString,DataRef> outputs;
@@ -64,7 +65,7 @@ NodeResult executeFilter(const TaskInput& input,const ExecutionContext& c,const 
             report["reference"]= "Acycle_3.1.1_validation_snapshot_acycleBandpassFilter_corrected-bandpass-v2";
             if(shape==filtering::Shape::Taner)report["rolloff_exponent"]=p["rolloff_exponent"];
             removedMean=f.removedMean;values=std::move(f.filtered);
-            outputs.insert("filtered",series(values,"Filtered value"));
+            outputs.insert("filtered",series(values));
             const QString inverseUnit=data->xAxis.unit.isEmpty()?QString():"1/"+data->xAxis.unit;
             outputs.insert("filter_response",makeData(SeriesData{
                 QVector<double>(f.frequency.begin(),f.frequency.end()),QVector<double>(f.gain.begin(),f.gain.end()),
@@ -73,8 +74,16 @@ NodeResult executeFilter(const TaskInput& input,const ExecutionContext& c,const 
         if(c.progress)c.progress(70,"progress.hilbert");
         const bool demean=envelopeOnly && p["hilbert_remove_mean"].toBool();
         const auto analytic=filtering::hilbert(values,demean,cancel);
-        if(envelopeOnly) { removedMean=analytic.removedMean;outputs.insert("quadrature",series(analytic.quadrature,"Hilbert quadrature")); }
-        outputs.insert("envelope",series(analytic.envelope,"Amplitude envelope"));
+        if(envelopeOnly) {
+            removedMean=analytic.removedMean;
+            outputs.insert("quadrature",series(analytic.quadrature));
+            if (demean) {
+                auto analysed = values;
+                for (auto &value : analysed) value -= removedMean;
+                outputs.insert("signal",series(analysed));
+            } else outputs.insert("signal",input.data);
+        }
+        outputs.insert("envelope",series(analytic.envelope));
         report["removed_mean"]=removedMean;report["demeaned"]=!envelopeOnly || demean;
         report["hilbert_samples"]=double(values.size());
         if(c.cancellation.isCancelled())return NodeResult::cancelled();
@@ -96,7 +105,8 @@ TaskDescriptor TanerFilterTask::descriptor() {
 }
 TaskDescriptor HilbertEnvelopeTask::descriptor() {
     auto d=task_detail::seriesTransform("Hilbert amplitude envelope",taskCategory(TaskCategory::Envelope));
-    d.outputs={{"envelope","Amplitude envelope",DataKind::Series,true},{"quadrature","Hilbert quadrature",DataKind::Series,true}};
+    d.outputs={{"envelope","Amplitude envelope",DataKind::Series,true},{"quadrature","Hilbert quadrature",DataKind::Series,true},
+               {"signal","Analysed signal",DataKind::Series,true}};
     d.defaultOutput="envelope";d.parameters={science_detail::boolean("hilbert_remove_mean","Remove mean",false)};
     return d;
 }

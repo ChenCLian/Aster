@@ -867,6 +867,7 @@
   "method.insolation_map": "La2004 多纬度日照图",
   "port.filtered": "滤波后的序列",
   "port.envelope": "振幅包络",
+  "port.signal": "分析输入序列",
   "port.quadrature": "Hilbert 正交分量",
   "port.filter_response": "滤波器幅度响应",
   "port.insolation_map": "纬度—年代日照图",

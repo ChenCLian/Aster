@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.3.0-beta.20. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.3.1-beta.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -1892,7 +1892,7 @@ Off matches hilbert(input). On computes the envelope of input minus its mean. Ba
 
 Default: ` false `
 
-Outputs: ` envelope `, ` quadrature `
+Outputs: ` envelope `, ` quadrature `, ` signal `
 
 
 <a id="m-input_series"></a>

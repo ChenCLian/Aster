@@ -64,6 +64,9 @@ PlotWorkspace::PlotWorkspace(QWidget *p) : QWidget(p)
     l->addWidget(m_empty);
     connect(m_tabs, &QTabWidget::currentChanged, this, &PlotWorkspace::activate);
     connect(m_tabs, &QTabWidget::tabCloseRequested, this, &PlotWorkspace::closePage);
+    // No currentChanged signal is emitted for an initially empty tab widget.
+    // Hide it now so it cannot occupy half of the initial empty workspace.
+    build();
 }
 PlotWorkspace::~PlotWorkspace()
 {

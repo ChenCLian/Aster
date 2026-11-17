@@ -105,6 +105,26 @@ class DependencyReuseTests(unittest.TestCase):
         (self.package / 'gsl.dll').write_bytes(b'MZsame version different binary')
         self.reject('Dependency binary changed: gsl.dll')
 
+    def test_published_source_reference_survives_offline_reuse(self):
+        def published(report):
+            source = report['components'][0]['sources'][0]
+            source.update(status='reused-published', published_url=
+                          'https://github.com/ChenCLian/Aster/releases/download/v1.0.0/qt.tar.gz')
+        self.edit_report(published)
+        report = (self.materials / 'report.json').read_bytes()
+        self.edit_zip(lambda files: files.update({'DEPENDENCIES.json': report}))
+        (self.materials / 'release-assets/qt.tar.gz').unlink()
+        self.assertEqual(self.execute(), 0)
+        self.assertIn('/v1.0.0/qt.tar.gz', (self.package / 'SOURCE_DEPENDENCIES.md').read_text())
+        self.assertTrue((self.package / 'licenses/dependencies/DEPENDENCY_LOCK.json').is_file())
+
+    def test_missing_collected_asset_marks_lock_incomplete(self):
+        (self.materials / 'release-assets/qt.tar.gz').unlink()
+        self.assertEqual(collector.finish(self.collection, self.package, self.owners, list(self.owners)), 2)
+        lock = json.loads((self.materials / 'dependency-lock.json').read_text())
+        self.assertEqual(lock['status'], 'incomplete')
+        self.assertTrue(all(not c['processed'] for c in lock['components']))
+
     def test_added_runtime_is_rejected(self):
         (self.package / 'extra.dll').write_bytes(b'MZextra')
         self.reject('Runtime dependency set changed')

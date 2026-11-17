@@ -7,12 +7,12 @@
 ## 从界面使用
 
 - `数据处理 → 滤波 → Gaussian 带通与包络` / `Taner 带通与包络`：默认输出 `filtered`，另有 `envelope` 和 `filter_response`。
-- `分析 → 幅度 → Hilbert 振幅包络`：独立计算上游所选序列的包络；默认不去均值，不擅自加带通任务。另有正交分量 `quadrature`。
+- `分析 → 幅度 → Hilbert 振幅包络`：独立计算上游所选序列的包络；默认不去均值，不擅自加带通任务。另有正交分量 `quadrature` 和实际参与包络计算的输入序列 `signal`。
 - `数据源 → 天文曲线 → 日照与季节积分 → La2004 多纬度日照图`：独立根节点，不需要导入文件；支持热图、色阶、CSV 和图片导出。
 
 带通任务已经给出包络，所以普通用途无需再加 Hilbert；独立 Hilbert 用于其他上游序列。若特意连接 `Taner(filtered) → Hilbert`，其包络应与 Taner 自带包络相同。连接其他端口时严格使用用户选择的那个端口。
 
-即时预览/结果页用输出选择框分别查看滤波曲线、包络和响应，不把频率轴上的响应默认叠到时间轴上。正式运行将具名输出和参数保存到结果库，可按记录 ID 与执行步骤回读；即时预览不写入数据库。
+即时预览和结果页默认同时显示包络与对应的输入／滤波序列；正交分量和响应可单独选择，不把频率轴上的响应叠到时间轴上。正式运行将具名输出和参数保存到结果库，可按记录 ID 与执行步骤回读；即时预览不写入数据库。
 ## 数学和参考版本
 
 **验证参照：**验证归档 `Acycle_3.1.1.zip` 中 `acycleBandpassFilter.m`、`gaussfilter.m`、`tanerhilbertML.m` 已注明 `corrected-bandpass-v2`。数值参照为该修改快照，与官方原始发行版区分。文件 SHA256 记录在 docs/reference/scientific_evidence.json 的 filter_reference 中。未将其 MATLAB 源码复制到产品中。

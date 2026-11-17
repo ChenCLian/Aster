@@ -175,7 +175,10 @@ def plan(root, new, notes):
     for path in current_documents(root):
         raw = path.read_bytes()
         add(path.relative_to(root).as_posix(), replace_version(raw.decode('utf-8'), old, new))
-    for name in ('RELEASE_NOTES.md', 'REVIEW_CN.md'):
+    archived_names = ['RELEASE_NOTES.md']
+    if 'REVIEW_CN.md' in (root / 'RELEASE_NOTES.md').read_text(encoding='utf-8'):
+        archived_names.append('REVIEW_CN.md')
+    for name in archived_names:
         if (root / name).exists():
             directory = 'docs/history/releases/' + old
             add(directory + '/' + name, archive_links((root / name).read_text(encoding='utf-8'), directory), True)

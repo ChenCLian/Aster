@@ -21,6 +21,8 @@ QPen penFor(const QString &port, double width, const QColor &main)
 {
     if (port == "spectrum" || port == "series" || port == "detrended")
         return QPen(main, width);
+    if (port == "signal" || port == "filtered" || port == "envelope")
+        return QPen(themeColor("secondaryCurve"), 1.5, Qt::SolidLine);
     if (port == "trend" || port == "ar1_smoothed")
         return QPen(themeColor("purpleCurve"), 1.5, Qt::DashDotLine);
     if (port == "mc_family_threshold")
@@ -93,7 +95,9 @@ PlotStyle plotPreset(const NodeResult &result, const QString &port, const QStrin
         if (dataAs<SpectrumData>(data))
             include = compatibleCurveAxes(data, it.value()) || it.key() == "peaks";
         if (dataAs<SeriesData>(data))
-            include = compatibleCurveAxes(data, it.value());
+            include = compatibleCurveAxes(data, it.value()) ||
+                (dataAs<SeriesData>(it.value()) && (it.key().startsWith("overlay_") ||
+                 result.report["plot_explicit_ports"].toArray().contains(it.key())));
         if (dataAs<GridData>(data))
             include = it.key() == "coi" && dataAs<SeriesData>(it.value());
         if (!include)
@@ -108,6 +112,12 @@ PlotStyle plotPreset(const NodeResult &result, const QString &port, const QStrin
                     (port == "spectrum" &&
                      QStringList{"ar1_background", "ar1_95", "swa_background", "swa_95", "mc_background", "mc_family_threshold"}.contains(
                          it.key()));
+        if (result.report.contains("hilbert_convention"))
+        {
+            const auto signalPort = result.outputs.contains("signal") ? QString("signal") : QString("filtered");
+            if ((port == "envelope" || port == signalPort) &&
+                (it.key() == "envelope" || it.key() == signalPort)) c.visible = true;
+        }
         if (it.key() == port)
         {
             c.color = themeColor("curve");

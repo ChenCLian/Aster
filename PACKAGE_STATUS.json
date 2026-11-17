@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.3.0-beta.20",
+  "version": "1.3.1-beta.1",
   "update_mode": "official_https_sha256_full_package_extract_new_directory",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -94,14 +94,14 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "status": "local_parameter_documentation_checks_passed_native_actions_pending",
-    "record": "docs/validation_results/1.3.0-beta.20/checks.json",
+    "status": "pending",
+    "record": "docs/validation_results/1.3.1-beta.1/checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.3.0-beta.20",
+    "logs": "docs/validation_results/1.3.1-beta.1",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Targeted parameter lifecycle, paired inputs, reuse inspection and documentation cleanup; native Actions pending",
-    "previous_version_record": "docs/validation_results/1.3.0-beta.19/checks.json",
-    "previous_version_summary": "docs/validation_results/1.3.0-beta.19/checks.json"
+    "scope": "Version synchronized; this version has not yet been validated.",
+    "previous_version_record": "docs/validation_results/1.3.1-alpha.1/checks.json",
+    "previous_version_summary": "docs/validation_results/1.3.1-alpha.1/checks.json"
   },
   "help": {
     "local": "compiled Qt resources",
@@ -163,13 +163,13 @@
     "masked_tables": 2
   },
   "documentation_review": {
-    "date": "2026-11-16",
-    "version": "1.3.0-beta.20",
-    "status": "current_documents_and_links_checked",
-    "record": "docs/validation_results/1.3.0-beta.20/documentation_checks.json",
-    "embedded_help_rebuild_required": false,
-    "scope": "Completed plan consolidation, current reader wording, links and resource consistency",
-    "previous_record": "docs/validation_results/1.3.0-beta.19/documentation_checks.json"
+    "date": "2026-11-17",
+    "version": "1.3.1-beta.1",
+    "status": "version_synchronized_content_review_not_implied",
+    "record": "docs/validation_results/1.3.1-beta.1/documentation_checks.json",
+    "embedded_help_rebuild_required": true,
+    "scope": "Version tokens synchronized; existing document bodies retained.",
+    "previous_record": "docs/validation_results/1.3.1-alpha.1/documentation_checks.json"
   },
   "release_tooling_review": {
     "version": "1.3.0-beta.20",
@@ -229,12 +229,12 @@
   "lightweight_update": {
     "phase1_ui": "complete",
     "phase2_download": "local_implementation_and_tests_complete",
-    "phase3_actions": "local_implementation_and_checks_complete_remote_acceptance_pending",
+    "phase3_actions": "previous packaging accepted by maintainer; new dependency reuse implemented and locally tested, live verification pending",
     "discovery": "GitHub release API with Gitee public release API fallback; partial mirror results labeled",
     "source_policy": "official_https_and_sha256",
     "alpha": "excluded",
     "contact": "offline_author_page",
-    "native_acceptance": "pending",
+    "native_acceptance": "1.3.0-beta.20 four-platform acceptance reported by maintainer; 1.3.1-alpha.1 native and live release checks pending",
     "gitee_material_policy": "all four dependency-materials excluded; program notices retained",
     "critical_path_audit": "docs/validation_results/1.3.0-beta.19/checks.json",
     "design": "docs/development/updates.md"

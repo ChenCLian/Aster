@@ -103,11 +103,22 @@ def reuse(package, materials, version, qmake):
 
     assets = materials / 'release-assets'
     source_names = set()
+    reused_sources = set()
     for component in components.values():
         if not component['notices'] or not (component['sources'] or component['recipes']):
             raise MaterialError(f'Incomplete component: {component["id"]}')
         for source in component['sources']:
             name = source['asset']
+            if source.get('status') == 'reused-published':
+                from dependency_history import source_location
+                try:
+                    _, url = source_location(source, report['version'])
+                except ValueError as error:
+                    raise MaterialError(str(error)) from error
+                if not re.fullmatch('[0-9a-f]{64}', source.get('sha256','')) or not isinstance(source.get('bytes'), int):
+                    raise MaterialError('Published source lacks a checksum or size')
+                reused_sources.add((name, url))
+                continue
             if len(relative_path(name).parts) != 1 or source.get('status') != 'verified':
                 raise MaterialError('Source asset is not verified')
             path = checked_file(assets, name)
@@ -159,6 +170,8 @@ def reuse(package, materials, version, qmake):
                 'records_asset': records_name, 'records_sha256': digest(records_zip),
                 'note': 'Dependency materials are unchanged; this package records the current Aster executable.'}
             write_json(notices / 'DEPENDENCIES.json', refreshed)
+            if 'DEPENDENCY_LOCK.json' in members:
+                (notices / 'DEPENDENCY_LOCK.json').write_bytes(archive.read('DEPENDENCY_LOCK.json'))
             target = package / 'licenses' / 'dependencies'
             if target.exists():
                 if target.is_symlink() or target.resolve() != target.absolute():
@@ -168,7 +181,7 @@ def reuse(package, materials, version, qmake):
                 raise MaterialError('Refusing to install into linked licenses directory')
             shutil.copytree(notices, target)
     (package / 'SOURCE_DEPENDENCIES.md').write_text(
-        dependency_index(version, 'windows-x64', source_names | {records_name}), encoding='utf-8')
+        dependency_index(version, 'windows-x64', source_names | {records_name}, reused_sources), encoding='utf-8')
     (package / PENDING).unlink()
     print(f'Reused verified dependency materials offline: {materials}', flush=True)
     print(f'Upload all files from: {assets}', flush=True)

@@ -829,6 +829,7 @@
   "method.insolation_map": "La2004 latitude–age insolation map",
   "port.filtered": "Filtered series",
   "port.envelope": "Amplitude envelope",
+  "port.signal": "Analysed signal",
   "port.quadrature": "Hilbert quadrature",
   "port.filter_response": "Amplitude response",
   "port.insolation_map": "Latitude–age insolation",

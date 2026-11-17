@@ -129,6 +129,7 @@ class WorkspaceTests : public QObject
 {
     Q_OBJECT
   private slots:
+    void initialEmptyWorkspaceAndEnvelopeOverlay();
     void overlayAutomaticAndManualAxes_data();
     void overlayAutomaticAndManualAxes();
     void outputPanelUsesRowsAndFontMetrics_data();
@@ -197,6 +198,49 @@ class WorkspaceTests : public QObject
     void gridSamplingAndCancellation();
     void advancedStyleAndDynamicInspector();
 };
+void WorkspaceTests::initialEmptyWorkspaceAndEnvelopeOverlay()
+{
+    PlotWorkspace w; w.resize(1000,650); w.show();
+    auto* tabs=w.findChild<QTabWidget*>("plotPages"); QVERIFY(tabs);
+    QTRY_VERIFY(w.currentView()->isVisible()); QVERIFY(!tabs->isVisible());
+    QTRY_COMPARE(w.currentView()->height(),w.height());
+    QTemporaryDir dir; const auto path=dir.filePath("envelope.sqlite");
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    auto raw=*dataAs<SeriesData>(series()); raw.yAxis={"Y",""};
+    WorkflowModel model(makeScientificRegistry());
+    const auto root=model.addRoot("input_series",{0,0}).nodeId;
+    const auto node=model.addChild(root,ChildSlot::Down,"hilbert_envelope").nodeId;
+    const auto execution=WorkflowExecutor().run({model.freeze().snapshot,root,{"signal",makeData(raw),{}}});
+    QCOMPARE(execution.state,RunState::Succeeded);
+    const auto receipt=repo.save(execution); QVERIFY(receipt.saved());
+    OutputReference env{path,receipt.recordId,execution.runId,node,"envelope","Series"}; env.method="hilbert_envelope";
+    w.open(env); QTRY_VERIFY(!w.loading());
+    auto style=w.currentView()->style();
+    QVERIFY(style.curves["envelope"].visible); QVERIFY(style.curves["signal"].visible);
+    QVERIFY(!style.curves["quadrature"].visible);
+    const auto visibleGraphs=[&] { int n=0; auto* plot=w.currentView()->plotWidget();
+        for(int i=0;i<plot->graphCount();++i) if(plot->graph(i)->visible()) ++n;
+        return n; };
+    QCOMPARE(visibleGraphs(),2);
+    // Legacy results used an output label as Y name even with unspecified units.
+    auto legacy=raw; legacy.yAxis.name="Amplitude envelope";
+    const auto old=save(repo,path,run(makeData(legacy)));
+    w.open(old,PlotWorkspace::Target::Overlay); QTRY_VERIFY(!w.loading());
+    QCOMPARE(w.figureCells(false).front().references.size(),2);
+    QCOMPARE(visibleGraphs(),3);
+    // Explicit units remain a hard boundary; a rejected layer preserves curves.
+    auto wrong=raw; wrong.yAxis.unit="m";
+    w.open(save(repo,path,run(makeData(wrong))),PlotWorkspace::Target::Overlay);
+    QTRY_VERIFY(!w.loading()); QCOMPARE(w.figureCells(false).front().references.size(),2);
+    auto signalRef=env; signalRef.port="signal";
+    auto staleSignal=signalRef; staleSignal.recordId+=1000;
+    const auto staleResult=loadPlotData({env,staleSignal},PlotRequest{},CancellationToken{});
+    QCOMPARE(staleResult.state,NodeState::Failed);
+    QCOMPARE(plotGroups({env,signalRef}).size(),1);
+    QCOMPARE(plotGroups({env,signalRef},true).size(),2);
+    w.closePage(0); QTRY_VERIFY(!tabs->isVisible());
+    QTRY_COMPARE(w.currentView()->height(),w.height());
+}
 void WorkspaceTests::overlayAutomaticAndManualAxes_data()
 {
     QTest::addColumn<int>("manual"); QTest::addColumn<bool>("unloaded");

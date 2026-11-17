@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 import time
+import threading
 
 TARGETS = ['aster_core_tests', 'aster_batch_tests', 'aster_analysis_tests', 'aster_cross_spectrum_tests', 'aster_ui_tests', 'aster_joint_ui_tests', 'aster_rewrite_tests', 'aster_linked_input_tests',
            'aster_style_export_tests', 'aster_workspace_tests',
@@ -21,6 +22,20 @@ def failure_excerpt(output):
     if not selected:
         selected.update(range(max(0, len(lines) - 25), len(lines)))
     return '\n'.join(lines[index] for index in sorted(selected))
+
+def progress_heartbeat(stop, name, log, started, timeout, interval=15):
+    while not stop.wait(interval):
+        detail = ''
+        try:
+            with log.open('rb') as stream:
+                stream.seek(0, 2)
+                stream.seek(max(0, stream.tell() - 2048))
+                lines = stream.read().decode('utf-8', errors='replace').splitlines()
+                if lines: detail = ' | ' + lines[-1][-240:]
+        except OSError:
+            pass
+        print(f'RUNNING {name} | {time.monotonic()-started:.0f}s / {timeout}s{detail}', flush=True)
+
 
 def main():
     # Hosted Windows pipes may default to cp1252. A diagnostic containing CJK
@@ -53,6 +68,7 @@ def main():
         temporary.write_text(json.dumps(results, indent=2)+'\n', encoding='utf-8')
         temporary.replace(summary)
     checkpoint()  # Never retain an earlier run's successful summary.
+    print(f'Live test logs: {logs}', flush=True)
     for name in TARGETS:
         candidates = [build / 'bin' / name, build / 'bin' / (name + '.exe'),
                       build / 'tests' / name, build / 'tests' / (name + '.exe'),
@@ -70,10 +86,18 @@ def main():
                 stream.write(f'Missing test executable: {name}\n')
             else:
                 try:
-                    result = subprocess.run([str(exe), '-o', '-,txt', '-v1'], cwd=build, env=env,
-                                            stdout=stream, stderr=subprocess.STDOUT,
-                                            timeout=args.timeout)
-                    code = result.returncode
+                    stop = threading.Event()
+                    heartbeat = threading.Thread(target=progress_heartbeat,
+                        args=(stop, name, log, started, args.timeout), daemon=True)
+                    heartbeat.start()
+                    try:
+                        result = subprocess.run([str(exe), '-o', '-,txt', '-v1'], cwd=build, env=env,
+                                                stdout=stream, stderr=subprocess.STDOUT,
+                                                timeout=args.timeout)
+                        code = result.returncode
+                    finally:
+                        stop.set()
+                        heartbeat.join()
                 except subprocess.TimeoutExpired:
                     status = 'timeout'
                     stream.write(f'\nRunner: Timed out after {args.timeout} seconds.\n')

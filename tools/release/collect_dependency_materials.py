@@ -24,9 +24,10 @@ from dependency_providers import (brew_sources, debian_sources, qt_owners,
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def dependency_index(version, platform, names):
+def dependency_index(version, platform, names, reused=()):
     urls = '\n'.join(f'- [{name}](https://github.com/ChenCLian/Aster/releases/download/v{version}/{name})'
                      for name in sorted(names))
+    urls += ''.join(f'\n- [{name}]({url}) (reused published source)' for name, url in sorted(reused))
     return (f'# Aster {version} dependency sources ({platform})\n\n'
             f'Source archives and build records for this package:\n\n{urls}\n\n'
             'Project source: see SOURCE_CODE.md. Third-party notices: licenses/dependencies/.\n'
@@ -105,7 +106,8 @@ def finish(collection, package, owners, binaries, install=True):
     if collection.errors:
         lines += ['', '## Unresolved items', ''] + [f'- {e["component"]}: {e["message"]}' for e in collection.errors]
     lines += ['', '## Publication', '',
-              'Upload every file in release-assets/ next to the program download; link the matching Aster source from the release tag.',
+              'Upload every file in release-assets/ next to the program download; retain releases referenced by published_url.',
+              'Unchanged source archives are linked from earlier releases; current build recipes and binary inventory are regenerated.',
               'Do not upload cache/ or the local build environment. Sources are not compiled into the application.',
               'Keep the original dependency source filenames, especially the files referenced by Debian .dsc records.',
               'The records ZIP contains licenses, source URLs/checksums, build recipes and the staged binary inventory.',
@@ -113,17 +115,51 @@ def finish(collection, package, owners, binaries, install=True):
               'Binary fingerprints are captured before macOS signing; source checksums remain in DEPENDENCIES.json.', '']
     (collection.records / 'README.md').write_text('\n'.join(lines), encoding='utf-8')
     if collection.errors or collection.plan_only:
+        write_json(collection.output / 'dependency-lock.json', {
+            'schema': 1, 'version': collection.version, 'platform': collection.platform,
+            'status': report['status'], 'components': [
+                {'id': c['id'], 'version': c['version'], 'provider': c['provider'],
+                 'processed': False, 'sources': c['sources']} for c in collection.components]})
         # Never write publishable manifests/notices into the application on failure.
         return 2 if collection.errors else 0
-    names = sorted({s['asset'] for c in collection.components for s in c['sources']})
+    reused = {(s['asset'], s['published_url']) for c in collection.components for s in c['sources']
+              if s.get('status') == 'reused-published'}
+    names = sorted({s['asset'] for c in collection.components for s in c['sources']
+                    if s.get('status') != 'reused-published'})
+    identities = {}
+    for component in collection.components:
+        for source in component['sources']:
+            name, fingerprint = source['asset'], source.get('sha256')
+            if name in identities and identities[name] != fingerprint:
+                collection.error(name, 'Conflicting source identities across dependency components')
+            identities[name] = fingerprint
     for name in names:
         asset = collection.assets / name
         if not asset.is_file() or asset.stat().st_size >= 2 * 1024**3:
             collection.error(name, 'Missing source asset or GitHub per-asset size limit exceeded')
     if collection.errors:
         write_json(collection.output / 'report.json', dict(report, status='incomplete', errors=collection.errors))
+        write_json(collection.output / 'dependency-lock.json', {
+            'schema': 1, 'version': collection.version, 'platform': collection.platform,
+            'status': 'incomplete', 'components': [
+                {'id': c['id'], 'version': c['version'], 'provider': c['provider'],
+                 'processed': False, 'sources': c['sources']} for c in collection.components]})
         return 2
-    records_name = f'Aster-{collection.version}-{collection.platform}-dependency-records.zip'
+    # This lock is regenerated from the installed runtime, never maintained by
+    # toggling booleans. App versions do not form part of dependency identity.
+    lock = {'schema': 1, 'version': collection.version, 'platform': collection.platform,
+            'status': 'processed', 'components': []}
+    for component in collection.components:
+        recipe_hashes = {name: digest(collection.records/name) for name in component['recipes']}
+        lock['components'].append({'id': component['id'], 'version': component['version'],
+            'provider': component['provider'], 'processed': True, 'recipes': recipe_hashes,
+            'sources': component['sources']})
+    lock_name = f'Aster-{collection.version}-{collection.platform}-dependency-lock.json'
+    write_json(collection.output / 'dependency-lock.json', lock)
+    write_json(collection.assets / lock_name, lock)
+    write_json(collection.records / 'DEPENDENCY_LOCK.json', lock)
+    names.append(lock_name)
+    records_name = f'Aster-{collection.version}-{collection.platform}-dependency-records.zip' 
     temporary = collection.output / (records_name + '.partial')
     with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(collection.records.rglob('*')):
@@ -131,7 +167,7 @@ def finish(collection, package, owners, binaries, install=True):
                 archive.write(path, path.relative_to(collection.records).as_posix())
     temporary.replace(collection.assets / records_name)
     names.append(records_name)
-    index = dependency_index(collection.version, collection.platform, names)
+    index = dependency_index(collection.version, collection.platform, names, reused)
     (collection.output / 'SOURCE_DEPENDENCIES.md').write_text(index, encoding='utf-8')
     if install:
         # Called before macOS signing. Never patch an already signed .app here.
@@ -140,6 +176,7 @@ def finish(collection, package, owners, binaries, install=True):
             shutil.rmtree(target)
         shutil.copytree(collection.licenses, target)
         shutil.copy2(collection.records / 'DEPENDENCIES.json', target / 'DEPENDENCIES.json')
+        shutil.copy2(collection.records / 'DEPENDENCY_LOCK.json', target / 'DEPENDENCY_LOCK.json')
         shutil.copy2(collection.output / 'SOURCE_DEPENDENCIES.md', package / 'SOURCE_DEPENDENCIES.md')
         if collection.platform == 'windows-x64':
             (package / 'DEPENDENCY_MATERIALS_PENDING.txt').unlink(missing_ok=True)
@@ -186,7 +223,7 @@ def main(argv=None):
     for name in ('records', 'release-assets'):
         if (output / name).exists():
             shutil.rmtree(output / name)
-    for name in ('report.json', 'SOURCE_DEPENDENCIES.md'):
+    for name in ('report.json', 'SOURCE_DEPENDENCIES.md', 'dependency-lock.json'):
         (output / name).unlink(missing_ok=True)
     cache = args.cache.resolve() if args.cache else output / 'cache'
     collection = Collection(output, cache, args.platform, version, args.plan_only)

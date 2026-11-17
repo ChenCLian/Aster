@@ -11,5 +11,5 @@
 算法、默认参数、方法版本与保存格式不变。新版多级目录和全局搜索尚未接入 Qt。
 
 <!-- version-sync: off -->
-本补丁适用于已更新到 1.3.0-beta.4 的源码。只覆盖 `patch/` 内的内容，再运行 qmake 并构建。验证范围见[本版检查](../../../validation_current.md)。
+本补丁适用于已更新到 1.3.0-beta.4 的源码。只覆盖 `patch/` 内的内容，再运行 qmake 并构建。验证范围见[本版检查](../../../validation_results/1.3.0-beta.5/checks.json)。
 <!-- version-sync: on -->

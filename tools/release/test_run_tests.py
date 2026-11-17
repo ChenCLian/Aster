@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -46,6 +48,19 @@ class RunnerTests(unittest.TestCase):
 
     def summary(self):
         return json.loads((self.log / 'summary.json').read_text())
+
+    def test_heartbeat_reports_last_log_without_changing_file(self):
+        self.log.mkdir(); log=self.log/'slow.txt'
+        log.write_text('INFO : waiting for dialog\n',encoding='utf-8')
+        event=threading.Event(); event.wait=lambda seconds: event.is_set()
+        output=io.StringIO()
+        def stop_after_print(*args,**kwargs):
+            output.write(str(args[0])); event.set()
+        with patch('run_tests.print',side_effect=stop_after_print):
+            runner.progress_heartbeat(event,'ui',log,time.monotonic(),900)
+        self.assertIn('RUNNING ui',output.getvalue())
+        self.assertIn('waiting for dialog',output.getvalue())
+        self.assertEqual(log.read_text(),'INFO : waiting for dialog\n')
 
     def test_missing_executable_is_recorded_and_remaining_targets_run(self):
         self.executable('two')

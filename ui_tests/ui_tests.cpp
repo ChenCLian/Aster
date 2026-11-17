@@ -2731,7 +2731,12 @@ void UiTests::restoredPreviewAndExport()
         QVERIFY(plot->hasOutput());
         QCOMPARE(plot->currentPort(), it.key());
         if (dataKind(*actual) == DataKind::Series || dataKind(*actual) == DataKind::Spectrum)
-            QCOMPARE(plot->plottedCount(), 1); // Independent ports keep their own axes.
+        {
+            const bool pairedEnvelope = QStringList{"gaussian_filter", "taner_filter", "hilbert_envelope"}.contains(method) &&
+                QStringList{"envelope", "filtered", "signal"}.contains(it.key());
+            QCOMPARE(plot->plottedCount(), pairedEnvelope ? 2 : 1);
+            // Quadrature and frequency-response ports remain independent.
+        }
         if (dataKind(*actual) == DataKind::Grid)
         {
             QVERIFY(!plot->hasSignificanceGrid());

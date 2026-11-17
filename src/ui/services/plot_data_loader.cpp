@@ -48,8 +48,7 @@ NodeResult loadPlotData(const QVector<OutputReference> &refs, const PlotRequest 
     {
         if (cancel.isCancelled())
             return NodeResult::cancelled();
-        if (i > 0 && refs[i].databasePath == refs[0].databasePath &&
-            refs[i].runId == refs[0].runId && refs[i].nodeId == refs[0].nodeId &&
+        if (i > 0 && samePlotNode(refs[0], refs[i]) &&
             result.outputs.contains(refs[i].port))
         {
             if (!compatiblePlotLayer(target, result.outputs.value(refs[0].port), refs[i], result.outputs.value(refs[i].port)))

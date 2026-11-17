@@ -76,6 +76,8 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
       OPENBLAS_NUM_THREADS: '1'
+      ASTER_DEPENDENCY_HISTORY: ${{ github.workspace }}/build-release/dependency-history/${{ matrix.target }}
+      ASTER_DEPENDENCY_CACHE: ${{ github.workspace }}/build-release/dependency-cache/${{ matrix.target }}
       ASTER_UPDATE_SCREENSHOT_DIR: ${{ github.workspace }}/build-release/test-results/update-screenshots
       ASTER_UI_CAPTURE_DIR: ${{ github.workspace }}/build-release/test-results/ui-screenshots
     steps:
@@ -97,7 +99,9 @@ jobs:
         run: |
           python3 tools/release/update_version.py --check 2>&1 | tee build-release/ci-logs/version-check.log
           python3 tools/release/document_links.py 2>&1 | tee build-release/ci-logs/document-links.log
+          if [[ '${{ inputs.check_only }}' != 'true' ]]; then
           python3 -c "from pathlib import Path; import sys; sys.path.insert(0,'tools/release'); from download_metadata import valid_version; assert valid_version(Path('VERSION').read_text().strip()), 'Alpha is developer-only and cannot enter release delivery'"
+          fi
           for script in tools/release/package_linux.sh tools/release/package_macos.sh tools/release/linux_app_run.sh; do
             bash -n "$script"
           done
@@ -212,12 +216,25 @@ jobs:
           python3 tools/help_reference/generate.py --build build-release --check 2>&1 | tee build-release/ci-logs/help-reference.log
       - name: Run regression tests
         run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
+      - name: Restore verified dependency download cache
+        id: dependency-cache
+        if: ${{ !inputs.check_only }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.ASTER_DEPENDENCY_CACHE }}
+          key: dependency-sources-v1-${{ matrix.target }}-lookup
+          restore-keys: dependency-sources-v1-${{ matrix.target }}-
+      - name: Check published dependency receipts
+        if: ${{ !inputs.check_only }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/release/dependency_history.py --platform '${{ matrix.target }}' --directory "$ASTER_DEPENDENCY_HISTORY" 2>&1 | tee build-release/ci-logs/dependency-history.log
       - name: Package Windows
         if: ${{ !inputs.check_only && runner.os == 'Windows' }}
         shell: pwsh
         run: |
           $qtBin = (& qmake -query QT_INSTALL_BINS).Trim()
-          ./tools/release/package_windows.ps1 -BuildDir build-release -QtBin $qtBin -VcpkgPrefix "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -VcpkgRoot "$env:VCPKG_INSTALLATION_ROOT" -OutputDir dist -DependencyMode Collect
+          ./tools/release/package_windows.ps1 -BuildDir build-release -QtBin $qtBin -VcpkgPrefix "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -VcpkgRoot "$env:VCPKG_INSTALLATION_ROOT" -OutputDir dist -DependencyMode Collect -DependencyCache $env:ASTER_DEPENDENCY_CACHE
           $version = (Get-Content VERSION -Raw).Trim()
           Compress-Archive -LiteralPath "dist/Aster-$version-windows-x64" -DestinationPath "dist/Aster-$version-windows-x64.zip"
       - name: Package Linux
@@ -228,6 +245,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash tools/release/package_macos.sh build-release "$(command -v qmake)" '${{ matrix.arch }}' dist 2>&1 | tee build-release/ci-logs/package.log
+      - name: Save verified dependency download cache
+        if: ${{ always() && !inputs.check_only && !cancelled() && hashFiles('build-release/dependency-cache/**') != '' && steps.dependency-cache.outputs.cache-matched-key != format('dependency-sources-v1-{0}-{1}', matrix.target, hashFiles('build-release/dependency-cache/**')) }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.ASTER_DEPENDENCY_CACHE }}
+          key: dependency-sources-v1-${{ matrix.target }}-${{ hashFiles('build-release/dependency-cache/**') }}
       - name: Resolve package path
         if: ${{ !inputs.check_only }}
         id: package-path

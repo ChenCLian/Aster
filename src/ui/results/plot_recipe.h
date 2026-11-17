@@ -49,7 +49,15 @@ inline bool compatiblePlotLayer(const OutputReference &target, const DataRef &a,
         return grid && coi && same(grid->xAxis, coi->xAxis) && grid->yAxis.name == "Period" &&
             coi->yAxis.name == "COI period" && grid->yAxis.unit == coi->yAxis.unit;
     }
-    return compatibleCurveAxes(a, b);
+    if (compatibleCurveAxes(a, b)) return true;
+    // This path is an explicit overlay requested by the user. Legacy filters
+    // stored output labels ("Amplitude envelope") as Y-axis names. Names alone
+    // cannot establish different dimensions when both Y units are unspecified.
+    // Keep X-axis compatibility and reject differing declared Y units.
+    const auto *x = dataAs<SeriesData>(a), *y = dataAs<SeriesData>(b);
+    return x && y && x->yAxis.unit.isEmpty() && y->yAxis.unit.isEmpty() &&
+        x->xAxis.unit == y->xAxis.unit &&
+        (!x->xAxis.unit.isEmpty() || x->xAxis.name == y->xAxis.name);
 }
 inline QVector<QVector<OutputReference>> plotGroups(const QVector<OutputReference> &refs, bool separate = false)
 {
@@ -84,6 +92,12 @@ inline QVector<QVector<OutputReference>> plotGroups(const QVector<OutputReferenc
                 return rank(a)<rank(b);
             });
         }
+        if (!separate && QStringList{"hilbert_envelope", "gaussian_filter", "taner_filter"}.contains(ref.method) &&
+            QStringList{"envelope", "signal", "filtered"}.contains(ref.port))
+            for (const auto &other : refs)
+                if (!used.contains(other.key()) && samePlotNode(ref, other) && other.kind == "Series" &&
+                    QStringList{"envelope", "signal", "filtered"}.contains(other.port))
+                { group.push_back(other); used.insert(other.key()); }
         if (!separate && waveletGrid(ref))
             for (const auto &other : refs)
                 if (samePlotNode(ref, other) && other.port == "coi" && other.kind == "Series")

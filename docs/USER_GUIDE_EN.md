@@ -1,4 +1,4 @@
-# Aster 1.3.0-beta.20 User Guide
+# Aster 1.3.1-beta.1 User Guide
 
 [Classified contents](README_EN.md)
 
@@ -175,7 +175,7 @@ There are four subplots per page and up to 32 pages. The number on **Add plots**
 
 **Overlay on current** keeps the destination selected when submitted. Ordinary curves require the same data kind and compatible X/Y units. A wavelet step's COI can overlay its own period map. Existing auxiliary curves are not duplicated, and heatmaps for different quantities do not cover each other. Incompatible overlays show a reason and preserve the original figure. Capacity and grouping rules are described in [plotting details (Chinese)](ui/plotting.md). **More** also offers New page and Replace current subplot (one output). Ordinary tables remain separate; cross-spectrum tables provide a metric selector.
 
-Ordinary curves require identical unit strings on both X and Y; an axis with no unit must also have the same name. Overlay does not convert units or require similar ranges or equal sample counts. Check that physical quantities and coordinate references are comparable.
+Overlay requires matching X and Y unit strings. If X units are unspecified, the X names must also match. For an explicit series overlay with both Y units unspecified, different Y names alone no longer block the operation; this does not establish physical equivalence. Spectra retain their stricter axis check. No units are converted automatically, and sample counts need not match. Confirm comparable quantities and coordinate origins before overlaying.
 
 Axes that have not been zoomed, panned or given a manual range fit the combined data after a successful overlay. Manually adjusted axes retain their viewport. **Fit** restores the full range of visible curves.
 

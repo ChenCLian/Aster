@@ -52,7 +52,9 @@ The limits are one million input samples and 4194304 FFT points. Gaussian paddin
 
 Input may contain 2–1000000 samples. The task uses the selected upstream series without automatically adding a band-pass filter. Demeaning is optional and disabled by default. A constant of 3 has envelope 3, or zero when demeaning is enabled.
 
-`quadrature` is the Hilbert quadrature component; `envelope=sqrt(y_work²+quadrature²)`, where `y_work` reflects the demeaning choice. Both retain X and Y units. The N-point finite-record analytic signal has periodic boundary effects.
+`quadrature` is the Hilbert quadrature component; `envelope=sqrt(y_work²+quadrature²)`, where `y_work` reflects the demeaning choice. The additional `signal` output stores the exact analysed `y_work`; all three retain the input axis names and units. The N-point finite-record analytic signal has periodic boundary effects.
+
+Plots show the envelope and analysed signal together by default; select quadrature separately when needed. Without demeaning, the analysed signal equals the selected upstream data. With demeaning, it is the mean-removed series. Gaussian/Taner plots pair the envelope with the filtered series. Existing records are not recomputed or amended: overlay their curves manually, or rerun the task to obtain the new default combination.
 
 For a narrow-band, relatively single-component oscillation, its envelope can describe amplitude variation. A broadband or multicomponent envelope is computable but is not automatically the unique instantaneous amplitude of one physical process. It differs from square-root PSD display and supplies no p-value or significance threshold.
 
