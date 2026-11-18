@@ -37,7 +37,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Check run-selection tooling
-        run: python3 -m unittest discover -v -s release-tools/tools/release -p 'test_select_release_run.py'
+        run: |
+          python3 -m unittest discover -v -s release-tools/tools/release -p 'test_select_release_run.py'
+          python3 -m unittest discover -v -s release-tools/tools/release -p 'test_release_delivery.py'
       - name: Select completed build and check all artifact availability
         id: build
         env:
@@ -75,7 +77,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ASTER_TESTED_COMMIT: ${{ steps.build.outputs.commit }}
-        run: python3 tested-source/tools/release/release_delivery.py draft --directory "$RUNNER_TEMP/release-ready" --commit "$ASTER_TESTED_COMMIT"
+        # Use fixed delivery tooling, while explicitly retaining the tested version.
+        run: |
+          version="$(tr -d '\r\n' < tested-source/VERSION)"
+          python3 release-tools/tools/release/release_delivery.py draft --version "$version" --directory "$RUNNER_TEMP/release-ready" --commit "$ASTER_TESTED_COMMIT"
       - name: Record mirror allow-list
         run: python3 tested-source/tools/release/release_delivery.py mirror-plan --directory "$RUNNER_TEMP/release-ready"
       - uses: actions/upload-artifact@v6

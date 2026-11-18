@@ -104,6 +104,8 @@ class SelectReleaseRunTests(unittest.TestCase):
         self.assertEqual(text.count('run-id: ${{ steps.build.outputs.run_id }}'), 2)
         self.assertIn('tested-source/tools/release/package_source.py', text)
         self.assertIn('--commit "$ASTER_TESTED_COMMIT"', text)
+        self.assertIn('release-tools/tools/release/release_delivery.py draft --version \"$version\"', text)
+        self.assertNotIn('tested-source/tools/release/release_delivery.py draft', text)
         self.assertNotIn('sync_gitee.py', text)
         self.assertNotIn('package_windows.ps1', text)
 
