@@ -1,11 +1,11 @@
 {
   "version": "1.3.1-beta.2",
-  "status": "release_tools_checked_native_build_pending",
+  "status": "draft_recovery_locally_verified",
   "previous_record": "docs/validation_results/1.3.1-beta.1/checks.json",
-  "scope": "Local release tooling and documentation; no live publication or four-platform build.",
+  "scope": "Local release-tool regression tests and job status from the maintainer screenshot of desktop build #39.",
   "release_tools": {
     "command": "python -m unittest discover -s tools/release -p 'test_*.py' -v",
-    "tests_run": 225,
+    "tests_run": 228,
     "skipped": 2,
     "result": "OK",
     "skipped_context": [
@@ -17,11 +17,18 @@
     "Independent program and dependency drafts on the same tested commit; legacy layout and mixed historical source reuse",
     "Four Gitee program uploads, exact remote inventory, verified metadata in release body and repeat run with no binary re-upload",
     "Recovery from missing GitHub update JSON and checksums after interrupted mirror metadata replacement",
-    "Version synchronization; documentation link/manifest checks; 15 bundled resource SHA-256 checks"
+    "Version synchronization; documentation link/manifest checks; 15 bundled resource SHA-256 checks",
+    "Both flat and legacy nested material artifacts; unique receipts per platform, missing and misplaced receipts rejected",
+    "Recovering a run where only the draft job failed; actual recovery shell exercised with fixture packages and the original source checkout"
   ],
   "pending": [
-    "Native Qt client build and tests",
-    "Four-platform build and package acceptance",
-    "Live release and Gitee mirror"
-  ]
+    "Recovery with the original #39 GitHub artifacts",
+    "Live publication and Gitee mirror"
+  ],
+  "desktop_build_39": {
+    "evidence": "Maintainer Actions screenshot and prepare traceback",
+    "plan_and_four_platform_jobs": "success",
+    "draft_job": "failed during assembly before draft upload",
+    "live_recovery": "pending"
+  }
 }

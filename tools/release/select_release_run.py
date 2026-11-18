@@ -1,4 +1,4 @@
-"""Select a successful desktop build and its complete, unexpired release artifacts.
+"""Select verified desktop packages, including runs where only the release draft failed.
 
 Copyright (C) 2026 ZiJie Chen
 SPDX-License-Identifier: GPL-3.0-only
@@ -19,6 +19,37 @@ def github(endpoint):
     result = subprocess.run(['gh', 'api', endpoint], check=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, text=True, encoding='utf-8', timeout=120)
     return json.loads(result.stdout)
+
+
+def check_run_result(repo, run):
+    if run.get('status') != 'completed':
+        raise ValueError('Build must be completed')
+    if run.get('conclusion') == 'success':
+        return
+    if run.get('conclusion') != 'failure':
+        raise ValueError('Only successful builds or a draft-only failure can be reused')
+
+    # A retry may rerun just the draft. For each job keep its most recent
+    # result, looking back only for jobs that were not scheduled again.
+    expected = {name: 'success' for name in (*PLATFORMS, 'Select platforms and verify bundled resources')}
+    expected['Prepare reviewable release draft'] = 'failure'
+    remaining = set(expected)
+    run_id = run['id']
+    for attempt in range(run.get('run_attempt', 0), 0, -1):
+        response = github(f'repos/{repo}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100')
+        jobs = response['jobs']
+        names = [job['name'] for job in jobs]
+        if response['total_count'] != len(jobs) or len(set(names)) != len(jobs) or set(names) - expected.keys():
+            raise ValueError('Cannot verify draft-only failure: incomplete or unexpected job list')
+        for job in jobs:
+            name = job['name']
+            if name in remaining:
+                if job.get('status') != 'completed' or job.get('conclusion') != expected[name]:
+                    raise ValueError(f'Cannot reuse build: {name} did not finish with {expected[name]}')
+                remaining.remove(name)
+        if not remaining:
+            return
+    raise ValueError('Cannot verify draft-only failure; missing jobs: '+', '.join(sorted(remaining)))
 
 
 def select(repo, number):
@@ -42,8 +73,7 @@ def select(repo, number):
             or selected.get('event') != 'workflow_dispatch'
             or selected.get('head_repository', {}).get('full_name', '').casefold() != repo.casefold()):
         raise ValueError('Build is not an official manually requested desktop run')
-    if selected.get('status') != 'completed' or selected.get('conclusion') != 'success':
-        raise ValueError('Build must be completed and successful')
+    check_run_result(repo, selected)
     sha = selected.get('head_sha', '')
     if not re.fullmatch('[0-9a-fA-F]{40}', sha):
         raise ValueError('Build has no valid source commit')
@@ -81,6 +111,8 @@ def main():
     args.output.write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+            artifact_ids = ','.join(str(item['id']) for item in result['artifacts'])
+            output.write(f'artifact_ids={artifact_ids}\n')
             output.write(f'run_id={result["run_id"]}\ncommit={result["commit"]}\n')
     print(f'Selected build #{args.build_number}: run {result["run_id"]}, commit {result["commit"]}; all eight artifacts available')
 

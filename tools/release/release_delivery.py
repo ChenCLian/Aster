@@ -55,6 +55,19 @@ def download_section(version):
             f'[依赖源码、许可证与构建记录]({base}/tag/{dependency_tag(version)})')
 
 
+def check_material_receipts(artifacts, version):
+    for platform in PLATFORMS:
+        directory = artifacts / ('dependency-materials-' + platform)
+        for suffix in ('dependency-lock.json', 'dependency-records.zip'):
+            name = f'Aster-{version}-{platform}-{suffix}'
+            # Older wildcard uploads include <platform>/release-assets/ inside
+            # the named artifact. New uploads contain the same files at its root.
+            matches = sorted(directory.rglob(name))
+            if len(matches) != 1 or not matches[0].is_file() or matches[0].is_symlink():
+                found = ', '.join(str(p.relative_to(directory)) for p in matches) or 'none'
+                raise ValueError(f'Expected one regular {name} in {directory.name}; found: {found}')
+
+
 def prepare(artifacts, destination, version, source=ROOT):
     expected=package_names(version)
     found={}
@@ -65,6 +78,10 @@ def prepare(artifacts, destination, version, source=ROOT):
             found[path.name]=path
     if set(found) != expected:
         raise ValueError('All four tested program packages are required; missing: '+', '.join(sorted(expected-set(found))))
+    tag = 'v' + version
+    split = dependency_tag(version) != tag
+    if split:
+        check_material_receipts(artifacts, version)
     if destination.exists() and any(destination.iterdir()):
         raise ValueError('Release preparation output must be empty')
     destination.mkdir(parents=True,exist_ok=True)
@@ -73,16 +90,9 @@ def prepare(artifacts, destination, version, source=ROOT):
     (destination/'Aster-update.json').write_text(json.dumps(metadata,indent=2)+'\n',encoding='utf-8')
     # Dependency sources go to GitHub only. Identical shared archives are deduped;
     # equal names with different bytes are an error, not silent overwrites.
-    tag = 'v' + version
-    split = dependency_tag(version) != tag
     materials = destination / 'dependency-materials' if split else destination
     if split:
         materials.mkdir()
-        for platform in PLATFORMS:
-            directory = artifacts / ('dependency-materials-' + platform)
-            for suffix in ('dependency-lock.json', 'dependency-records.zip'):
-                if not (directory / f'Aster-{version}-{platform}-{suffix}').is_file():
-                    raise ValueError(f'Missing {platform} dependency receipt: {suffix}')
     for directory in artifacts.glob('dependency-materials-*'):
         for path in directory.rglob('*'):
             if not path.is_file():continue
@@ -344,10 +354,14 @@ def main():
     parser.add_argument('command',choices=['prepare','mirror-plan','draft'])
     parser.add_argument('--version',default=(ROOT/'VERSION').read_text().strip())
     parser.add_argument('--artifacts',type=Path)
+    parser.add_argument('--source-root', type=Path, help='Tested source checkout for prepare')
     parser.add_argument('--directory',type=Path,required=True)
     parser.add_argument('--commit')
     args=parser.parse_args()
-    if args.command=='prepare':prepare(args.artifacts,args.directory,args.version)
+    if args.command=='prepare':
+        if args.source_root is not None and (args.source_root/'VERSION').read_text(encoding='utf-8').strip() != args.version:
+            parser.error('Selected version differs from the tested source VERSION')
+        prepare(args.artifacts,args.directory,args.version,source=args.source_root or ROOT)
     elif args.command=='draft':
         publish_draft(args.directory,args.version,args.commit)
         if dependency_tag(args.version) != 'v'+args.version and os.environ.get('GITHUB_STEP_SUMMARY'):

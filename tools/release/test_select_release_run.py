@@ -38,12 +38,49 @@ class SelectReleaseRunTests(unittest.TestCase):
         self.assertEqual(len(result['artifacts']), 8)
         self.assertIn(f'repos/{s.REPO}/actions/runs/987654321', self.calls)
 
-    def test_failed_running_or_cancelled_run_rejected(self):
-        for status, conclusion in [('in_progress', None), ('completed', 'failure'), ('completed', 'cancelled')]:
+    def test_running_or_cancelled_run_rejected(self):
+        for status, conclusion in [('in_progress', None), ('completed', 'cancelled')]:
             with self.subTest(status=status, conclusion=conclusion):
                 self.run.update(status=status, conclusion=conclusion)
-                with self.assertRaisesRegex(ValueError, 'completed and successful'):
+                with self.assertRaisesRegex(ValueError, 'completed|successful'):
                     self.select()
+
+    def failed_draft_jobs(self):
+        names = ['Select platforms and verify bundled resources', *s.PLATFORMS, 'Prepare reviewable release draft']
+        return [dict(name=name,status='completed',conclusion='failure' if name==names[-1] else 'success')
+                for name in names]
+
+    def select_with_attempts(self, attempts):
+        self.run.update(conclusion='failure',run_attempt=len(attempts))
+        def api(endpoint):
+            if '/attempts/' in endpoint:
+                attempt = int(endpoint.split('/attempts/')[1].split('/')[0])
+                jobs = attempts[attempt-1]
+                return dict(total_count=len(jobs),jobs=jobs)
+            return self.api(endpoint)
+        with patch.object(s,'github',side_effect=api):
+            return s.select(s.REPO,38)
+
+    def test_only_draft_failed_with_all_eight_artifacts(self):
+        jobs = self.failed_draft_jobs()
+        self.assertEqual(len(self.select_with_attempts([jobs])['artifacts']),8)
+        self.assertEqual(len(self.select_with_attempts([jobs,[jobs[-1]]])['artifacts']),8)
+        self.artifacts[0]['expired'] = True
+        with self.assertRaisesRegex(ValueError,'Expired'):
+            self.select_with_attempts([jobs])
+
+    def test_failed_package_and_incomplete_job_evidence_rejected(self):
+        jobs = self.failed_draft_jobs()
+        cases = {
+            'missing resource check': [jobs[1:]],
+            'missing draft': [jobs[:-1]],
+            'duplicate result': [jobs + [jobs[0]]],
+            'failed platform on retry': [jobs, [dict(jobs[1], conclusion='failure'), jobs[-1]]],
+            'skipped resource check': [[dict(jobs[0], conclusion='skipped'), *jobs[1:]]],
+        }
+        for name, attempts in cases.items():
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.select_with_attempts(attempts)
 
     def test_foreign_or_wrong_workflow_and_invalid_commit_rejected(self):
         original = copy.deepcopy(self.run)
@@ -101,7 +138,10 @@ class SelectReleaseRunTests(unittest.TestCase):
         workflow = Path(__file__).resolve().parents[2]/'.github/workflows/prepare-release-draft.yml'
         text = workflow.read_text()
         self.assertIn('ref: ${{ steps.build.outputs.commit }}', text)
-        self.assertEqual(text.count('run-id: ${{ steps.build.outputs.run_id }}'), 2)
+        self.assertEqual(text.count('run-id: ${{ steps.build.outputs.run_id }}'), 1)
+        self.assertIn('artifact-ids: ${{ steps.build.outputs.artifact_ids }}', text)
+        self.assertIn('release-tools/tools/release/release_delivery.py prepare --version "$version" --source-root tested-source', text)
+        self.assertNotIn('tested-source/tools/release/release_delivery.py prepare', text)
         self.assertIn('tested-source/tools/release/package_source.py', text)
         self.assertIn('--commit "$ASTER_TESTED_COMMIT"', text)
         self.assertIn('release-tools/tools/release/release_delivery.py draft --version \"$version\"', text)

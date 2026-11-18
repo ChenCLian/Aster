@@ -94,12 +94,12 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "status": "release_tools_checked_native_build_pending",
+    "status": "draft_recovery_locally_verified",
     "record": "docs/validation_results/1.3.1-beta.2/checks.json",
     "summary": "docs/validation_current.md",
     "logs": "docs/validation_results/1.3.1-beta.2",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Local checks listed in the version record. Native builds, packaging and live mirror pending.",
+    "scope": "Desktop build #39 shows four successful platform jobs. Recovery tools verified locally on fixtures; live recovery and mirror pending.",
     "previous_version_record": "docs/validation_results/1.3.1-beta.1/checks.json",
     "previous_version_summary": "docs/validation_results/1.3.1-beta.1/checks.json"
   },

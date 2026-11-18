@@ -266,6 +266,30 @@ class ReleaseDeliveryTests(unittest.TestCase):
                     r.upload_asset(42,'v1.3.1-beta.1',path,True,protected_names=protected)
                 self.assertEqual(api.call_args.args[0][1:3],['--method','POST'])
 
+    def test_receipts_are_unique_and_owned_by_the_matching_platform_artifact(self):
+        version = '1.3.1-beta.2'
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for platform in r.PLATFORMS:
+                folder = root / ('dependency-materials-' + platform)
+                for suffix in ('dependency-lock.json','dependency-records.zip'):
+                    path = folder / f'Aster-{version}-{platform}-{suffix}'
+                    folder.mkdir(exist_ok=True)
+                    path.write_bytes(b'receipt')
+            r.check_material_receipts(root, version)
+            windows = root/'dependency-materials-windows-x64'
+            lock = windows/f'Aster-{version}-windows-x64-dependency-lock.json'
+            nested = windows/'windows-x64'/'release-assets'
+            nested.mkdir(parents=True)
+            (nested/lock.name).write_bytes(lock.read_bytes())
+            with self.assertRaisesRegex(ValueError,'Expected one regular'):
+                r.check_material_receipts(root, version)
+            lock.unlink()
+            r.check_material_receipts(root, version)
+            (nested/lock.name).rename(root/'dependency-materials-linux-x64'/lock.name)
+            with self.assertRaisesRegex(ValueError,'windows-x64-dependency-lock.json.*none'):
+                r.check_material_receipts(root, version)
+
     def test_new_build_separates_versioned_materials_from_programs(self):
         import json
         import shutil
@@ -280,11 +304,21 @@ class ReleaseDeliveryTests(unittest.TestCase):
                 program = artifacts/('program-'+platform); program.mkdir(parents=True)
                 archive = next(fixtures.glob(f'Aster-{version}-{platform}.*'))
                 shutil.copy2(archive,program)
-                dependency = artifacts/('dependency-materials-'+platform); dependency.mkdir()
+                dependency = artifacts/('dependency-materials-'+platform)/platform/'release-assets'
+                dependency.mkdir(parents=True)
                 (dependency/'acl~source.dsc').write_bytes(b'shared')
                 for suffix in ('dependency-lock.json','dependency-records.zip'):
                     (dependency/f'Aster-{version}-{platform}-{suffix}').write_bytes(b'receipt')
-            r.prepare(artifacts,ready,version)
+            # Same CLI used by the recovery workflow: current tools, old release notes.
+            import sys
+            tested = root/'tested-source'
+            tested.mkdir()
+            (tested/'VERSION').write_text(version+'\n')
+            (tested/'RELEASE_NOTES.md').write_text('Notes from the original build')
+            subprocess.run([sys.executable,r.__file__,'prepare','--source-root',str(tested),'--version',version,
+                            '--artifacts',str(artifacts),'--directory',str(ready)], check=True)
+            self.assertIn('Notes from the original build',(ready/'RELEASE_GITHUB.md').read_text())
+            self.assertEqual((ready/'dependency-materials'/'acl~source.dsc').read_bytes(),b'shared')
             shutil.copy2(fixtures/f'Aster-{version}-source.zip',ready)
             releases={}; assets={}
             def api(args,payload=None,timeout=120):
