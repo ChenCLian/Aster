@@ -1,0 +1,90 @@
+name: Prepare draft from existing build
+run-name: Prepare draft from desktop build ${{ inputs.build_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Build desktop packages number, for example 38 (without the hash sign)
+        required: true
+        type: string
+
+concurrency:
+  group: aster-desktop-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  draft:
+    name: Reuse verified build artifacts and prepare draft
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: release-tools
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check run-selection tooling
+        run: python3 -m unittest discover -v -s release-tools/tools/release -p 'test_select_release_run.py'
+      - name: Select completed build and check all artifact availability
+        id: build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASTER_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: python3 release-tools/tools/release/select_release_run.py --build-number "$ASTER_BUILD_NUMBER" --repository "$GITHUB_REPOSITORY" --output "$RUNNER_TEMP/selected-build.json"
+      # The program packages belong to this exact historical commit, not to the
+      # newer commit that added this recovery workflow.
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.build.outputs.commit }}
+          path: tested-source
+          persist-credentials: false
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: program-*
+          path: ${{ runner.temp }}/aster-artifacts
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.build.outputs.run_id }}
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: dependency-materials-*
+          path: ${{ runner.temp }}/aster-artifacts
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.build.outputs.run_id }}
+      - name: Assemble packages with their tested source and release notes
+        run: |
+          python3 tested-source/tools/release/update_version.py --check
+          python3 tested-source/tools/release/release_delivery.py prepare --artifacts "$RUNNER_TEMP/aster-artifacts" --directory "$RUNNER_TEMP/release-ready"
+          python3 tested-source/tools/release/package_source.py --output "$RUNNER_TEMP/source-export"
+          version="$(tr -d '\r\n' < tested-source/VERSION)"
+          cd "$RUNNER_TEMP/source-export"
+          zip -qr "../release-ready/Aster-$version-source.zip" "Aster-source-export-$version"
+      - name: Create or update draft for the tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASTER_TESTED_COMMIT: ${{ steps.build.outputs.commit }}
+        run: python3 tested-source/tools/release/release_delivery.py draft --directory "$RUNNER_TEMP/release-ready" --commit "$ASTER_TESTED_COMMIT"
+      - name: Record mirror allow-list
+        run: python3 tested-source/tools/release/release_delivery.py mirror-plan --directory "$RUNNER_TEMP/release-ready"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: release-preparation
+          path: |
+            ${{ runner.temp }}/selected-build.json
+            ${{ runner.temp }}/release-ready/mirror-plan.json
+            ${{ runner.temp }}/release-ready/RELEASE_GITHUB.md
+            ${{ runner.temp }}/release-ready/RELEASE_GITEE.md
+          if-no-files-found: ignore
