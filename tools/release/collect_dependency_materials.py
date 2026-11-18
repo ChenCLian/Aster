@@ -21,11 +21,13 @@ from dependency_common import (Collection, MaterialError, digest, is_binary,
 from dependency_providers import (brew_sources, debian_sources, qt_owners,
                                   qt_sources, qt_vendor_sources, vcpkg_sources)
 
+from dependency_history import asset_url
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def dependency_index(version, platform, names, reused=()):
-    urls = '\n'.join(f'- [{name}](https://github.com/ChenCLian/Aster/releases/download/v{version}/{name})'
+    urls = '\n'.join(f'- [{name}]({asset_url(version, name)})'
                      for name in sorted(names))
     urls += ''.join(f'\n- [{name}]({url}) (reused published source)' for name, url in sorted(reused))
     return (f'# Aster {version} dependency sources ({platform})\n\n'
@@ -109,7 +111,8 @@ def finish(collection, package, owners, binaries, install=True):
               'Upload every file in release-assets/ next to the program download; retain releases referenced by published_url.',
               'Unchanged source archives are linked from earlier releases; current build recipes and binary inventory are regenerated.',
               'Do not upload cache/ or the local build environment. Sources are not compiled into the application.',
-              'Keep the original dependency source filenames, especially the files referenced by Debian .dsc records.',
+              'Release names may normalize special characters. Restore original source filenames before rebuilding Debian .dsc sources.',
+              'See DEPENDENCY_DOWNLOADS.md and Aster-asset-filenames.json on the release for names and download links.',
               'The records ZIP contains licenses, source URLs/checksums, build recipes and the staged binary inventory.',
               'Use the build receipt/recipe to apply patches before rebuilding a dependency.',
               'Binary fingerprints are captured before macOS signing; source checksums remain in DEPENDENCIES.json.', '']

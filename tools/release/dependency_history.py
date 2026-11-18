@@ -12,6 +12,7 @@ import subprocess
 import zipfile
 from pathlib import Path, PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
+from release_asset_names import asset_name
 
 REPO = 'ChenCLian/Aster'
 MAX_RECORDS = 64 * 1024**2
@@ -38,7 +39,7 @@ def github(endpoint, binary=False):
 
 
 def asset_url(version, name):
-    return f'https://github.com/{REPO}/releases/download/v{version}/{quote(name, safe="")}'
+    return f'https://github.com/{REPO}/releases/download/v{version}/{quote(asset_name(name), safe="")}'
 
 
 def source_location(source, version):
@@ -48,7 +49,7 @@ def source_location(source, version):
     if parsed.scheme != 'https' or parsed.netloc != 'github.com' or parsed.query or parsed.fragment or not parsed.path.startswith(prefix):
         raise ValueError('Dependency history must reference official GitHub assets')
     tag, sep, name = parsed.path[len(prefix):].partition('/')
-    if not sep or not VERSION.fullmatch(tag) or unquote(name) != source['asset'] or '/' in unquote(name):
+    if not sep or not VERSION.fullmatch(tag) or unquote(name) not in (source['asset'], asset_name(source['asset'])) or '/' in unquote(name):
         raise ValueError('Invalid published dependency location')
     return tag, url
 
@@ -122,7 +123,7 @@ def fetch(directory, platform, releases_limit=3):
             for component in report['components']:
                 for source in component['sources']:
                     source_version, url = source_location(source, version)
-                    published = release(source_version).get(source['asset'])
+                    published = release(source_version).get(unquote(urlsplit(url).path.rsplit('/', 1)[-1]))
                     fingerprint = source.get('sha256', '')
                     if (published and re.fullmatch('[0-9a-f]{64}', fingerprint) and
                         published.get('size') == source.get('bytes') and

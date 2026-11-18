@@ -39,7 +39,7 @@ jobs:
       - name: Check run-selection tooling
         run: |
           python3 -m unittest discover -v -s release-tools/tools/release -p 'test_select_release_run.py'
-          python3 -m unittest discover -v -s release-tools/tools/release -p 'test_release_delivery.py'
+          python3 -m unittest discover -v -s release-tools/tools/release -p 'test_release_delivery*.py'
       - name: Select completed build and check all artifact availability
         id: build
         env:

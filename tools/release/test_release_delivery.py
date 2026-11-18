@@ -110,7 +110,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
             self.assertEqual(creates[0]['target_commitish'],'a'*40)
             self.assertEqual(creates[0]['body'],'Prepared notes')
             self.assertTrue(creates[0]['draft']);self.assertTrue(creates[0]['prerelease'])
-            self.assertEqual(len(uploads),7)
+            self.assertEqual(len(uploads),9)
 
     def test_existing_draft_channel_fixed_notes_preserved_and_retry_sums_clean(self):
         with tempfile.TemporaryDirectory() as td:
@@ -119,7 +119,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
             edits=[p for a,p in calls if a[-2:]==['--method','PATCH']]
             self.assertEqual(edits,[{'tag_name':'v1.3.0-beta.18','prerelease':True,'target_commitish':'a'*40}])
             self.assertNotIn('SHA256SUMS.txt',(folder/'SHA256SUMS.txt').read_text())
-            self.assertEqual(len(uploads),7)
+            self.assertEqual(len(uploads),9)
 
     def test_publication_during_upload_stops_further_overwrites(self):
         with tempfile.TemporaryDirectory() as td:
@@ -182,3 +182,86 @@ class ReleaseDeliveryTests(unittest.TestCase):
             self.assertEqual(args[-2:],['--input','-'])
             self.assertEqual(json.loads(kw['input']),{'body':'中文说明'})
             self.assertEqual(kw['encoding'],'utf-8')
+
+    def test_problem_filename_normalized_before_upload_and_all_integrity_checks_remain(self):
+        from urllib.parse import unquote
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'gcc-12_12.3.0-1ubuntu1~22.04.3.debian.tar.xz';path.write_bytes(b'bytes')
+            draft={'draft':True,'tag_name':'v1.3.1-beta.1','prerelease':True,
+                   'upload_url':f'https://uploads.github.com/repos/{r.REPO}/releases/42/assets{{?name,label}}'}
+            calls=[]
+            def api(args,**kwargs):
+                calls.append(args)
+                if '/assets?' in args[0] and not args[0].startswith('https:'):return []
+                if args[0].startswith('https:'):
+                    requested=unquote(args[0].split('?name=')[1])
+                    self.assertEqual(requested,'gcc-12_12.3.0-1ubuntu1_22.04.3.debian.tar.xz')
+                    return dict(name=requested,state='uploaded',size=5,digest='sha256:'+r.digest(path))
+                return draft
+            with patch.object(r,'github_json',side_effect=api):r.upload_asset(42,'v1.3.1-beta.1',path,True)
+            self.assertEqual(path.read_bytes(),b'bytes')
+
+    def test_existing_github_renamed_file_reused_by_digest_without_upload(self):
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'gcc_1~2.tar.xz';path.write_bytes(b'bytes')
+            draft={'draft':True,'tag_name':'v1.3.1-beta.1','prerelease':True}
+            old=dict(id=12,name='gcc_1.2.tar.xz',state='uploaded',size=5,digest='sha256:'+r.digest(path))
+            with patch.object(r,'github_json',side_effect=[draft,[old],draft,dict(old,name='gcc_1_2.tar.xz')]) as api:
+                r.upload_asset(42,'v1.3.1-beta.1',path,True)
+            self.assertEqual(api.call_args.args[0], [f'repos/{r.REPO}/releases/assets/12','--method','PATCH'])
+            self.assertEqual(api.call_args.kwargs['payload'],{'name':'gcc_1_2.tar.xz'})
+
+    def test_verification_errors_report_each_field(self):
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'file.zip';path.write_bytes(b'bytes')
+            sha='sha256:'+r.digest(path)
+            good=dict(name=path.name,state='uploaded',size=5,digest=sha)
+            for key,value in [('name','renamed.zip'),('state','starter'),('size',4),('digest','sha256:'+'0'*64)]:
+                with self.subTest(key=key):
+                    with self.assertRaisesRegex(ValueError,key) as error:
+                        r.verify_uploaded(dict(good,**{key:value}),path,path.name,sha)
+                    self.assertIn('expected',str(error.exception));self.assertIn('actual',str(error.exception))
+
+    def test_names_and_collision_preflight(self):
+        for name in ['file.tar.xz','Aster-1.3.1-beta.1-windows-x64.zip','SHA256SUMS.txt']:
+            self.assertEqual(r.asset_name(name),name)
+        for name in ['a~b.tar.xz','a+b.orig.tar.gz','a b.zip','.hidden.','中文.tar.xz']:
+            self.assertRegex(r.asset_name(name),r'^[A-Za-z0-9_-][A-Za-z0-9._-]*$')
+            self.assertEqual(r.asset_name(r.asset_name(name)),r.asset_name(name))
+        for name in ['../bad','a/b','a\\b','..','x\nfile']:
+            with self.assertRaises(ValueError):r.asset_name(name)
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td);self.prepared(folder)
+            (folder/'gcc~1.tar.xz').write_bytes(b'a');(folder/'gcc_1.tar.xz').write_bytes(b'b')
+            with self.assertRaisesRegex(ValueError,'collision'):r.prepared_files(folder,'1.3.0-beta.18')
+
+    def test_mapping_and_checksum_names_match_uploaded_names(self):
+        import json
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td);self.prepared(folder)
+            source=folder/'gcc_1~2.tar.xz';source.write_bytes(b'original archive')
+            # Exercise publication with actual metadata generation; uploaded names
+            # are checked separately against the transport tests above.
+            release={'id':42,'tag_name':'v1.3.0-beta.18','draft':True}
+            import subprocess
+            with patch.object(r,'find_release',return_value=release),patch.object(r,'require_draft',return_value=release),patch.object(r,'github_json'),patch.object(r.subprocess,'run',return_value=subprocess.CompletedProcess([],1,'','HTTP 404')),patch.object(r,'upload_asset') as upload:
+                r.publish_draft(folder,'1.3.0-beta.18','a'*40)
+            sums=(folder/'SHA256SUMS.txt').read_text()
+            self.assertIn(r.digest(source)+'  gcc_1_2.tar.xz',sums)
+            self.assertNotIn('~',sums)
+            mapping=json.loads((folder/'Aster-asset-filenames.json').read_text())
+            item=next(a for a in mapping['assets'] if a['source_name']==source.name)
+            self.assertEqual(item['asset_name'],'gcc_1_2.tar.xz');self.assertEqual(item['sha256'],r.digest(source))
+            self.assertIn('/gcc_1_2.tar.xz',(folder/'DEPENDENCY_DOWNLOADS.md').read_text())
+            self.assertEqual(len(r.prepared_files(folder,'1.3.0-beta.18')),7)
+
+    def test_same_bytes_cannot_steal_another_expected_or_unrelated_asset(self):
+        with tempfile.TemporaryDirectory() as td:
+            path=Path(td)/'gcc_1~2.tar.xz';path.write_bytes(b'bytes')
+            draft={'draft':True,'tag_name':'v1.3.1-beta.1','prerelease':True,
+                   'upload_url':f'https://uploads.github.com/repos/{r.REPO}/releases/42/assets{{?name,label}}'}
+            for remote,protected in [('gcc_1.2.tar.xz',{'gcc_1.2.tar.xz'}),('another-source.tar.xz',set())]:
+                old=dict(id=12,name=remote,state='uploaded',size=5,digest='sha256:'+r.digest(path))
+                with patch.object(r,'github_json',side_effect=[draft,[old],draft,dict(old,name='gcc_1_2.tar.xz')]) as api:
+                    r.upload_asset(42,'v1.3.1-beta.1',path,True,protected_names=protected)
+                self.assertEqual(api.call_args.args[0][1:3],['--method','POST'])

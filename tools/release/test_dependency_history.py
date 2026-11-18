@@ -149,4 +149,35 @@ class HistoryTests(unittest.TestCase):
         c=self.collection()
         self.assertFalse(history.PublishedHistory(self.directory,self.platform).source(c,dict(self.component),dict(self.source),True))
 
+    def test_normalized_dependency_name_reused_with_original_identity(self):
+        original='gcc-12_12.3.0-1ubuntu1~22.04.3.debian.tar.xz'
+        published='gcc-12_12.3.0-1ubuntu1_22.04.3.debian.tar.xz'
+        self.source['asset']=original
+        data=self.records();name=f'Aster-{self.version}-{self.platform}-dependency-records.zip'
+        release={'id':1,'tag_name':'v'+self.version,'draft':False}
+        assets=[dict(id=2,name=name,size=len(data),digest='sha256:'+history.sha(data),state='uploaded'),
+                dict(id=3,name=published,size=123,digest='sha256:'+'a'*64,state='uploaded')]
+        def api(endpoint,binary=False):
+            if binary:return data
+            if '/assets?' in endpoint:return assets
+            if '/tags/' in endpoint:return release
+            return [release]
+        with patch.object(history,'github',side_effect=api):history.fetch(self.directory,self.platform)
+        c=self.collection();record=dict(self.source)
+        self.assertTrue(history.PublishedHistory(self.directory,self.platform).source(c,dict(self.component),record,True))
+        self.assertEqual(record['asset'],original)
+        self.assertTrue(record['published_url'].endswith('/'+published))
+        self.assertEqual(history.source_location(record,'1.3.1-beta.1')[0],self.version)
+        index=collector.dependency_index(self.version,self.platform,[original])
+        self.assertIn('/'+published+')',index)
+        # Subsequent releases can retain this exact published URL.
+        self.source.update(record)
+        self.assertEqual(history.source_location(self.source,'1.3.1-beta.1')[1],record['published_url'])
+
+    def test_explicit_legacy_original_dependency_url_remains_valid(self):
+        record=dict(self.source,asset='foo~1.tar.gz',published_url=f'https://github.com/{history.REPO}/releases/download/v{self.version}/foo~1.tar.gz')
+        self.assertEqual(history.source_location(record,self.version)[1],record['published_url'])
+        record['published_url']=record['published_url'].replace('foo~1','unrelated')
+        with self.assertRaises(ValueError):history.source_location(record,self.version)
+
 if __name__=='__main__':unittest.main()

@@ -142,11 +142,13 @@ Linux 需要启用与二进制包仓库、发行版和更新通道匹配的 `deb
 1. 上传各平台程序压缩包。Windows 脚本生成普通目录，由维护者压缩完整目录；Actions 的 Linux/macOS 程序构件已经是可直接上传的单层程序包。
 2. 确认 Release 标签指向实际构建提交，GitHub 自动生成的 Source code 包含完整项目源码和必要资源；发布说明指向该入口。需要独立副本时，运行 `python tools/release/package_source.py --output ../release-source`，得到 `Aster-source-export-<版本>/` 普通目录，再按需压缩上传。
 3. 下载并解开 Actions 的 `dependency-materials-*` 外层构件 ZIP，上传其中的依赖源文件和记录 ZIP；这些内容来自各平台的 `release-assets/`，构件解压后的目录层级可能不同。本机 Windows 从 `release-assets/` 取文件。
-4. 多平台出现同名同摘要的依赖源文件时只上传一次；同名但内容不同的文件不能相互覆盖。保留 Debian `.dsc` 所引用的源文件原名。
+4. 多平台出现同名同摘要的依赖源文件时只上传一次；同名但内容不同的文件不能相互覆盖。推荐由发布工具上传：GitHub 会改写某些特殊字符，工具在上传前统一命名并检查冲突，同时生成文件名对照表。重建 Debian 源码前恢复 `.dsc` 引用的原始文件名。
 5. 在发布说明中注明项目源码入口、各平台 `dependency-records.zip` 及依赖源码附件的位置。源码附件和程序放在同一 Release 最便于维护。
 6. 检查程序包内 `SOURCE_DEPENDENCIES.md` 的链接能下载相应附件。新材料链接指向当前版本，复用源码链接指向其原发布版本；对应的 Release 附件都必须保留。使用其他托管位置时同步该索引；之后重新打包，macOS 必须重新签名。
 
-GitHub 为上传到 Release 的附件记录 SHA-256 摘要；Actions 程序构件也提供摘要。脚本不生成独立 `.sha256` 附件，依赖下载、缓存复用、来源匹配和 JSON 清单中的摘要校验继续保留。依赖源包保持上游格式和文件名，不能通过改名或解压替代源码索引中引用的归档。
+GitHub 为上传到 Release 的附件记录 SHA-256 摘要；Actions 程序构件也提供摘要。脚本不生成逐文件 `.sha256` 附件，发布工具生成统一的 `SHA256SUMS.txt`。依赖下载、缓存复用、来源匹配和 JSON 清单中的摘要校验继续保留。依赖源包保持上游格式与完整内容；本地原名及 `.dsc` 内容不变，远端发布名中的特殊字符使用统一规则规范。
+
+`Aster-asset-filenames.json` 记录原始文件名、发布名、大小和 SHA-256；`DEPENDENCY_DOWNLOADS.md` 提供下载链接。先以发布名验证 `SHA256SUMS.txt`，需要重建依赖时再恢复原名。当前依赖索引与历史复用共用同一命名规则。复用旧构建补建草稿时，不修改程序包内已签名或已验收的文件；包内旧链接若因特殊字符失效，使用该 Release 的 `DEPENDENCY_DOWNLOADS.md`。
 
 Actions 构件保存期为 30 天，只用于交接构建结果；不能用临时构件链接替代持续可用的 Release 源码入口。启用草稿准备后，四个平台打包成功会自动创建或更新 GitHub Release 草稿及附件；它不会自动公开发布。
 

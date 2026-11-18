@@ -9,6 +9,7 @@ from urllib.parse import quote
 import zipfile
 from download_metadata import PLATFORMS, generate, valid_version, digest
 from document_links import release_body
+from release_asset_names import asset_name, validate_names, legacy_asset_names
 
 ROOT = Path(__file__).resolve().parents[2]
 GITEE_FILE_LIMIT = 100_000_000  # conservative interpretation of the advertised 100M
@@ -113,35 +114,79 @@ def require_draft(release_id,tag):
     return release
 
 
-def upload_asset(release_id,tag,path,beta):
+def verify_uploaded(asset,path,remote_name,sha):
+    expected={'name':remote_name,'state':'uploaded','size':path.stat().st_size}
+    if asset.get('digest'):expected['digest']=sha
+    mismatches={key:{'expected':value,'actual':asset.get(key)}
+                for key,value in expected.items() if asset.get(key)!=value}
+    if mismatches:
+        raise ValueError('Uploaded asset verification failed: '+path.name+'; '+
+                         json.dumps(mismatches,ensure_ascii=True,sort_keys=True))
+
+
+def upload_asset(release_id,tag,path,beta,protected_names=()):
     current=require_draft(release_id,tag)
     if current.get('prerelease')!=beta:raise ValueError('Draft channel flag changed; stop uploading')
-    # Use the stable release ID throughout; a draft's browser URL may be untagged.
     endpoint=f'repos/{REPO}/releases/{release_id}/assets'
-    assets=[]
+    remote_name=asset_name(path.name)
+    sha='sha256:'+digest(path)
+    rows=[]
     for page in range(1,101):
         batch=github_json([endpoint+f'?per_page=100&page={page}'])
-        assets.extend(a for a in batch if a['name']==path.name)
+        rows.extend(batch)
         if len(batch)<100:break
     else:raise ValueError('Asset listing is incomplete')
-    sha='sha256:'+digest(path)
-    if len(assets)==1 and assets[0].get('state')=='uploaded' and assets[0].get('digest')==sha and assets[0].get('size')==path.stat().st_size:
+    assets=[a for a in rows if a['name']==remote_name]
+    def same_content(a):
+        return a.get('state')=='uploaded' and a.get('digest')==sha and a.get('size')==path.stat().st_size
+    if len(assets)==1 and same_content(assets[0]):
+        print('Verified existing '+remote_name,flush=True)
+        return
+    # Older upload code may have left the right bytes under GitHub's changed
+    # name. Reuse only a unique, digest-verified match for a normalized filename.
+    renamed=[a for a in rows if same_content(a) and a['name'] in legacy_asset_names(path.name)
+             and a['name'] not in protected_names] if remote_name!=path.name and not assets else []
+    if len(renamed)==1:
+        current=require_draft(release_id,tag)
+        if current.get('prerelease')!=beta:raise ValueError('Draft channel flag changed; stop uploading')
+        updated=github_json([f'repos/{REPO}/releases/assets/{renamed[0]["id"]}','--method','PATCH'],
+                            payload={'name':remote_name})
+        verify_uploaded(updated,path,remote_name,sha)
+        print('Reused existing bytes as '+remote_name,flush=True)
         return
     for asset in assets:
-        require_draft(release_id,tag)
+        current=require_draft(release_id,tag)
+        if current.get('prerelease')!=beta:raise ValueError('Draft channel flag changed; stop uploading')
         github_json([f'repos/{REPO}/releases/assets/{asset["id"]}','--method','DELETE'])
     current=require_draft(release_id,tag)
     if current.get('prerelease')!=beta:raise ValueError('Draft channel flag changed; stop uploading')
     upload_url=current.get('upload_url','').split('{',1)[0]
     if upload_url!=f'https://uploads.github.com/repos/{REPO}/releases/{release_id}/assets':
         raise ValueError('Unexpected release upload endpoint')
-    print('Uploading '+path.name,flush=True)
-    uploaded=github_json([upload_url+'?name='+quote(path.name,safe=''),'--method','POST',
+    print('Uploading '+path.name+(' as '+remote_name if remote_name!=path.name else ''),flush=True)
+    uploaded=github_json([upload_url+'?name='+quote(remote_name,safe=''),'--method','POST',
                           '-H','Content-Type: application/octet-stream','--input',str(path)],timeout=1800)
-    if (uploaded.get('name')!=path.name or uploaded.get('state')!='uploaded'
-            or uploaded.get('size')!=path.stat().st_size
-            or (uploaded.get('digest') and uploaded['digest']!=sha)):
-        raise ValueError('Uploaded asset verification failed: '+path.name)
+    verify_uploaded(uploaded,path,remote_name,sha)
+
+
+def write_asset_index(folder,version,files):
+    entries=[dict(source_name=p.name,asset_name=asset_name(p.name),bytes=p.stat().st_size,sha256=digest(p)) for p in files]
+    mapping=folder/'Aster-asset-filenames.json'
+    mapping.write_text(json.dumps(dict(schema=1,version=version,assets=entries),indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+    guide=folder/'DEPENDENCY_DOWNLOADS.md'
+    lines=['# Release files and dependency source filenames','',
+           'Download links use the published names. Source archives retain their original bytes.',
+           'Before rebuilding Debian sources, restore each downloaded source archive to its original filename',
+           'shown below, so that .dsc references resolve. Verify SHA256SUMS.txt before renaming.',
+           'Aster-asset-filenames.json records both names and SHA-256. Files inside program packages are unchanged.',
+           'For older program packages whose dependency links contain special characters, use this index.',
+           '', '| Original filename | Download |', '| --- | --- |']
+    for entry in entries:
+        original=entry['source_name'].replace('|','&#124;').replace('<','&lt;').replace('>','&gt;')
+        name=entry['asset_name']
+        lines.append(f'| {original} | [{name}](https://github.com/{REPO}/releases/download/v{version}/{name}) |')
+    guide.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+    return [mapping,guide]
 
 
 def prepared_files(folder,version):
@@ -153,8 +198,9 @@ def prepared_files(folder,version):
         raise ValueError('Prepared metadata differs from the actual program packages')
     if not zipfile.is_zipfile(folder/f'Aster-{version}-source.zip'):
         raise ValueError('Invalid source ZIP')
-    files=[p for p in folder.iterdir() if p.is_file() and p.name not in ('RELEASE_GITHUB.md','RELEASE_GITEE.md','mirror-plan.json','SHA256SUMS.txt')]
+    files=[p for p in folder.iterdir() if p.is_file() and p.name not in ('RELEASE_GITHUB.md','RELEASE_GITEE.md','mirror-plan.json','SHA256SUMS.txt','Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md')]
     if any(p.is_symlink() for p in files):raise ValueError('Release assets must be regular files')
+    validate_names([p.name for p in files]+['SHA256SUMS.txt','Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md'])
     return sorted(files)
 
 
@@ -168,6 +214,7 @@ def publish_draft(folder, version, commit):
     existing=find_release(tag,commit)
     if existing and not existing['draft']:raise ValueError('Refusing to overwrite a published release')
     files=prepared_files(folder,version)
+    files+=write_asset_index(folder,version,files)
     ref=subprocess.run(['gh','api',f'repos/{REPO}/git/ref/tags/{tag}'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     if ref.returncode==0:
         obj=json.loads(ref.stdout)['object']
@@ -193,10 +240,11 @@ def publish_draft(folder, version, commit):
     require_draft(release_id,tag)
     # Do not alter an existing draft's notes/title. Refresh checksums on retry,
     # excluding the previous checksum file itself.
-    sums=''.join(digest(p)+'  '+p.name+'\n' for p in files)
+    sums=''.join(digest(p)+'  '+asset_name(p.name)+'\n' for p in files)
     (folder/'SHA256SUMS.txt').write_text(sums,encoding='utf-8')
+    protected_names={asset_name(p.name) for p in files+[folder/'SHA256SUMS.txt']}
     for p in files+[folder/'SHA256SUMS.txt']:
-        upload_asset(release_id,tag,p,'-beta.' in version)
+        upload_asset(release_id,tag,p,'-beta.' in version,protected_names=protected_names)
     require_draft(release_id,tag)
     print('Draft ready for review: '+tag)
 
