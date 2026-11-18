@@ -138,16 +138,35 @@ class SelectReleaseRunTests(unittest.TestCase):
         workflow = Path(__file__).resolve().parents[2]/'.github/workflows/prepare-release-draft.yml'
         text = workflow.read_text()
         self.assertIn('ref: ${{ steps.build.outputs.commit }}', text)
-        self.assertEqual(text.count('run-id: ${{ steps.build.outputs.run_id }}'), 1)
-        self.assertIn('artifact-ids: ${{ steps.build.outputs.artifact_ids }}', text)
-        self.assertIn('release-tools/tools/release/release_delivery.py prepare --version "$version" --source-root tested-source', text)
+        self.assertEqual(text.count('run-id: ${{ needs.source.outputs.run_id }}'), 1)
+        self.assertIn('artifact-ids: ${{ needs.source.outputs.artifact_ids }}', text)
+        self.assertIn('artifact-ids: ${{ needs.source.outputs.source_artifact }}', text)
+        self.assertIn('source_artifact: ${{ steps.bundle.outputs.artifact-id }}', text)
+        self.assertIn('release-tools/tools/release/release_delivery.py prepare --version "$version" --source-root "$inputs_dir"', text)
         self.assertNotIn('tested-source/tools/release/release_delivery.py prepare', text)
         self.assertIn('tested-source/tools/release/package_source.py', text)
         self.assertIn('--commit "$ASTER_TESTED_COMMIT"', text)
-        self.assertIn('release-tools/tools/release/release_delivery.py draft --version \"$version\"', text)
+        self.assertIn('release-tools/tools/release/release_delivery.py draft --version "$ASTER_VERSION"', text)
         self.assertNotIn('tested-source/tools/release/release_delivery.py draft', text)
         self.assertNotIn('sync_gitee.py', text)
         self.assertNotIn('package_windows.ps1', text)
+
+    def test_historical_source_cannot_access_the_draft_credential(self):
+        workflow = Path(__file__).resolve().parents[2]/'.github/workflows/prepare-release-draft.yml'
+        source, draft = workflow.read_text().split('\n  draft:\n')
+        self.assertIn('contents: read', source)
+        self.assertNotIn('contents: write', source)
+        self.assertIn('python3 tested-source/', source)
+        self.assertNotIn('secrets.ASTER_RELEASE_TOKEN', source)
+        self.assertIn('needs: source', draft)
+        self.assertNotIn('python3 tested-source/', draft)
+        self.assertIn('ASTER_TESTED_COMMIT: ${{ needs.source.outputs.commit }}', draft)
+        steps = draft.split('      - ')
+        privileged = [step for step in steps if 'secrets.ASTER_RELEASE_TOKEN' in step]
+        self.assertEqual(len(privileged), 1)
+        self.assertIn("github.ref == format('refs/heads/{0}', github.event.repository.default_branch)", privileged[0])
+        self.assertIn('secrets.ASTER_RELEASE_TOKEN) || github.token', privileged[0])
+        self.assertIn('release_delivery.py draft', privileged[0])
 
 
 if __name__ == '__main__':

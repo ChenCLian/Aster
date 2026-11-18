@@ -21,6 +21,15 @@ GitHub 可能改写带特殊字符的附件名。发布工具在上传前统一�
 
 如果补建中途失败，先查看 Releases，暂时不要发布不完整草稿。更新发布工具后，应通过 **Run workflow** 发起新的补建运行，仍填写原构建编号；旧运行的 **Re-run jobs** 不会采用新提交中的修复。
 
+### 创建历史版本草稿时遇到 HTTP 403
+
+如果日志在 `POST /repos/ChenCLian/Aster/releases` 报 `Resource not accessible by integration`，先确认失败步骤。若构件已汇总成功，可以继续复用这次构建。仓库的补建任务已经申请 `contents: write`。当目标提交中的工作流文件与默认分支有相关差异时，GitHub 还可能要求写入工作流的权限。内置 `GITHUB_TOKEN` 无法获得这项权限。[GitHub 创建 Release 的权限说明](https://docs.github.com/en/rest/releases/releases#create-a-release)
+
+1. 使用对 Aster 有发布权限的账户，在 GitHub 个人设置 → **Developer settings → Personal access tokens → Fine-grained tokens** 创建有期限的令牌。资源所有者选 Aster 的仓库所有者，在 **Only select repositories** 只选 `ChenCLian/Aster`。将 **Contents** 和 **Workflows** 设为 **Read and write**。
+2. 在 Aster 仓库的 **Settings → Secrets and variables → Actions → New repository secret** 中，名称填 `ASTER_RELEASE_TOKEN`，值填令牌。
+3. 将补丁提交到默认分支。从默认分支重新启动 **Prepare draft from existing build**，填写原构建编号，例如 `39`。选择构建和打包历史源码的任务只读；独立的草稿任务只在创建或更新草稿及其附件的步骤使用上述令牌。未配置时沿用内置令牌。
+4. 成功后到 **Releases** 核对两个草稿。若仍返回 403，检查令牌的有效期、仓库授权、账户对目标标签的权限，以及覆盖该标签的仓库规则。
+
 该流程仍需 GitHub 下载并上传附件，耗时取决于材料大小，但不重新执行 qmake、C++ 编译或依赖源码收集。附件已过期或被删除时，应重新构建，不能用不完整附件发布。
 
 首次加入时，只需提交新的工作流、脚本、测试和本文档；无需修改程序版本号或重新创建旧构建。

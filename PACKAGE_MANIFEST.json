@@ -24,8 +24,8 @@
     },
     {
       "path": ".github/workflows/prepare-release-draft.yml",
-      "bytes": 3917,
-      "sha256": "2006cef9edc054f2ec3cc76b7bf269bcb1ddce17663649d6952a2e324df7b606"
+      "bytes": 5564,
+      "sha256": "1083aa768cf2c21dcdbeba836861868df61e5d7224b852de9908a2ce7f19a6a6"
     },
     {
       "path": ".gitignore",
@@ -1134,8 +1134,8 @@
     },
     {
       "path": "docs/release_existing_build_zh.md",
-      "bytes": 3952,
-      "sha256": "a232ce48618eb41e7274bb88cfc3173102fdba2cd492a5ced94d8c064a76ccc6"
+      "bytes": 5522,
+      "sha256": "010a480bdcbe55c6b594a779fb8b9312cc01c90f9e67fb65a8840df044a0c2fc"
     },
     {
       "path": "docs/release_maintenance_zh.md",
@@ -8214,8 +8214,8 @@
     },
     {
       "path": "tools/release/test_select_release_run.py",
-      "bytes": 7820,
-      "sha256": "c06b349bce1891fd594379455b447912ac071cd3b059440290e56f6d772591ed"
+      "bytes": 9099,
+      "sha256": "cdec6cdd7eaafd7cf0bc946e25a04d94cedf263a73ec72ac4b9ecf7de939875e"
     },
     {
       "path": "tools/release/test_sync_gitee.py",
