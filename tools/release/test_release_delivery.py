@@ -265,3 +265,62 @@ class ReleaseDeliveryTests(unittest.TestCase):
                 with patch.object(r,'github_json',side_effect=[draft,[old],draft,dict(old,name='gcc_1_2.tar.xz')]) as api:
                     r.upload_asset(42,'v1.3.1-beta.1',path,True,protected_names=protected)
                 self.assertEqual(api.call_args.args[0][1:3],['--method','POST'])
+
+    def test_new_build_separates_versioned_materials_from_programs(self):
+        import json
+        import shutil
+        import subprocess
+        version = '1.3.1-beta.2'; tag = 'v'+version; materials = 'materials-'+tag
+        commit = 'a'*40
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); fixtures = root/'fixtures'; fixtures.mkdir()
+            self.prepared(fixtures,version)
+            artifacts = root/'artifacts'; ready=root/'ready'
+            for platform in r.PLATFORMS:
+                program = artifacts/('program-'+platform); program.mkdir(parents=True)
+                archive = next(fixtures.glob(f'Aster-{version}-{platform}.*'))
+                shutil.copy2(archive,program)
+                dependency = artifacts/('dependency-materials-'+platform); dependency.mkdir()
+                (dependency/'acl~source.dsc').write_bytes(b'shared')
+                for suffix in ('dependency-lock.json','dependency-records.zip'):
+                    (dependency/f'Aster-{version}-{platform}-{suffix}').write_bytes(b'receipt')
+            r.prepare(artifacts,ready,version)
+            shutil.copy2(fixtures/f'Aster-{version}-source.zip',ready)
+            releases={}; assets={}
+            def api(args,payload=None,timeout=120):
+                from urllib.parse import unquote
+                endpoint=args[0]
+                if '/releases?' in endpoint:return list(releases.values())
+                if endpoint.endswith('/releases') and payload:
+                    rid=len(releases)+1; assets[rid]={}
+                    releases[rid]=dict(payload,id=rid,upload_url=f'https://uploads.github.com/repos/{r.REPO}/releases/{rid}/assets')
+                    return releases[rid].copy()
+                if endpoint.startswith('https://uploads.github.com/'):
+                    url,name=endpoint.split('?name=')
+                    rid=int(url.split('/')[-2]); path=Path(args[args.index('--input')+1]); name=unquote(name)
+                    self.assertNotIn(name,assets[rid])
+                    asset=dict(id=len(assets[rid])+1,name=name,state='uploaded',size=path.stat().st_size,digest='sha256:'+r.digest(path))
+                    assets[rid][name]=asset
+                    return asset
+                if '/assets?' in endpoint:return list(assets[int(endpoint.split('/')[-2])].values())
+                rid=int(endpoint.split('/')[-1])
+                if payload:releases[rid].update(payload)
+                return releases[rid].copy()
+            def ref(args,**kwargs):
+                if args[2].endswith('/'+materials) and releases and not releases[1]['draft']:
+                    return subprocess.CompletedProcess(args,0,json.dumps({'object':{'type':'commit','sha':commit}}),'')
+                return subprocess.CompletedProcess(args,1,'','HTTP 404')
+            with patch.object(r,'github_json',side_effect=api),patch.object(r.subprocess,'run',side_effect=ref):
+                r.publish_draft(ready,version,commit)
+                r.publish_draft(ready,version,commit)
+                releases[1]['draft']=False
+                r.publish_draft(ready,version,commit)
+            self.assertEqual([rel['tag_name'] for rel in releases.values()],[materials,tag])
+            self.assertEqual(releases[1]['make_latest'],'false')
+            self.assertEqual(releases[2]['target_commitish'],commit)
+            self.assertEqual(set(assets[2]), r.package_names(version)|{'SHA256SUMS.txt','Aster-update.json',f'Aster-{version}-source.zip'})
+            for name in r.package_names(version):self.assertIn('/'+tag+'/'+name,releases[2]['body'])
+            self.assertEqual(releases[2]['body'].count('/tag/'+materials),1)
+            self.assertIn('acl_source.dsc',assets[1])
+            self.assertIn('/'+materials+'/acl_source.dsc',(ready/'dependency-materials'/'DEPENDENCY_DOWNLOADS.md').read_text())
+            self.assertNotIn('Aster-update.json',assets[1])

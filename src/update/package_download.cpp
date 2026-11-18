@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "update/package_download.h"
 #include <QCoreApplication>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QStorageInfo>
@@ -27,10 +29,19 @@ void PackageDownload::prepare(const QString &tag,const QString &source){
     if(!ReleaseVersion::parse(tag)){emit prepared(false,"update.package_invalid");return;}
     m_metadata=true;m_busy=true;beginMetadata(source);
 }
-void PackageDownload::beginMetadata(const QString &source){
+void PackageDownload::beginMetadata(const QString &source, bool legacyAttachment){
     const auto generation=m_generation;QPointer<PackageDownload> alive(this);
     m_metadataSource=source;m_received=0;m_body.clear();m_failure.clear();m_redirects=0;
-    QUrl url=m_config.releasesUrl();if(source=="Gitee")url.setHost("gitee.com");url.setPath(url.path()+"/download/"+m_tag+'/'+m_config.packageMetadata);
+    m_giteeReleaseRecord = source == "Gitee" && !legacyAttachment;
+    QUrl url = m_config.releasesUrl();
+    if (m_giteeReleaseRecord) {
+        url = m_config.apiUrl(1, true);
+        url.setQuery(QString());
+        url.setPath(url.path()+"/tags/"+m_tag);
+    } else {
+        if (source=="Gitee") url.setHost("gitee.com");
+        url.setPath(url.path()+"/download/"+m_tag+'/'+m_config.packageMetadata);
+    }
     emit phaseChanged("update.package_checking");
     if(!alive||!m_busy||generation!=m_generation)return;
     m_deadline.start(m_config.timeoutMs);request(url);
@@ -70,7 +81,7 @@ void PackageDownload::responseFinished(){
     m_reply->deleteLater();m_reply=nullptr;m_idle.stop();
     if(m_failure.isEmpty()&&status>=300&&status<400){
         const auto source=m_metadata?m_metadataSource:m_sources[m_source].name;
-        if(redirect.isEmpty()||++m_redirects>5||!allowedPackageUrl(next,m_config,source,true)){fail("update.error_redirect");return;}
+        if((m_metadata && m_giteeReleaseRecord)||redirect.isEmpty()||++m_redirects>5||!allowedPackageUrl(next,m_config,source,true)){fail("update.error_redirect");return;}
         request(next);return;
     }
     auto failure=m_failure;
@@ -78,6 +89,19 @@ void PackageDownload::responseFinished(){
     if(!failure.isEmpty()){fail(failure,!m_metadata&&failure!="update.disk_error");return;}
     m_deadline.stop();
     if(m_metadata){
+        if (m_giteeReleaseRecord) {
+            const auto release = QJsonDocument::fromJson(m_body).object();
+            auto notes = release["body"].toString();
+            if (release["tag_name"].toString() != m_tag || release["draft"].toBool() ||
+                !release["body"].isString() || !takeGiteeUpdateRecord(notes, m_body)) {
+                fail("update.package_invalid");
+                return;
+            }
+            if (m_body.isEmpty()) {
+                beginMetadata("Gitee", true);
+                return;
+            }
+        }
         m_package=parseDownloadPackage(m_body,m_config,m_tag,nativeUpdatePlatform(),&failure);
         m_body.clear();m_busy=false;emit prepared(bool(m_package),failure);return;
     }
@@ -121,6 +145,10 @@ void PackageDownload::fail(const QString &error,bool mayFallback){
     m_idle.stop();m_deadline.stop();m_file.close();
     // Release discovery can succeed while GitHub's attachment host is blocked.
     // Retry only transport/missing-asset failures for the same selected version.
+    if(m_metadata && m_giteeReleaseRecord &&
+       (error=="update.error_timeout" || error=="update.error_network" || error=="update.package_missing")){
+        beginMetadata("Gitee",true);return;
+    }
     if(m_metadata&&m_metadataSource=="GitHub"&&m_config.mirrorFallback&&
        (error=="update.error_timeout"||error=="update.error_network"||error=="update.package_missing")){
         beginMetadata("Gitee");return;

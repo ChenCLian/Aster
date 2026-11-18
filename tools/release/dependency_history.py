@@ -12,7 +12,7 @@ import subprocess
 import zipfile
 from pathlib import Path, PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
-from release_asset_names import asset_name
+from release_asset_names import asset_name, dependency_tag
 
 REPO = 'ChenCLian/Aster'
 MAX_RECORDS = 64 * 1024**2
@@ -39,19 +39,20 @@ def github(endpoint, binary=False):
 
 
 def asset_url(version, name):
-    return f'https://github.com/{REPO}/releases/download/v{version}/{quote(asset_name(name), safe="")}'
+    return f'https://github.com/{REPO}/releases/download/{dependency_tag(version)}/{quote(asset_name(name), safe="")}'
 
 
 def source_location(source, version):
     url = source.get('published_url') or asset_url(version, source['asset'])
     parsed = urlsplit(url)
-    prefix = f'/{REPO}/releases/download/v'
+    prefix = f'/{REPO}/releases/download/'
     if parsed.scheme != 'https' or parsed.netloc != 'github.com' or parsed.query or parsed.fragment or not parsed.path.startswith(prefix):
         raise ValueError('Dependency history must reference official GitHub assets')
     tag, sep, name = parsed.path[len(prefix):].partition('/')
-    if not sep or not VERSION.fullmatch(tag) or unquote(name) not in (source['asset'], asset_name(source['asset'])) or '/' in unquote(name):
+    version = tag.removeprefix('materials-').removeprefix('v')
+    if not sep or not VERSION.fullmatch(version) or tag != dependency_tag(version) or unquote(name) not in (source['asset'], asset_name(source['asset'])) or '/' in unquote(name):
         raise ValueError('Invalid published dependency location')
-    return tag, url
+    return version, url
 
 
 def read_records(data, platform):
@@ -85,8 +86,8 @@ def fetch(directory, platform, releases_limit=3):
     by_version = {}
     def release(version):
         if version not in by_version:
-            item = github(f'repos/{REPO}/releases/tags/v{version}')
-            if item.get('draft') or item.get('tag_name') != 'v'+version:
+            item = github(f'repos/{REPO}/releases/tags/{dependency_tag(version)}')
+            if item.get('draft') or item.get('tag_name') != dependency_tag(version):
                 raise ValueError('Dependency source is not a published release')
             # API release responses can truncate large asset arrays. Always page.
             assets = []

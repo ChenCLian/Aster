@@ -4,13 +4,15 @@
 
 **面向地学与天文时间序列的桌面分析工作台。**
 
-当前测试版本 **1.3.1-beta.1** · Windows / macOS / Linux · 中文 / English
+当前测试版本 **1.3.1-beta.2** · Windows / macOS / Linux · 中文 / English
 
 Aster 将数据导入、预处理、频谱与时频分析、天文曲线生成、结果管理和绘图导出组织在同一个工作流中。支持节点输出预览和多输入批处理，并保存计算参数、数据来源及数值结果，便于复查与比较。
 
 当前版本处于预发布阶段，建议使用独立数据库。功能范围和兼容性见[本版说明](RELEASE_NOTES.md)。
 
 [下载程序](https://github.com/ChenCLian/Aster/releases) · [快速开始](QUICK_START.md) · [常见问题](FAQ.md) · [本版说明](RELEASE_NOTES.md) · [作者](AUTHORS.md)
+
+版本说明与程序下载见 [GitHub Releases](https://github.com/ChenCLian/Aster/releases)。依赖材料和历史版本查询见[按版本查询](docs/release_maintenance_zh.md#按版本查询)。
 
 ## 下载与运行
 

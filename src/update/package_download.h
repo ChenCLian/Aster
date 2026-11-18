@@ -29,7 +29,7 @@ signals:
     void finished(bool success,QString error);
     void sourceChanged(QString source);
 private:
-    void beginMetadata(const QString &source);
+    void beginMetadata(const QString &source, bool legacyAttachment=false);
     void request(const QUrl &url);
     void consume();
     void responseFinished();
@@ -46,7 +46,7 @@ private:
     std::optional<DownloadPackage> m_package;
     QVector<PackageSource> m_sources;
     int m_source=0,m_redirects=0;
-    bool m_busy=false,m_metadata=false;
+    bool m_busy=false,m_metadata=false,m_giteeReleaseRecord=false;
     quint64 m_generation=0;
     qint64 m_received=0;
     std::unique_ptr<QTemporaryDir> m_temp;

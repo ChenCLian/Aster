@@ -1,0 +1,8 @@
+{
+  "version": "1.3.1-beta.2",
+  "documentation": {
+    "status": "release_docs_reviewed",
+    "content_rewritten": true,
+    "scope": "Release notes, version lookup, two-draft publication order, binary-only Gitee mirror, updater compatibility and direct links."
+  }
+}

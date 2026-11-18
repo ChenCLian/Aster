@@ -37,8 +37,11 @@ class DocumentLinksTests(unittest.TestCase):
 
     def test_mirror_preserves_published_notes_and_historical_links(self):
         text='Manual announcement\n[Guide](https://github.com/ChenCLian/Aster/blob/v1.3.0/FAQ.md)\n[Old](https://github.com/ChenCLian/Aster/blob/v1.2.0/FAQ.md)\n[Materials](https://github.com/ChenCLian/Aster/releases/tag/v1.3.0)'
+        program='https://github.com/ChenCLian/Aster/releases/download/v1.3.0/Aster-1.3.0-windows-x64.zip'
+        text+='\n[Windows]('+program+')'
         result=d.mirror_release_body(text,'v1.3.0')
         self.assertTrue(result.startswith('Manual announcement'))
-        self.assertIn('https://gitee.com/ChenCLian/Aster/blob/v1.3.0/FAQ.md',result)
+        self.assertIn('https://github.com/ChenCLian/Aster/blob/v1.3.0/FAQ.md',result)
+        self.assertIn(program.replace('github.com','gitee.com'),result)
         self.assertIn('https://github.com/ChenCLian/Aster/blob/v1.2.0/FAQ.md',result)
         self.assertIn('https://github.com/ChenCLian/Aster/releases/tag/v1.3.0',result)

@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.3.1-beta.1。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.3.1-beta.2。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.1-beta.1` 对应 `v1.3.1-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.1-beta.2` 对应 `v1.3.1-beta.2`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -56,8 +56,8 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 1. 完成版本同步、参数参考生成与文档链接检查，提交源码并推送 GitHub。
 2. 打开 **Actions → Build desktop packages → Run workflow**，选择分支。`platform` 默认 `all`，`check_only` 默认关闭，`prepare_draft` 默认开启。
 3. 四个平台分别构建、回归、收集依赖材料和打包，再从最终包解压启动，记录中英文截图。任何平台失败都会阻止草稿汇总。
-4. 成功后自动准备 `v<VERSION>` 草稿，包含四个程序包、项目源码、依赖材料、`Aster-update.json` 与 `SHA256SUMS.txt`。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
-5. 下载 `logs-*` 查看检查记录和截图，人工复核界面、公告与附件后再点击 Publish。无需提前创建草稿；需要先写公告也可以提前建立同标签草稿。
+4. 成功后自动准备两个草稿。`v<VERSION>` 包含四个程序包、项目源码、`Aster-update.json` 与 `SHA256SUMS.txt`。`materials-v<VERSION>` 包含依赖材料和单独的校验表。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
+5. 下载 `logs-*` 查看检查记录和截图，人工复核界面、公告与附件后，先发布材料草稿，再发布程序草稿。无需提前创建草稿；需要先写公告也可以提前建立同标签草稿。
 
 首次验收先取消勾选 `prepare_draft`，并保持 `ENABLE_GITEE_MIRROR` 未启用。这样会构建、测试并上传 Actions 构件，不创建发布草稿。四个平台通过后再开启草稿准备。桌面发布工作流在仓库内串行执行，防止不同分支同时更新同版本附件。
 
@@ -73,26 +73,32 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 自动截图可帮助发现异常，但不能可靠识别所有乱码、系统缩放或系统对话框问题。首次 Windows/macOS 包仍需原生启动验收，macOS 签名与公证是独立事项。
 
+## 按版本查询
+
+| 想查的内容 | 入口 |
+| --- | --- |
+| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.1-beta.2` → 公告及四个平台链接 |
+| 包大小、SHA-256 和可用下载地址 | 同一程序发行版的 `Aster-update.json`。手工校验使用同页的 `SHA256SUMS.txt` |
+| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.1-beta.2`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
+| 源码中维护版本说明 | 升级版本时向 `tools/release/update_version.py` 提供 `--notes-file`，正文进入 `RELEASE_NOTES.md`。上一版说明归档到 `docs/history/releases/<旧版本>/RELEASE_NOTES.md` |
+| 本次运行的构建、测试或同步错误 | Actions → 对应运行的 Job 日志、`logs-<平台>` 或 `gitee-mirror-report`。长期下载使用带版本标签的 Release |
+
+旧版程序包中已写入的依赖链接继续指向原发行版。变更版本号后应为新提交运行 **Build desktop packages**，选择 `all`，开启打包并勾选 `prepare_draft`。补建工作流复用所选构建内的版本和提交。
+
 ## 启用 Gitee 镜像
 
-仅需配置一次，不要把令牌写入代码或发到聊天中：
+1. 使用已有默认分支的公开 Gitee 仓库 `ChenCLian/Aster`，令牌需能管理该仓库的发行版和附件。
+2. 在 GitHub 仓库 **Settings → Secrets and variables → Actions** 设置 Secret `GITEE_TOKEN` 和 Variable `ENABLE_GITEE_MIRROR=true`。
+3. 发布 GitHub 程序发行版后，**Mirror published release to Gitee** 将四个原始程序包上传到同版本的 Gitee Release，并逐个匿名回读，核对大小和 SHA-256。Gitee 标签使用镜像仓库已有分支；程序源码和文档以 GitHub 的构建标签为准。
+4. 四包全部通过后，流程在 Gitee 发行说明中写入供客户端读取的隐藏更新清单，并同步 GitHub 更新清单的镜像地址和校验表。保留发行说明中的 `aster-update-v1` 区块。若仓库配额或上传限制阻止某个程序包，任务报错；处理后以相同版本标签重试，已上传的相同程序包会重新核验。
 
-1. 确保 `ChenCLian/Aster` 为公开 Gitee 仓库，令牌具有该仓库源码推送和 Release 附件管理权限。
-2. GitHub 仓库 **Settings → Secrets and variables → Actions**：新增 Secret `GITEE_TOKEN`；新增 Variable `ENABLE_GITEE_MIRROR`，值为 `true`。未启用变量时镜像任务跳过。
-3. 人工发布 GitHub Release 后，**Mirror published release to Gitee** 自动运行。失败可选择该工作流 Run workflow，输入已经公开的版本标签重试。
-4. 首次查看镜像报告，并实际测试匿名下载。Gitee API、权限、容量或下载跳转改变时任务会明确失败，不会公布未验证的镜像地址。
-
-同步只读取四个程序附件和小型更新信息，**四个平台的 dependency-materials 均不下载到同步任务，也不上传 Gitee**。源码快照同时排除依赖材料目录。程序内部的许可文件保留，Gitee 公告链接到 GitHub 对应版本的材料附件。
-
-源码进入独立的 `release-stable` / `release-beta` 分支及对应版本标签，不覆盖 Gitee 原 `main`；可在 Gitee 网页选择默认展示分支。不自动删除远端旧版本。程序超过保守同步上限时跳过该平台镜像，仍可从 GitHub 下载；总容量不足需要维护者自行整理。
-
-已有程序附件不覆盖。已存在元数据必须字节一致，否则停止；确认需要补齐镜像后，只删除 Gitee 当前版本的 `Aster-update.json` 再重试。同步成功后，GitHub 上同名更新信息及其校验摘要会更新，程序包内容保持原样。
+已安装旧客户端仍可读取 GitHub 的 `Aster-update.json`。如果旧客户端只能访问 Gitee，首次升级到新版需要在 Gitee 发行页手动下载对应平台包。新版客户端支持读取 Gitee 发行说明，也支持旧版本的更新信息附件。
 
 ## 一份正文，多处阅读
 
 Markdown 本身不能执行“判断当前域名”的脚本。仓库文档统一使用相对路径，如 `[快速开始](../QUICK_START.md)`，本地、GitHub 和 Gitee 会按当前文件位置解析。内置手册也读取同一组 Markdown，并在软件内跳转。
 
-Gitee 首次创建公告时沿用 GitHub 已发布的正文，保留你在草稿中的手动修改。发布公告的位置不同，由 `document_links.py` / `release_delivery.py` 自动将正文相对链接拼接为对应平台、版本标签下的完整网址。外部参考、其他仓库及历史固定标签链接保留原地址。
+Gitee 首次创建公告时沿用 GitHub 已发布的正文，保留你在草稿中的手动修改。程序下载地址指向各平台的发行页，源码和文档链接统一指向 GitHub 构建标签。外部参考、其他仓库及历史固定标签链接保留原地址。
 
 ```bash
 python tools/release/document_links.py --write-manifest

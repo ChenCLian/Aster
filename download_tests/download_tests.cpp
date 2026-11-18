@@ -26,6 +26,11 @@ QJsonObject metadata(const QByteArray &body,bool mirror=false){
  if(mirror)sources.append(QJsonObject{{"name","Gitee"},{"url","https://gitee.com/ChenCLian/Aster/releases/download/v"+version()+"/"+name}});
  return {{"schema",1},{"version",version()},{"packages",QJsonArray{QJsonObject{{"platform",platform()},{"file",name},{"bytes",body.size()},{"unpacked_bytes",67108864},{"sha256",QString(QCryptographicHash::hash(body,QCryptographicHash::Sha256).toHex())},{"sources",sources}}}}};
 }
+QByteArray mirrorRelease(const QByteArray &record, const QString &tag) {
+    const QString notes = "Update notes" + (record.isEmpty() ? QString() :
+        "\n\n<!-- aster-update-v1\n" + QString::fromUtf8(record) + "\n-->");
+    return json({{"tag_name",tag},{"body",notes}});
+}
 struct Entry{QString name;QByteArray body;int type=AE_IFREG;QString link;int mode=0755;};
 QByteArray pack(QVector<Entry> entries,bool zip=false){
  QTemporaryFile file; if(!file.open())return {};
@@ -78,12 +83,12 @@ private slots:
  void metadataFallback(){
   QFETCH(QString,mode);Manager manager;auto cfg=config();cfg.mirrorFallback=true;
   manager.replies.append(mode=="timeout"||mode=="cancel"?Response{200,{},10000}:mode=="invalid"?Response{200,"not JSON"}:Response{mode=="missing"?404:503,{}});
-  manager.replies.append(Response{200,json(metadata("abc",true))});
+  manager.replies.append(Response{200,mirrorRelease(json(metadata("abc",true)),"v"+version())});
   PackageDownload client(cfg,nullptr,&manager);QSignalSpy done(&client,&PackageDownload::prepared);
   client.prepare("v"+version());if(mode=="cancel")client.cancel();QTRY_COMPARE(done.size(),1);
   const bool fallback=mode!="invalid"&&mode!="cancel";QCOMPARE(done[0][0].toBool(),fallback);
   QCOMPARE(manager.urls.size(),fallback?2:1);
-  if(fallback){QCOMPARE(manager.urls.last().host(),QString("gitee.com"));QCOMPARE(manager.urls.last().path(),manager.urls.first().path());}
+  if(fallback){QCOMPARE(manager.urls.last().host(),QString("gitee.com"));QCOMPARE(manager.urls.last().path(),QString("/api/v5/repos/ChenCLian/Aster/releases/tags/v")+version());}
  }
  void cancelAndRestartAtNotification(){
   Manager manager;auto bytes=pack(entries(),platform()!="linux-x64");manager.replies={{200,json(metadata(bytes))},{200,bytes}};
@@ -92,11 +97,22 @@ private slots:
   connect(&client,&PackageDownload::progress,&client,[&](qint64 n,qint64){if(!restarted&&n==0){restarted=true;client.cancel();client.start(dir.path(),"GitHub");}});
   client.start(dir.path(),"GitHub");QTRY_COMPARE(done.size(),2);QVERIFY(!done[0][0].toBool());QVERIFY(done[1][0].toBool());QCOMPARE(manager.urls.size(),2);QVERIFY(!client.busy());
  }
+ void invalidMirrorRecordDoesNotDowngrade(){
+  Manager manager;manager.replies={{200,mirrorRelease("{}", "v0.0.1")},{200,json(metadata("abc",true))}};
+  PackageDownload client(config(),nullptr,&manager);QSignalSpy ready(&client,&PackageDownload::prepared);
+  client.prepare("v"+version(),"Gitee");QTRY_COMPARE(ready.size(),1);
+  QVERIFY(!ready[0][0].toBool());QCOMPARE(manager.urls.size(),1);
+ }
+ void mirrorNotesHideMetadata(){
+  auto notes=QStringLiteral("人工公告\r\n<!-- aster-update-v1\r\n{}\r\n-->\r\nMore");
+  QByteArray record;QVERIFY(takeGiteeUpdateRecord(notes,record));QCOMPARE(record,QByteArray("{}"));
+  QVERIFY(notes.contains("人工公告"));QVERIFY(notes.contains("More"));QVERIFY(!notes.contains("aster-update"));
+ }
  void giteeMetadataOrigin(){
-  Manager manager;const auto bytes=pack(entries());manager.replies={{302,{},1,"https://gitee.com/ChenCLian/Aster/attach_files/123/download/Aster-update.json"},{302,{},1,"https://foruda.gitee.com/attach_file/123/Aster-update.json?token=public-temporary"},{200,json(metadata(bytes,true))}};
+  Manager manager;const auto bytes=pack(entries());manager.replies={{200,mirrorRelease({},"v"+version())},{302,{},1,"https://gitee.com/ChenCLian/Aster/attach_files/123/download/Aster-update.json"},{302,{},1,"https://foruda.gitee.com/attach_file/123/Aster-update.json?token=public-temporary"},{200,json(metadata(bytes,true))}};
   PackageDownload client(config(),nullptr,&manager);QSignalSpy prepared(&client,&PackageDownload::prepared);
-  client.prepare("v"+version(),"Gitee");QVERIFY(prepared.wait());QVERIFY(prepared[0][0].toBool());QCOMPARE(manager.urls.size(),3);
-  QCOMPARE(manager.urls[0].host(),QString("gitee.com"));QCOMPARE(manager.urls[1].host(),QString("gitee.com"));QCOMPARE(manager.urls[2].host(),QString("foruda.gitee.com"));
+  client.prepare("v"+version(),"Gitee");QVERIFY(prepared.wait());QVERIFY(prepared[0][0].toBool());QCOMPARE(manager.urls.size(),4);
+  QCOMPARE(manager.urls[0].host(),QString("gitee.com"));QCOMPARE(manager.urls[1].host(),QString("gitee.com"));QCOMPARE(manager.urls[3].host(),QString("foruda.gitee.com"));
   for(const auto *url:{"https://other.test/attach_file/123","https://foruda.gitee.com.evil.test/attach_file/123","https://gitee.com/other/repo/attach_files/123/download","http://foruda.gitee.com/attach_file/123"})QVERIFY(!allowedPackageUrl(QUrl(url),config(),"Gitee",true));
   QVERIFY(!allowedPackageUrl(QUrl("https://foruda.gitee.com/attach_file/123"),config(),"Gitee",false));
  }

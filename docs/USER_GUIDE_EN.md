@@ -1,4 +1,4 @@
-# Aster 1.3.1-beta.1 User Guide
+# Aster 1.3.1-beta.2 User Guide
 
 [Classified contents](README_EN.md)
 

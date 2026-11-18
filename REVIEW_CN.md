@@ -1,4 +1,4 @@
-# Aster 1.3.1-beta.1 更新说明
+# Aster 1.3.1-beta.2 更新说明
 
 本次发布内容见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。常规文档仅同步版本号，正文沿用。
 

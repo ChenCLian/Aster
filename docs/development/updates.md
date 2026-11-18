@@ -35,9 +35,9 @@ HTTPS 证书正常验证；重定向仅允许代码列明的官方路径。Gitee
 
 四个平台从同一提交构建、测试并检查最终包，成功后才准备 GitHub 草稿。桌面发布工作流串行执行；上传前核对包与信息一致性，并逐次检查草稿状态。草稿上传任务结束前不得人工发布，状态查询与附件上传不是原子事务。
 
-Gitee 镜像显式启用，发布 GitHub Release 后同步。只接收四个确切名称的程序包、更新信息及干净源码快照；所有 dependency-materials 均排除，程序包内部许可文件保留。源码使用 release-stable / release-beta 分支，保留原 main，拒绝版本倒退和同名标签内容冲突。
+Gitee 镜像由 GitHub 程序发行事件触发，只上传四个平台的程序包。通过匿名回读与 SHA-256 核验后，镜像脚本将更新清单写入 Gitee 发行说明里的 `aster-update-v1` 区块。客户端通过官方 API 按标签取正文，并校验清单中的版本、平台、大小、摘要与下载地址。对没有该区块的历史发行版，客户端可读取原有元数据附件。版本查询窗口只显示人工撰写的公告。
 
-镜像不重新压缩程序。已存在的包只核验，匿名 HTTPS 回读成功后才登记可用地址；元数据冲突停止同步。脚本采用 100,000,000 字节的保守单文件上限，超限平台保留 GitHub 下载。此上限是脚本策略，不代表平台永久容量承诺。远端容量与权限按实际仓库核对，不自动删除旧版本。
+GitHub 保存程序发行版、更新 JSON 和校验表。程序公告单独链接到与构建提交对应的依赖材料发行版。镜像的配置、重试和查询方式见[发布维护](../release_maintenance_zh.md#启用-gitee-镜像)。
 
 ## 维护入口
 
@@ -46,7 +46,7 @@ Gitee 镜像显式启用，发布 GitHub Release 后同步。只接收四个确�
 | 客户端查询、版本解析与下载 | src/update/ |
 | 更新窗口与提示状态 | src/ui/settings/update_dialog.cpp |
 | 更新信息生成、草稿准备 | tools/release/download_metadata.py、release_delivery.py |
-| Gitee 源码与附件同步 | tools/release/sync_gitee.py |
+| Gitee 四平台程序同步 | tools/release/sync_gitee.py |
 | 最终包启动与截图 | tools/release/check_packaged.py |
 | 发布与镜像任务 | .github/workflows/build-desktop.yml、mirror-gitee.yml |
 | 回归测试 | update_tests/、download_tests/、tools/release/test_*.py |

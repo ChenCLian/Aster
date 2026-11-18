@@ -1,4 +1,4 @@
-# Aster 1.3.1-beta.1 使用手册
+# Aster 1.3.1-beta.2 使用手册
 
 数据处理选择依据：[平滑与去趋势](methods/smoothing_trends.md) · [标准化与单位](concepts/data_processing.md#centering) · [异常值与变换](methods/outliers_and_transforms.md) · [滤波与包络](methods/filter_usage.md)。
 

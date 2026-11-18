@@ -4,6 +4,13 @@ Keep original archive names locally (notably Debian .dsc references). Only
 publication names are normalized; the release includes the reversible mapping.
 """
 import re
+from update_version import version_key
+
+
+def dependency_tag(version):
+    """Keep pre-split package links and historical source receipts valid."""
+    prefix = "materials-v" if version_key(version) >= version_key("1.3.1-beta.2") else "v"
+    return prefix + version
 
 
 def asset_name(name):

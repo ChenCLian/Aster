@@ -1,6 +1,6 @@
 # Aster 数值接口与跨平台构建
 
-适用源码：1.3.1-beta.1。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
+适用源码：1.3.1-beta.2。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
 
 ## Windows / Qt Creator
 

@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.3.1-beta.1",
+  "version": "1.3.1-beta.2",
   "update_mode": "official_https_sha256_full_package_extract_new_directory",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -94,14 +94,14 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "status": "pending",
-    "record": "docs/validation_results/1.3.1-beta.1/checks.json",
+    "status": "release_tools_checked_native_build_pending",
+    "record": "docs/validation_results/1.3.1-beta.2/checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.3.1-beta.1",
+    "logs": "docs/validation_results/1.3.1-beta.2",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Version synchronized; this version has not yet been validated.",
-    "previous_version_record": "docs/validation_results/1.3.1-alpha.1/checks.json",
-    "previous_version_summary": "docs/validation_results/1.3.1-alpha.1/checks.json"
+    "scope": "Local checks listed in the version record. Native builds, packaging and live mirror pending.",
+    "previous_version_record": "docs/validation_results/1.3.1-beta.1/checks.json",
+    "previous_version_summary": "docs/validation_results/1.3.1-beta.1/checks.json"
   },
   "help": {
     "local": "compiled Qt resources",
@@ -164,12 +164,12 @@
   },
   "documentation_review": {
     "date": "2026-11-17",
-    "version": "1.3.1-beta.1",
-    "status": "version_synchronized_content_review_not_implied",
-    "record": "docs/validation_results/1.3.1-beta.1/documentation_checks.json",
+    "version": "1.3.1-beta.2",
+    "status": "release_docs_reviewed",
+    "record": "docs/validation_results/1.3.1-beta.2/documentation_checks.json",
     "embedded_help_rebuild_required": true,
-    "scope": "Version tokens synchronized; existing document bodies retained.",
-    "previous_record": "docs/validation_results/1.3.1-alpha.1/documentation_checks.json"
+    "scope": "Release notes and release workflow documentation reviewed; manual link and version checks passed.",
+    "previous_record": "docs/validation_results/1.3.1-beta.1/documentation_checks.json"
   },
   "release_tooling_review": {
     "version": "1.3.0-beta.20",
@@ -229,13 +229,13 @@
   "lightweight_update": {
     "phase1_ui": "complete",
     "phase2_download": "local_implementation_and_tests_complete",
-    "phase3_actions": "previous packaging accepted by maintainer; new dependency reuse implemented and locally tested, live verification pending",
+    "phase3_actions": "Version-separated dependency release and binary-only mirror locally tested. Live publication pending.",
     "discovery": "GitHub release API with Gitee public release API fallback; partial mirror results labeled",
     "source_policy": "official_https_and_sha256",
     "alpha": "excluded",
     "contact": "offline_author_page",
     "native_acceptance": "1.3.0-beta.20 four-platform acceptance reported by maintainer; 1.3.1-alpha.1 native and live release checks pending",
-    "gitee_material_policy": "all four dependency-materials excluded; program notices retained",
+    "gitee_material_policy": "Four verified program archives only; update record stored in the release description.",
     "critical_path_audit": "docs/validation_results/1.3.0-beta.19/checks.json",
     "design": "docs/development/updates.md"
   }

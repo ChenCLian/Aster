@@ -32,6 +32,8 @@ struct FeedPage {
     bool hasNext=false;
     QVector<Release> releases;
 };
+// Removes the machine-readable block from user-visible Gitee release notes.
+bool takeGiteeUpdateRecord(QString &notes, QByteArray &record);
 FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases, bool mirror=false);
 std::optional<Release> newestRelease(const QVector<Release> &releases);
 }

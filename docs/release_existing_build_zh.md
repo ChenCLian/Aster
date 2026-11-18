@@ -5,7 +5,7 @@
 1. 将 `.github/workflows/prepare-release-draft.yml` 及其选择脚本和测试提交到默认分支。
 2. 打开 GitHub Actions → **Prepare draft from existing build** → **Run workflow**。
 3. 在 `build_number` 填写 **Build desktop packages** 的运行编号，例如页面显示 `#38` 时填写 `38`。这不是地址栏中的长数字 Run ID，也不加 `#`。
-4. 等待工作流完成，然后在 Releases 检查生成的草稿。确认附件与说明后再手动发布。
+4. 等待工作流完成，在 Releases 查看所选构建的版本。新布局生成程序草稿 `v<版本>` 和依赖草稿 `materials-v<版本>`。先发布材料页，再发布程序页。历史构建沿用其原有附件位置，以保持包内链接有效。
 
 选择器要求同一官方构建运行成功完成，且四个 `program-*` 和四个 `dependency-materials-*` 附件全部存在、未过期。不接受只执行测试的运行、单平台运行、失败运行或缺少附件的运行。
 

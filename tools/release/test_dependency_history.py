@@ -149,6 +149,31 @@ class HistoryTests(unittest.TestCase):
         c=self.collection()
         self.assertFalse(history.PublishedHistory(self.directory,self.platform).source(c,dict(self.component),dict(self.source),True))
 
+    def test_split_receipts_and_sources_can_be_reused_across_layouts(self):
+        version = '1.3.1-beta.2'
+        self.report['version'] = version
+        self.source['published_url'] = history.asset_url(self.version, self.source['asset'])
+        old = 'v'+self.version
+        main = 'v'+version
+        materials = 'materials-'+main
+        data=self.records()
+        def api(endpoint,binary=False):
+            if binary:return data
+            if '/tags/' in endpoint:
+                tag=endpoint.rsplit('/',1)[1]
+                self.assertIn(tag,(materials,old))
+                return dict(id=2 if tag==materials else 1,tag_name=tag,draft=False)
+            if '/releases/2/assets?' in endpoint:
+                return [dict(id=3,name=f'Aster-{version}-{self.platform}-dependency-records.zip',
+                             size=len(data),digest='sha256:'+history.sha(data),state='uploaded')]
+            if '/releases/1/assets?' in endpoint:
+                return [dict(id=4,name=self.source['asset'],size=123,digest='sha256:'+'a'*64,state='uploaded')]
+            return [dict(tag_name=main,draft=False),dict(tag_name=materials,draft=False)]
+        with patch.object(history,'github',side_effect=api):
+            history.fetch(self.directory,self.platform)
+        self.assertTrue(history.PublishedHistory(self.directory,self.platform).source(
+            self.collection(),dict(self.component),dict(self.source),False))
+        self.assertIn('/'+materials+'/',history.asset_url(version,'new~source.tar.gz'))
     def test_normalized_dependency_name_reused_with_original_identity(self):
         original='gcc-12_12.3.0-1ubuntu1~22.04.3.debian.tar.xz'
         published='gcc-12_12.3.0-1ubuntu1_22.04.3.debian.tar.xz'

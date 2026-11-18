@@ -30,6 +30,22 @@ QUrl UpdateConfig::releaseUrl(const QString &tag) const {
     // Never launch a URL supplied by release notes or API payloads.
     QUrl u=releasesUrl();u.setPath(u.path()+"/tag/"+tag);return u;
 }
+bool takeGiteeUpdateRecord(QString &notes, QByteArray &record) {
+    notes.replace("\r\n", "\n");
+    const QString marker = QStringLiteral("<!-- aster-update-v1\n");
+    const auto start = notes.indexOf(marker);
+    record.clear();
+    if (start < 0) return true; // Legacy releases use a metadata attachment.
+    const auto content = start + marker.size();
+    const auto end = notes.indexOf("\n-->", content);
+    if (end < 0 || notes.indexOf(marker, content) >= 0) {
+        notes.truncate(start);
+        return false;
+    }
+    record = notes.mid(content, end - content).trimmed().toUtf8();
+    notes.remove(start, end + 4 - start);
+    return !record.isEmpty();
+}
 FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool includePrereleases,bool mirror) {
     FeedPage result;
     if(body.size()>config.maximumResponseBytes){result.errorKey="update.error_response_limit";return result;}
@@ -46,7 +62,12 @@ FeedPage parseReleasePage(const QByteArray &body,const UpdateConfig &config,bool
         const auto tag=o["tag_name"].toString();const auto version=ReleaseVersion::parse(tag);
         if(!version||isAlphaVersion(tag)||(!includePrereleases&&(o["prerelease"].toBool()||!version->prerelease.isEmpty())))continue;
         auto pageUrl=config.releaseUrl(tag);if(mirror)pageUrl.setHost("gitee.com");
-        result.releases.append({tag,o["name"].toString().left(256),o["body"].toString().left(16000),*version,pageUrl,QDateTime::fromString(o["published_at"].toString(),Qt::ISODate),mirror?QString("Gitee"):QString("GitHub")});
+        auto notes = o["body"].toString();
+        if (mirror) {
+            QByteArray record;
+            takeGiteeUpdateRecord(notes, record);
+        }
+        result.releases.append({tag,o["name"].toString().left(256),notes.trimmed().left(16000),*version,pageUrl,QDateTime::fromString(o["published_at"].toString(),Qt::ISODate),mirror?QString("Gitee"):QString("GitHub")});
     }
     return result;
 }

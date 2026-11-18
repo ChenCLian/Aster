@@ -1,26 +1,22 @@
-"""Mirror published program archives and a clean source snapshot to Gitee.
-
-Only four exact program filenames are downloaded from GitHub. Dependency
-materials never enter staging, source snapshots, upload loops or metadata.
-Requires GH_TOKEN and GITEE_TOKEN in the environment; never put tokens in URLs.
-"""
+"""Mirror the four tested program archives and record their verified metadata in the release description."""
 import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
-import shutil
+import secrets
 import subprocess
 import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
-from download_metadata import digest, inspect_package, PLATFORMS, valid_version
+from download_metadata import digest, generate, inspect_package, valid_version
+from release_asset_names import dependency_tag
 from document_links import mirror_release_body
 from release_delivery import package_names, mirror_plan, REPO
-import package_source
 
-ROOT = Path(__file__).resolve().parents[2]
+
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -29,7 +25,6 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def allowed_public_url(url, redirected=False):
-    import re
     u=urllib.parse.urlsplit(url)
     if u.scheme!='https' or u.username or u.password or u.port not in (None,443) or u.fragment:return False
     if u.hostname=='github.com':return u.path.startswith('/'+REPO+'/releases/download/')
@@ -65,16 +60,28 @@ class Gitee:
     def __init__(self,token):
         if not token:raise ValueError('Configure the GITEE_TOKEN Actions secret')
         self.token=token;self.opener=urllib.request.build_opener(NoRedirect)
-    def api(self,path,method='GET',data=None,file=None,missing=False):
-        headers={'Authorization':'Bearer '+self.token,'User-Agent':'Aster-release-mirror'}
+    def api(self,path='',method='GET',data=None,file=None,missing=False,anonymous=False):
+        headers={'User-Agent':'Aster-release-mirror'}
+        if not anonymous:
+            headers['Authorization']='Bearer '+self.token
         payload=None
         if file is not None:
-            boundary='AsterUploadBoundary0d9f88df'
-            payload=(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{file.name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode()+file.read_bytes()+f'\r\n--{boundary}--\r\n'.encode())
+            boundary = 'Aster-' + secrets.token_hex(24)
+            opening = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; '
+                       f'filename="{file.name}"\r\nContent-Type: application/octet-stream\r\n\r\n').encode()
+            closing = f'\r\n--{boundary}--\r\n'.encode()
+            def multipart():
+                yield opening
+                with file.open('rb') as stream:
+                    while chunk := stream.read(1024*1024):
+                        yield chunk
+                yield closing
+            payload = multipart()
+            headers['Content-Length'] = str(len(opening) + file.stat().st_size + len(closing))
             headers['Content-Type']='multipart/form-data; boundary='+boundary
         elif data is not None:
             payload=json.dumps(data).encode();headers['Content-Type']='application/json'
-        request=urllib.request.Request('https://gitee.com/api/v5/repos/'+REPO+'/'+path,headers=headers,data=payload,method=method)
+        request=urllib.request.Request('https://gitee.com/api/v5/repos/'+REPO+('/'+path if path else ''),headers=headers,data=payload,method=method)
         try:
             with self.opener.open(request,timeout=180) as response:raw=response.read(8*1024*1024+1)
         except urllib.error.HTTPError as error:
@@ -93,67 +100,20 @@ class Gitee:
     def upload(self,rid,path):return self.api(f'releases/{rid}/attach_files','POST',file=path)
 
 
-def rank(version):
-    if not valid_version(version):raise ValueError('Only stable/beta versions can be mirrored')
-    core,*beta=version.split('-beta.')
-    return (*map(int,core.split('.')),0 if beta else 1,int(beta[0]) if beta else 0)
-
-
-def snapshot_source(version,token,parent):
-    """Fast-forward only dedicated mirror branches; preserve main and remote tags."""
-    branch='release-beta' if '-beta.' in version else 'release-stable'
-    root=parent/'source';root.mkdir()
-    ask=parent/'askpass.py'
-    ask.write_text('#!/usr/bin/env python3\nimport os,sys\nprint("oauth2" if "username" in sys.argv[1].lower() else os.environ["GITEE_TOKEN"])\n')
-    ask.chmod(0o700)
-    env={**os.environ,'GIT_ASKPASS':str(ask),'GIT_TERMINAL_PROMPT':'0','GITEE_TOKEN':token}
-    def git(*args,check=True):
-        try:
-            return subprocess.run(['git','-C',str(root),*args],env=env,check=check,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',timeout=300)
-        except subprocess.TimeoutExpired:
-            raise ValueError('Gitee source '+args[0]+' timed out after 300 seconds; retry the mirror job') from None
-        except subprocess.CalledProcessError as error:
-            detail=(error.stderr or '').replace(token,'[redacted]')[-2000:]
-            raise ValueError('Gitee source '+args[0]+' failed: '+detail) from None
-    git('init','-q');git('config','user.name','Aster release mirror');git('config','user.email','release-mirror@users.noreply.github.com')
-    git('remote','add','origin','https://gitee.com/'+REPO+'.git')
-    refs=git('ls-remote','--heads','origin',branch).stdout
-    if refs.strip():
-        git('fetch','--depth=1','origin',branch);git('checkout','-b',branch,'FETCH_HEAD')
-        previous=(root/'VERSION').read_text().strip()
-        if rank(previous)>rank(version):raise ValueError('Refusing to move Gitee channel branch backwards')
-        git('rm','-r','-f','--ignore-unmatch','.')
-    else:git('checkout','--orphan',branch)
-    for file in ROOT.rglob('*'):
-        if file.is_file() and package_source.included(file):
-            rel=file.relative_to(ROOT)
-            if any('dependency-material' in p.lower() or p.lower() in ('dependency-cache','release-assets') for p in rel.parts):continue
-            dest=root/rel;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,dest)
-    git('add','-A')
-    if git('diff','--cached','--quiet',check=False).returncode or not refs.strip():
-        git('commit','-m','Aster '+version+' source snapshot')
-    tag='v'+version
-    tagged=git('ls-remote','--tags','origin','refs/tags/'+tag).stdout.strip()
-    if tagged:
-        git('fetch','--depth=1','origin','refs/tags/'+tag)
-        if git('rev-parse','FETCH_HEAD^{tree}').stdout!=git('rev-parse','HEAD^{tree}').stdout:
-            raise ValueError('Existing Gitee tag has different source content; refusing replacement')
-    else:git('tag',tag)
-    git('push','origin','HEAD:refs/heads/'+branch)
-    if not tagged:git('push','origin','refs/tags/'+tag)
-    return branch
-
-
 def mirror_packages(api,rid,folder,metadata,version,verify=public_download):
     plan=mirror_plan(folder,version);assets=api.assets(rid)
     byname={a['name']:a for a in assets}
     if len(byname)!=len(assets):raise ValueError('Duplicate Gitee attachment names; resolve them before retrying')
     selected={p['file']:p for p in plan['upload']}
+    expected = package_names(version)
+    if set(byname) - expected:
+        raise ValueError('Unexpected existing Gitee attachments: '+', '.join(sorted(set(byname) - expected)))
+    if set(selected) != expected:
+        raise ValueError('All four original packages are required for a Gitee mirror')
     output=json.loads(json.dumps(metadata))
     for item in output['packages']:
         # Never carry an earlier unverified Gitee declaration into this run.
         item['sources']=[s for s in item['sources'] if s['name']=='GitHub']
-        if item['file'] not in selected:continue
         original=folder/item['file']
         if digest(original)!=item['sha256'] or original.stat().st_size!=item['bytes']:
             raise ValueError('GitHub archive disagrees with metadata')
@@ -167,69 +127,113 @@ def mirror_packages(api,rid,folder,metadata,version,verify=public_download):
     return output,plan
 
 
-def publish_metadata(api,rid,path,verify=public_download):
-    existing=next((a for a in api.assets(rid) if a['name']==path.name),None)
-    if existing:
-        # Immutable published metadata: retries succeed only with identical bytes.
-        # If a partial previous mirror needs extension, remove ONLY this metadata
-        # attachment in the maintainer UI and rerun. Program archives stay intact.
-        version=json.loads(path.read_text())['version']
-        with tempfile.TemporaryDirectory() as temp:
-            verify(f'https://gitee.com/{REPO}/releases/download/v{version}/{path.name}',Path(temp)/'metadata',1024*1024,digest(path),path.stat().st_size)
-    else:api.upload(rid,path)
+UPDATE_MARKER = '<!-- aster-update-v1\n'
+
+
+def with_update_record(body, metadata):
+    """Replace only our own metadata block, preserving the maintainer's notes."""
+    body = body.replace('\r\n','\n')
+    if UPDATE_MARKER in body:
+        before, block = body.split(UPDATE_MARKER, 1)
+        _, end, after = block.partition('\n-->')
+        if not end or UPDATE_MARKER in after:
+            raise ValueError('Malformed existing Gitee update record')
+        body = before.rstrip() + ('\n\n' + after.strip() if after.strip() else '')
+    return body.rstrip() + '\n\n' + UPDATE_MARKER + json.dumps(metadata, separators=(',', ':')) + '\n-->'
 
 
 def execute(args):
     version=args.tag.removeprefix('v')
     if args.tag!='v'+version or not valid_version(version):raise ValueError('Alpha/development releases are never mirrored')
-    if (ROOT/'VERSION').read_text().strip()!=version:raise ValueError('Checkout must match the selected release version')
     token=os.environ.get('GITEE_TOKEN','');api=Gitee(token)
     gh=lambda *a:subprocess.run(['gh',*a],check=True,stdout=subprocess.PIPE,text=True,encoding='utf-8',errors='replace',timeout=600).stdout
     release=json.loads(gh('release','view',args.tag,'--repo',REPO,'--json','isDraft,tagName,assets,body'))
-    if release['isDraft']:raise ValueError('Publish/review the GitHub release before mirroring')
-    required=package_names(version)|{'Aster-update.json'}
-    actual={a['name']:a for a in release['assets']}
-    if not required<=actual.keys():raise ValueError('GitHub release is missing program packages or metadata')
+    if release['isDraft'] or release['tagName'] != args.tag:raise ValueError('Publish/review the GitHub release before mirroring')
+    names = package_names(version)
+    actual = {a['name']:a for a in release['assets']}
+    split = dependency_tag(version) != args.tag
+    expected_inputs = names | ({f'Aster-{version}-source.zip'} if split else {'Aster-update.json','SHA256SUMS.txt'})
+    if not expected_inputs <= actual.keys():
+        raise ValueError('GitHub release is missing required assets: '+', '.join(sorted(expected_inputs-actual.keys())))
     with tempfile.TemporaryDirectory(prefix='aster-gitee-') as temp:
         work=Path(temp);packages=work/'packages';packages.mkdir()
         # Never download dependency-materials, even for a dry check.
-        for name in sorted(required):
-            if name!='Aster-update.json' and actual[name]['size']>100_000_000:continue
+        for name in sorted(names | ({'Aster-update.json'} & actual.keys())):
+            if actual[name]['size'] > 2 * 1024**3:
+                raise ValueError('Program exceeds the supported update package size: '+name)
             if name=='Aster-update.json' and actual[name]['size']>1024*1024:raise ValueError('Metadata exceeds size limit')
             print('Fetching GitHub asset: '+name,flush=True)
             gh('release','download',args.tag,'--repo',REPO,'--pattern',name,'--dir',str(packages))
-        metadata=json.loads((packages/'Aster-update.json').read_text())
+        path = packages/'Aster-update.json'
+        if path.exists():
+            metadata = json.loads(path.read_text(encoding='utf-8'))
+        else:
+            # A failed --clobber can remove the old asset before upload completes.
+            # Recover from the four original archives, checking GitHub's digests.
+            for name in names:
+                if actual[name].get('digest') != 'sha256:' + digest(packages/name):
+                    raise ValueError('Cannot reconstruct update metadata without verified program bytes: '+name)
+            metadata = generate([packages/name for name in sorted(names)],version)
         if metadata.get('schema')!=1 or metadata.get('version')!=version:raise ValueError('Invalid GitHub metadata version')
         if {p['file'] for p in metadata['packages']}!=package_names(version) or len(metadata['packages'])!=4:raise ValueError('Expected exactly four platform entries')
         for item in metadata['packages']:
             path=packages/item['file']
-            if path.exists():
-                inspected=inspect_package(path,version,item['platform'])
-                if any(item[k]!=inspected[k] for k in inspected):raise ValueError('Archive differs from GitHub metadata')
-        print('Syncing source snapshot',flush=True)
-        branch=snapshot_source(version,token,work)
-        remote=api.api('releases/tags/'+args.tag,missing=True)
+            inspected=inspect_package(path,version,item['platform'])
+            if any(item[k]!=inspected[k] for k in inspected):raise ValueError('Archive differs from GitHub metadata')
+            github_url = f'https://github.com/{REPO}/releases/download/{args.tag}/{path.name}'
+            if [s for s in item['sources'] if s['name']=='GitHub'] != [dict(name='GitHub',url=github_url)]:
+                raise ValueError('Unexpected primary package URL')
+        tag_endpoint = 'releases/tags/'+args.tag
+        remote=api.api(tag_endpoint,missing=True)
         if remote is None:
-            notes=mirror_release_body(release['body'],args.tag)
-            notes+='\n\n依赖源码与许可材料附件仅保存在 [GitHub 对应发行版](https://github.com/'+REPO+'/releases/tag/'+args.tag+')；程序包内的许可文件保留。\n'
+            # The Gitee release needs a tag target. It identifies the mirror page;
+            # the GitHub release tag is authoritative for the program source.
+            branch = api.api()['default_branch']
+            notes = mirror_release_body(release['body'], args.tag)
             remote=api.api('releases','POST',dict(tag_name=args.tag,target_commitish=branch,name='Aster '+version,body=notes,prerelease='-beta.' in version))
-        result,plan=mirror_packages(api,remote['id'],packages,metadata,version)
-        plan['oversized_not_downloaded']=[name for name in sorted(required) if name!='Aster-update.json' and actual[name]['size']>100_000_000]
-        path=packages/'Aster-update.json';path.write_text(json.dumps(result,indent=2)+'\n')
-        publish_metadata(api,remote['id'],path)
-        public_download(f'https://gitee.com/{REPO}/releases/download/{args.tag}/Aster-update.json',work/'verified.json',1024*1024,digest(path),path.stat().st_size)
-        # Only now expose mirror URLs on GitHub. Original program bytes untouched.
-        gh('release','upload',args.tag,str(path),'--repo',REPO,'--clobber')
-        # Download checksums include metadata; refresh its line to avoid a stale sum.
+        if remote.get('tag_name') != args.tag:
+            raise ValueError('Gitee release tag mismatch')
+        rid = remote['id']
+        result,plan=mirror_packages(api,rid,packages,metadata,version,verify=public_download)
+        assets = api.assets(rid)
+        if len(assets) != 4 or {a['name'] for a in assets} != package_names(version):
+            raise ValueError('Gitee attachment list does not contain exactly four program archives')
+        current = api.api(tag_endpoint)
+        if current['id'] != rid or current['tag_name'] != args.tag:
+            raise ValueError('Gitee release changed during mirror')
+        body = with_update_record(current['body'], result)
+        if current['body'] != body:
+            api.api(f'releases/{rid}', 'PATCH', dict(tag_name=args.tag, name=current['name'],
+                     body=body, prerelease='-beta.' in version))
+        public = api.api(tag_endpoint, anonymous=True)
+        if public['id'] != rid or public.get('tag_name') != args.tag or public.get('body','').replace('\r\n','\n') != body.replace('\r\n','\n'):
+            raise ValueError('Public Gitee release description verification failed')
+        # Retain the original endpoint for installed clients that read GitHub metadata.
+        path=packages/'Aster-update.json'
+        if not path.is_file() or metadata != result:
+            path.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8')
+            gh('release','upload',args.tag,str(path),'--repo',REPO,'--clobber')
+        # Independent recovery if a previous job stopped after updating the JSON.
+        sums=work/'SHA256SUMS.txt'
+        original = None
         if 'SHA256SUMS.txt' in actual:
             gh('release','download',args.tag,'--repo',REPO,'--pattern','SHA256SUMS.txt','--dir',str(work))
-            sums=work/'SHA256SUMS.txt'
-            lines=[line for line in sums.read_text().splitlines() if line.split()[-1:]!=['Aster-update.json']]
-            sums.write_text('\n'.join(lines+[digest(path)+'  Aster-update.json'])+'\n')
+            original=sums.read_text(encoding='utf-8')
+            lines=[line for line in original.splitlines() if line.split()[-1:]!=['Aster-update.json']]
+        else:
+            lines = []
+            for name in sorted(expected_inputs):
+                fingerprint = actual[name].get('digest') or ''
+                if not re.fullmatch('sha256:[0-9a-f]{64}', fingerprint):
+                    raise ValueError('Cannot reconstruct checksums without a published SHA-256: '+name)
+                lines.append(fingerprint.removeprefix('sha256:')+'  '+name)
+        updated='\n'.join(lines+[digest(path)+'  Aster-update.json'])+'\n'
+        if updated != original:
+            sums.write_text(updated, encoding='utf-8')
             gh('release','upload',args.tag,str(sums),'--repo',REPO,'--clobber')
         plan['status']='verified';args.report.parent.mkdir(parents=True,exist_ok=True)
         args.report.write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n')
-    print('Gitee program/source mirror verified; dependency materials remain on GitHub only.')
+    print('All four Gitee program packages and the public update record verified.')
 
 
 def main():

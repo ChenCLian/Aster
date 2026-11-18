@@ -108,7 +108,7 @@ def finish(collection, package, owners, binaries, install=True):
     if collection.errors:
         lines += ['', '## Unresolved items', ''] + [f'- {e["component"]}: {e["message"]}' for e in collection.errors]
     lines += ['', '## Publication', '',
-              'Upload every file in release-assets/ next to the program download; retain releases referenced by published_url.',
+              'Use the versioned dependency release linked from the program release; retain releases referenced by published_url.',
               'Unchanged source archives are linked from earlier releases; current build recipes and binary inventory are regenerated.',
               'Do not upload cache/ or the local build environment. Sources are not compiled into the application.',
               'Release names may normalize special characters. Restore original source filenames before rebuilding Debian .dsc sources.',

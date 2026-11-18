@@ -99,17 +99,16 @@ def release_body(text, document=PurePosixPath('RELEASE_NOTES.md'), host='github.
 
 
 def mirror_release_body(text, tag):
-    # Preserve the maintainer's published announcement. Only this exact version's
-    # source links move to Gitee; dependency Release links and historical refs stay.
-    if not re.fullmatch(r'v[0-9A-Za-z_.-]+', tag):
+    from download_metadata import valid_version, PLATFORMS
+    version = tag.removeprefix('v')
+    if tag != 'v' + version or not valid_version(version):
         raise ValueError('Invalid version tag')
+    prefix = f'https://github.com/{REPOSITORY}/releases/download/{tag}/Aster-{version}-'
+    originals = {prefix + platform + ('.tar.gz' if platform == 'linux-x64' else '.zip')
+                 for platform in PLATFORMS}
     def replace(url):
-        parsed=urlsplit(url)
-        prefixes=(f'/{REPOSITORY}/blob/{tag}/',f'/{REPOSITORY}/tree/{tag}/')
-        if parsed.scheme=='https' and parsed.netloc=='github.com' and parsed.path.startswith(prefixes):
-            return parsed._replace(netloc='gitee.com').geturl()
-        return url
-    return release_body(map_links(text,replace),host='gitee.com',ref=tag)
+        return url.replace('https://github.com/', 'https://gitee.com/', 1) if url in originals else url
+    return map_links(release_body(text, host='github.com', ref=tag), replace)
 
 
 def manual_files(root=ROOT):
