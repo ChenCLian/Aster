@@ -1,5 +1,9 @@
 {
   "window": "#191919",
+  "fileListHover": "#323538",
+  "fileListSelection": "#2d4158",
+  "fileListMark": "#a3c8ee",
+  "helpMatch": "#684c16",
   "surface": "#242424",
   "text": "#f0f0f0",
   "muted": "#bcbcbc",

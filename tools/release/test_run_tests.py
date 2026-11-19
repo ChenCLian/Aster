@@ -102,6 +102,17 @@ class RunnerTests(unittest.TestCase):
         row = self.summary()[0]
         self.assertEqual((row['passed'], row['suites'], row['status']), (7, 2, 'passed'))
 
+    def test_requested_interaction_suite_is_required_and_included_in_summary(self):
+        self.executable('regular')
+        emit = lambda *args, **kwargs: self.emit('Totals: 3 passed, 0 failed, 0 skipped', kwargs)
+        code, _ = self.invoke(['regular'], emit, '--include-interaction')
+        self.assertNotEqual(code, 0)
+        self.assertEqual(self.summary()[-1]['target'], 'aster_interaction_acceptance')
+        self.executable('aster_interaction_acceptance')
+        code, _ = self.invoke(['regular'], emit, '--include-interaction')
+        self.assertEqual(code, 0)
+        self.assertEqual([row['target'] for row in self.summary()], ['regular', 'aster_interaction_acceptance'])
+
     def test_build_directory_symlink_uses_canonical_executable(self):
         real = self.build / 'real build'
         (real / 'bin').mkdir(parents=True)

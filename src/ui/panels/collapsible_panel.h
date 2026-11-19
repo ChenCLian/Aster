@@ -18,8 +18,12 @@ class CollapsiblePanel : public QWidget
     bool isCollapsed() const { return m_collapsed; }
     void setCollapsed(bool collapsed);
     void setToggleShortcut(const QKeySequence &shortcut);
-    // The host chooses which pane yields space; no main-window column indexes here.
-    void setResizeTarget(QWidget *target) { m_resizeTarget = target; }
+    // The host chooses which panes can yield space when the grip is dragged.
+    void setResizeTarget(QWidget *target, QWidget *fallback = nullptr)
+    {
+        m_resizeTarget = target;
+        m_resizeFallback = fallback;
+    }
     QSize sizeHint() const override;
     void setExpandedWidthRange(int minimum, int maximum);
     void setGripOnRight(bool right);
@@ -31,7 +35,7 @@ class CollapsiblePanel : public QWidget
     void dragEdge(int delta);
     QWidget *m_body;
     QAbstractButton *m_grip;
-    QPointer<QWidget> m_resizeTarget;
+    QPointer<QWidget> m_resizeTarget, m_resizeFallback;
     QString m_title;
     int m_openWidth;
     int m_openMinimum = OpenMinimumWidth, m_openMaximum = QWIDGETSIZE_MAX;

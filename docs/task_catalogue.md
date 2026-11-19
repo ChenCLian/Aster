@@ -1,6 +1,6 @@
 # Aster 任务分类
 
-适用版本：Aster 1.3.1-beta.2。
+适用版本：Aster 1.3.2-beta.7。
 
 任务目录由注册描述生成。下表说明分类原则；实际可用任务与可见性以当前注册表为准。
 
@@ -19,12 +19,12 @@
 | 数据处理 | 区间选取 | 保留／删除区间 `select_interval` |
 | 数据处理 | 数据整理 | 排序与去重复 `clean_series` |
 | 数据处理 | 采样 | 整理与重采样 `preprocess` |
-| 数据处理 | 年龄与深度 | 沉积速率转年龄模型 `sedrate_to_age`；应用年龄模型 `apply_age_model`；峰谷逐周期赋龄 `cycle_age_model` |
+| 数据处理 | 年龄与深度 | 沉积速率转年龄模型 `sedrate_to_age`；应用年龄模型 `apply_age_model`、连接上游控制点 `linked_age_model`；峰谷逐周期赋龄 `cycle_age_model` |
 | 数据处理 | 幅度 | 缩放与偏移 `affine`；去均值 `demean`；标准化 `standardize` |
 | 数据处理 | 趋势 | 线性去趋势 `linear_detrend`；LOWESS 去趋势 `detrend_lowess` |
 | 数据处理 | 平滑 | 移动平均 `moving_average`；Savitzky–Golay `savitzky_golay` |
 | 数据处理 | 滤波 | Gaussian `gaussian_filter`；Taner `taner_filter`；Butterworth 低通 `butterworth_lowpass`；高通 `butterworth_highpass` |
-| 分析 | 频谱 → 功率谱 | MTM `mtm`；FFT `fft_spectrum`；Welch `welch_spectrum`；Welch 交叉谱 `cross_spectrum`（显式 A/B 双输入）；Lomb–Scargle `lomb_scargle` |
+| 分析 | 频谱 → 功率谱 | MTM `mtm`；FFT `fft_spectrum`；Welch `welch_spectrum`、周期带功率积分 `band_power`；Welch 交叉谱 `cross_spectrum`（显式 A/B 双输入）；Lomb–Scargle `lomb_scargle` |
 | 分析 | 频谱 → 显著性检验 | AR1 全局检验 `ar1_global` |
 | 分析 | 时频 → 小波 | CWT `cwt` |
 | 分析 | 时频 → 演化谱 | 演化 FFT `evolution_fft`；演化 MTM `evolution_mtm` |

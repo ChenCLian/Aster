@@ -29,6 +29,7 @@ struct RecordSummary
     QString sourceLabel, computationState;
     QDateTime startedAt, finishedAt;
     QString displayName, notes;
+    bool hasWorkflowError = false;
 };
 // ID alone is not enough when a database file has been replaced.
 using RecordIdentities = QMap<qint64, RunId>;
@@ -50,13 +51,13 @@ struct RecordList
     QVector<RecordSummary> records;
     QString error;
     bool hasMore = false;
+    qint64 totalMatching = -1, totalRecords = -1; // First page, in one read snapshot.
 };
 struct LoadResult
 {
     RunResult run;
     QString error;
     QString displayName, notes;
-    QVector<PeakMatch> matchingPeaks;
     QMap<NodeId, QVector<OutputInfo>> outputs;
     bool ok() const
     {
@@ -79,9 +80,10 @@ class ResultRepository
     RecordList list(const RecordFilter &filter, int limit = 100, int offset = 0) const;
     // Stable descending-ID pagination: inserting new runs cannot shift later pages.
     RecordList listBefore(const RecordFilter &filter, int limit = 100, qint64 beforeId = 0) const;
-    // Stream all matching ID/source names, independent of UI pagination.
-    QString exportRecordNames(const RecordFilter &filter, const QString &path,
-                              qint64 *written = nullptr, const CancellationToken &cancel = {}) const;
+    qint64 recordCount(QString &error) const;
+    RecordList directoryPage(const RecordFilter &filter, int limit, qint64 beforeId);
+    QString exportRecordNames(const RecordIdentities &selected, const QString &path,
+                              qint64 *written = nullptr, const CancellationToken &cancel = {});
     RecordSelectionState identities(const RecordFilter &filter) const;
     RecordSelectionState selectionState(const RecordIdentities &selected, const RecordFilter &filter);
     RecordRemoval remove(const RecordIdentities &selected);

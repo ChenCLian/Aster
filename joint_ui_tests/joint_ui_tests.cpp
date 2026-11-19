@@ -150,6 +150,7 @@ class JointUiTests : public QObject
     void scopedManifestReplay();
     void pairBatchIsolationAndReplay();
     void orbitalPairPorts();
+    void connectedAgeModel();
     void restoreLogMetricFromUndefinedCoherence();
     void compoundDocumentSignals();
     void fileImportIsOneEdit();
@@ -1050,6 +1051,70 @@ void JointUiTests::scopedManifestReplay()
     QVERIFY(f.doc.undo().ok());
     QCOMPARE(effectiveParameters(*f.doc.node(f.joint),other.id)["psd_window"].toInt(),128);
 }
+void JointUiTests::connectedAgeModel()
+{
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto proxy = doc.addRoot("input_series").nodeId;
+    const auto rate = doc.addRoot("input_series").nodeId;
+    SeriesData a{{0, 50, 150, 200}, {31, 32, 29, 28}, {"Depth", "cm"}, {"Proxy", "u"}};
+    SeriesData b{{0, 1, 2}, {10, 10, 10}, {"Depth", "m"}, {"Rate", "cm/ka"}};
+    QVERIFY(doc.setSources(proxy, {{"proxy.csv", makeData(a), {}}}).isEmpty());
+    QVERIFY(doc.setSources(rate, {{"rate.csv", makeData(b), {}}}).isEmpty());
+    const auto model = doc.addChild(rate, ChildSlot::Append, "sedrate_to_age", {{"chrono_age_reference", "BP1950"}}).nodeId;
+    const auto linked = doc.addChild(model, ChildSlot::Append, "linked_age_model").nodeId;
+    QVERIFY(!linked.isNull());
+    const auto pair = QUuid::createUuid();
+    const auto srcA = doc.datasets(proxy).at(0).id, srcB = doc.datasets(rate).at(0).id;
+    const BatchSeriesRef pa{srcA, "series", proxy}, pb{srcB, "age_model", model};
+    QVERIFY(!doc.setPairs(linked, {{pair, "wrong", pb, pa}}).isEmpty());
+    QVERIFY(doc.setPairs(linked, {{pair, "dated proxy", pa, pb}}).isEmpty());
+    WorkflowPreviewController preview(&doc); preview.selectNode(linked); preview.selectPair(pair); preview.setActive(true);
+    QTRY_COMPARE_WITH_TIMEOUT(preview.state(), WorkflowPreviewController::State::Ready, 10000);
+    const auto out = preview.result()->output;
+    const auto *ages = dataAs<SeriesData>(out.outputs.value("aged_series"));
+    QVERIFY(ages); QCOMPARE(ages->y, a.y); QCOMPARE(ages->x, QVector<double>({0,5,15,20}));
+    QCOMPARE(ages->xAxis.unit, QString("ka")); QCOMPARE(out.report["age_reference"].toString(), QString("BP1950"));
+    QTemporaryDir dir; const auto path = dir.filePath("ages.sqlite");
+    const auto batch = BatchRunner().run(doc.plan(), path, 2); QVERIFY2(batch.error.isEmpty(), qPrintable(batch.error));
+    ResultRepository repo; QVERIFY(repo.open(path, false).isEmpty()); bool found = false;
+    for (const auto &item : batch.items) {
+        QVERIFY(item.persistence.saved()); const auto stored = repo.load(item.persistence.recordId);
+        if (!stored.run.nodes.contains(linked)) continue;
+        const auto calc = stored.run.nodes.value(linked);
+        QCOMPARE(calc.state, NodeState::Succeeded);
+        QCOMPARE(encodeData(calc.outputs["aged_series"]).bytes, encodeData(out.outputs["aged_series"]).bytes);
+        found = true;
+    }
+    QVERIFY(found);
+    WorkflowDocument automatic(makeScientificRegistry());
+    const auto original = automatic.addRoot("input_series").nodeId;
+    auto wave = *dataAs<SeriesData>(signal()); wave.xAxis = {"Depth", "m"};
+    QVERIFY(automatic.setSources(original, {{"wave", makeData(wave), {}}}).isEmpty());
+    const auto cycle = automatic.addChild(original, ChildSlot::Append, "cycle_age_model").nodeId;
+    const auto use = automatic.addChild(cycle, ChildSlot::Append, "linked_age_model").nodeId;
+    QCOMPARE(automatic.grouping().value(use).size(), 1);
+    const auto configured = automatic.grouping().value(use).front();
+    QCOMPARE(configured.a.node, original); QCOMPARE(configured.b.node, cycle);
+    QCOMPARE(configured.a.dataset, configured.b.dataset); QCOMPARE(configured.b.port, QString("age_model"));
+    QTemporaryDir cycleDir;
+    const auto runCycle = [&](const QString &filename) {
+        const auto file = cycleDir.filePath(filename);
+        const auto batch = BatchRunner().run(automatic.plan(), file, 2);
+        ResultRepository stored;
+        if (!batch.error.isEmpty() || !stored.open(file, false).isEmpty()) return NodeResult::failure("cycle run failed");
+        for (const auto &record : batch.items) {
+            const auto loaded = stored.load(record.persistence.recordId);
+            if (loaded.run.nodes.contains(use)) return loaded.run.nodes.value(use);
+        }
+        return NodeResult::failure("no connected cycle result");
+    };
+    QCOMPARE(runCycle("interior.sqlite").diagnostic().code, QString("CHRONOLOGY_COVERAGE"));
+    QVERIFY(automatic.setParameters(cycle, {{"cycle_extend_ends", true}}).ok());
+    const auto mapped = runCycle("extended.sqlite");
+    QCOMPARE(mapped.state, NodeState::Succeeded);
+    const auto *cycleOutput = dataAs<SeriesData>(mapped.outputs.value("aged_series"));
+    QVERIFY(cycleOutput); QCOMPARE(cycleOutput->y, wave.y); QCOMPARE(cycleOutput->xAxis.unit, QString("ka"));
+}
 void JointUiTests::orbitalPairPorts()
 {
     WorkflowDocument doc(makeScientificRegistry());
@@ -1097,6 +1162,7 @@ void JointUiTests::batchDirectoryRefreshCoalesces()
     auto* service=window.findChild<RecordDirectoryService*>(); QVERIFY(service);
     QSignalSpy busy(service,&RecordDirectoryService::busyChanged);
     auto* progress=window.findChild<QProgressBar*>("runProgress"); QVERIFY(progress);
+    window.runner()->busyChanged(true);
     progress->setRange(0,1000); progress->setValue(0);
     QSignalSpy paintedProgress(progress,&QProgressBar::valueChanged);
     BatchItem item{run.runId,run.sourceLabel,RunState::Succeeded,receipt,{},root};
@@ -1109,10 +1175,16 @@ void JointUiTests::batchDirectoryRefreshCoalesces()
     }
     QCOMPARE(busy.count(),0);
     QCOMPARE(paintedProgress.count(),0);
+    QTRY_COMPARE_WITH_TIMEOUT(progress->value(),1000,5000);
+    QCOMPARE(paintedProgress.count(),1);
+    QCOMPARE(busy.count(),0); // The hidden directory never queries on a save notification.
+    window.showResults();
     QTRY_COMPARE_WITH_TIMEOUT(busy.count(),2,5000);
-    QCOMPARE(progress->value(),1000); QCOMPARE(paintedProgress.count(),1);
     QTRY_VERIFY_WITH_TIMEOUT(!window.results()->databaseBusy(),5000);
     busy.clear();
+    for (int i=0; i<20; ++i) window.runner()->itemReady(item);
+    QTest::qWait(1750); // New commits must not redraw a directory being read.
+    QCOMPARE(busy.count(),0);
     auto* status=window.findChild<QLabel*>("runStatus"); QVERIFY(status);
     auto* cancel=window.findChild<QPushButton*>("cancelRun"); QVERIFY(cancel);
     RunEvent inProgress; inProgress.state=NodeState::Running;
@@ -1120,12 +1192,13 @@ void JointUiTests::batchDirectoryRefreshCoalesces()
     window.runner()->eventReady(inProgress); // Delayed progress must not replace cancellation.
     cancel->click(); const auto cancelling=status->text();
     window.runner()->eventReady(inProgress);
-    QTest::qWait(150); QCOMPARE(status->text(),cancelling);
+    QTest::qWait(250); QCOMPARE(status->text(),cancelling);
     window.runner()->itemReady(item);
     auto batch=std::make_shared<BatchResult>();
     if (partialError) batch->error="Stopped after a saved result";
     else batch->items.push_back(item);
     window.runner()->batchReady(batch);
+    window.runner()->busyChanged(false);
     QTRY_COMPARE_WITH_TIMEOUT(busy.count(),2,5000);
     QTRY_VERIFY_WITH_TIMEOUT(!window.results()->databaseBusy(),5000);
     // Directory queries and record loading use independent workers. The

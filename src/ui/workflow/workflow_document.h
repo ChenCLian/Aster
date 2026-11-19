@@ -65,7 +65,7 @@ class WorkflowDocument : public QObject
 
   private:
     WorkflowEditor m_editor;
-    EditResult editGraph(const std::function<EditResult(WorkflowModel&)> &operation);
+    EditResult editGraph(const std::function<EditResult(WorkflowModel&)> &operation, QVector<BatchPair> initialPairs = {});
     WorkflowEditResult applyEdit(WorkflowEditDraft draft);
     void notifyEdit(const WorkflowEditResult &result);
 };

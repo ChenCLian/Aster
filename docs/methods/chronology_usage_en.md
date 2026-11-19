@@ -32,7 +32,17 @@ The main input is a depth–proxy series. Select the age-control table in the fi
 | `age_model` | Controls actually used in this execution |
 | `age_intervals` | Control interval boundaries and rates for checking abrupt changes |
 
-To use a rate-integration or cycle-count result, export its `age_model` as CSV and select that file here. These discrete controls are applied with piecewise linear age interpolation; the original continuous rate integral is not reconstructed between controls.
+<a id="linked-controls"></a>
+
+### Connect control points directly
+
+Use the model node’s right-hand + to add **Apply age model from connected controls**. In **Manage pairs**, choose the depth-domain proxy for A and the model’s `age_model` output for B. The inputs may come from different steps or data trees. Explicitly pair a sedimentation-rate model with the appropriate proxy.
+
+When attached to a cycle-count node, existing datasets are paired by identity with the proxy fed to the cycle counter. Choose the original unfiltered proxy instead when appropriate. Synthetic orbital sources can supply both their proxy and their true model. The task interpolates linearly between discrete depth–age controls and preserves the proxy values, model age unit and age reference. Declare the depth unit when the proxy has none. Coverage defaults to rejection; endpoint extrapolation is an explicit option.
+
+Cycle markers usually lie inside the record. Check the first and last control depths before dating the full sequence. Select the covered proxy interval, or explicitly extend the cycle model to the input ends or enable linear extrapolation where justified.
+
+External control tables can still be imported with **Apply age model**.
 
 See [external-file conventions](../concepts/chronology_coordinates_en.md#files) for recalculation and saved results. Current limits are 4 MiB per control file, 100000 controls and one million input samples. Check content and necessary precision before simplifying a file; do not discard controls merely to bypass a diagnostic.
 

@@ -6,6 +6,8 @@
 #include <QWidget>
 class QLineEdit;
 class QComboBox;
+class QLabel;
+class QToolButton;
 namespace aster::ui
 {
 class RecordFilterPanel : public QWidget
@@ -18,10 +20,15 @@ class RecordFilterPanel : public QWidget
   signals:
     void changed();
     void editing();
-
+    void openRecord(qint64 id);
   private:
+    void updateSummary();
     QLineEdit *m_text, *m_min, *m_max;
-    QComboBox *m_date, *m_unit;
+    QComboBox *m_date, *m_axis, *m_unit;
+    QToolButton *m_dateChip, *m_peakChip;
+    QWidget *m_chips;
+    QLabel *m_error;
+    bool m_period = true;
 };
 } // namespace aster::ui
 #endif

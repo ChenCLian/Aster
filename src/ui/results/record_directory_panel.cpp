@@ -5,6 +5,7 @@
 #include "ui/panels/record_filter_panel.h"
 #include "ui/services/record_directory_service.h"
 #include "ui/common/presentation.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/common/popup_placement.h"
 #include <QListWidget>
 #include <QLabel>
@@ -24,11 +25,13 @@
 #include <QFormLayout>
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
+#include <QPersistentModelIndex>
 #include <algorithm>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QProgressDialog>
 #include <QDateTime>
+#include <QApplication>
 
 namespace aster::ui
 {
@@ -39,8 +42,8 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     setAttribute(Qt::WA_StyledBackground);
     setMinimumWidth(200);
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 14, 12, 12);
-    layout->setSpacing(8);
+    layout->setContentsMargins(10, 10, 10, 8);
+    layout->setSpacing(5);
     auto *title = new QLabel(text("ui.result_directory"));
     title->setObjectName("SectionTitle");
     title->setWordWrap(true);
@@ -62,25 +65,11 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     m_database->setMenu(databaseMenu);
     heading->addWidget(m_database);
     layout->addLayout(heading);
-    auto *lookup = new QLineEdit;
-    lookup->setObjectName("recordIdLookup");
-    lookup->setPlaceholderText(text("ui.record_id_then_enter"));
-    layout->addWidget(lookup);
-    connect(lookup, &QLineEdit::returnPressed, this,
-            [this, lookup]
-            {
-                bool ok = false;
-                const auto id = lookup->text().toLongLong(&ok);
-                if (ok && id > 0)
-                    emit recordActivated(id);
-                else
-                    emit message(text("ui.enter_a_valid_record_id"));
-            });
     m_filters = new RecordFilterPanel;
+    connect(m_filters, &RecordFilterPanel::openRecord, this, &RecordDirectoryPanel::recordActivated);
     layout->addWidget(m_filters);
     m_list = new QListWidget;
     m_list->setObjectName("resultRecords");
-    m_list->setItemDelegate(new RecordItemDelegate(m_list));
     m_list->setUniformItemSizes(true);
     m_list->setMouseTracking(true);
     m_list->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -88,42 +77,44 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     m_list->setContextMenuPolicy(Qt::CustomContextMenu);
     m_list->installEventFilter(this);
     m_list->viewport()->installEventFilter(this);
+    // The delegate observes input modality before the panel handles checkbox and shortcut events.
+    m_delegate = new RecordItemDelegate(m_list);
+    m_list->setItemDelegate(m_delegate);
     layout->addWidget(m_list, 1);
-    m_count = new QLabel;
-    m_count->setObjectName("recordLoadCount");
-    layout->addWidget(m_count);
     m_selection = new QLabel;
-    m_selection->setWordWrap(true);
     m_selection->setObjectName("recordSelectionCount");
+    m_selection->setMinimumWidth(0);
+    m_selection->setWordWrap(true);
+    m_selection->setToolTip(text("ui.record_selection_total_hint"));
     layout->addWidget(m_selection);
-    auto *selectionBar = new QHBoxLayout;
-    selectionBar->setSpacing(5);
-    m_select = new QPushButton(text("ui.check_matches_short"));
-    m_select->setObjectName("checkMatchingRecords");
-    m_select->setToolTip(text("ui.check_matches"));
-    m_unselect = new QPushButton(text("ui.uncheck_matches_short"));
-    m_unselect->setObjectName("uncheckMatchingRecords");
-    m_unselect->setToolTip(text("ui.uncheck_matches"));
-    m_clear = new QPushButton(text("ui.clear_checks_short"));
-    m_clear->setObjectName("clearRecordChecks");
-    m_clear->setToolTip(text("ui.clear_all_checks_hint"));
-    for (auto *button : {m_select, m_unselect, m_clear})
-    {
+    auto *selectionActions = new QHBoxLayout;
+    m_selectAll = new WrappingPushButton(text("ui.check_database_short"));
+    m_selectAll->setObjectName("checkAllRecords");
+    m_selectFiltered = new WrappingPushButton(text("ui.check_matches_short"));
+    m_selectFiltered->setObjectName("checkMatchingRecords");
+    for (auto *button : {m_selectAll, m_selectFiltered}) {
+        button->setCheckable(true);
         button->setProperty("selectionAction", true);
-        button->setAccessibleName(button->toolTip());
-        selectionBar->addWidget(button, 1);
+        selectionActions->addWidget(button, 1);
+        const auto scope = button == m_selectAll ? RecordSelectionScope::Database
+                                                : RecordSelectionScope::Filtered;
+        connect(button, &QPushButton::clicked, this, [this, button, scope](bool checked) {
+            // Commit this command button only when its own operation succeeds.
+            button->setChecked(!checked);
+            selectRecords(scope, checked);
+        });
     }
-    layout->addLayout(selectionBar);
-    m_delete = new QPushButton(text("ui.delete_checked"));
-    m_delete->setObjectName("deleteCheckedRecords");
-    auto *fileActions = new QHBoxLayout;
-    fileActions->setSpacing(5);
-    fileActions->addWidget(m_delete, 1);
+    layout->addLayout(selectionActions);
+
+    auto *actions = new QHBoxLayout;
     m_exportNames = new QPushButton(text("ui.export_record_names"));
     m_exportNames->setObjectName("exportRecordNames");
     m_exportNames->setToolTip(text("ui.export_record_names_hint"));
-    fileActions->addWidget(m_exportNames, 1);
-    layout->addLayout(fileActions);
+    actions->addWidget(m_exportNames, 1);
+    m_delete = new QPushButton(text("ui.delete_checked"));
+    m_delete->setObjectName("deleteCheckedRecords");
+    actions->addWidget(m_delete, 1);
+    layout->addLayout(actions);
     m_service = new RecordDirectoryService(this);
     connect(m_exportNames, &QPushButton::clicked, this, &RecordDirectoryPanel::exportFileNames);
     connect(m_service, &RecordDirectoryService::namesExported, this,
@@ -176,11 +167,12 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
             {
                 refresh();
                 // Matching owners may now use a source imported into this database.
-                if (result.imported > 0 && m_current > 0)
+                const auto opened = m_delegate->openedRecord();
+                if (result.imported > 0 && opened > 0)
                     for (const auto id : result.recordIds)
-                        if (id == m_current)
+                        if (id == opened)
                         {
-                            emit metadataEdited(m_current);
+                            emit metadataEdited(opened);
                             break;
                         }
             }
@@ -218,22 +210,37 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                     QTimer::singleShot(0, this, &RecordDirectoryPanel::fetchIfNeeded);
             });
     connect(m_service, &RecordDirectoryService::selectionReady, this,
-            [this](QString path, RecordSelectionState state, bool checked)
+            [this](QString path, RecordSelectionState state, bool checked, RecordSelectionScope scope)
             {
-                if (path != m_path)
-                    return;
-                if (!state.error.isEmpty())
-                {
+                if (path != m_path) return;
+                if (!state.error.isEmpty()) {
                     emit message(state.error);
                     return;
                 }
-                for (auto it = state.existing.cbegin(); it != state.existing.cend(); ++it)
-                    if (checked)
-                        m_checked.insert(it.key(), it.value());
-                    else if (m_checked.value(it.key()) == it.value())
-                        m_checked.remove(it.key());
-                // Inspect the current filter, which may have changed while this request ran.
-                refresh();
+                const bool database = scope == RecordSelectionScope::Database;
+                (database ? m_selectAll : m_selectFiltered)->setChecked(checked);
+                bool changed = false;
+                if (database) {
+                    m_databaseTotal = state.existing.size();
+                    changed = m_checked != state.existing;
+                    m_checked = std::move(state.existing);
+                } else {
+                    for (auto it = state.existing.cbegin(); it != state.existing.cend(); ++it) {
+                        const bool present = m_checked.value(it.key()) == it.value();
+                        if (checked && !present) { m_checked.insert(it.key(), it.value()); changed = true; }
+                        if (!checked && present) { m_checked.remove(it.key()); changed = true; }
+                    }
+                }
+                if (changed) {
+                    syncChecks();
+                    // A filter change already owes the user a new first page. A change
+                    // to checkboxes alone only needs fresh counts and checked identities.
+                    if (!m_filterPending && m_filterValid) {
+                        if (m_pagePending) refresh();
+                        else m_service->query(m_path, filter(), 0, m_checked, true);
+                    }
+                }
+                updateActions();
             });
     connect(m_service, &RecordDirectoryService::removed, this,
             [this](QString path, RecordRemoval result)
@@ -252,9 +259,9 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                 }
                 for (auto it = result.removed.cbegin(); it != result.removed.cend(); ++it)
                     m_checked.remove(it.key());
+                if (result.removed.contains(m_delegate->openedRecord()))
+                    setOpenedRecord(0);
                 emit recordsRemoved(result.removed);
-                if (result.removed.contains(m_current))
-                    m_current = 0;
                 refresh();
                 emit message(text("ui.records_deleted").arg(result.removed.size()));
             });
@@ -271,15 +278,14 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                 if (removed)
                 {
                     m_checked.remove(id);
+                    if (id == m_delegate->openedRecord())
+                        setOpenedRecord(0);
                     emit recordsRemoved({{id, {}}});
                 }
                 else
                     emit metadataEdited(id);
                 refresh();
             });
-    connect(m_select, &QPushButton::clicked, this, [this] { selectMatching(true); });
-    connect(m_unselect, &QPushButton::clicked, this, [this] { selectMatching(false); });
-    connect(m_clear, &QPushButton::clicked, this, &RecordDirectoryPanel::clearChecks);
     connect(m_delete, &QPushButton::clicked, this, [this] { deleteRecords(m_checked); });
     connect(m_list, &QListWidget::itemChanged, this,
             [this](QListWidgetItem *item)
@@ -309,24 +315,29 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     connect(m_list, &QListWidget::customContextMenuRequested, this,
             [this](QPoint pos)
             {
-                auto *item = m_list->itemAt(pos);
-                if (!item)
-                    return;
+                const bool keyboard = pos.x() < 0 || pos.y() < 0;
+                auto *item = keyboard ? m_list->currentItem() : m_list->itemAt(pos);
+                if (!item) return;
                 m_list->setCurrentItem(item);
+                const QPersistentModelIndex index(m_list->indexFromItem(item));
+                const QPoint anchor = keyboard ? m_list->visualItemRect(item).center() : pos;
                 QMenu menu(this);
                 const auto id = item->data(RecordRole::Id).toLongLong();
                 const auto name = item->data(RecordRole::DisplayName).toString(),
                            notes = item->data(RecordRole::Notes).toString();
-                auto *edit =
-                    menu.addAction(text("ui.edit_name_and_notes"), this,
-                                   [this, id, name, notes] { editRecord(id, name, notes); });
-                auto *del = menu.addAction(m_checked.isEmpty() ? text("ui.delete_record")
-                                                               : text("ui.delete_checked"),
-                                           this, &RecordDirectoryPanel::deleteSelection);
+                const bool wasChecked = item->checkState() == Qt::Checked;
+                auto *check = menu.addAction(text(wasChecked ? "ui.uncheck_this_record" : "ui.check_this_record"));
+                check->setObjectName("toggleRecordCheck");
+                check->setEnabled(!m_busy && !m_filterPending && m_filterValid);
+                auto *edit = menu.addAction(text("ui.edit_name_and_notes"));
                 edit->setEnabled(!m_busy && m_mutationsEnabled);
-                del->setEnabled(!m_busy && !m_filterPending && m_mutationsEnabled);
-                menu.exec(menuPopupPosition(&menu, this,
-                    QRect(m_list->viewport()->mapToGlobal(pos), QSize(1, 1))));
+                const auto *chosen = menu.exec(menuPopupPosition(&menu, this,
+                    QRect(m_list->viewport()->mapToGlobal(anchor), QSize(1, 1))));
+                // A refresh can replace the row while the native menu is open.
+                if (!index.isValid()) return;
+                if (chosen == check && !m_busy && !m_filterPending && m_filterValid)
+                    m_list->itemFromIndex(index)->setCheckState(wasChecked ? Qt::Unchecked : Qt::Checked);
+                else if (chosen == edit) editRecord(id, name, notes);
             });
     updateActions();
 }
@@ -343,20 +354,40 @@ void RecordDirectoryPanel::setMutationsEnabled(bool enabled)
     m_mutationsEnabled = enabled;
     updateActions();
 }
+bool RecordDirectoryPanel::refreshIfIdle()
+{
+    // Background saves must not rewind pagination, invalidate a slow filter
+    // or steal the controls from a selection or a confirmation dialog.
+    if (!isVisible() || m_busy || m_filterPending || !m_filterValid || !m_checked.isEmpty() ||
+        m_list->verticalScrollBar()->value() > m_list->verticalScrollBar()->minimum() ||
+        QApplication::activeModalWidget() || QApplication::activePopupWidget())
+        return false;
+    refresh();
+    return true;
+}
 void RecordDirectoryPanel::setDatabase(const QString &path)
 {
     m_service->resetContext();
     m_path = path;
     m_checked.clear();
     m_matching = 0;
-    m_current = m_cursor = m_pressedCheck = 0;
+    m_databaseTotal = -1;
+    m_selectAll->setChecked(false);
+    m_selectFiltered->setChecked(false);
+    m_cursor = m_pressedCheck = 0;
+    setOpenedRecord(0);
     m_hasMore = false;
     m_list->clear();
     refresh();
 }
-void RecordDirectoryPanel::setCurrentRecord(qint64 id)
+void RecordDirectoryPanel::setOpenedRecord(qint64 id)
 {
-    m_current = id;
+    m_delegate->setOpenedRecord(id);
+}
+void RecordDirectoryPanel::focusRecord(qint64 id)
+{
+    if (m_list->currentIndex().data(RecordRole::Id).toLongLong() == id)
+        return;
     for (int i = 0; i < m_list->count(); ++i)
         if (m_list->item(i)->data(RecordRole::Id).toLongLong() == id)
         {
@@ -371,8 +402,10 @@ void RecordDirectoryPanel::refresh()
 }
 void RecordDirectoryPanel::load(bool append)
 {
-    if (m_path.isEmpty())
+    if (m_path.isEmpty()) {
+        updateActions();
         return;
+    }
     const auto f = filter();
     const auto error = f.validate();
     m_filterValid = error.isEmpty();
@@ -386,23 +419,41 @@ void RecordDirectoryPanel::load(bool append)
     }
     if (append && (m_busy || !m_hasMore || m_cursor <= 0))
         return;
-    if (!append)
+    if (!append) {
+        m_pagePending = true;
         m_hasMore = false;
+    }
     m_service->query(m_path, f, append ? m_cursor : 0, m_checked);
 }
-void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 beforeId)
+void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 beforeId, bool selectionOnly)
 {
+    if (!beforeId && !selectionOnly) m_pagePending = false;
     if (!list.error.isEmpty())
     {
         m_hasMore = false;
+        m_databaseTotal = -1;
+        m_filterValid = false;
+        updateActions();
         emit message(list.error);
         return;
     }
+    if (selectionOnly) {
+        m_databaseTotal = list.totalRecords;
+        syncChecks();
+        updateActions();
+        return;
+    }
+    const QSignalBlocker block(m_list);
+    const bool updates = m_list->updatesEnabled();
+    m_list->setUpdatesEnabled(false);
     m_filters->setUnits(units);
+    const qint64 focusId = m_list->currentItem()
+        ? m_list->currentItem()->data(RecordRole::Id).toLongLong() : m_delegate->openedRecord();
     if (!beforeId)
     {
         m_list->clear();
         m_cursor = 0;
+        m_databaseTotal = list.totalRecords;
     }
     for (const auto &r : list.records)
     {
@@ -410,11 +461,9 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
             r.displayName.isEmpty() ? QFileInfo(r.sourceLabel).fileName() : r.displayName;
         if (label.isEmpty())
             label = r.sourceLabel;
-        auto *item =
-            new QListWidgetItem(QString("ID %1 · %2\n%3")
-                                    .arg(r.id)
-                                    .arg(r.startedAt.toLocalTime().toString("MM-dd hh:mm"), label),
-                                m_list);
+        const auto details = QString("ID %1 · %2").arg(r.id).arg(r.startedAt.toLocalTime().toString("yyyy-MM-dd hh:mm"));
+        const auto status = RecordItemDelegate::statusFor(r.computationState);
+        auto *item = new FileListItem(label, m_list, {r.sourceLabel, details, r.notes, r.hasWorkflowError}, status);
         item->setData(RecordRole::Id, r.id);
         item->setData(RecordRole::RunId, r.runId);
         item->setData(RecordRole::DisplayName, r.displayName);
@@ -422,15 +471,24 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
         item->setData(RecordRole::FileName, label);
         item->setData(RecordRole::StartedAt, r.startedAt);
         item->setData(RecordRole::State, r.computationState);
-        item->setToolTip(r.sourceLabel + "\n" + r.computationState + "\n" + r.notes);
-        item->setData(Qt::AccessibleTextRole, item->text());
+        item->setData(RecordRole::WorkflowError, r.hasWorkflowError);
+        if (r.hasWorkflowError)
+            item->setData(Qt::AccessibleDescriptionRole, text("ui.record_workflow_error"));
+        item->setData(Qt::AccessibleTextRole, label + " · " + details + " · " + text(status.label));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        if (r.id == m_current)
+        if (r.id == focusId)
             m_list->setCurrentItem(item);
         m_cursor = r.id;
     }
     m_hasMore = list.hasMore;
+    // The queued bottom check must see the new scroll range, including after an append.
+    m_list->doItemsLayout();
+    if (!beforeId) {
+        if (auto *current = m_list->currentItem()) m_list->scrollToItem(current);
+        else m_list->scrollToTop();
+    }
     syncChecks();
+    m_list->setUpdatesEnabled(updates);
     updateActions();
 }
 void RecordDirectoryPanel::syncChecks()
@@ -448,24 +506,34 @@ void RecordDirectoryPanel::syncChecks()
 void RecordDirectoryPanel::updateActions()
 {
     const bool ready = !m_busy && !m_filterPending && !m_path.isEmpty();
+    const bool selected = !m_checked.isEmpty();
+    m_delegate->setChecksVisible(selected);
+    const auto label = [](QPushButton *button, const char *on, const char *off,
+                          const char *onHint, const char *offHint) {
+        button->setText(text(button->isChecked() ? off : on));
+        button->setToolTip(text(button->isChecked() ? offHint : onHint));
+        button->setAccessibleName(button->text());
+        button->setAccessibleDescription(button->toolTip());
+    };
+    label(m_selectAll, "ui.check_database_short", "ui.uncheck_database_short",
+          "ui.check_database", "ui.uncheck_database");
+    label(m_selectFiltered, "ui.check_matches_short", "ui.uncheck_matches_short",
+          "ui.check_matches", "ui.uncheck_matches");
+    m_selectAll->setEnabled(ready && (m_databaseTotal != 0 || selected));
+    m_selectFiltered->setEnabled(ready && m_filterValid && m_list->count() > 0);
     m_database->setEnabled(!m_busy && m_mutationsEnabled && !m_path.isEmpty());
-    m_select->setEnabled(ready && m_filterValid);
-    m_unselect->setEnabled(ready && m_filterValid && m_matching > 0);
-    m_clear->setEnabled(ready && !m_checked.isEmpty());
-    m_delete->setEnabled(ready && m_filterValid && m_mutationsEnabled && !m_checked.isEmpty());
-    m_exportNames->setEnabled(ready && m_filterValid);
-    m_count->setText(
-        m_busy ? text("ui.directory_loading")
-               : (m_hasMore ? text("ui.records_loaded_more") : text("ui.records_loaded_all"))
-                     .arg(m_list->count()));
-    m_selection->setText(text("ui.records_checked_count")
-                             .arg(m_checked.size())
-                             .arg(std::max<qint64>(0, m_checked.size() - m_matching)));
+    m_exportNames->setEnabled(ready && selected);
+    m_delete->setEnabled(ready && m_filterValid && m_mutationsEnabled && selected);
+    if (m_databaseTotal >= 0)
+        m_selection->setText(text("ui.records_selected_of").arg(m_checked.size()).arg(m_databaseTotal));
+    else
+        m_selection->setText(m_busy ? text("ui.directory_loading") : QString());
 }
 void RecordDirectoryPanel::exportFileNames()
 {
     const auto source = m_path;
-    const auto selectedFilter = filter();
+    const auto selected = m_checked;
+    if (source.isEmpty() || selected.isEmpty()) return;
     QFileDialog dialog(this, text("ui.export_record_names"));
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setNameFilter("CSV (*.csv)");
@@ -473,7 +541,8 @@ void RecordDirectoryPanel::exportFileNames()
     dialog.selectFile(QString("Aster_file_index_%1.csv")
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss")));
     if (dialog.exec() != QDialog::Accepted || dialog.selectedFiles().isEmpty()) return;
-    m_service->exportNames(source, selectedFilter, dialog.selectedFiles().front());
+    if (m_path != source) return;
+    m_service->exportNames(source, selected, dialog.selectedFiles().front());
 }
 void RecordDirectoryPanel::fetchIfNeeded()
 {
@@ -487,28 +556,25 @@ void RecordDirectoryPanel::fetchIfNeeded()
     if (bar->value() >= bar->maximum())
         load(true);
 }
-void RecordDirectoryPanel::selectMatching(bool checked)
+void RecordDirectoryPanel::selectRecords(RecordSelectionScope scope, bool checked)
 {
-    if (m_busy || m_filterPending || m_path.isEmpty())
+    if (m_busy || m_filterPending || m_path.isEmpty()) return;
+    if (scope == RecordSelectionScope::Database && !checked) {
+        m_checked.clear();
+        m_matching = 0;
+        m_selectAll->setChecked(false);
+        syncChecks();
+        updateActions();
         return;
-    const auto f = filter();
+    }
+    const auto f = scope == RecordSelectionScope::Database ? RecordFilter{} : filter();
     const auto error = f.validate();
     if (!error.isEmpty())
     {
         emit message(error);
         return;
     }
-    m_service->selectMatching(m_path, f, checked);
-}
-void RecordDirectoryPanel::clearChecks()
-{
-    if (!m_busy)
-    {
-        m_checked.clear();
-        m_matching = 0;
-        syncChecks();
-        updateActions();
-    }
+    m_service->selectMatching(m_path, f, checked, scope);
 }
 RecordIdentities RecordDirectoryPanel::identity(QListWidgetItem *item) const
 {
@@ -578,6 +644,13 @@ bool RecordDirectoryPanel::eventFilter(QObject *watched, QEvent *event)
                 deleteSelection();
             return true;
         }
+        if ((key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter) &&
+            !(key->modifiers() & ~Qt::KeypadModifier)) {
+            const auto *item = m_list->currentItem();
+            if (!key->isAutoRepeat() && item && !m_busy && !m_filterPending && m_filterValid)
+                emit recordActivated(item->data(RecordRole::Id).toLongLong());
+            return true;
+        }
         if (key->key() == Qt::Key_Space && key->modifiers() == Qt::NoModifier)
         {
             if (!key->isAutoRepeat())
@@ -586,7 +659,7 @@ bool RecordDirectoryPanel::eventFilter(QObject *watched, QEvent *event)
         }
         if (key->matches(QKeySequence::SelectAll))
         {
-            selectMatching(true);
+            selectRecords(RecordSelectionScope::Filtered, true);
             return true;
         }
     }
@@ -602,7 +675,7 @@ bool RecordDirectoryPanel::eventFilter(QObject *watched, QEvent *event)
             if (mouse->button() == Qt::LeftButton)
             {
                 auto *item = m_list->itemAt(mouse->pos());
-                const bool hit = item && RecordItemDelegate::checkRect(m_list->visualItemRect(item))
+                const bool hit = !m_checked.isEmpty() && item && RecordItemDelegate::checkRect(m_list->visualItemRect(item))
                                              .contains(mouse->pos());
                 if (event->type() == QEvent::MouseButtonPress && hit)
                 {

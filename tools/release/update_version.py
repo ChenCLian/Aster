@@ -212,7 +212,8 @@ def plan(root, new, notes):
 
 上一个版本的记录见[历史验证]({posixpath.relpath(previous, 'docs')})。完成相应检查后，在本版记录中填写实际范围、结果和未覆盖项。
 ''')
-    add('REVIEW_CN.md', f'''# Aster {new} 更新说明
+    if (root / 'REVIEW_CN.md').is_file():
+        add('REVIEW_CN.md', f'''# Aster {new} 更新说明
 
 本次发布内容见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。常规文档仅同步版本号，正文沿用。
 

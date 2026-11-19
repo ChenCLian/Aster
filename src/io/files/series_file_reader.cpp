@@ -62,6 +62,18 @@ bool splitFields(const QString &line, QChar delimiter, QStringList &fields)
     fields.push_back(field.trimmed());
     return true;
 }
+// A synchronous file may report bytes remaining after a failed read. A null
+// line in that state is an I/O error, whereas an empty physical line is valid.
+bool readInputLine(QTextStream &stream, QString &line, QString &error)
+{
+    const bool read = stream.readLineInto(&line, 65537);
+    const auto *file = qobject_cast<QFileDevice *>(stream.device());
+    if (file && file->error() != QFileDevice::NoError)
+        error = file->errorString();
+    else if ((!read && !stream.atEnd()) || stream.status() == QTextStream::ReadCorruptData)
+        error = QStringLiteral("Input stopped before the end of the file");
+    return read && error.isEmpty();
+}
 QString detectDelimiter(const QString &line, const QString &configured)
 {
     if (configured != "auto")
@@ -80,6 +92,13 @@ bool fieldsFor(const QString &line, const QString &delimiter, QStringList &field
     }
     return splitFields(line, delimiter == "comma" ? QLatin1Char(',') : QLatin1Char('\t'), fields);
 }
+bool isMissingText(QStringView field)
+{
+    return field.isEmpty() || field.compare(u"NaN", Qt::CaseInsensitive) == 0 ||
+           field.compare(u"NA", Qt::CaseInsensitive) == 0 ||
+           field.compare(u"N/A", Qt::CaseInsensitive) == 0 ||
+           field.compare(u"NULL", Qt::CaseInsensitive) == 0;
+}
 bool looksLikeHeader(const QStringList &fields, const SeriesFileOptions &options)
 {
     QLocale locale = QLocale::c();
@@ -92,7 +111,7 @@ bool looksLikeHeader(const QStringList &fields, const SeriesFileOptions &options
             continue;
         bool ok;
         locale.toDouble(fields[column], &ok);
-        if (!ok)
+        if (!ok && !isMissingText(fields[column]))
             return true;
     }
     return false;
@@ -156,9 +175,13 @@ FileProbe probeSeriesFile(const QString &path, const SeriesFileOptions &options)
     QTextStream stream(&file);
     stream.setEncoding(QStringConverter::Utf8);
     qsizetype scanned = 0;
-    for (int n = 0; n < 256 && !stream.atEnd(); ++n)
+    QString line;
+    for (int n = 0; n < 256; ++n)
     {
-        const auto line = stream.readLine(65537);
+        if (!readInputLine(stream, line, result.error)) {
+            if (!result.error.isEmpty()) return result;
+            break;
+        }
         scanned += line.size();
         if (line.size() > 65536 || scanned > 262144)
             break;
@@ -189,8 +212,8 @@ FileProbe probeSeriesFile(const QString &path, const SeriesFileOptions &options)
         result.error = "No readable data line in preview (256 lines / 256 KiB limit)";
     return result;
 }
-static FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
-                                       const SeriesFileOptions &options, CancellationToken cancel)
+FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
+                                const SeriesFileOptions &options, CancellationToken cancel)
 {
     FileReadResult result;
     const auto fail = [&](ErrorCode code, QJsonObject context = {})
@@ -222,18 +245,23 @@ static FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
     bool actualHeader = options.header;
     result.report = fileOptionsToJson(options);
     QString delimiter = options.delimiter;
-    qsizetype physicalLine = 0, skipped = 0;
+    qsizetype physicalLine = 0, skipped = 0, missingRows = 0;
     bool first = true;
     QLocale locale = QLocale::c();
     locale.setNumberOptions(QLocale::RejectGroupSeparator);
-    while (!stream.atEnd())
+    QString line;
+    for (;;)
     {
         if (cancel.isCancelled())
         {
             result.error = "Cancellation requested";
             return fail(ErrorCode::Cancelled);
         }
-        const auto line = stream.readLine(65537);
+        if (!readInputLine(stream, line, result.error)) {
+            if (!result.error.isEmpty())
+                return fail(ErrorCode::FileRead, {{"line", double(physicalLine + 1)}});
+            break;
+        }
         ++physicalLine;
         if (line.size() > 65536)
         {
@@ -269,11 +297,17 @@ static FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
             x = locale.toDouble(fields[options.xColumn], &xOk);
             y = locale.toDouble(fields[options.yColumn], &yOk);
         }
-        if (!xOk || !yOk || !std::isfinite(x) || !std::isfinite(y))
+        const bool validX = xOk && std::isfinite(x);
+        const bool validY = yOk && std::isfinite(y);
+        if (!validX || !validY)
         {
             if (options.skipInvalidRows)
             {
                 ++skipped;
+                if (wellFormed && fields.size() > columns &&
+                    (validX || isMissingText(fields[options.xColumn])) &&
+                    (validY || isMissingText(fields[options.yColumn])))
+                    ++missingRows;
                 continue;
             }
             const auto xValue = fields.value(options.xColumn).left(160);
@@ -297,7 +331,7 @@ static FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
         series.x.push_back(x);
         series.y.push_back(y);
     }
-    if (stream.status() != QTextStream::Ok)
+    if (stream.status() != QTextStream::Ok && stream.status() != QTextStream::ReadPastEnd)
     {
         result.error = "Text decoding/read failed";
         return fail(ErrorCode::FileRead, {{"line", double(physicalLine)}});
@@ -305,12 +339,14 @@ static FileReadResult readSeriesDevice(QIODevice &device, const QString &path,
     if (series.x.size() < 2)
     {
         result.error = "At least two valid rows are required";
-        return fail(ErrorCode::FileRows, {{"actual", double(series.x.size())}, {"minimum", 2}, {"skipped_rows", double(skipped)}});
+        return fail(ErrorCode::FileRows, {{"actual", double(series.x.size())}, {"minimum", 2},
+                    {"skipped_rows", double(skipped)}, {"missing_rows", double(missingRows)}});
     }
     result.report = {{"path", path},
                      {"size_bytes", static_cast<double>(device.size())},
                      {"rows", static_cast<double>(series.x.size())},
                      {"skipped_rows", static_cast<double>(skipped)},
+                     {"missing_rows", static_cast<double>(missingRows)},
                      {"delimiter", delimiter},
                      {"x_column", options.xColumn},
                      {"y_column", options.yColumn},

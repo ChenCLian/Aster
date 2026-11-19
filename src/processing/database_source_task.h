@@ -3,8 +3,10 @@
 #ifndef ASTER_DATABASE_SOURCE_TASK_H
 #define ASTER_DATABASE_SOURCE_TASK_H
 #include "processing/task_categories.h"
+#include "processing/band_power_task.h"
 #include "core/task_registry.h"
 #include "io/database/result_repository.h"
+#include <cmath>
 namespace aster
 {
 template <DataKind Kind> class DatabaseSourceTask final : public Task
@@ -40,7 +42,14 @@ template <DataKind Kind> class DatabaseSourceTask final : public Task
             return NodeResult::cancelled();
         if (dataKind(*out.data) != Kind)
             return NodeResult::failure(makeError(ErrorCode::DatabaseType, {{"expected", dataKindName(Kind)}, {"actual_type", dataKindName(dataKind(*out.data))}}));
-        return NodeResult::success({{"data", out.data}}, {{"database_source", ref.toJson()}});
+        QJsonObject report{{"database_source", ref.toJson()}};
+        if constexpr (Kind == DataKind::Spectrum) {
+            const auto metadata = repo.loadPlotMetadata(ref);
+            if (metadata.state != NodeState::Succeeded) return metadata;
+            const auto resolution = observedPsdResolution({metadata.report["plot_method"].toString(), ref.port, metadata.report});
+            if (std::isfinite(resolution) && resolution > 0) report["observed_psd_rayleigh"] = resolution;
+        }
+        return NodeResult::success({{"data", out.data}}, report);
     }
 };
 using DatabaseSeriesTask = DatabaseSourceTask<DataKind::Series>;

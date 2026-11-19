@@ -53,7 +53,7 @@ NodeResult MtmSimulationTask::execute(const TaskInput& input, const ExecutionCon
             {"experimental", true}, {"statistical_method", "AR1 stationary Gaussian / profile likelihood / MTM maximum-ratio Monte Carlo"},
             {"rho_mode", m_options.estimateRho ? "estimated_parametric_bootstrap" : "independently_specified_conditional_test"},
             {"rho", test.backgroundFit.rho}, {"fitted_mean", test.backgroundFit.mean},
-            {"innovation_variance", test.backgroundFit.innovationVariance}, {"sample_spacing", dt},
+            {"innovation_variance", test.backgroundFit.innovationVariance}, {"sample_spacing", dt}, {"rayleigh_frequency", 1.0 / (dt * source->y.size())},
             {"nw", m_options.nw}, {"tapers", 2*m_options.nw-1}, {"simulations", m_options.simulations},
             {"seed", double(m_options.seed)}, {"random_generator", "SplitMix64 / Box-Muller v1"},
             {"alpha", m_options.alpha}, {"global_p", test.globalP}, {"reject_global_null", test.globalP <= m_options.alpha},
@@ -85,7 +85,8 @@ NodeResult MtmSimulationTask::execute(const TaskInput& input, const ExecutionCon
         }
         addSpectrum("mc_family_threshold", frequencies, thresholds);
         spectrum::PeakOptions options;
-        const auto peaks = spectrum::findSpectrumPeaks(static_cast<int>(test.spectrum.power.size()), test.spectrum.power.data(), options);
+        const auto peaks = spectrum::findSpectrumPeaks(static_cast<int>(test.spectrum.power.size()), test.spectrum.power.data(), options,
+            [&] { return context.cancellation.isCancelled(); });
         TableData table{{"frequency", "period", "power", "family_adjusted_p", "passes_family_test"}, {}};
         for (const auto& peak : peaks) {
             const auto i = static_cast<size_t>(peak.index);

@@ -1,6 +1,6 @@
 {
   "project": "Aster",
-  "version": "1.3.1-beta.2",
+  "version": "1.3.2-beta.7",
   "update_mode": "official_https_sha256_full_package_extract_new_directory",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -94,14 +94,14 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "status": "draft_recovery_locally_verified",
-    "record": "docs/validation_results/1.3.1-beta.2/checks.json",
+    "status": "linux_release_tests_verified",
+    "record": "docs/validation_results/1.3.2-beta.7/checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.3.1-beta.2",
+    "logs": "docs/validation_results/1.3.2-beta.7",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Desktop build #39 shows four successful platform jobs. Recovery tools verified locally on fixtures; live recovery and mirror pending.",
-    "previous_version_record": "docs/validation_results/1.3.1-beta.1/checks.json",
-    "previous_version_summary": "docs/validation_results/1.3.1-beta.1/checks.json"
+    "scope": "Qt Release on Linux. Directory filters, figure backgrounds and manual X limits, MTM peak-table export, output row selection and existing plotting actions.",
+    "previous_version_record": "docs/validation_results/1.3.2-beta.6/checks.json",
+    "previous_version_summary": "docs/validation_results/1.3.2-beta.6/checks.json"
   },
   "help": {
     "local": "compiled Qt resources",
@@ -137,88 +137,18 @@
     "dependency_collector": "tools/release/collect_dependency_materials.py"
   },
   "release_channel": "beta",
-  "development": {
-    "feature": "Per-input workflow parameters, stable source identity and contextual help",
-    "stage": "new_feature_targeted_audit_complete",
-    "framework": "1.3.0 workflow parameter overrides and point-review metadata; existing numeric buffers remain shared",
-    "desktop_feature_available": true,
-    "remaining": [
-      "Accept each final package on a clean native host; macOS signing/Gatekeeper and Linux X11/XWayland",
-      "Build the beta Windows executable and verify compiled version and packaging",
-      "Complete manual focus/cancel and multi-monitor acceptance when available",
-      "Verify actual release source/dependency assets and existing third-party/data redistribution requirements before public binary release",
-      "Run all four platform/architecture Actions jobs and validate actual packages"
-    ],
-    "scope": "Targeted lifecycle audit: pending parameter edits before input removal and pair management, stable duplicate-input selection, search-result freshness and cold-index Enter activation/cancellation. Includes related scope, undo/redo, import, move, preview and pair regressions.",
-    "record": "docs/development/CHANGELOG_1.3.0.md",
-    "cross_node_ui_available": true,
-    "out_of_scope": [
-      "Structural rewrites directly involving joint nodes",
-      "Pairing outputs of joint nodes or their descendants",
-      "Live links to separately saved runs and arbitrary DAG editing"
-    ]
-  },
   "data_payload_versions": {
     "legacy": 1,
     "masked_tables": 2
   },
   "documentation_review": {
-    "date": "2026-11-17",
-    "version": "1.3.1-beta.2",
-    "status": "release_docs_reviewed",
-    "record": "docs/validation_results/1.3.1-beta.2/documentation_checks.json",
-    "embedded_help_rebuild_required": true,
-    "scope": "Release notes and release workflow documentation reviewed; manual link and version checks passed.",
-    "previous_record": "docs/validation_results/1.3.1-beta.1/documentation_checks.json"
-  },
-  "release_tooling_review": {
-    "version": "1.3.0-beta.20",
-    "status": "169_passed_1_Ruby_skip_native_packaging_pending",
-    "record": "docs/validation_results/1.3.0-beta.20/checks.json",
-    "application_code_changed": false
-  },
-  "plot_interaction_review": {
-    "date": "2026-11-15",
-    "version": "1.3.0-alpha.9",
-    "record": "docs/validation_results/1.3.0-alpha.9/checks.json",
-    "status": "linux_offscreen_passed_and_user_windows_manual_subset_passed",
-    "application_rebuild_required": false,
-    "previous_record": "docs/validation_results/1.3.0-alpha.5/checks.json",
-    "windows_followup_record": "docs/validation_results/1.3.0-beta.1/windows-evidence.json"
-  },
-  "ci_regression_review": {
-    "date": "2026-11-15",
-    "version": "1.3.0-beta.2",
-    "status": "linux_release_regressions_passed_cloud_ci_not_run",
-    "record": "docs/validation_results/1.3.0-beta.2/checks.json",
-    "previous_record": "docs/validation_results/1.3.0-alpha.5/checks.json"
-  },
-  "windows_acceptance_review": {
-    "date": "2026-11-15",
-    "source_version": "1.3.0-alpha.9",
-    "record": "docs/validation_results/1.3.0-beta.1/windows-evidence.json",
-    "status": "returned_automated_and_manual_subset_passed",
-    "beta_binary_retested": false
-  },
-  "help_revision": {
-    "completed": [
-      "A inventory",
-      "B Qt collapsible directory, offline full-text search and navigation implementation",
-      "C1 sampling/cleanup/resampling bilingual content",
-      "C2 windows/FFT/spectra/display bilingual content and terminology",
-      "C3 data processing bilingual content, 14 tasks",
-      "C4a spectral estimates and statistical interpretation",
-      "C4b age models, tuning, COCO and astronomical data",
-      "C5 source guides, daily use and classified indexes"
-    ],
-    "pending": [],
-    "delivery": "Help content and navigation are implemented; ongoing maintenance follows docs/development/documentation.md. Native package acceptance is recorded separately.",
-    "maintenance": "docs/development/documentation.md"
-  },
-  "build_compatibility_review": {
-    "version": "1.3.0-beta.12",
-    "status": "explicit_narrowing_fixed_strict_gcc_and_help_checks_passed_msvc_not_run",
-    "record": "docs/validation_results/1.3.0-beta.12/build-fix/checks.json"
+    "date": "2026-11-19",
+    "version": "1.3.2-beta.7",
+    "status": "reviewed",
+    "record": "docs/validation_results/1.3.2-beta.7/documentation_checks.json",
+    "embedded_help_rebuild_required": false,
+    "scope": "Chinese and English help and interface strings for peak filters, the X-axis display range, row selection and plot and export targets.",
+    "previous_record": "docs/validation_results/1.3.2-beta.6/documentation_checks.json"
   },
   "manual_update_policy": {
     "package_download": "in_app_when_metadata_available_otherwise_browser",
@@ -227,16 +157,11 @@
     "automatic_installer": false
   },
   "lightweight_update": {
-    "phase1_ui": "complete",
-    "phase2_download": "local_implementation_and_tests_complete",
-    "phase3_actions": "Version-separated dependency release and binary-only mirror locally tested. Live publication pending.",
     "discovery": "GitHub release API with Gitee public release API fallback; partial mirror results labeled",
     "source_policy": "official_https_and_sha256",
     "alpha": "excluded",
     "contact": "offline_author_page",
-    "native_acceptance": "1.3.0-beta.20 four-platform acceptance reported by maintainer; 1.3.1-alpha.1 native and live release checks pending",
     "gitee_material_policy": "Four verified program archives only; update record stored in the release description.",
-    "critical_path_audit": "docs/validation_results/1.3.0-beta.19/checks.json",
     "design": "docs/development/updates.md"
   }
 }

@@ -14,11 +14,12 @@ namespace aster {
 TaskDescriptor PreprocessTask::descriptor()
 {
     auto d = task_detail::seriesTransform("Sort, deduplicate and resample", taskCategory(TaskCategory::Sampling));
-    d.version = 4; // Acycle datapreproc defaults: median interval and linear interpolation.
+    d.version = 4; // Existing saved workflows acquire the optional gap policy through normalization.
     d.parameters = {science_detail::text("duplicate_policy", "Duplicate X", "average", {"average", "first", "last", "error"}),
         science_detail::text("spacing_mode", "Spacing", "median", {"none", "mean", "median", "min", "max", "fixed"}),
         task_detail::number("spacing", "Fixed interval", 1, 1e-12, 1e12),
-        science_detail::text("interpolation", "Interpolation", "linear", {"linear", "cubic", "akima"})};
+        science_detail::text("interpolation", "Interpolation", "linear", {"linear", "cubic", "akima"}),
+        science_detail::boolean("allow_extreme_gap", "Allow interpolation across an extreme gap", true)};
     for(auto& p:d.parameters) {
         p.group=p.key=="duplicate_policy" ? "cleanup" : "resampling";
         if(p.key=="spacing")p.visibleWhen={{"spacing_mode","fixed"}};
@@ -26,7 +27,8 @@ TaskDescriptor PreprocessTask::descriptor()
     return d;
 }
 PreprocessTask::PreprocessTask(const QJsonObject& p) : m_duplicates(p["duplicate_policy"].toString()),
-    m_mode(p["spacing_mode"].toString()), m_interpolation(p["interpolation"].toString()), m_spacing(p["spacing"].toDouble()) {}
+    m_mode(p["spacing_mode"].toString()), m_interpolation(p["interpolation"].toString()),
+    m_spacing(p["spacing"].toDouble()), m_allowExtremeGap(p["allow_extreme_gap"].toBool(true)) {}
 NodeResult PreprocessTask::execute(const TaskInput& input, const ExecutionContext& context)
 {
     const auto* source = dataAs<SeriesData>(input.data);
@@ -40,9 +42,12 @@ NodeResult PreprocessTask::execute(const TaskInput& input, const ExecutionContex
     QJsonObject report{{"input_rows", static_cast<double>(source->x.size())}, {"merged_rows", static_cast<double>(duplicates)},
         {"reordered",cleaned.reordered}, {"duplicate_policy",m_duplicates}, {"spacing_mode",m_mode}, {"interpolation",m_interpolation},
         {"reference_implementation","Acycle datapreproc / acycleInterpolateSeries; explicit preprocessing only"}};
+    bool largeGap = false;
     if (m_mode != "none") {
         QVector<double> differences;
         for (qsizetype i = 1; i < data.x.size(); ++i) differences.push_back(data.x[i] - data.x[i-1]);
+        const qsizetype gap = std::max_element(differences.cbegin(), differences.cend()) - differences.cbegin();
+        const double gapWidth = differences[gap];
         double spacing = m_spacing;
         if (m_mode == "mean") spacing = (data.x.back() - data.x.front()) / (data.x.size() - 1);
         if (m_mode == "min") spacing = *std::min_element(differences.begin(), differences.end());
@@ -51,12 +56,27 @@ NodeResult PreprocessTask::execute(const TaskInput& input, const ExecutionContex
             std::sort(differences.begin(), differences.end());
             const auto n = differences.size(); spacing = n % 2 ? differences[n/2] : 0.5 * differences[n/2-1] + 0.5 * differences[n/2];
         }
-        const double steps = (data.x.back() - data.x.front()) / spacing;
+        const double span = data.x.back() - data.x.front();
+        const double steps = span / spacing;
         if (!std::isfinite(steps) || steps < 1 || steps > 999999) return NodeResult::failure(makeError(ErrorCode::ResampleGrid, {{"spacing", spacing}, {"range", data.x.back() - data.x.front()}, {"estimated_intervals", steps}, {"minimum", 2}, {"maximum", 1000000}}));
         const auto ulp = [](double v) {
             v = std::abs(v);
             return std::nextafter(v, std::numeric_limits<double>::infinity())-v;
         };
+        const double gapIntervals = gapWidth / spacing;
+        largeGap = gapIntervals >= 1000 && gapWidth >= .5 * span;
+        if (!m_allowExtremeGap && gapIntervals >= 10000 && gapWidth >= .9 * span)
+            return NodeResult::failure(ErrorInfo{"RESAMPLE_EXTREME_GAP",
+                {{"largest_gap_from", data.x[gap]}, {"largest_gap_to", data.x[gap + 1]},
+                 {"largest_gap_in_grid_steps", gapIntervals}, {"spacing", spacing},
+                 {"gap_percent", 100 * (gapWidth / span)}, {"samples", double(data.x.size())}},
+                "Interpolation would span an unobserved gap covering at least 90% of X and 10000 grid intervals"});
+        if (largeGap) {
+            report["largest_gap_from"] = data.x[gap];
+            report["largest_gap_to"] = data.x[gap+1];
+            report["largest_gap_in_grid_steps"] = gapIntervals;
+            report["allow_extreme_gap"] = m_allowExtremeGap;
+        }
         const auto nearest = std::round(steps);
         const bool endpointOnGrid = std::abs(steps-nearest) <= 8*ulp(std::max(1.0,steps));
         auto count = static_cast<qsizetype>(endpointOnGrid ? nearest : std::floor(steps)) + 1;
@@ -97,6 +117,8 @@ NodeResult PreprocessTask::execute(const TaskInput& input, const ExecutionContex
         data = std::move(output); report["sample_spacing"] = spacing;
     }
     report["output_rows"] = static_cast<double>(data.x.size());
-    return NodeResult::success({{"series", makeData(std::move(data))}}, report);
+    auto result = NodeResult::success({{"series", makeData(std::move(data))}}, report);
+    if (largeGap) result.warnings << "warning.resampling_large_gap";
+    return result;
 }
 }

@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.3.1-beta.2。[源码构建](building.md) · [文档索引](README.md)
+适用源码：Aster 1.3.2-beta.7。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.1-beta.2` 对应 `v1.3.1-beta.2`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.2-beta.7` 对应 `v1.3.2-beta.7`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -14,7 +14,7 @@ Python 3.10+ 即可运行，无需额外依赖。在源码根目录执行：
 python tools/release/update_version.py <新版本号> --notes "修复少量情况下的界面刷新问题。"
 ```
 
-只输入一次完整版本号（不带 `v`）。脚本将更新 `VERSION`、当前文档中的版本标识、打包示例和 `PACKAGE_STATUS.json`；README、FAQ、使用手册的正文沿用。`RELEASE_NOTES.md` 重新生成标题并使用你提供的一句说明，小修复无需写成长篇。旧发布说明和旧更新审查归档到 `docs/history/releases/<旧版本>/`。
+只输入一次完整版本号（不带 `v`）。脚本将更新 `VERSION`、当前文档中的版本标识、打包示例和 `PACKAGE_STATUS.json`；README、FAQ、使用手册的正文沿用。`RELEASE_NOTES.md` 重新生成标题并使用你提供的一句说明，小修复无需写成长篇。上一版发布说明及其中引用的更新审查归档到 `docs/history/releases/<旧版本>/`。
 
 先看修改范围、再执行也可以：
 
@@ -77,9 +77,9 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 | 想查的内容 | 入口 |
 | --- | --- |
-| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.1-beta.2` → 公告及四个平台链接 |
+| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.2-beta.7` → 公告及四个平台链接 |
 | 包大小、SHA-256 和可用下载地址 | 同一程序发行版的 `Aster-update.json`。手工校验使用同页的 `SHA256SUMS.txt` |
-| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.1-beta.2`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
+| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.2-beta.7`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
 | 源码中维护版本说明 | 升级版本时向 `tools/release/update_version.py` 提供 `--notes-file`，正文进入 `RELEASE_NOTES.md`。上一版说明归档到 `docs/history/releases/<旧版本>/RELEASE_NOTES.md` |
 | 本次运行的构建、测试或同步错误 | Actions → 对应运行的 Job 日志、`logs-<平台>` 或 `gitee-mirror-report`。长期下载使用带版本标签的 Release |
 
@@ -205,7 +205,7 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 对实际准备上传的包执行以下检查，并记录源码提交、系统、架构、包的 SHA-256 及结果。
 
-- 自动化：根工程 Release 构建及统一脚本列出的全部测试目标（当前 12 个程序）；本机可运行 `python tools/release/run_tests.py build-release`。
+- 桌面工作流运行 13 个常规回归程序和 1 个交互验收程序。下方命令可在本机复现同一组测试。
 - 桌面操作：首次启动、中文字体与图标、文本导入、生成信号、MTM/CWT、同源与跨源 A/B 配对、预览与正式运行；检查普通节点插入/替换、取消、失效引用和撤销/重做。
 - 结果：SQLite 保存与重新打开、数据库备份、PNG/PDF/CSV 导出、语言与主题切换、公开更新检查。
 - 平台部署：Windows 运行库与 SQLite；macOS 架构、最低系统和 Gatekeeper；Linux X11/XWayland 及运行依赖。
@@ -213,12 +213,14 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 ### 本机候选验收顺序
 
-1. 更新源码后重新运行 qmake，并完成根工程的 Release 构建。升级旧源码或出现版本不一致时，使用新的构建目录。确认实际程序“设置”及 `Aster --version` 的完整版本与根目录 `VERSION` 相同；Windows 打包脚本自动捕获 `--version` 输出核对，避免无控制台的 GUI 程序弹出版本提示框。
+1. 更新源码后重新运行 qmake，启用 `CONFIG+=help_reference CONFIG+=interaction_acceptance` 并完成根工程的 Release 构建。升级旧源码或出现版本不一致时，使用新的构建目录。确认实际程序“设置”及 `Aster --version` 的完整版本与根目录 `VERSION` 相同；Windows 打包脚本自动捕获 `--version` 输出核对，避免无控制台的 GUI 程序弹出版本提示框。
 2. 从源码根目录运行以下检查，将构建路径替换为实际目录。Windows 可使用已安装的 Python 命令或 `py -3`。
 
    ```text
    python -m unittest discover -s tools/release -p "test_*.py"
-   python tools/release/run_tests.py "<Release 构建目录>"
+   python -m unittest discover -s tools/orbital_data -p "test_*.py"
+   python tools/orbital_data/manage_data.py verify
+   python tools/release/run_tests.py "<Release 构建目录>" --include-interaction
    python tools/help_reference/generate.py --build "<Release 构建目录>" --check
    ```
 
@@ -230,7 +232,7 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 | --- | --- |
 | 源预览与联合输入 | 多输出源分别选择不同输出；同批与跨节点 A/B 配对后，检查预览和正式结果的来源及单位 |
 | 结构编辑 | 插入、替换普通节点并撤销/重做；删除引用来源后阻止失效配对执行 |
-| 输出浏览 | 记录/步骤点击显示默认输出；重复打开复用原图和样式；跨步骤勾选不改变目标，切换记录清空勾选 |
+| 输出浏览 | 记录/步骤点击显示默认输出；重复打开复用原图和样式；跨步骤多选保留投图目标，切换记录清空输出选择 |
 | 图页与叠加 | 添加多个子图；关闭非当前图页后目标与缩放不变；不兼容叠加或替换失败时保留原图 |
 | 子图布局 | 三图下方通栏；分隔条拖动、双击均分；标题中央交换、子图边缘分割、图页外边缘通栏/通高；取消及无效/跨页拖放不改布局；切页恢复比例，整页 PNG/PDF 与当前排列一致 |
 | 加载与删除 | 加载叠加/替换时切换图页或删除来源；旧请求不能覆盖新状态，关闭子图后按钮恢复可用 |

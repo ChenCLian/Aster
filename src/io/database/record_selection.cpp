@@ -4,13 +4,18 @@
 #include "io/database/record_query.h"
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QSaveFile>
+#include <QScopeGuard>
+#include <QTextStream>
 
 namespace aster
 {
 namespace
 {
 // Connection-local selection table avoids SQLite variable limits and never loads BLOBs.
-QString fillSelection(QSqlDatabase &db, const RecordIdentities &ids)
+QString fillSelection(QSqlDatabase &db, const RecordIdentities &ids, const CancellationToken &cancel = {})
 {
     QSqlQuery q(db);
     if (!q.exec("CREATE TEMP TABLE IF NOT EXISTS aster_selection(id INTEGER PRIMARY KEY,run_uuid "
@@ -20,6 +25,7 @@ QString fillSelection(QSqlDatabase &db, const RecordIdentities &ids)
     q.prepare("INSERT INTO aster_selection VALUES(?,?)");
     for (auto it = ids.cbegin(); it != ids.cend(); ++it)
     {
+        if (cancel.isCancelled()) return "Selection cancelled";
         if (it.key() <= 0 || it.value().isNull())
             return "Invalid selected record identity";
         q.bindValue(0, it.key());
@@ -30,6 +36,69 @@ QString fillSelection(QSqlDatabase &db, const RecordIdentities &ids)
     return {};
 }
 } // namespace
+QString ResultRepository::exportRecordNames(const RecordIdentities &selected, const QString &path,
+                                            qint64 *written, const CancellationToken &cancel)
+{
+    if (written) *written = 0;
+    auto error = checkThread();
+    if (selected.isEmpty()) return "No records are checked";
+    if (!error.isEmpty()) return error;
+    const auto destination = QFileInfo(path).absoluteFilePath();
+    const auto database = QFileInfo(m_db.databaseName()).absoluteFilePath();
+    for (const auto &suffix : {QString(), QString("-wal"), QString("-shm"), QString("-journal")}) {
+        const QFileInfo protectedFile(database + suffix), target(destination);
+        if (destination == protectedFile.absoluteFilePath() ||
+            (target.exists() && !target.canonicalFilePath().isEmpty() &&
+             target.canonicalFilePath() == protectedFile.canonicalFilePath()))
+            return "CSV destination must not replace the database or its journal files";
+    }
+    if (cancel.isCancelled()) return "Export cancelled";
+    if (!m_db.transaction()) return m_db.lastError().text();
+    // Keep the checked identities and the names in one snapshot. The only writes
+    // are to the connection-local selection table, which the guard discards.
+    const auto finish = qScopeGuard([this] { m_db.rollback(); });
+    error = fillSelection(m_db, selected, cancel);
+    if (!error.isEmpty()) return error;
+    QSqlQuery query(m_db);
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT r.id,r.source_label,r.provenance FROM aster_selection s "
+                    "JOIN aster_runs r ON r.id=s.id AND r.run_uuid=s.run_uuid ORDER BY s.id DESC"))
+        return query.lastError().text();
+    QSaveFile file(path);
+    file.setDirectWriteFallback(false);
+    if (!file.open(QIODevice::WriteOnly)) return file.errorString();
+    QTextStream out(&file);
+    out.setEncoding(QStringConverter::Utf8);
+    out.setGenerateByteOrderMark(true); // Chinese names also open correctly in Excel.
+    out << "ID,Filename\r\n";
+    qint64 count = 0;
+    while (query.next()) {
+        if (cancel.isCancelled()) return "Export cancelled";
+        auto name = query.value(1).toString();
+        const auto provenance = QJsonDocument::fromJson(query.value(2).toByteArray()).object();
+        // Keep generated/pair labels intact, including slashes in their names.
+        if (!provenance.contains("batch_pair") && !provenance["path"].toString().isEmpty()) {
+            name = provenance["path"].toString();
+            name.replace('\\', '/'); // Saved Windows paths are portable across hosts.
+            name = name.section('/', -1);
+        }
+        name.replace('"', "\"\"");
+        out << query.value(0).toLongLong() << ",\"" << name << "\"\r\n";
+        ++count;
+        if (out.status() != QTextStream::Ok) return "CSV write failed";
+    }
+    if (query.lastError().isValid()) return query.lastError().text();
+    if (count != selected.size())
+        return "A checked record changed or no longer exists. Refresh the directory and try again.";
+    out.flush();
+    if (cancel.isCancelled()) return "Export cancelled";
+    if (out.status() != QTextStream::Ok || file.error() != QFileDevice::NoError)
+        return "CSV write failed";
+    if (!file.commit()) return file.errorString();
+    if (written) *written = count;
+    return {};
+}
+
 RecordSelectionState ResultRepository::identities(const RecordFilter &filter) const
 {
     RecordSelectionState result;

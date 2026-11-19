@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "core/batch_workflow.h"
+#include "model/file_import_compat.h"
 #include <QHash>
 #include <QJsonArray>
 #include <QSet>
@@ -86,6 +87,7 @@ BatchPlanResult prepareLinkedBatch(std::shared_ptr<const RunSnapshot> workflow,
             }
             identities.insert(dataset.id); plan->m_datasetIndices[dataset.id]=plan->m_datasets.size();
             plan->m_datasetRoots[dataset.id]=root->id; plan->m_datasets.push_back(dataset);
+            upgradeFileImportMetadata(root->method, plan->m_datasets.last().source.provenance);
         }
     }
     QVector<NodeId> ordinary, paired;
@@ -118,8 +120,10 @@ BatchPlanResult prepareLinkedBatch(std::shared_ptr<const RunSnapshot> workflow,
     for (auto id : order) {
         const auto& node=*index.nodes[id]; const auto& descriptor=registry.find(node.method)->descriptor;
         if (!node.input) {
-            for (const auto& d : sources.value(id))
+            for (const auto& original : sources.value(id)) {
+                const auto& d = plan->m_datasets.at(plan->m_datasetIndices.value(original.id));
                 if (!append({-1,id,d.id,d.source.label,{},d.source,d.source.provenance,{}})) return out;
+            }
             continue;
         }
         const auto parent=node.input->parent;
@@ -144,6 +148,9 @@ BatchPlanResult prepareLinkedBatch(std::shared_ptr<const RunSnapshot> workflow,
             }
             identities.insert(pair.id); bindings.insert(binding);
             QVector<BatchDependency> deps;
+            if (!descriptor.requiredSecondPort.isEmpty() && pair.b.port != descriptor.requiredSecondPort) {
+                reject("Incompatible output port for input B"); return out;
+            }
             for (const auto& ref : {pair.a,pair.b}) {
                 const auto origin=ref.node.isNull()?parent:ref.node;
                 if (!scope.contains(origin) || index.pairedPath.contains(origin)) {

@@ -118,10 +118,11 @@ static void wave_function(int nk, double dt,int mother, double param,double scal
 	}
 }
 
-int cwavelet_checked(const double *y, int N, double dt, int mother, double param, double s0, double dj, int jtot, int npad,
-	double *wave, double *scale, double *period, double *coi) {
+int cwavelet_checked_cancel(const double *y, int N, double dt, int mother, double param, double s0, double dj, int jtot, int npad,
+	double *wave, double *scale, double *period, double *coi, cwt_cancel_fn cancelled, const void *context) {
 
 	int i, j, k, iter;
+	int status = 0;
 	double ymean, freq1, pi, period1, coi1;
 	double tmp1, tmp2;
 	double scale1;
@@ -140,6 +141,7 @@ int cwavelet_checked(const double *y, int N, double dt, int mother, double param
 	/* Aster: never terminate the application on invalid CWT dimensions. */
 	if (!y || !wave || !scale || !period || !coi || N <= 0 || jtot <= 0 || npad < N)
 		return -2;
+	if (cancelled && cancelled(context)) return CWT_CANCELLED;
 
 	obj = fft_init(npad, 1);
 	iobj = fft_init(npad, -1);
@@ -200,6 +202,10 @@ int cwavelet_checked(const double *y, int N, double dt, int mother, double param
 	// Main loop
 
 	for (j = 1; j <= jtot; ++j) {
+		if (cancelled && cancelled(context)) {
+			status = CWT_CANCELLED;
+			goto cleanup;
+		}
 		scale1 = scale[j - 1];// = s0*pow(2.0, (double)(j - 1)*dj);
 		wave_function(npad, dt, mother, param, scale1, kwave, pi,&period1,&coi1, daughter);
 		period[j - 1] = period1;
@@ -225,6 +231,7 @@ int cwavelet_checked(const double *y, int N, double dt, int mother, double param
 	
 
 	
+cleanup:
 	free(kwave);
 	free(ypad);
 	free(yfft);
@@ -233,10 +240,17 @@ int cwavelet_checked(const double *y, int N, double dt, int mother, double param
 	free_fft(obj);
 	free_fft(iobj);
 
-	return 0;
+	return status;
 }
 
 /* Preserve the upstream ABI for existing, valid standalone callers. */
+int cwavelet_checked(const double *y, int N, double dt, int mother, double param,
+    double s0, double dj, int jtot, int npad, double *wave, double *scale,
+    double *period, double *coi) {
+    return cwavelet_checked_cancel(y, N, dt, mother, param, s0, dj, jtot, npad,
+                                  wave, scale, period, coi, NULL, NULL);
+}
+
 void cwavelet(const double *y, int N, double dt, int mother, double param,
     double s0, double dj, int jtot, int npad, double *wave, double *scale,
     double *period, double *coi) {

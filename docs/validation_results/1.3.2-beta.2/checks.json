@@ -1,0 +1,59 @@
+{
+  "version": "1.3.2-beta.2",
+  "date": "2026-11-19",
+  "environment": "Linux x86-64, Qt 6.8.2 Release, offscreen desktop",
+  "executables": 13,
+  "passed": 2404,
+  "failed": 0,
+  "skipped": 0,
+  "targets": {
+    "aster_core_tests": 67,
+    "aster_batch_tests": 69,
+    "aster_analysis_tests": 724,
+    "aster_cross_spectrum_tests": 81,
+    "aster_ui_tests": 945,
+    "aster_joint_ui_tests": 39,
+    "aster_rewrite_tests": 32,
+    "aster_linked_input_tests": 53,
+    "aster_style_export_tests": 70,
+    "aster_workspace_tests": 84,
+    "aster_integration_tests": 89,
+    "aster_update_tests": 76,
+    "aster_download_tests": 75
+  },
+  "directory": {
+    "existing_records": 2287,
+    "states": {
+      "Failed": 148,
+      "PartialFailed": 41,
+      "Succeeded": 2098
+    },
+    "flagged_records": 189,
+    "filter": "8209",
+    "matched": 10,
+    "checks_after_all_then_matches_then_deselect_matches_then_deselect_all": [
+      2287,
+      2287,
+      2277,
+      0
+    ],
+    "exported_matching_selected_id_and_filename": 2277,
+    "stable_scroll_and_current_record_after_loaded_rows": 200,
+    "marker_cases": [
+      "success",
+      "warning only",
+      "failed",
+      "partial failure",
+      "cancelled",
+      "failing branch followed by cancellation"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ]
+  },
+  "native_platforms_pending": [
+    "Windows",
+    "macOS"
+  ]
+}

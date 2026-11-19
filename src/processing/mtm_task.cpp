@@ -53,6 +53,8 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
 {
     const auto* source = dataAs<SeriesData>(input.data);
     if (!source) return NodeResult::failure(makeError(ErrorCode::InputType, {{"expected", "Series"}}));
+    if (source->x.size() != source->y.size())
+        return NodeResult::failure(makeError(ErrorCode::InputInvalid, {}, "X and Y lengths differ"));
     double dt = 0; const auto error = science_detail::uniformSpacing(*source, dt);
     if (!error.isEmpty()) return NodeResult::failure(error);
     if (m_nw >= source->y.size() / 2.0) return NodeResult::failure(makeError(ErrorCode::MtmNW, {{"nw", m_nw}, {"samples", double(source->y.size())}, {"upper_exclusive", source->y.size() / 2.0}}));
@@ -61,6 +63,13 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     if (context.cancellation.isCancelled()) return NodeResult::cancelled();
     const int tapers = m_nw == 1 ? 2 : int(std::lround(2*m_nw))-1;
     const auto fftLength = m_nfft ? size_t(m_nfft) : size_t(source->y.size());
+    int phasesDone = 0;
+    const int phaseCount = 2 + int(m_ar1) + int(m_swa);
+    const auto phase = [&](const QString& name) {
+        if (context.progress) context.progress(100 * phasesDone / phaseCount, name);
+        ++phasesDone;
+    };
+    phase("progress.mtm_spectrum");
     numeric::MtmSpectrum spectrum;
     try {
         spectrum = numeric::mtmSpectrum(std::vector<double>(source->y.begin(), source->y.end()),
@@ -79,6 +88,9 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     result.report["numerical_backend"] = science_detail::numericBackendReport();
     SpectrumInference inference;
     inference.acycle = true;
+    inference.checkpoint = [&] {
+        if (context.cancellation.isCancelled()) throw std::runtime_error("Cancellation requested");
+    };
     inference.degreesOfFreedom.assign(spectrum.power.size(),2*tapers);
     result.report["reference_implementation"] = "Acycle 3.1.1 validation snapshot spectrum.m / redconfML.m / spectralswafdr.m";
     result.report["adaptive_convergence"] = "sum(abs(delta)) over the full two-sided spectrum < 0.0005*variance; paired real-FFT bins counted twice";
@@ -119,6 +131,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     FDRSpectralAnalysisResult swa;
     bool swaEvaluated = false;
     const bool hasPower = std::any_of(spectrum.power.begin(), spectrum.power.end(), [](double p) { return p > 0; });
+    if (m_ar1) phase("progress.mtm_ar1");
     if (m_ar1 && hasPower) {
         try {
             ar1 = computeRedNoiseConfidence(spectrum.power.data(), spectrum.frequency.data(), m_smoothWindow,
@@ -128,11 +141,13 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
             add("ar1_90", ar1.chiConf.chi90); add("ar1_95", ar1.chiConf.chi95);
             add("ar1_99", ar1.chiConf.chi99); add("ar1_999", ar1.chiConf.chi999);
         } catch (const std::exception& e) {
+            if (context.cancellation.isCancelled()) return NodeResult::cancelled();
             for (const auto& key : QStringList{"ar1_smoothed", "ar1_background", "ar1_90", "ar1_95", "ar1_99", "ar1_999"}) result.outputs.remove(key);
             ar1 = {}; result.warnings.push_back("AR1 unavailable: " + QString::fromUtf8(e.what()));
         }
     }
     if (context.cancellation.isCancelled()) return NodeResult::cancelled();
+    if (m_swa) phase("progress.mtm_swa");
     if (m_swa && hasPower) {
         try {
             swa = FDR_TEST(spectrum.power, spectrum.frequency, m_nw, inference);
@@ -148,6 +163,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
             swaEvaluated = true;
             if (swa.diagnostics.shortFallback) result.warnings.push_back("Short spectrum: SWA uses a constant log-mean background");
         } catch (const std::exception& e) {
+            if (context.cancellation.isCancelled()) return NodeResult::cancelled();
             for (const auto& key : QStringList{"swa_background", "swa_90", "swa_95", "swa_99", "swa_999", "fdr_05", "fdr_01", "fdr_001", "fdr_0001"}) result.outputs.remove(key);
             result.warnings.push_back("SWA/FDR unavailable: " + QString::fromUtf8(e.what()));
         }
@@ -156,7 +172,15 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     spectrum::PeakOptions options; options.minProminence = m_prominence; options.minDistance = m_peakDistance;
     options.relativeProminence=m_relativeProminence;
     options.minWidth=m_peakWidth;options.minHeight=m_peakHeight;options.prominenceRadius=m_peakRadius;
-    const auto peaks = spectrum::findSpectrumPeaks(static_cast<int>(spectrum.power.size()), spectrum.power.data(), options);
+    phase("progress.mtm_peaks");
+    std::vector<spectrum::Peak> peaks;
+    try {
+        peaks = spectrum::findSpectrumPeaks(static_cast<int>(spectrum.power.size()), spectrum.power.data(),
+                                            options, [&] { return context.cancellation.isCancelled(); });
+    } catch (const std::exception&) {
+        if (context.cancellation.isCancelled()) return NodeResult::cancelled();
+        throw;
+    }
     TableData table{{"frequency", "period", "power", "prominence", "width_bins", "passes_ar1_95", "passes_swa_95", "passes_fdr_05"}, {}};
     const bool hasAr1 = ar1.chiConf.chi95.size() == spectrum.power.size() && !ar1.chiConf.chi95.empty();
     for (const auto& peak : peaks) {

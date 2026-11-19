@@ -1,0 +1,131 @@
+{
+  "version": "1.3.2-beta.3",
+  "date": "2026-11-19",
+  "environment": "Linux x86-64, Qt 6.8.2 Release, offscreen widgets",
+  "executables": 14,
+  "passed": 2439,
+  "failed": 0,
+  "skipped": 0,
+  "targets": {
+    "aster_core_tests": 67,
+    "aster_batch_tests": 69,
+    "aster_analysis_tests": 724,
+    "aster_cross_spectrum_tests": 81,
+    "aster_ui_tests": 948,
+    "aster_joint_ui_tests": 39,
+    "aster_rewrite_tests": 32,
+    "aster_linked_input_tests": 53,
+    "aster_style_export_tests": 70,
+    "aster_workspace_tests": 84,
+    "aster_integration_tests": 92,
+    "aster_update_tests": 76,
+    "aster_download_tests": 75,
+    "aster_interaction_acceptance": 29
+  },
+  "ui": {
+    "workflow_scope": "Real key and mouse events, selection of two out of three files, X/Y import edits, per-file node parameter, apply to workflow, undo and redo, compiled workflow execution and four saved SQLite outputs. Unselected file, sibling node and second workflow were checked.",
+    "multi_input": "Editing back to the original value before commit, incompatible files, selection capture and remove/reimport identity.",
+    "directory": {
+      "records": 2287,
+      "filter_matches": 10,
+      "counts_after_scope_commands": [
+        2287,
+        2287,
+        2277,
+        0
+      ],
+      "exported_id_and_filename_exact_matches": 2277,
+      "error_marker_ids_exact_matches": 189,
+      "paging": "Focused record and scroll position preserved on the second page.",
+      "concurrent_actions": "Selection while editing filters, queued and debounced page refreshes, hidden count on delete confirmation and changing databases."
+    },
+    "layout": {
+      "languages": [
+        "zh",
+        "en"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "screens": 16,
+      "generic_parameter_pages": 57,
+      "panel_widths": [
+        200,
+        320
+      ],
+      "mixed_plot_operations": 180
+    }
+  },
+  "batch": {
+    "files": 2287,
+    "states": {
+      "Failed": 148,
+      "PartialFailed": 41,
+      "Succeeded": 2098
+    },
+    "records": 2287,
+    "same_status": 2287,
+    "same_spectra": 2098,
+    "quick_check": "ok",
+    "foreign_key_errors": 0,
+    "unchanged_engine_source_files": 168
+  },
+  "tools": {
+    "release_unit_tests": 233,
+    "reference_generation_unit_tests": 8,
+    "orbital_unit_tests": 4,
+    "embedded_astronomy_originals_verified_and_extracted": 10,
+    "NOAA_default_PT_download_matches_embedded_bytes": true,
+    "theme_icons_pixel_matched": 6,
+    "SciPy_peak_cases": 900,
+    "AR1_simulated_evaluations": 11000,
+    "AR1_execution_failures": 0,
+    "Cplusplus_cases_exported_for_external_Acycle_comparison": 19,
+    "import_benchmark_files": [
+      1,
+      100,
+      1000,
+      10000
+    ],
+    "remove_benchmark_files": 10000,
+    "joint_benchmark_modes": [
+      "numeric",
+      "cancel",
+      "plot",
+      "gui",
+      "batch",
+      "dialog",
+      "linked"
+    ],
+    "recent_benchmark_modes": [
+      "import",
+      "remove",
+      "numeric",
+      "cancel",
+      "plot"
+    ]
+  },
+  "workflows": {
+    "files_checked": 3,
+    "actionlint": "v1.7.12",
+    "shell_steps_syntax_checked": 31,
+    "desktop_matrix": [
+      "windows-x64",
+      "linux-x64",
+      "macos-arm64",
+      "macos-x86_64"
+    ],
+    "release_remote_writes": false
+  },
+  "packaging": {
+    "linux_build_and_staged_AppRun": "Version, numeric backend, Chinese and English startup verified.",
+    "linux_distribution_archive": "Pending. Local host lacks distribution package ownership records. The dependency-source collection stopped before creating the final archive."
+  },
+  "pending": [
+    "Windows and macOS native UI and packaging",
+    "Ubuntu 22.04 final dependency-source collection and distribution archive",
+    "Independent MATLAB/Signal Processing Toolbox/Acycle comparison, including corrected-bandpass-v2 where applicable.",
+    "Hosted CI for this source version."
+  ]
+}

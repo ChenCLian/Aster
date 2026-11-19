@@ -49,6 +49,13 @@ struct TaskDescriptor {
     // Pure, data-independent compatibility expansion before validation/defaults.
     // Must preserve explicitly supplied settings; never resolve values from UI/input data.
     std::function<QJsonObject(const QJsonObject &)> prepareParameters{};
+    bool readsInputMetadata = false;
+    QStringList inputPortKeys{};
+    bool acceptsInput(const OutputSpec &port) const
+    {
+        return inputKind == port.kind && (inputPortKeys.isEmpty() || inputPortKeys.contains(port.key));
+    }
+    QString requiredSecondPort{}; // Empty accepts any compatible paired output.
 };
 
 using TaskFactory = std::function<std::unique_ptr<Task>(const QJsonObject&)>;

@@ -1,0 +1,13 @@
+{
+  "version": "1.3.2-beta.1",
+  "documentation": {
+    "status": "reviewed",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "scope": "Directory selection, export, period filter, input-list controls and source package instructions.",
+    "catalog_tasks": 58,
+    "catalog_parameters": 270
+  }
+}

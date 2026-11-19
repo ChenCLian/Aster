@@ -59,6 +59,8 @@ See [complete columns, units and budgets](cross_spectrum.md) and [pairing instru
 <a id="wavelet"></a>
 ## Continuous wavelet transform
 
+The transform checks cancellation between scales and while preparing power and significance maps. Cancelling discards the partial output of this node.
+
 Input must be finite, strictly increasing and regularly spaced, with at least six samples. The task removes the mean but not an arbitrary long-term trend. Defaults are Morlet parameter 6 and dj=0.1. Morlet requires parameter≥5; Paul requires an integer order and DOG an even integer, within the UI ranges. Recheck meaning and boundary conventions after changing the mother wavelet.
 
 dj controls log2 scale spacing. Smaller dj makes a denser, more expensive grid without improving the original record's resolving capability. Period is converted from scale and is not scale itself. Columns are record positions and rows are periods, not frequencies.

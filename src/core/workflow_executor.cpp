@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "core/workflow_executor.h"
+#include "model/file_import_compat.h"
 #include "model/workflow_codec.h"
 #include <QHash>
 #include <exception>
@@ -113,6 +114,7 @@ RunResult WorkflowExecutor::run(const RunRequest &request, EventSink sink,
     if (!root || root->input)
         return invalid(QStringLiteral("Run root must be a source node"));
     const auto &rootDescriptor = registry.find(root->method)->descriptor;
+    upgradeFileImportMetadata(root->method, run.provenance);
     if (!rootDescriptor.requiresSourceBinding && request.source.data)
         return invalid(QStringLiteral("Generator does not accept an external data binding"));
 
@@ -188,7 +190,12 @@ RunResult WorkflowExecutor::run(const RunRequest &request, EventSink sink,
         else
         {
             if (node.input)
-                input.data = run.nodes.value(node.input->parent).outputs.value(node.input->output);
+            {
+                const auto &upstream = run.nodes.constFind(node.input->parent).value();
+                input.data = upstream.outputs.value(node.input->output);
+                if (descriptor.readsInputMetadata)
+                    input.origin = {nodes.value(node.input->parent)->method, node.input->output, upstream.report};
+            }
             QString error;
             ErrorInfo inputError;
             if (descriptor.inputKind)
@@ -227,7 +234,7 @@ RunResult WorkflowExecutor::run(const RunRequest &request, EventSink sink,
                                 input,
                                 {run.runId, id, cancellation,
                                  descriptor.requiresSourceBinding ? request.source.data : DataRef{},
-                                 request.source.provenance, [&](int percent, const QString& phase) {
+                                 run.provenance, [&](int percent, const QString& phase) {
                                      if (!cancellation.isCancelled())
                                          emitEvent(id, NodeState::Running, phase, {}, std::clamp(percent, 0, 100));
                                  }});

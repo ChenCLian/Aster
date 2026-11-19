@@ -10,6 +10,8 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QSignalSpy>
+#include <QScrollArea>
+#include <QToolButton>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTimer>
@@ -69,7 +71,7 @@ int main(int argc,char**argv){
   clock.start();panel.addFiles(files);out["import_call_ms"]=ms(clock);
   auto* editor=panel.findChild<FileOptionsEditor*>();if(!spinUntil([&]{return editor->ready();}))return 4;
   auto* list=panel.findChild<QListWidget*>("sourceFiles");list->setFocus();
-  clock.restart();QTest::keyClick(list,Qt::Key_A,Qt::ControlModifier);out["select_all_event_ms"]=ms(clock);
+  clock.restart();QTest::keySequence(list,QKeySequence::SelectAll);out["select_all_event_ms"]=ms(clock);
   if(list->selectedItems().size()!=count)return 5;
   if(mode=="remove") {
    clock.restart();QTest::mouseClick(panel.findChild<QPushButton*>("removeSourceInput"),Qt::LeftButton);
@@ -77,15 +79,31 @@ int main(int argc,char**argv){
    if(!doc.files(panel.root()).isEmpty())return 15;
    out["removed"]=count;
   } else {
-  auto* unit=panel.findChild<QLineEdit*>("fileXUnit");unit->setFocus();QTest::keyClick(unit,Qt::Key_A,Qt::ControlModifier);
-  QSignalSpy done(&panel,&SourcePanel::batchOptionsFinished);
-  clock.restart();QTest::keyClicks(unit,"kyr");out["type_unit_events_ms"]=ms(clock);
-  QTest::keyClick(unit,Qt::Key_Tab);editor->flushEdits();
-  if(!spinUntil([&]{return !done.isEmpty() && panel.readyToRun();}))return 6;
-  out["edit_through_commit_ms"]=ms(clock);
-  out["applied"]=done[0][0].toStringList().size();out["skipped"]=done[0][1].toStringList().size();
-  for(const auto &s:doc.sources().value(panel.root()))if(s.provenance["file_options"].toObject()["x_unit"]!="kyr")return 7;
-  if(done[0][0].toStringList().size()!=count || !done[0][1].toStringList().isEmpty())return 8;
+   auto *toggle = panel.findChild<QToolButton *>("sourceOptionsToggle");
+   if (!toggle->isChecked()) QTest::mouseClick(toggle, Qt::LeftButton);
+   auto *unit = editor->findChild<QLineEdit *>("fileXUnit");
+   if (auto *scroll = editor->findChild<QScrollArea *>()) scroll->ensureWidgetVisible(unit);
+   if (!unit->isVisibleTo(&panel)) return 5;
+   QTest::mouseClick(unit, Qt::LeftButton);
+   QTest::keySequence(unit, QKeySequence::SelectAll);
+   QSignalSpy done(&panel, &SourcePanel::batchOptionsFinished);
+   clock.restart();
+   QTest::keyClicks(unit, "kyr");
+   out["type_unit_events_ms"] = ms(clock);
+   QTest::keyClick(unit, Qt::Key_Tab);
+   if (!spinUntil([&] {
+       if (!panel.readyToRun()) return false;
+       return count == 1 ? doc.fileOptions(panel.root(), files.first())["x_unit"] == "kyr"
+                         : !done.isEmpty();
+   })) return 6;
+   out["edit_through_commit_ms"] = ms(clock);
+   const int applied = count == 1 ? 1 : done[0][0].toStringList().size();
+   const int skipped = count == 1 ? 0 : done[0][1].toStringList().size();
+   out["applied"] = applied;
+   out["skipped"] = skipped;
+   for (const auto &source : doc.sources().value(panel.root()))
+       if (source.provenance["file_options"].toObject()["x_unit"] != "kyr") return 7;
+   if (applied != count || skipped) return 7;
   }
   spinUntil([&]{return lateness.size()>=100;},3000);timer.stop();out["event_loop_lateness"]=stats(lateness);
  } else if(mode=="numeric") {

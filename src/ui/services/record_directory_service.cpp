@@ -31,10 +31,12 @@ void RecordDirectoryService::resetContext()
             m_queue.removeAt(i);
 }
 void RecordDirectoryService::query(QString path, RecordFilter filter, qint64 beforeId,
-                                   RecordIdentities selected)
+                                   RecordIdentities selected, bool selectionOnly)
 {
     invalidate();
-    enqueue({Kind::Query, path, filter, beforeId, 0, {}, {}, m_generation, std::move(selected)});
+    Request request{Kind::Query, path, filter, beforeId, 0, {}, {}, m_generation, std::move(selected)};
+    request.selectionOnly = selectionOnly;
+    enqueue(std::move(request));
 }
 void RecordDirectoryService::edit(QString path, qint64 id, QString name, QString notes)
 {
@@ -44,9 +46,13 @@ void RecordDirectoryService::remove(QString path, qint64 id)
 {
     enqueue({Kind::Remove, path, {}, 0, id, {}, {}, 0});
 }
-void RecordDirectoryService::selectMatching(QString path, RecordFilter filter, bool checked)
+void RecordDirectoryService::selectMatching(QString path, RecordFilter filter, bool checked,
+                                           RecordSelectionScope scope)
 {
-    enqueue({Kind::Select, path, filter, 0, 0, {}, {}, 0, {}, checked, m_context});
+    Request request{Kind::Select, path, scope == RecordSelectionScope::Database ? RecordFilter{} : filter,
+                    0, 0, {}, {}, 0, {}, checked, m_context};
+    request.scope = scope;
+    enqueue(std::move(request));
 }
 void RecordDirectoryService::removeMany(QString path, RecordIdentities selected)
 {
@@ -71,9 +77,9 @@ void RecordDirectoryService::cancelTransfer()
         if (request.kind == Kind::Merge || request.kind == Kind::Backup || request.kind == Kind::ExportNames)
             request.cancellation.cancel();
 }
-void RecordDirectoryService::exportNames(QString source, RecordFilter filter, QString newFile)
+void RecordDirectoryService::exportNames(QString source, RecordIdentities selected, QString newFile)
 {
-    Request request{Kind::ExportNames, source, filter, 0, 0, {}, {}, 0};
+    Request request{Kind::ExportNames, source, {}, 0, 0, {}, {}, 0, std::move(selected)};
     request.transferPath = newFile;
     enqueue(request);
 }
@@ -135,14 +141,18 @@ void RecordDirectoryService::start()
                 if (!list->error.isEmpty())
                     return;
                 if (request.kind == Kind::ExportNames)
-                    list->error = repo.exportRecordNames(request.filter, request.transferPath,
+                    list->error = repo.exportRecordNames(request.selected, request.transferPath,
                                                          &selection->matching, request.cancellation);
                 else if (request.kind == Kind::Query)
                 {
-                    *list = repo.listBefore(request.filter, 100, request.beforeId);
+                    if (request.selectionOnly) {
+                        list->totalRecords = repo.recordCount(list->error);
+                    } else {
+                        *list = repo.directoryPage(request.filter, 100, request.beforeId);
+                        if (list->error.isEmpty()) *units = repo.frequencyUnits(&list->error);
+                    }
                     if (list->error.isEmpty())
                     {
-                        *units = repo.frequencyUnits(&list->error);
                         *selection = repo.selectionState(request.selected, request.filter);
                         if (!selection->error.isEmpty())
                             list->error = selection->error;
@@ -186,7 +196,7 @@ void RecordDirectoryService::start()
                             emit selectionInspected(*selection);
                         if (!self) return;
                         if (request.generation == m_generation)
-                            emit listed(*list, *units, request.beforeId);
+                            emit listed(*list, *units, request.beforeId, request.selectionOnly);
                     }
                 }
                 else if (request.kind == Kind::ExportNames)
@@ -195,7 +205,7 @@ void RecordDirectoryService::start()
                 {
                     selection->error = list->error;
                     if (request.context == m_context)
-                        emit selectionReady(request.path, *selection, request.checked);
+                        emit selectionReady(request.path, *selection, request.checked, request.scope);
                 }
                 else if (request.kind == Kind::RemoveMany)
                 {

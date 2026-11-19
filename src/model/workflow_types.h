@@ -12,7 +12,8 @@
 namespace aster {
 using NodeId = QUuid;
 using RunId = QUuid;
-enum class ChildSlot { Left, Right, Down };
+enum class ChildSlot { Left, Right, Down, Append };
+inline constexpr int WorkflowChildLimit = 8;
 
 struct GridPosition {
     int column = 0, row = 0;
@@ -50,6 +51,8 @@ struct WorkflowDefinition {
     QVector<NodeDefinition> nodes;  // Creation order; stable sibling execution order.
     QMap<NodeId, GridPosition> layout;
 };
+// Automatic branches use the tree for display and keep a distinct storage cell.
+GridPosition freeGridPosition(const WorkflowDefinition& definition, GridPosition near);
 struct ValidationIssue { QString path, message; };
 struct ValidationResult {
     QVector<ValidationIssue> issues;

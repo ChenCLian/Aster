@@ -1531,7 +1531,10 @@ void StyleExportTests::recordDelegateKeepsIdentity()
     QSignalSpy spy(&list,&QListWidget::itemClicked);
     QTest::mouseClick(list.viewport(),Qt::LeftButton,Qt::NoModifier,list.visualItemRect(item).center());
     QCOMPARE(spy.count(),1); QCOMPARE(list.currentItem()->data(Qt::UserRole).toLongLong(),42);
-    QVERIFY(list.visualItemRect(item).height()>=72);
+    const auto row = list.visualItemRect(item);
+    QVERIFY(row.height() >= list.fontMetrics().height() + 8);
+    QVERIFY(row.height() <= 2 * list.fontMetrics().height() + 14);
+    QVERIFY(row.contains(RecordItemDelegate::checkRect(row)));
 }
 QTEST_MAIN(StyleExportTests)
 #include "style_export_tests.moc"

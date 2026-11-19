@@ -188,10 +188,16 @@ void CollapsiblePanel::dragEdge(int delta)
     if (neighbor < 0) return;
     auto sizes = splitter->sizes();
     const int lower = minimumWidth() - sizes[index];
-    const int upper = std::min(maximumWidth() - sizes[index], sizes[neighbor] - splitter->widget(neighbor)->minimumWidth());
+    const int primaryRoom = std::max(0, sizes[neighbor] - splitter->widget(neighbor)->minimumWidth());
+    const int fallback = m_resizeFallback ? splitter->indexOf(m_resizeFallback) : -1;
+    const bool canUseFallback = fallback >= 0 && fallback != neighbor && fallback != index;
+    const int fallbackRoom = canUseFallback ? std::max(0, sizes[fallback] - m_resizeFallback->minimumWidth()) : 0;
+    const int upper = std::min(maximumWidth() - sizes[index], primaryRoom + fallbackRoom);
     const int growth = std::clamp(m_gripOnRight ? delta : -delta, lower, std::max(lower, upper));
+    const int fromFallback = std::clamp(growth - primaryRoom, 0, fallbackRoom);
     sizes[index] += growth;
-    sizes[neighbor] -= growth;
+    sizes[neighbor] -= growth - fromFallback;
+    if (fromFallback > 0) sizes[fallback] -= fromFallback;
     splitter->setSizes(sizes);
 }
 } // namespace aster::ui

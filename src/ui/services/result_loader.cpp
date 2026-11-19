@@ -17,10 +17,9 @@ void ResultLoader::invalidate()
     ++m_generation;
     m_pending = false;
 }
-void ResultLoader::request(const QString &p, qint64 id, RecordFilter filter)
+void ResultLoader::request(const QString &p, qint64 id)
 {
     m_path = p;
-    m_filter = filter;
     m_id = id;
     ++m_generation;
     m_pending = true;
@@ -33,9 +32,8 @@ void ResultLoader::start()
     const auto generation = m_generation;
     const auto path = m_path;
     const auto id = m_id;
-    const auto filter = m_filter;
     m_worker = QThread::create(
-        [this, generation, path, id, filter]
+        [this, generation, path, id]
         {
             auto result = std::make_shared<LoadResult>();
             try
@@ -46,12 +44,6 @@ void ResultLoader::start()
                 result->error = repo.open(path, false);
                 if (result->error.isEmpty())
                     *result = repo.load(id, true);
-                if (result->ok() && filter.hasFrequency())
-                {
-                    const auto matches = repo.matchingPeaks(id, filter);
-                    result->matchingPeaks = matches.peaks;
-                    result->error = matches.error;
-                }
             }
             catch (const std::exception &e)
             {

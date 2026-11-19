@@ -22,8 +22,12 @@ struct BatchResult
     QVector<BatchItem> items;
     QString error;
     QStringList observerWarnings;
+    qsizetype notStarted = 0;
 };
 using CompletionSink = std::function<void(const BatchItem &)>;
+
+// Auditing callers can retain a cancellation record for each queued input.
+enum class PendingInputsOnCancel { RecordCancelled, LeaveUnstarted };
 
 class BatchRunner
 {
@@ -34,7 +38,8 @@ class BatchRunner
     // events originate on the caller thread, always after the save attempt.
     BatchResult run(const RunPlan &plan, const QString &databasePath, int concurrency = defaultConcurrency(),
                     EventSink nodeEvents = {}, CompletionSink completed = {},
-                    CancellationToken cancellation = {}) const;
+                    CancellationToken cancellation = {},
+                    PendingInputsOnCancel pending = PendingInputsOnCancel::RecordCancelled) const;
 };
 } // namespace aster
 #endif

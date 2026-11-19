@@ -1,6 +1,0 @@
-test_version_changes_rebuild_consumers_without_cleaning (test_version_build.VersionBuildTests.test_version_changes_rebuild_consumers_without_cleaning) ... ok
-
-----------------------------------------------------------------------
-Ran 1 test in 3.636s
-
-OK

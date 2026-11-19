@@ -4,7 +4,7 @@
 
 [使用手册](../USER_GUIDE.md) · [方法说明](../methods/README.md) · [English](task_parameters_en.md)
 
-本参考对应 Aster 1.3.1-beta.2 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
+本参考对应 Aster 1.3.2-beta.7 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
 
 选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。
 
@@ -13,6 +13,7 @@
 - [缩放与偏移](#m-affine)
 - [应用年龄模型](#m-apply_age_model)
 - [AR1 背景全局检验](#m-ar1_global)
+- [周期带功率积分](#m-band_power)
 - [Butterworth 高通](#m-butterworth_highpass)
 - [Butterworth 低通](#m-butterworth_lowpass)
 - [排序与去重](#m-clean_series)
@@ -40,6 +41,7 @@
 - [La2004 多纬度日照图](#m-insolation_map)
 - [La2004 日平均日照量](#m-insolation_source)
 - [线性去趋势](#m-linear_detrend)
+- [应用年龄模型（连接控制点）](#m-linked_age_model)
 - [Lomb–Scargle（浮动均值）](#m-lomb_scargle)
 - [米兰科维奇目标周期](#m-milankovitch_period)
 - [移动平均](#m-moving_average)
@@ -276,6 +278,74 @@ Y′ = 缩放系数 × Y + 偏移量；负数会反转 Y 的符号，X 不变。
 默认值: ` true `
 
 输出: ` ar1_global_test `, ` spectrum `, ` ar1_global_background `, ` ar1_analysed_series `
+
+
+<a id="m-band_power"></a>
+## 周期带功率积分
+
+在实测的单边功率谱密度上积分，输出目标带功率、参考带功率及占比。周期按输入横轴的原单位填写；无单位记录使用原始数值。
+
+[操作与输出解释](../methods/power_spectra.md#band-power)
+
+<a id="m-band_power-p-band_axis"></a>
+### 范围输入方式
+
+周期上下限在计算前取倒数并交换次序。所有功率在原始频率轴上积分。
+
+默认值: 周期 (` period `)
+
+可选值: 周期 (` period `), 频率 (` frequency `)
+
+<a id="m-band_power-p-band_min"></a>
+### 目标下限
+
+按当前输入方式填写上下限。周期须为正数，频率可从零开始；上限须大于下限。
+
+默认值: ` 0 `
+
+范围: ` 0 ≤ band_min `
+
+<a id="m-band_power-p-band_max"></a>
+### 目标上限
+
+按当前输入方式填写上下限。周期须为正数，频率可从零开始；上限须大于下限。
+
+默认值: ` 0 `
+
+范围: ` 0 ≤ band_max `
+
+<a id="m-band_power-p-band_reference"></a>
+### 参考带
+
+全谱使用上游实际输出的频率范围。跨记录比较时可指定共同参考带，范围须覆盖目标带。
+
+默认值: 实际输出的全谱 (` available `)
+
+可选值: 实际输出的全谱 (` available `), 自定参考带 (` custom `)
+
+<a id="m-band_power-p-band_ref_min"></a>
+### 参考下限
+
+按当前输入方式填写上下限。周期须为正数，频率可从零开始；上限须大于下限。
+
+默认值: ` 0 `
+
+范围: ` 0 ≤ band_ref_min `
+
+显示条件: ` band_reference ` = ` custom `
+
+<a id="m-band_power-p-band_ref_max"></a>
+### 参考上限
+
+按当前输入方式填写上下限。周期须为正数，频率可从零开始；上限须大于下限。
+
+默认值: ` 0 `
+
+范围: ` 0 ≤ band_ref_max `
+
+显示条件: ` band_reference ` = ` custom `
+
+输出: ` band_power `
 
 
 <a id="m-butterworth_highpass"></a>
@@ -1837,7 +1907,7 @@ FFT 对整段、Welch 对每段独立去均值或去线性趋势，再估计谱�
 <a id="m-file_source-p-skip_invalid_rows"></a>
 ### 跳过无效数值行
 
-勾选后，所选 X/Y 中含空值、非数值、NaN 或无穷值的行会被跳过并计数；不勾选则报错。完全空白行始终忽略。预览与正式读取使用同一逻辑。
+默认在所选 X 或 Y 出现缺失或无效数值时报告行号。勾选后跳过这些行并计数。空字段、NaN、NA、N/A 和 NULL 表示缺失，英文标记忽略大小写。完全空白行始终略过。
 
 [操作与输出解释](../methods/data_sources.md#files)
 
@@ -2165,6 +2235,34 @@ La2004 原表间隔为1 ka，细于此间隔使用插值；季节积分最多200
 [任务说明与选择依据](../methods/smoothing_trends.md#linear)
 
 输出: ` detrended `, ` trend `
+
+
+<a id="m-linked_age_model"></a>
+## 应用年龄模型（连接控制点）
+
+A 连接深度代理序列，B 连接上游的 age_model。年龄单位和年代基准来自模型，控制深度会换算为代理序列的深度单位。输出按分段线性插值赋龄，代理值保持原值。
+
+[操作与输出解释](../methods/chronology_usage.md#linked-controls)
+
+<a id="m-linked_age_model-p-linked_depth_unit"></a>
+### 代理序列深度单位
+
+默认读取代理序列的深度单位。输入没有单位时，请明确选择其深度单位。
+
+默认值: 使用输入单位 (` from_input `)
+
+可选值: 使用输入单位 (` from_input `), ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
+
+<a id="m-linked_age_model-p-chrono_boundary"></a>
+### 控制范围以外
+
+默认超范围报错，不删除数据。只有明确选择“线性外推”才用首末区间斜率延长模型，并报告外推点数。转换后不自动重采样。
+
+默认值: 超范围报错 (` reject `)
+
+可选值: 超范围报错 (` reject `), 允许线性外推 (` linear `)
+
+输出: ` aged_series `, ` age_model `, ` age_intervals `
 
 
 <a id="m-lomb_scargle"></a>
@@ -2837,6 +2935,15 @@ La2010 实际最后一行为 249999 ka；ZB 为 300000 ka；PT 为 100000 ka。�
 默认值: 线性 (` linear `)
 
 可选值: 线性 (` linear `), 自然三次样条 (` cubic `), Akima (` akima `)
+
+<a id="m-preprocess-p-allow_extreme_gap"></a>
+### 允许跨极端空档插值
+
+默认勾选。大空档会在报告中标出两端坐标，并按所选参数插值。关闭后，单个空档同时覆盖至少 90% 的 X 总跨度和 10,000 个网格间隔时停止。最多生成 100 万个网格点。
+
+[操作说明与空档判据](../methods/preprocessing.md#resampling-failures)
+
+默认值: ` true `
 
 输出: ` series `
 

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/series/series_operations.h"
+#include "math/sample_scaling.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -41,31 +42,31 @@ AmplitudeResult centerSeries(const std::vector<double> &y, bool standardize, int
             throw std::domain_error("Constant series cannot be standardized");
         return {std::vector<double>(y.size(), 0), y.front(), 1};
     }
-    const double magnitude = std::max(std::abs(*bounds.first), std::abs(*bounds.second));
-    // Work in [-1,1] to avoid overflowing mean or sum of squared deviations,
-    // including MSVC where long double has the same precision as double.
+    const auto scaling = centeredSampleScale(*bounds.first, *bounds.second);
     long double mean = 0;
     for (std::size_t i = 0; i < y.size(); ++i)
     {
         if ((i & 4095) == 0)
             stop(cancel);
-        mean += (y[i] / magnitude - mean) / (i + 1);
+        mean += scaling.unit(y[i]);
     }
+    mean /= y.size();
     long double variance = 0;
     if (standardize)
         for (std::size_t i = 0; i < y.size(); ++i)
         {
             if ((i & 4095) == 0)
                 stop(cancel);
-            const long double centered = y[i] / magnitude - mean;
+            const long double centered = scaling.unit(y[i]) - mean;
             variance += centered * centered / (y.size() - ddof);
         }
     const auto sd = standardize ? std::sqrt(variance) : 1.L;
     if (standardize && !(sd > 0))
         throw std::domain_error("Standard deviation is zero");
     AmplitudeResult result;
-    result.mean = static_cast<double>(mean * magnitude);
-    result.scale = standardize ? static_cast<double>(sd * magnitude) : 1;
+    result.mean = static_cast<double>(std::fma(mean, static_cast<long double>(scaling.scale),
+                                                static_cast<long double>(scaling.origin)));
+    result.scale = standardize ? static_cast<double>(sd * scaling.scale) : 1;
     if (!std::isfinite(result.mean) || !std::isfinite(result.scale) || result.scale <= 0)
         throw std::overflow_error("Mean or standard deviation cannot be represented");
     result.values.reserve(y.size());
@@ -73,8 +74,8 @@ AmplitudeResult centerSeries(const std::vector<double> &y, bool standardize, int
     {
         if ((i & 4095) == 0)
             stop(cancel);
-        const long double centered = y[i] / magnitude - mean;
-        const double v = static_cast<double>(standardize ? centered / sd : centered * magnitude);
+        const long double centered = scaling.unit(y[i]) - mean;
+        const double v = static_cast<double>(standardize ? centered / sd : centered * scaling.scale);
         if (!std::isfinite(v))
             throw std::overflow_error("Centered value overflows; rescale the input");
         result.values.push_back(v);

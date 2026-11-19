@@ -35,7 +35,7 @@ std::vector<double> quadraticTail(const std::vector<double>& y, size_t start)
 }
 
 std::vector<double> specswa(const std::vector<double>& frequency, const std::vector<double>& logPower,
-                           SwaDiagnostics* diagnostics)
+                           SwaDiagnostics* diagnostics, const std::function<void()>& checkpoint)
 {
     if (diagnostics) *diagnostics = {};
     const auto n = logPower.size();
@@ -65,6 +65,7 @@ std::vector<double> specswa(const std::vector<double>& frequency, const std::vec
         size_t bestReversals = n, finish = 0;
         int bestWidth = 0; double bestError = std::numeric_limits<double>::infinity(), lastMean = 0;
         for (int width = 11; width <= 99 && 3*size_t(width) <= n; width += 2) {
+            if (checkpoint) checkpoint();
             const size_t blocks = n/width, half = width/2;
             std::vector<double> means(blocks);
             for (size_t b = 0; b < blocks; ++b)
@@ -104,6 +105,7 @@ std::vector<double> specswa(const std::vector<double>& frequency, const std::vec
         int accepted = 0;
         std::vector<double> smooth(n);
         for (int iteration = 0; iteration < 500; ++iteration) {
+            if (checkpoint) checkpoint();
             smooth.front()=.5*bestFit.front()+.5*bestFit[1];
             smooth.back()=.5*bestFit[n-2]+.5*bestFit.back();
             for (size_t i=1;i+1<n;++i) smooth[i]=.25*bestFit[i-1]+.5*bestFit[i]+.25*bestFit[i+1];

@@ -3,17 +3,16 @@
 #include "application/batch_runner.h"
 #include "application/joint_batch_runner.h"
 #include <algorithm>
-#include <deque>
-#include <future>
+#include <QThreadPool>
+#include <vector>
 #include <mutex>
 #include <condition_variable>
-#include <map>
 
 namespace aster
 {
 BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, int concurrency,
                              EventSink nodeEvents, CompletionSink completed,
-                             CancellationToken cancellation) const
+                             CancellationToken cancellation, PendingInputsOnCancel pending) const
 {
     BatchResult batch;
     if (!plan.validation.ok() || (plan.requests.isEmpty() && plan.batches.isEmpty()) || concurrency < minimumConcurrency || concurrency > maximumConcurrency)
@@ -37,40 +36,42 @@ BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, i
     };
     std::mutex completionMutex;
     std::condition_variable completionChanged;
-    std::deque<qsizetype> ready;
-    std::map<qsizetype, std::future<RunResult>> active;
-    std::map<qsizetype, BatchItem> collected;
+    struct FinishedRun { qsizetype index; RunResult result; };
+    std::vector<FinishedRun> ready;
+    ready.reserve(concurrency);
+    QThreadPool workers;
+    workers.setMaxThreadCount(concurrency);
+    // Destroy the pool before the queue and callbacks it uses. The caller
+    // consumes completions in finish order; input order is kept in batch.items.
     qsizetype next = 0;
-    auto launch = [&]
+    int active = 0;
+    batch.items.resize(plan.requests.size());
+    const auto launch = [&]
     {
         const auto index = next;
-        const auto request = plan.requests[index];
-        active.emplace(
-            index, std::async(std::launch::async,
-                              [&, index, request, serialized, cancellation]
-                              {
-                                  const auto notify = [&]
-                                  {
-                                      {
-                                          std::lock_guard<std::mutex> lock(completionMutex);
-                                          ready.push_back(index);
-                                      }
-                                      completionChanged.notify_one();
-                                  };
-                                  try
-                                  {
-                                      auto result =
-                                          WorkflowExecutor().run(request, serialized, cancellation);
-                                      notify();
-                                      return result;
-                                  }
-                                  catch (...)
-                                  {
-                                      notify();
-                                      throw;
-                                  }
-                              }));
+        workers.start([&, index] {
+            const auto &request = plan.requests[index];
+            RunResult result;
+            try {
+                result = WorkflowExecutor().run(request, serialized, cancellation);
+            } catch (const std::exception &e) {
+                result.error = QString::fromUtf8(e.what());
+            } catch (...) {
+                result.error = "Unexpected worker failure";
+            }
+            if (result.runId.isNull()) {
+                result.runId = QUuid::createUuid();
+                result.root = request.root;
+                result.sourceLabel = request.source.label;
+            }
+            {
+                std::lock_guard<std::mutex> lock(completionMutex);
+                ready.push_back({index, std::move(result)});
+            }
+            completionChanged.notify_one();
+        });
         ++next;
+        ++active;
     };
     bool launchFailed = false;
     const auto tryLaunch = [&]
@@ -90,48 +91,33 @@ BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, i
             batch.error = "Cannot launch worker";
         }
     };
-    while (!launchFailed && next < plan.requests.size() &&
-           active.size() < static_cast<size_t>(concurrency))
+    const auto accepting = [&] {
+        return pending == PendingInputsOnCancel::RecordCancelled || !cancellation.isCancelled();
+    };
+    while (!launchFailed && accepting() && next < plan.requests.size() &&
+           active < concurrency)
         tryLaunch();
     // Even if launching another worker fails, drain and save all work already
     // accepted. The remaining requests were never started; batch.error reports it.
-    while (!active.empty())
+    while (active > 0)
     {
-        qsizetype index;
+        FinishedRun finished;
         {
             std::unique_lock<std::mutex> lock(completionMutex);
             completionChanged.wait(lock, [&] { return !ready.empty(); });
-            index = ready.front();
-            ready.pop_front();
+            finished = std::move(ready.front());
+            ready.erase(ready.begin());
         }
-        RunResult result;
-        try
-        {
-            result = active.at(index).get();
-        }
-        catch (const std::exception &e)
-        {
-            result.runId = QUuid::createUuid();
-            result.root = plan.requests[index].root;
-            result.sourceLabel = plan.requests[index].source.label;
-            result.error = QString::fromUtf8(e.what());
-        }
-        catch (...)
-        {
-            result.runId = QUuid::createUuid();
-            result.root = plan.requests[index].root;
-            result.sourceLabel = plan.requests[index].source.label;
-            result.error = "Unexpected worker failure";
-        }
-        active.erase(index);
+        --active;
+        auto &result = finished.result;
         // Refill the free compute slot before serial persistence/observers.
-        if (!launchFailed && next < plan.requests.size())
+        if (!launchFailed && accepting() && next < plan.requests.size())
             tryLaunch();
         BatchItem item{result.runId, result.sourceLabel, result.state, repository.save(result),
                        {},           result.root};
         if (!item.persistence.saved())
             item.unsavedResult = std::make_shared<const RunResult>(std::move(result));
-        collected.emplace(index, item);
+        batch.items[finished.index] = item;
         if (completed)
         {
             try
@@ -148,8 +134,8 @@ BatchResult BatchRunner::run(const RunPlan &plan, const QString &databasePath, i
             }
         }
     }
-    for (const auto &entry : collected)
-        batch.items.push_back(entry.second);
+    batch.items.resize(next);
+    if (cancellation.isCancelled()) batch.notStarted = plan.requests.size() - next;
     for (const auto &joint : plan.batches)
     {
         if (cancellation.isCancelled()) break;

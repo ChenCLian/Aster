@@ -32,6 +32,7 @@ private slots:
     void independentDftReference();
     void gainAndPhaseInvariants();
     void hilbertEvenOddDcNyquist();
+    void smallSignalOnLargeBaseline();
     void constantOverflowAndCancellation();
     void invalidInputsAndBudgets();
     void workflowPersistenceAndUnits();
@@ -40,6 +41,27 @@ private slots:
     void mapValidationAndPersistence();
     void concurrentAndLarge();
 };
+void FilterAudit::smallSignalOnLargeBaseline()
+{
+    const double cycle[] = {0,2,4,2};
+    std::vector<double> base(512), shifted(512);
+    for (size_t i=0; i<base.size(); ++i) {
+        base[i]=cycle[i%4]; shifted[i]=base[i]+1e16;
+    }
+    for (auto shape : {Shape::Gaussian, Shape::Taner}) {
+        const auto a=bandpass(base,1,shape,.2,.3);
+        const auto b=bandpass(shifted,1,shape,.2,.3);
+        for (size_t i=0;i<base.size();++i) QVERIFY(std::abs(a.filtered[i]-b.filtered[i])<1e-12);
+    }
+    for (bool demean : {true,false}) {
+        const auto a=hilbert(base,demean), b=hilbert(shifted,demean);
+        for (size_t i=0;i<base.size();++i) {
+            QVERIFY(std::abs(a.quadrature[i]-b.quadrature[i])<1e-12);
+            if (demean) QVERIFY(std::abs(b.envelope[i]-2)<1e-12);
+            else QCOMPARE(b.envelope[i], std::hypot(shifted[i],a.quadrature[i]));
+        }
+    }
+}
 void FilterAudit::independentDftReference_data(){
     QTest::addColumn<QJsonObject>("reference");
     QFile f(QFINDTESTDATA("fixtures/filter_reference.json"));QVERIFY(f.open(QIODevice::ReadOnly));

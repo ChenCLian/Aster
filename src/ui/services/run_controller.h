@@ -20,6 +20,7 @@ class RunController : public QObject
     {
         return m_worker != nullptr;
     }
+    bool cancelling() const { return busy() && m_cancel.isCancelled(); }
     bool start(const RunPlan &plan, const QString &path, int concurrency);
     bool retry(const QVector<std::shared_ptr<const RunResult>> &results, const QString &path);
     void cancel()

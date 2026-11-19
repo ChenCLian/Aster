@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/spectrum/mtm_spectrum.h"
 #include "math/numeric_utils.h"
+#include "math/sample_scaling.h"
 #include "math/backend/numeric_backend.h"
 #include <utility>
 #include <algorithm>
@@ -87,16 +88,19 @@ MtmSpectrum mtmSpectrum(const std::vector<double>& y, double fs, double nw, int 
         throw std::invalid_argument("MTM estimated workspace exceeds 512 MiB");
     for (double v : y) if (!std::isfinite(v)) throw std::invalid_argument("Non-finite MTM input");
     stopIf(cancelled);
-    long double mean = 0;
-    // Exactly constant finite inputs must stay exactly zero after centering.
-    // Repeated v/N summation otherwise leaves roundoff-sized false peaks.
-    const bool constant = std::all_of(y.begin(), y.end(), [&](double v) { return v == y.front(); });
-    if (constant) mean = y.front();
-    else for (double v : y) mean += static_cast<long double>(v) / n;
+    const auto bounds = std::minmax_element(y.begin(), y.end());
+    const auto scaling = centeredSampleScale(*bounds.first, *bounds.second);
     std::vector<double> centered(n);
+    long double mean = 0;
+    for (size_t i = 0; i < n; ++i) {
+        if ((i & 4095) == 0) stopIf(cancelled);
+        centered[i] = scaling.unit(y[i]);
+        mean += centered[i];
+    }
+    mean /= n;
     long double varianceAcc = 0;
     for (size_t i = 0; i < n; ++i) {
-        centered[i] = static_cast<double>(static_cast<long double>(y[i]) - mean);
+        centered[i] = static_cast<double>((centered[i] - mean) * scaling.scale);
         varianceAcc += static_cast<long double>(centered[i]) * centered[i] / n;
     }
     const double variance = static_cast<double>(varianceAcc);

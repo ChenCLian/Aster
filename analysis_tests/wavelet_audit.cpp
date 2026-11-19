@@ -13,6 +13,8 @@
 #include "io/database/data_codec.h"
 #include "math/statistics/significance.h"
 #include "math/wavelet/cwt_support.h"
+#include "third_party/wavelib/wavelib.h"
+#include <memory>
 using namespace aster;
 namespace {
 QVector<double> numbers(const QJsonValue& json)
@@ -53,7 +55,38 @@ private slots:
     void orderAndNominalPeriod();
     void clippedLagAndMetadata();
     void significanceFormulaAndValidation();
+    void cancelDuringScales();
+    void rejectMismatchedLengths();
 };
+void WaveletAudit::cancelDuringScales()
+{
+    const auto y = signal().y;
+    const int scales = 10;
+    std::unique_ptr<cwt_set, decltype(&cwt_free)> wave(cwt_init("morlet",6,y.size(),1,scales), cwt_free);
+    QVERIFY(wave);
+    std::fill_n(wave->period, scales, -1.);
+    const auto afterTwoScales = [](const void* state) {
+        return static_cast<const cwt_set*>(state)->period[1] > 0 ? 1 : 0;
+    };
+    QCOMPARE(cwt_checked_cancel(wave.get(), y.constData(), afterTwoScales, wave.get()), int(CWT_CANCELLED));
+    QVERIFY(wave->period[0] > 0 && wave->period[1] > 0);
+    QCOMPARE(wave->period[2], -1.);
+    QCOMPARE(cwt_checked(wave.get(), y.constData()), 0);
+    QVERIFY(wave->period[scales-1] > 0);
+    std::vector<double> power(y.size()*scales, 1);
+    int polls = 0;
+    struct Stopped {};
+    QVERIFY_THROWS_EXCEPTION(Stopped, wave_Significance(y.size(),scales,power.data(),wave->scale,
+        1,1,6,"morlet",0,.95,[&] { if (++polls == 4) throw Stopped{}; }));
+}
+void WaveletAudit::rejectMismatchedLengths()
+{
+    auto s = signal(); s.y.resize(2);
+    const auto r = makeScientificRegistry().create("cwt",{})->execute({makeData(s)},{});
+    QCOMPARE(r.state, NodeState::Failed);
+    QCOMPARE(r.diagnostic().code, QString("INPUT_INVALID"));
+    QVERIFY(r.outputs.isEmpty());
+}
 void WaveletAudit::references_data()
 {
     QTest::addColumn<QJsonObject>("c");

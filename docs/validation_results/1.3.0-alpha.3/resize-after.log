@@ -1,9 +1,0 @@
-********* Start testing of StyleExportTests *********
-Config: Using QtTest library 6.8.2, Qt 6.8.2 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 14.2.0), debian 13
-PASS   : StyleExportTests::initTestCase()
-QWARN  : StyleExportTests::probeReadoutsSurviveResize() This plugin does not support propagateSizeHints()
-QWARN  : StyleExportTests::probeReadoutsSurviveResize() This plugin does not support propagateSizeHints()
-PASS   : StyleExportTests::probeReadoutsSurviveResize()
-PASS   : StyleExportTests::cleanupTestCase()
-Totals: 3 passed, 0 failed, 0 skipped, 0 blacklisted, 285ms
-********* Finished testing of StyleExportTests *********

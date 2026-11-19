@@ -75,6 +75,8 @@ For a range from 0 to 10 and spacing 3, output X is `0, 3, 6, 9`; 10 is not appe
 <a id="resampling-failures"></a>
 ### Diagnosing errors or unexpected shapes
 
+By default the node resamples using the selected settings. A gap covering at least half the span and 1,000 grid intervals produces a warning with both X endpoints in the report. Turn off “Allow interpolation across an extreme gap” to stop before interpolation if one gap covers at least 90% of the span and 10,000 grid intervals. Previously saved choices are honored. The grid limit is one million points.
+
 | Symptom | What to inspect |
 | --- | --- |
 | Duplicate X or too few distinct coordinates | Review source records and duplicate policy; identical X values cannot define a resampling interval |
@@ -87,3 +89,5 @@ For a range from 0 to 10 and spacing 3, output X is `0, 3, 6, 9`; 10 is not appe
 The current grid requires `(maximum X − minimum X) / spacing` between 1 and 999999, producing at most one million points. Very small spacing may also fail floating-point resolution checks. A failed task supplies no valid downstream output. Its successful report records input/output counts, merged rows and the actual spacing when resampling runs.
 
 See the [parameter reference](../reference/task_parameters_en.md#m-preprocess) for defaults and exact ranges, and the [user guide](../USER_GUIDE_EN.md#preview) for preview versus saved results.
+
+Mean removal, standardization, linear detrending and LOWESS calculate deviations before restoring a large common baseline. Residuals retain the small differences resolved in the original observations. The node reports a diagnostic when its output exceeds the numeric range. Moving average and Savitzky–Golay smoothing use the amplitude range of each window, so a spike outside a window leaves its result unchanged.

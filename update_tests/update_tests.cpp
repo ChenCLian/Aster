@@ -44,6 +44,13 @@
 #include <cstring>
 using namespace aster::updates;
 namespace {
+// Exercise each update channel even when the source tree itself is an alpha.
+auto useApplicationVersion(const QString &version)
+{
+    const auto previous = QCoreApplication::applicationVersion();
+    QCoreApplication::setApplicationVersion(version);
+    return qScopeGuard([previous] { QCoreApplication::setApplicationVersion(previous); });
+}
 struct LanguageEdit { bool submitted=false, prompted=false, workflowNotice=false, timedOut=false; };
 LanguageEdit editLanguage(aster::ui::MainWindow &window, const QString &language,
                          QMessageBox::StandardButton answer, bool cancelSettings=false)
@@ -105,6 +112,7 @@ private slots:
 
 
  void cancelMetadataCheckKeepsCancelledState(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   auto cfg=config();cfg.packageMetadata="Aster-update.json";cfg.mirrorFallback=true;
   FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,"{}",10000}};
   aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
@@ -115,6 +123,7 @@ private slots:
   dialog.reject();
  }
  void giteePartialResultNeverClaimsLatest(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   auto cfg=config();cfg.mirrorFallback=true;FakeManager manager;manager.responses={{503,"[]"},{200,"[]"}};
   aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
   QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!dialog.findChild<UpdateChecker*>()->busy());
@@ -455,6 +464,7 @@ private slots:
   LoopbackManager m;m.port=server.serverPort();UpdateChecker c(config(),nullptr,&m);QSignalSpy done(&c,&UpdateChecker::finished);c.check("1.0.0");QVERIFY(done.wait());QCOMPARE(qvariant_cast<UpdateResult>(done[0][0]).state,UpdateResult::State::Available);QCOMPARE(m.requested,config().apiUrl(1));QVERIFY(received.contains("/repos/ChenCLian/Aster/releases?per_page=100&page=1"));QVERIFY(!received.toLower().contains("authorization:"));
  }
  void updateWindowStatesAndChannels(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   FakeManager manager;
   manager.responses={{500,"{}",1},{200,json({release("v99.0.0",false),release("v99.0.0-beta.2",true),release("v100.0.0-rc.1",true),release("v200.0.0-alpha.1",true)}),1},{200,json({release("v1.0.0",false),release("v99.0.0-beta.2",true)}),1}};
   aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();
@@ -476,6 +486,7 @@ private slots:
   dialog.reject();
  }
  void updateWindowCancellationAndClose(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   FakeManager manager;manager.responses={{200,"[]",10000},{200,"[]",10000}};
   aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();
   auto *client=dialog.findChild<UpdateChecker*>();
@@ -488,6 +499,7 @@ private slots:
   closed.show();closed.reject();QTest::qWait(20);QVERIFY(closedManager.requests.isEmpty());
  }
  void updateWindowEmptyAndTimeout(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   FakeManager manager;manager.responses={{200,"[]",1},{200,"[]",10000}};
   auto cfg=config();cfg.timeoutMs=25;aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
   auto *client=dialog.findChild<UpdateChecker*>();
@@ -500,9 +512,8 @@ private slots:
   dialog.reject();
  }
  void updateWindowAlphaStaysOffline(){
-  const auto previous=QCoreApplication::applicationVersion();
-  auto restore=qScopeGuard([&]{QCoreApplication::setApplicationVersion(previous);});
-  QCoreApplication::setApplicationVersion("1.3.0-alpha.99");FakeManager manager;
+  const auto version = useApplicationVersion("1.3.0-alpha.99");
+  FakeManager manager;
   aster::ui::UpdateDialog dialog(config(),nullptr,&manager);dialog.show();QTest::qWait(20);
   QVERIFY(manager.requests.isEmpty());QVERIFY(!dialog.findChild<QPushButton*>("updateCheck")->isEnabled());
   QVERIFY(!dialog.findChild<QTabBar*>("updateChannel")->isEnabled());
@@ -515,6 +526,7 @@ private slots:
    QTest::newRow(qPrintable(language+"-"+theme+"-"+QString::number(width)))<<language<<theme<<width;
  }
  void updateWindowVisuals(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   QFETCH(QString,language);QFETCH(QString,theme);QFETCH(int,width);
   auto restore=qScopeGuard([&]{aster::ui::setLanguage("zh");aster::ui::ThemeManager::instance().apply(*qApp,"light");});
   aster::ui::setLanguage(language);aster::ui::ThemeManager::instance().apply(*qApp,theme);
@@ -555,6 +567,7 @@ private slots:
   QTest::addColumn<QString>("language");QTest::newRow("zh")<<QString("zh");QTest::newRow("en")<<QString("en");
  }
  void packageDownloadWindow(){
+  const auto version = useApplicationVersion("1.3.0-beta.1");
   QFETCH(QString,language);aster::ui::setLanguage(language);
   const auto theme=language=="zh"?"light":"dark";aster::ui::ThemeManager::instance().apply(*qApp,theme);
   const bool previous=QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,true);

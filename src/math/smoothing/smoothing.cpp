@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/smoothing/smoothing.h"
+#include "math/sample_scaling.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -27,14 +28,12 @@ std::vector<double> smoothSeries(const std::vector<double> &y, std::size_t w, in
     if (y.size() > SmoothingLimits::maxSamples || w > SmoothingLimits::maxWindow ||
         y.size() > SmoothingLimits::maxWorkTerms / w)
         throw std::length_error("Smoothing sample/window/work budget exceeded");
-    double magnitude = 0;
     for (std::size_t i = 0; i < y.size(); ++i)
     {
         if ((i & 1023) == 0)
             stop(cancel);
         if (!std::isfinite(y[i]))
             throw std::invalid_argument("Non-finite smoothing input");
-        magnitude = std::max(magnitude, std::abs(y[i]));
     }
     const auto bounds = std::minmax_element(y.begin(), y.end());
     if (*bounds.first == *bounds.second || w == 1)
@@ -85,23 +84,25 @@ std::vector<double> smoothSeries(const std::vector<double> &y, std::size_t w, in
     {
         if ((i & 255) == 0)
             stop(cancel);
+        const bool mean = method == SmoothingMethod::MovingMean;
+        const auto left = i > half ? i - half : 0;
+        const auto first = mean ? left : std::min(left, y.size() - w);
+        const auto last = mean ? std::min(y.size(), i + half + 1) : first + w;
+        const auto window = std::minmax_element(y.begin() + first, y.begin() + last);
+        if (*window.first == *window.second) {
+            result[i] = *window.first;
+            continue;
+        }
+        // A distant spike must never change this window's normalization.
+        const double scale = binarySampleScale(std::max(std::abs(*window.first), std::abs(*window.second)));
         long double sum = 0;
-        if (method == SmoothingMethod::MovingMean)
-        {
-            const auto first = i > half ? i - half : 0;
-            const auto last = std::min(y.size(), i + half + 1);
-            for (std::size_t j = first; j < last; ++j)
-                sum += y[j] / magnitude;
+        for (std::size_t j = first; j < last; ++j) {
+            const long double unit = static_cast<long double>(y[j]) / scale;
+            sum += mean ? unit : weights[i-first][j-first] * unit;
+        }
+        if (mean)
             sum /= static_cast<long double>(last - first);
-        }
-        else
-        {
-            const auto first = std::min(i > half ? i - half : 0, y.size() - w);
-            const auto pos = i - first;
-            for (std::size_t j = 0; j < w; ++j)
-                sum += weights[pos][j] * (y[first + j] / magnitude);
-        }
-        result[i] = static_cast<double>(sum * magnitude);
+        result[i] = static_cast<double>(sum * scale);
         if (!std::isfinite(result[i]))
             throw std::overflow_error("Smoothing output exceeds finite double range");
     }

@@ -1568,9 +1568,10 @@ void setCWTPadding(cwt_object wt, int pad) {
 	}
 }
 
-int cwt_checked(cwt_object wt, const double *inp) {
+int cwt_checked_cancel(cwt_object wt, const double *inp, cwt_cancel_fn cancelled, const void *context) {
 	int i, N, npad,nj2,j,j2;
 	if (!wt || !inp) return -2;
+	if (cancelled && cancelled(context)) return CWT_CANCELLED;
 	N = wt->siglength;
 	if (wt->sflag == 0) {
 		for (i = 0; i < wt->J; ++i) {
@@ -1597,8 +1598,12 @@ int cwt_checked(cwt_object wt, const double *inp) {
 	}
 	wt->smean /= N;
 
-	return cwavelet_checked(inp, N, wt->dt, wt->mother, wt->m, wt->s0,wt->dj,wt->J,npad,wt->params, wt->params+nj2, wt->params+nj2+j, wt->params+nj2+j2);
+	return cwavelet_checked_cancel(inp, N, wt->dt, wt->mother, wt->m, wt->s0,wt->dj,wt->J,npad,wt->params, wt->params+nj2, wt->params+nj2+j, wt->params+nj2+j2, cancelled, context);
 
+}
+
+int cwt_checked(cwt_object wt, const double *inp) {
+    return cwt_checked_cancel(wt, inp, NULL, NULL);
 }
 
 void cwt(cwt_object wt, const double *inp) {

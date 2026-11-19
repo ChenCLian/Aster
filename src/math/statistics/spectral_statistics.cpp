@@ -25,23 +25,34 @@ void validateInference(const SpectrumInference& opt, size_t n)
     }
     if (!opt.tested.empty() && opt.tested.size() != n) throw std::invalid_argument("FDR mask size mismatch");
 }
+std::vector<double> thresholdCurve(const std::vector<double>& background, double tail,
+                                   int fallbackDof, const SpectrumInference& opt)
+{
+    std::vector<double> curve(background.size());
+    double priorDof = 0, factor = 0; // Valid degrees of freedom are strictly positive.
+    for (size_t i = 0; i < background.size(); ++i) {
+        if (i % 4096 == 0 && opt.checkpoint) opt.checkpoint();
+        const auto dof = at(opt.degreesOfFreedom, i, fallbackDof);
+        if (dof != priorDof) {
+            factor = gsl_cdf_chisq_Qinv(tail, dof) / dof;
+            priorDof = dof;
+        }
+        curve[i] = background[i] * factor;
+    }
+    return curve;
+}
 ChiConf chiCurves(const std::vector<double>& background, int fallbackDof, const SpectrumInference& opt)
 {
     ChiConf c;
     const std::array<double, 4> tails{.1, .05, .01, .001};
     const std::array<std::vector<double>*, 4> curves{&c.chi90, &c.chi95, &c.chi99, &c.chi999};
-    for (size_t j = 0; j < curves.size(); ++j) {
-        auto& curve = *curves[j]; curve.reserve(background.size());
-        for (size_t i = 0; i < background.size(); ++i) {
-            const auto nu = at(opt.degreesOfFreedom, i, fallbackDof);
-            curve.push_back(background[i] * (gsl_cdf_chisq_Qinv(tails[j], nu) / nu));
-        }
-    }
+    for (size_t j = 0; j < curves.size(); ++j)
+        *curves[j] = thresholdCurve(background, tails[j], fallbackDof, opt);
     return c;
 }
 // Two balanced halves give exact medians, including even windows at the edges.
 // Updating and querying the rolling median costs O(log width), not O(width).
-std::vector<double> median(const std::vector<double>& values, size_t width)
+std::vector<double> median(const std::vector<double>& values, size_t width, const std::function<void()>& checkpoint)
 {
     const size_t n = values.size(), half = width / 2;
     const size_t behind = width % 2 ? half : half-1;
@@ -52,6 +63,7 @@ std::vector<double> median(const std::vector<double>& values, size_t width)
     };
     std::vector<double> result(n); size_t left = 0, right = 0;
     for (size_t i = 0; i < n; ++i) {
+        if (i % 4096 == 0 && checkpoint) checkpoint();
         const auto end = std::min(n, i + half + 1), begin = i > behind ? i - behind : 0;
         while (right < end) {
             const auto x = values[right++];
@@ -68,7 +80,7 @@ std::vector<double> median(const std::vector<double>& values, size_t width)
     return result;
 }
 struct Ar1Fit { double scale, rho; };
-Ar1Fit fitAr1(const double* f, const std::vector<double>& p, double nyquist, bool logfit)
+Ar1Fit fitAr1(const double* f, const std::vector<double>& p, double nyquist, bool logfit, const std::function<void()>& checkpoint)
 {
     // Profile out the amplitude analytically; optimize only rho=tanh(theta).
     // Normalization keeps the objective independent of the physical power unit.
@@ -88,6 +100,7 @@ Ar1Fit fitAr1(const double* f, const std::vector<double>& p, double nyquist, boo
         return (1-rho)*(1+rho) / den;
     };
     auto evaluate = [&](double theta, double* amplitude = nullptr) {
+        if (checkpoint) checkpoint();
         const auto rho = std::tanh(theta);
         long double xy = 0, xx = 0;
         for (size_t i = 0; i < p.size(); ++i) {
@@ -154,8 +167,8 @@ RedNoiseConf computeRedNoiseConfidence(const double* pxx, const double* ft, doub
         throw std::invalid_argument("Too few frequency bins for the requested median smoothing fraction");
     width = std::max(size_t(1), width);
     if (!inference.acycle && width % 2 == 0) ++width;
-    auto smooth = median(normalized, width);
-    const auto fit = fitAr1(ft, smooth, nyquist, logfit);
+    auto smooth = median(normalized, width, inference.checkpoint);
+    const auto fit = fitAr1(ft, smooth, nyquist, logfit, inference.checkpoint);
     std::vector<double> background(n);
     for (size_t i = 0; i < n; ++i) {
         const auto rho = fit.rho, angle = .5*pi*ft[i]/nyquist;
@@ -222,7 +235,7 @@ std::vector<double> estimateSwaBackground(const std::vector<double>& power,
     // Only exact zeros need a floor. Centering logs also preserves unit invariance.
     // The relative floor is 300 decades below the largest bin; positive bins are never clipped.
     for (auto& p : logPower) p = std::isfinite(p) ? p-maxLog : -300;
-    auto normalizedBackground = specswa(freq, logPower, diagnostics);
+    auto normalizedBackground = specswa(freq, logPower, diagnostics, inference.checkpoint);
     std::vector<double> background(power.size());
     for (size_t i = 0; i < power.size(); ++i) {
         const auto logBackground = std::log10(normalizedBackground[i]) + maxLog + std::log10(at(inference.densityScale,i,1));
@@ -242,6 +255,7 @@ FDRSpectralAnalysisResult FDR_TEST(const std::vector<double>& power, const std::
     result.swa=estimateSwaBackground(power,freq,inference,&result.diagnostics);
     std::vector<double> pValues;
     for(size_t i=0;i<power.size();++i) {
+        if (i % 4096 == 0 && inference.checkpoint) inference.checkpoint();
         if (!inference.tested.empty() && !inference.tested[i]) continue;
         const auto nu = at(inference.degreesOfFreedom,i,dof), statistic = (power[i]/result.swa[i])*nu;
         // Q computes the small upper tail directly. Overflow means overwhelming power, not p=1.
@@ -260,12 +274,9 @@ FDRSpectralAnalysisResult FDR_TEST(const std::vector<double>& power, const std::
     const std::array<std::vector<double>*,4> curves{&result.fdrConf.clfdr5,&result.fdrConf.clfdr1,&result.fdrConf.clfdr01,&result.fdrConf.clfdr001};
     for (size_t q = 0; q < cutoffs.size(); ++q) {
         if (std::isnan(cutoffs[q])) continue; // no discoveries, not a failed calculation
-        for (size_t i = 0; i < power.size(); ++i) {
-            const auto nu = at(inference.degreesOfFreedom,i,dof);
-            const auto threshold = result.swa[i] * (gsl_cdf_chisq_Qinv(cutoffs[q],nu)/nu);
-            if (!std::isfinite(threshold)) throw std::runtime_error("FDR threshold is not representable");
-            curves[q]->push_back(threshold);
-        }
+        *curves[q] = thresholdCurve(result.swa, cutoffs[q], dof, inference);
+        if (std::any_of(curves[q]->begin(), curves[q]->end(), [](double v) { return !std::isfinite(v); }))
+            throw std::runtime_error("FDR threshold is not representable");
     }
     result.chiConf = chiCurves(result.swa,dof,inference);
     return result;

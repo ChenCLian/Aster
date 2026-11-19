@@ -101,7 +101,8 @@ class MainWindow : public QMainWindow
     QLabel *m_status;
     QLabel *m_notice;
     QLabel *m_zoom;
-    QSet<QString> m_terminalSteps;
+    QSet<QPair<RunId, NodeId>> m_terminalSteps;
+    bool m_browsedRunResults = false;
     QMap<RunId, std::shared_ptr<const RunResult>> m_unsaved;
 };
 } // namespace aster::ui

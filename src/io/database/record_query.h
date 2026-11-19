@@ -42,7 +42,8 @@ inline QString recordConditions(const RecordFilter &filter, QVariantList &values
         values << filter.until.toUTC().toString(Qt::ISODateWithMs);
     }
     if (filter.hasFrequency())
-        sql += " AND EXISTS(SELECT 1 FROM aster_peaks p WHERE p.run_id=r.id" +
+        // Build the matching IDs once from the covering (unit,frequency,run_id) index.
+        sql += " AND r.id IN(SELECT p.run_id FROM aster_peaks p WHERE 1=1" +
                peakConditions(filter, values) + ")";
     return sql;
 }

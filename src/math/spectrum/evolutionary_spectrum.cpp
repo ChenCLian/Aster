@@ -3,6 +3,7 @@
 #include "math/spectrum/evolutionary_spectrum.h"
 #include "math/spectrum/mtm_spectrum.h"
 #include "math/backend/numeric_backend.h"
+#include "math/sample_scaling.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -20,30 +21,27 @@ void stop(const std::function<bool()> &cancel)
 void removeTrend(std::vector<double> &y, SegmentTrend trend)
 {
     // Normalized coordinates/values also work where long double == double.
-    double magnitude = 0;
-    for (double v : y)
-        magnitude = std::max(magnitude, std::abs(v));
-    if (magnitude == 0)
-        return;
     const auto bounds = std::minmax_element(y.begin(), y.end());
     if (*bounds.first == *bounds.second)
     {
         std::fill(y.begin(), y.end(), 0);
         return;
     }
+    const auto scaling = centeredSampleScale(*bounds.first, *bounds.second);
     long double mean = 0, cross = 0, square = 0;
     for (std::size_t i = 0; i < y.size(); ++i)
     {
         const long double t = 2.L * i / (y.size() - 1) - 1;
-        mean += (y[i] / magnitude) / static_cast<long double>(y.size());
-        cross += t * (y[i] / magnitude);
+        y[i] = scaling.unit(y[i]);
+        mean += y[i] / static_cast<long double>(y.size());
+        cross += t * y[i];
         square += t * t;
     }
     const long double slope = trend == SegmentTrend::Linear ? cross / square : 0;
     for (std::size_t i = 0; i < y.size(); ++i)
     {
         y[i] = static_cast<double>(
-            (y[i] / magnitude - mean - slope * (2.L * i / (y.size() - 1) - 1)) * magnitude);
+            (y[i] - mean - slope * (2.L * i / (y.size() - 1) - 1)) * scaling.scale);
         if (!std::isfinite(y[i]))
             throw std::overflow_error("Segment detrending overflow");
     }

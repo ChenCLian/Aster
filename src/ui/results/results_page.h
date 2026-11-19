@@ -18,6 +18,7 @@ class QComboBox;
 class QCheckBox;
 class QPushButton;
 class QSplitter;
+class QTimer;
 class QToolButton;
 namespace aster::ui
 {
@@ -31,6 +32,8 @@ class ResultsPage : public QWidget
     explicit ResultsPage(TaskRegistry registry, QWidget *parent = nullptr);
     void setDatabase(const QString &path);
     void refresh(qint64 selectId = 0);
+    void recordsAdded();
+    void refreshPendingIfVisible();
     void setDatabaseMutationsEnabled(bool enabled);
     void openRecord(qint64 id);
     qint64 recordId() const
@@ -85,7 +88,12 @@ class ResultsPage : public QWidget
     void recordChanging();
     void sourceRequested(aster::OutputReference reference);
 
+  protected:
+    void showEvent(QShowEvent *event) override;
   private:
+    QTimer *m_liveRefresh;
+    QPushButton *m_reload;
+    bool m_newRecords = false;
     QVector<OutputInfo> orderedOutputs(NodeId node) const;
     QHash<NodeId, QString> m_primaryPorts;
     QHash<NodeId, QString> m_nodeMethods;

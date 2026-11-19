@@ -11,6 +11,9 @@
 #include <memory>
 
 namespace aster {
+namespace {
+struct WaveletCancelled {};
+}
 TaskDescriptor WaveletTask::descriptor()
 {
     TaskDescriptor d; d.version = 3; d.label = "Continuous wavelet transform"; d.category = taskCategory(TaskCategory::Wavelet);
@@ -30,8 +33,11 @@ WaveletTask::WaveletTask(const QJsonObject& p) : m_mother(p["mother"].toString()
     m_dj(p["dj"].toDouble()), m_significance(p["significance"].toBool()) {}
 NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& context)
 {
+    if (context.cancellation.isCancelled()) return NodeResult::cancelled();
     const auto* source = dataAs<SeriesData>(input.data);
     if (!source) return NodeResult::failure(makeError(ErrorCode::InputType, {{"expected", "Series"}}));
+    if (source->x.size() != source->y.size())
+        return NodeResult::failure(makeError(ErrorCode::InputInvalid, {}, "X and Y lengths differ"));
     if (source->x.size() < 6) return NodeResult::failure(makeError(ErrorCode::TooFewSamples, {{"actual", double(source->x.size())}, {"minimum", 6}}));
     if (source->x.size() > 1000000) return NodeResult::failure(makeError(ErrorCode::WaveletSamplesLimit, {{"actual", double(source->x.size())}, {"maximum", 1000000}}));
     double dt = 0; const auto error = science_detail::uniformSpacing(*source, dt);
@@ -63,7 +69,11 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
         if (!wave) return NodeResult::failure(makeError(ErrorCode::AllocationFailure, {{"operation", "cwt"}, {"samples", n}, {"scales", scales}}));
         setCWTScales(wave.get(), geometry.initialScaleSamples, m_dj, "pow", 2);
         setCWTPadding(wave.get(), 1);
-        const int status = cwt_checked(wave.get(), signal.values.data());
+        const auto cancelled = [](const void* token) {
+            return static_cast<const CancellationToken*>(token)->isCancelled() ? 1 : 0;
+        };
+        const int status = cwt_checked_cancel(wave.get(), signal.values.data(), cancelled, &context.cancellation);
+        if (status == CWT_CANCELLED) return NodeResult::cancelled();
         if (status != 0)
             return NodeResult::failure(makeError(status == -1 ? ErrorCode::AllocationFailure : ErrorCode::NumericRange,
                 {{"operation", "cwt"}, {"samples", n}, {"scales", scales}, {"native_status", status}}));
@@ -82,6 +92,7 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
         if ((m_significance || acycle) && signal.sampleVariance > 0) unitPower.resize(power.values.size());
         bool hasPower = false;
         for (qsizetype i=0; i<power.values.size(); ++i) {
+            if ((i & 4095) == 0 && context.cancellation.isCancelled()) return NodeResult::cancelled();
             const auto v = wave->output[i];
             if (!unitPower.isEmpty()) unitPower[i] = v.re*v.re+v.im*v.im;
             const double magnitude = std::hypot(v.re,v.im)*signal.amplitude;
@@ -124,7 +135,9 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
                 result.warnings.push_back("Estimated AR1 coefficient is not stationary (abs(rho)>=1); wavelet power is retained but the significance ratio is unavailable");
             } else {
             const auto ratio = wave_Significance(n, scales, unitPower.data(), wave->scale, signal.sampleVariance,
-                                                 1, m_parameter, m_mother, lag.used, .95);
+                                                 1, m_parameter, m_mother, lag.used, .95, [&] {
+                if (context.cancellation.isCancelled()) throw WaveletCancelled{};
+            });
             GridData significance = power; significance.values = QVector<double>(ratio.begin(),ratio.end());
             significance.valueAxis = {"Power / nominal 95% threshold", "dimensionless"};
             result.outputs.insert("significance_ratio", makeData(std::move(significance)));
@@ -147,6 +160,7 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
             displayed.valueAxis = {"Variance-normalized scale-corrected power", source->xAxis.unit.isEmpty()
                 ? QString() : "1 / ("+source->xAxis.unit+")"};
             for (int j=0; j<scales; ++j) {
+                if (context.cancellation.isCancelled()) return NodeResult::cancelled();
                 const auto scale = static_cast<long double>(wave->scale[j])*dt;
                 for (int i=0; i<n; ++i) {
                     const qsizetype index=static_cast<qsizetype>(j)*n+i;
@@ -165,7 +179,9 @@ NodeResult WaveletTask::execute(const TaskInput& input, const ExecutionContext& 
             result.report["calibration_reference"] = "docs/methods/acycle_compatibility.md";
             result.report["significance_calibration"] = "Acycle pointwise approximation; not globally calibrated";
         }
-        return result;
+        return context.cancellation.isCancelled() ? NodeResult::cancelled() : result;
+    } catch (const WaveletCancelled&) {
+        return NodeResult::cancelled();
     } catch (const std::invalid_argument& e) {
         return NodeResult::failure(makeError(ErrorCode::ParameterInvalid, {{"mother", m_mother}, {"parameter", m_parameter}, {"dj", m_dj}}, QString::fromUtf8(e.what())));
     } catch (const std::runtime_error& e) {

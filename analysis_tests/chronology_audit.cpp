@@ -302,10 +302,11 @@ void ChronologyAudit::parserParity()
     }
     else
         QCOMPARE(a.report, b.report);
-    o.maxRows = 2;
-    QVERIFY(!readSeriesBytes("0,1\n1,2\n2,3\n", path,
-                             SeriesFileOptions{"comma", false, false, {}, {}, 0, 1, false, 2})
-                 .ok());
+    SeriesFileOptions limited;
+    limited.delimiter = "comma";
+    limited.header = false;
+    limited.maxRows = 2;
+    QVERIFY(!readSeriesBytes("0,1\n1,2\n2,3\n", path, limited).ok());
 }
 void ChronologyAudit::controlFilesAndSnapshots()
 {

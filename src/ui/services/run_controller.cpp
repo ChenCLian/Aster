@@ -3,6 +3,8 @@
 #include "ui/common/presentation.h"
 #include "ui/services/run_controller.h"
 #include <QThread>
+#include <QElapsedTimer>
+#include <QHash>
 namespace aster::ui
 {
 RunController::RunController(QObject *p) : QObject(p)
@@ -62,9 +64,30 @@ bool RunController::start(const RunPlan &plan, const QString &path, int concurre
     return launch(
         [this, plan, path, concurrency, cancel = m_cancel]
         {
+            QElapsedTimer clock;
+            clock.start();
+            struct LastProgress { qint64 at; int percent; QString phase; };
+            QHash<QPair<RunId, NodeId>, LastProgress> last;
+            // BatchRunner serializes this callback. Coalesce algorithm updates
+            // before posting to Qt; every start and terminal event is delivered.
+            const auto notify = [&](const RunEvent &event) {
+                const auto key = qMakePair(event.runId, event.nodeId);
+                if (event.progressPercent >= 0 && event.state == NodeState::Running) {
+                    const auto now = clock.elapsed();
+                    const auto prior = last.constFind(key);
+                    if (prior != last.cend() && prior->phase == event.message &&
+                        (prior->percent == event.progressPercent ||
+                         (event.progressPercent < 100 && now - prior->at < 200))) return;
+                    last.insert(key, {now, event.progressPercent, event.message});
+                } else if (event.state != NodeState::Running && event.state != NodeState::Pending) {
+                    last.remove(key);
+                }
+                emit eventReady(event);
+            };
             return BatchRunner().run(
-                plan, path, concurrency, [this](const RunEvent &event) { emit eventReady(event); },
-                [this](const BatchItem &item) { emit itemReady(item); }, cancel);
+                plan, path, concurrency, notify,
+                [this](const BatchItem &item) { emit itemReady(item); }, cancel,
+                PendingInputsOnCancel::LeaveUnstarted);
         });
 }
 bool RunController::retry(const QVector<std::shared_ptr<const RunResult>> &results,

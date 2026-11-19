@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "processing/task_categories.h"
 #include "processing/file_source_task.h"
+#include "model/file_import_compat.h"
 #include "processing/task_helpers.h"
 #include "processing/science_helpers.h"
 namespace aster
@@ -20,6 +21,7 @@ TaskDescriptor FileSourceTask::descriptor()
         task_detail::number("y_column", "Y column (zero-based)", 1, 0, 10000,
                             ParameterKind::Integer),
         science_detail::boolean("skip_invalid_rows", "Skip invalid numeric rows", false)};
+    d.prepareParameters = currentFileImportOptions;
     return d;
 }
 FileSourceTask::FileSourceTask(const QJsonObject &p)

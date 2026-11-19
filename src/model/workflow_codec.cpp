@@ -24,7 +24,12 @@ QJsonObject workflowToJson(const WorkflowDefinition& definition)
 {
     QJsonArray nodes, layout;
     bool scoped = false;
-    for (const auto &node : definition.nodes) scoped |= !node.parameterOverrides.isEmpty();
+    bool automatic = false;
+    for (const auto &node : definition.nodes) {
+        automatic |= node.input && node.input->slot == ChildSlot::Append;
+        scoped |= !node.parameterOverrides.isEmpty();
+    }
+    scoped |= automatic; // Version 3 always carries the parameter_overrides field.
     for (const auto& node : definition.nodes) {
         QJsonValue input(QJsonValue::Null);
         if (node.input) input = QJsonObject{{"parent", idText(node.input->parent)},
@@ -41,18 +46,19 @@ QJsonObject workflowToJson(const WorkflowDefinition& definition)
     }
     for (auto it = definition.layout.begin(); it != definition.layout.end(); ++it)
         layout.push_back(QJsonObject{{"id", idText(it.key())}, {"column", it->column}, {"row", it->row}});
-    return {{"schema_version", scoped ? 2 : 1}, {"nodes", nodes}, {"layout", layout}};
+    return {{"schema_version", automatic ? 3 : scoped ? 2 : 1}, {"nodes", nodes}, {"layout", layout}};
 }
 WorkflowReadResult workflowFromJson(const QJsonObject& json)
 {
     WorkflowReadResult result;
     const auto reject = [&](QString path, QString message) { result.validation.add(path, message); };
     if (!exactKeys(json, {"schema_version", "nodes", "layout"}) ||
-        !integer(json.value("schema_version"), 1, 2) || !json.value("nodes").isArray() || !json.value("layout").isArray()) {
+        !integer(json.value("schema_version"), 1, 3) || !json.value("nodes").isArray() || !json.value("layout").isArray()) {
         reject("workflow", "Unsupported schema version or malformed top-level fields");
         return result;
     }
-    const bool scoped = json.value("schema_version").toInt() == 2;
+    const int version = json.value("schema_version").toInt();
+    const bool scoped = version >= 2;
     QStringList nodeKeys{"id", "method", "method_version", "parameters", "input"};
     if (scoped) nodeKeys << "parameter_overrides";
     const auto nodes = json.value("nodes").toArray();
@@ -89,7 +95,8 @@ WorkflowReadResult workflowFromJson(const QJsonObject& json)
             const auto slot = slotFromName(edge.value("slot").toString());
             if (!input.isObject() || !exactKeys(edge, {"parent", "output", "slot"}) ||
                 !edge.value("parent").isString() || QUuid(edge.value("parent").toString()).isNull() ||
-                !edge.value("output").isString() || edge.value("output").toString().isEmpty() || !slot) {
+                !edge.value("output").isString() || edge.value("output").toString().isEmpty() || !slot ||
+                (*slot == ChildSlot::Append && version < 3)) {
                 reject(path, "Malformed input binding"); continue;
             }
             node.input = InputBinding{QUuid(edge.value("parent").toString()), edge.value("output").toString(), *slot};

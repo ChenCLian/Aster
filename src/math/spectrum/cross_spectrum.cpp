@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/spectrum/cross_spectrum.h"
 #include "math/backend/numeric_backend.h"
+#include "math/sample_scaling.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -53,25 +54,25 @@ std::vector<double> segment(const std::vector<double> &input, std::size_t start,
 {
     const auto n = window.size();
     std::vector<double> out(nfft, 0);
-    if (!scale)
-        return out;
-    bool constant = true;
+    double origin = 0;
+    if (trend != CrossDetrend::None)
+    {
+        const auto bounds = std::minmax_element(input.begin() + start, input.begin() + start + n);
+        if (*bounds.first == *bounds.second)
+            return out;
+        origin = sampleMidpoint(*bounds.first, *bounds.second);
+    }
     Sum mean, cross, square;
     for (std::size_t i = 0; i < n; ++i)
     {
-        out[i] = input[start + i] / scale;
-        if (input[start + i] != 0 && out[i] == 0)
+        const double delta = input[start + i] - origin;
+        out[i] = delta / scale;
+        if (delta != 0 && out[i] == 0)
             throw std::overflow_error("Input dynamic range exceeds cross-spectrum precision");
-        constant = constant && input[start + i] == input[start];
         const double t = 2.0 * i / (n - 1) - 1;
         mean.add(out[i] / n);
         cross.add(t * out[i]);
         square.add(t * t);
-    }
-    if (constant && trend != CrossDetrend::None)
-    {
-        std::fill(out.begin(), out.end(), 0);
-        return out;
     }
     const double slope = trend == CrossDetrend::Linear ? cross.value / square.value : 0;
     for (std::size_t i = 0; i < n; ++i)
@@ -114,19 +115,19 @@ CrossSpectrumResult crossSpectrum(const std::vector<double> &a, const std::vecto
     // Validate all observations, but scale from the samples actually used by
     // complete windows. A discarded tail must never change the estimate.
     const auto used = (count - 1) * step + length;
-    double scaleA = 0, scaleB = 0;
     for (std::size_t i = 0; i < n; ++i)
     {
         if (!(i & 4095))
             stop(cancel);
         if (!std::isfinite(a[i]) || !std::isfinite(b[i]))
             throw std::invalid_argument("Non-finite paired input");
-        if (i < used)
-        {
-            scaleA = std::max(scaleA, std::abs(a[i]));
-            scaleB = std::max(scaleB, std::abs(b[i]));
-        }
     }
+    const auto scaleFor = [&](const std::vector<double> &values) {
+        const auto bounds = std::minmax_element(values.begin(), values.begin() + used);
+        const double origin = o.detrend == CrossDetrend::None ? 0 : sampleMidpoint(*bounds.first, *bounds.second);
+        return binarySampleScale(std::max(*bounds.second - origin, origin - *bounds.first));
+    };
+    const double scaleA = scaleFor(a), scaleB = scaleFor(b);
     std::vector<double> window(length, 1);
     Sum energy;
     for (std::size_t i = 0; i < length; ++i)

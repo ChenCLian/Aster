@@ -263,6 +263,9 @@ void setCWTScaleVector(cwt_object wt, const double *scale, int J, double s0, dou
 void setCWTPadding(cwt_object wt, int pad);
 
 /* Aster: checked padded-CWT path used by the desktop task. */
+typedef int (*cwt_cancel_fn)(const void *context);
+enum { CWT_CANCELLED = 1 };
+int cwt_checked_cancel(cwt_object wt, const double *inp, cwt_cancel_fn cancelled, const void *context);
 int cwt_checked(cwt_object wt, const double *inp);
 void cwt(cwt_object wt, const double *inp);
 

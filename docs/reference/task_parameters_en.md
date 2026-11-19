@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.3.1-beta.2. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in Aster 1.3.2-beta.7. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -13,6 +13,7 @@ Choice labels match the interface; identifiers used in saved settings are retain
 - [Scale and offset](#m-affine)
 - [Apply age model](#m-apply_age_model)
 - [AR1 background global test](#m-ar1_global)
+- [Period-band power integration](#m-band_power)
 - [Butterworth high-pass](#m-butterworth_highpass)
 - [Butterworth low-pass](#m-butterworth_lowpass)
 - [Sort and deduplicate](#m-clean_series)
@@ -40,6 +41,7 @@ Choice labels match the interface; identifiers used in saved settings are retain
 - [La2004 latitude–age insolation map](#m-insolation_map)
 - [La2004 daily mean insolation](#m-insolation_source)
 - [Linear detrend](#m-linear_detrend)
+- [Apply age model from connected controls](#m-linked_age_model)
 - [Lomb–Scargle (floating mean)](#m-lomb_scargle)
 - [Milankovitch target period](#m-milankovitch_period)
 - [Moving average](#m-moving_average)
@@ -276,6 +278,74 @@ Reuses reference simulations with matching settings. Disabling this regenerates 
 Default: ` true `
 
 Outputs: ` ar1_global_test `, ` spectrum `, ` ar1_global_background `, ` ar1_analysed_series `
+
+
+<a id="m-band_power"></a>
+## Period-band power integration
+
+Integrates a measured one-sided power spectral density and returns target power, reference power and fraction. Periods use the original coordinate unit, or raw numbers for undeclared units.
+
+[Use and output interpretation](../methods/power_spectra_en.md#band-power)
+
+<a id="m-band_power-p-band_axis"></a>
+### Enter bounds as
+
+Period bounds are inverted and swapped before integration on the native frequency axis.
+
+Default: Period (` period `)
+
+Values: Period (` period `), Frequency (` frequency `)
+
+<a id="m-band_power-p-band_min"></a>
+### Target lower bound
+
+Use the selected coordinate. Periods must be positive; frequencies may start at zero. The upper bound must exceed the lower bound.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ band_min `
+
+<a id="m-band_power-p-band_max"></a>
+### Target upper bound
+
+Use the selected coordinate. Periods must be positive; frequencies may start at zero. The upper bound must exceed the lower bound.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ band_max `
+
+<a id="m-band_power-p-band_reference"></a>
+### Reference band
+
+The available spectrum uses the published range. Specify a common reference covering the target when comparing records.
+
+Default: Available spectrum (` available `)
+
+Values: Available spectrum (` available `), Custom reference band (` custom `)
+
+<a id="m-band_power-p-band_ref_min"></a>
+### Reference lower bound
+
+Use the selected coordinate. Periods must be positive; frequencies may start at zero. The upper bound must exceed the lower bound.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ band_ref_min `
+
+Shown when: ` band_reference ` = ` custom `
+
+<a id="m-band_power-p-band_ref_max"></a>
+### Reference upper bound
+
+Use the selected coordinate. Periods must be positive; frequencies may start at zero. The upper bound must exceed the lower bound.
+
+Default: ` 0 `
+
+Range: ` 0 ≤ band_ref_max `
+
+Shown when: ` band_reference ` = ` custom `
+
+Outputs: ` band_power `
 
 
 <a id="m-butterworth_highpass"></a>
@@ -1837,7 +1907,7 @@ Range: ` 0 ≤ y_column ≤ 10000 `
 <a id="m-file_source-p-skip_invalid_rows"></a>
 ### Skip invalid numeric rows
 
-When enabled, rows with empty, nonnumeric, NaN or infinite selected X/Y are dropped and counted; otherwise import fails. Completely blank lines are ignored. Preview and execution share this reader.
+By default a missing or invalid X or Y reports the source line. Enable this option to skip and count these rows. Empty fields, NaN, NA, N/A and NULL denote missing values, ignoring case. Completely blank lines are always ignored.
 
 [Use and output interpretation](../methods/data_sources_en.md#files)
 
@@ -2165,6 +2235,34 @@ Fits and subtracts the least-squares line of Y against X, with separate residual
 [Task guide and selection criteria](../methods/smoothing_trends_en.md#linear)
 
 Outputs: ` detrended `, ` trend `
+
+
+<a id="m-linked_age_model"></a>
+## Apply age model from connected controls
+
+Connect a depth-domain proxy to A and an upstream age_model to B. The model supplies the age unit and reference. Its control depths are converted to the proxy depth unit before piecewise linear interpolation.
+
+[Use and output interpretation](../methods/chronology_usage_en.md#linked-controls)
+
+<a id="m-linked_age_model-p-linked_depth_unit"></a>
+### Proxy depth unit
+
+Read the unit from the proxy. Select a depth unit explicitly when the proxy has none.
+
+Default: Use input unit (` from_input `)
+
+Values: Use input unit (` from_input `), ` m `, ` dm `, ` cm `, ` mm `, ` ft `, ` km `
+
+<a id="m-linked_age_model-p-chrono_boundary"></a>
+### Outside control range
+
+Default rejects uncovered data without deleting rows. Explicit linear extrapolation extends endpoint secants and reports the count. No automatic resampling follows.
+
+Default: Reject outside range (` reject `)
+
+Values: Reject outside range (` reject `), Allow linear extrapolation (` linear `)
+
+Outputs: ` aged_series `, ` age_model `, ` age_intervals `
 
 
 <a id="m-lomb_scargle"></a>
@@ -2837,6 +2935,15 @@ Linear joins adjacent observations. Natural cubic spline uses zero endpoint seco
 Default: Linear (` linear `)
 
 Values: Linear (` linear `), Natural cubic spline (` cubic `), Akima (` akima `)
+
+<a id="m-preprocess-p-allow_extreme_gap"></a>
+### Allow interpolation across an extreme gap
+
+Enabled by default. Large gaps are reported with both endpoints and interpolation proceeds as configured. Disable to stop before a gap spanning at least 90% of X and 10,000 grid intervals. The grid limit is one million points.
+
+[Operation and gap criteria](../methods/preprocessing_en.md#resampling-failures)
+
+Default: ` true `
 
 Outputs: ` series `
 

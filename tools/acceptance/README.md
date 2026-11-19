@@ -1,6 +1,6 @@
 # 交互验收工具
 
-可选的 QtTest 程序，不参与应用构建或发行程序包。连接已经完成的同一 Qt Kit、Release 配置的 Aster 静态模块；`ASTER_BUILD_ROOT` 指向包含 `lib/` 的构建目录。科学计算依赖沿用 `config/scientific_dependencies.pri`。
+发布工作流使用 `CONFIG+=interaction_acceptance` 构建此 QtTest 程序，并由 `run_tests.py --include-interaction` 运行。日常开发也可以单独构建。发行程序包仅包含桌面应用。连接已经完成的同一 Qt Kit、Release 配置的 Aster 静态模块；`ASTER_BUILD_ROOT` 指向包含 `lib/` 的构建目录。科学计算依赖沿用 `config/scientific_dependencies.pri`。
 
 在单独的构建目录运行：
 
@@ -13,7 +13,7 @@ make
 Windows/MSVC 使用对应 Kit 的 qmake 和 jom；不得混用编译器、Qt 版本或 Debug/Release 模块。可用 QtTest 的 `-functions` 列出用例，或在命令后指定函数名。设置 `ASTER_UI_CAPTURE_DIR` 可保留屏幕矩阵截图。Linux 无窗口服务器时可设置 `QT_QPA_PLATFORM=offscreen`；这不能代替原生拖放和显示缩放验收。
 
 - 16 组主窗口/结果界面：中英文、深浅主题、1280×800 / 1920×1080，并检查缩小窗口后的布局。
-- 53 个通用参数页面：中英文、200 / 320 像素宽度，核对参数往返和横向裁切；文件导入由主窗口矩阵覆盖。
+- 注册表中全部通用参数页面（当前 57 个）：中英文、200 / 320 像素宽度，核对参数往返和横向裁切；文件导入由主窗口矩阵覆盖。
 - 三个固定随机种子，各 60 次混合绘图操作，验证页/子图身份、叠加、替换、删除、排布、样式、缩放、异步稳定和对象释放。
 - 搜索按可见名称匹配、无匹配后旧选择失效；256 点双正弦的分段报错、输入修改、撤销/重做及预览与直接计算一致性。
 - 上下文菜单打开期间关闭原页，确认失效对象不会访问新页；密集图例、滚动及隐藏/恢复图例。

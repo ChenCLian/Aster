@@ -1,0 +1,12 @@
+{
+  "version": "1.3.1-beta.6",
+  "documentation": {
+    "status": "reviewed_and_rebuilt",
+    "content_rewritten": true,
+    "scope": "Bilingual file import rules, resampling gap policy, diagnostic help and regenerated parameter references.",
+    "catalog_tasks": 58,
+    "catalog_parameters": 270,
+    "help_reference_tests_passed": 8,
+    "bundled_resources_verified": 15
+  }
+}

@@ -69,6 +69,7 @@ private slots:
     void adjacencyDoesNotCreateEdges();
     void occupiedParentCellIsUnavailable();
     void threeSlotsAndInvalidDirection();
+    void appendEightChildrenToLegacyTree();
     void namedPortsAndTypeMismatch();
     void failedEditIsAtomic();
     void previewHasNoSideEffects();
@@ -926,3 +927,47 @@ void CoreTests::largeCompoundEdit()
 
 QTEST_GUILESS_MAIN(CoreTests)
 #include "core_tests.moc"
+
+void CoreTests::appendEightChildrenToLegacyTree()
+{
+    Fixture f;
+    const auto left = f.model.addChild(f.root, ChildSlot::Left, "affine").nodeId;
+    QVERIFY(!left.isNull());
+    QVERIFY(f.model.addChild(f.root, ChildSlot::Right, "affine").ok());
+    QVERIFY(f.model.addChild(f.root, ChildSlot::Down, "affine").ok());
+    const auto old = workflowToJson(f.model.definition());
+    QCOMPARE(old["schema_version"].toInt(), 1);
+    WorkflowModel model(makeBuiltinRegistry());
+    QVERIFY(model.replaceDefinition(workflowFromJson(old).definition).ok());
+    while (model.childCount(f.root) < WorkflowChildLimit)
+        QVERIFY(model.addChild(f.root, ChildSlot::Append, "affine").ok());
+    const auto saved = workflowToJson(model.definition());
+    QCOMPARE(saved["schema_version"].toInt(), 3);
+    QVERIFY(!model.previewChild(f.root, ChildSlot::Append, "affine").ok());
+    QVERIFY(!model.addChild(f.root, ChildSlot::Append, "affine").ok());
+    QCOMPARE(workflowToJson(model.definition()), saved);
+    auto incompatible = saved;
+    incompatible["schema_version"] = 2;
+    QVERIFY(!workflowFromJson(incompatible).validation.ok());
+    const auto loaded = workflowFromJson(saved);
+    QVERIFY(loaded.validation.ok());
+    QVERIFY(model.replaceDefinition(loaded.definition).ok());
+    for (int i = 0; i < WorkflowChildLimit; ++i)
+        QVERIFY(model.addChild(left, ChildSlot::Append, "affine").ok());
+    const auto run = WorkflowExecutor().run({model.freeze().snapshot, f.root, {"input", series(), {}}});
+    QCOMPARE(run.state, RunState::Succeeded);
+    QCOMPARE(run.nodes.size(), 1 + 2 * WorkflowChildLimit);
+    QVERIFY(model.removeSubtree(left).ok());
+    const auto last = model.addChild(f.root, ChildSlot::Append, "affine");
+    QVERIFY(last.ok());
+    QVERIFY(model.undo().ok());
+    QVERIFY(model.undo().ok());
+    QCOMPARE(model.childCount(left), WorkflowChildLimit);
+    auto invalid = model.definition();
+    auto extra = invalid.nodes.back();
+    extra.id = QUuid::createUuid();
+    extra.input->parent = f.root;
+    invalid.layout[extra.id] = {120, 20};
+    invalid.nodes.append(extra);
+    QVERIFY(!model.replaceDefinition(invalid).ok());
+}

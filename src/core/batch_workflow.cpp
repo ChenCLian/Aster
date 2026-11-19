@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "core/batch_workflow.h"
+#include "model/file_import_compat.h"
 #include "model/workflow_codec.h"
 #include <QJsonArray>
 #include <QSet>
@@ -213,7 +214,8 @@ BatchPlanResult prepareBatch(std::shared_ptr<const RunSnapshot> workflow, NodeId
         reject("batch", "Generated source runs once and cannot receive external source bindings"); return out;
     }
     QSet<QUuid> identities;
-    for (const auto& d : datasets) {
+    for (auto& d : plan->m_datasets) {
+        upgradeFileImportMetadata(rootDescriptor.key, d.source.provenance);
         plan->m_datasetIndices[d.id] = plan->m_datasetIndices.size();
         if (d.id.isNull() || identities.contains(d.id)) reject("batch", "Missing or duplicate dataset identity");
         identities.insert(d.id);
@@ -244,7 +246,7 @@ BatchPlanResult prepareBatch(std::shared_ptr<const RunSnapshot> workflow, NodeId
         const auto& node = nodes[id];
         const auto& descriptor = registry.find(node.method)->descriptor;
         if (!node.input) {
-            for (const auto& d : datasets) {
+            for (const auto& d : std::as_const(plan->m_datasets)) {
                 append({-1, id, d.id, d.source.label, {}, d.source, d.source.provenance});
                 if (!out.validation.ok()) return out;
             }
@@ -273,6 +275,9 @@ BatchPlanResult prepareBatch(std::shared_ptr<const RunSnapshot> workflow, NodeId
                 reject(idText(id), "Missing/repeated group identity, duplicate pair or identical inputs"); return out;
             }
             identities.insert(pair.id); bindings.insert(pairKey(pair));
+            if (!descriptor.requiredSecondPort.isEmpty() && pair.b.port != descriptor.requiredSecondPort) {
+                reject(idText(id), "Incompatible output port for input B"); return out;
+            }
             for (const auto& ref : {pair.a, pair.b}) {
                 const auto* port = outputSpec(producerDescriptor, ref.port);
                 if (!upstream.contains(ref.dataset) || !port || port->kind != *descriptor.inputKind) {
@@ -406,6 +411,7 @@ BatchExecutionResult BatchWorkflowExecutor::run(std::shared_ptr<const BatchSnaps
     for (const auto& node : plan->workflow().definition().nodes) definitions.insert(node.id, &node);
     QVector<QVector<qsizetype>> children(count), parents(count);
     QVector<QSet<QString>> neededPorts(count);
+    QVector<bool> needsReport(count, false);
     QVector<bool> submitted(count, false);
     QVector<int> outstanding(count), consumers(count);
     std::deque<qsizetype> runnable;
@@ -413,6 +419,8 @@ BatchExecutionResult BatchWorkflowExecutor::run(std::shared_ptr<const BatchSnaps
         QSet<qsizetype> unique;
         for (const auto& dep : job.inputs) {
             unique.insert(dep.producer); neededPorts[dep.producer].insert(dep.port);
+            if (plan->workflow().registry().find(definitions.value(job.node)->method)->descriptor.readsInputMetadata)
+                needsReport[dep.producer] = true;
         }
         for (const auto p : unique) { children[p].push_back(job.index); parents[job.index].push_back(p); ++consumers[p]; }
         outstanding[job.index] = unique.size();
@@ -467,6 +475,7 @@ BatchExecutionResult BatchWorkflowExecutor::run(std::shared_ptr<const BatchSnaps
         if (result.state == NodeState::Failed && result.error.isEmpty()) result.error = "Task failed";
         if (result.state == NodeState::Succeeded && consumers[index]) {
             NodeResult required;
+            if (needsReport[index]) required.report = result.report;
             for (auto it = result.outputs.cbegin(); it != result.outputs.cend(); ++it)
                 if (neededPorts[index].contains(it.key())) required.outputs.insert(it.key(), it.value());
             quint64 added = 0;
@@ -545,8 +554,13 @@ BatchExecutionResult BatchWorkflowExecutor::run(std::shared_ptr<const BatchSnaps
             TaskInput input;
             if (!jobs[index].inputs.isEmpty()) {
                 const auto& a = jobs[index].inputs[0]; input.data = retained[a.producer].outputs.value(a.port);
+                const bool needsMetadata = plan->workflow().registry().find(definitions.value(jobs[index].node)->method)->descriptor.readsInputMetadata;
+                if (needsMetadata)
+                    input.origin = {definitions.value(jobs[a.producer].node)->method, a.port, retained[a.producer].report};
                 if (jobs[index].inputs.size() == 2) {
                     const auto& b = jobs[index].inputs[1]; input.second = retained[b.producer].outputs.value(b.port);
+                    if (needsMetadata)
+                        input.secondOrigin = {definitions.value(jobs[b.producer].node)->method, b.port, retained[b.producer].report};
                 }
             }
             try {

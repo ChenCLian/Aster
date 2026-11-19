@@ -2,14 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
 #include "ui/common/wrapping_button.h"
-#include "ui/settings/theme_manager.h"
+#include "ui/common/file_list_delegate.h"
 #include "ui/panels/source_panel.h"
 #include "ui/common/presentation.h"
 #include "ui/panels/file_options_editor.h"
 #include <QScrollArea>
-#include <QStyledItemDelegate>
-#include <QPainter>
-#include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFormLayout>
@@ -26,6 +23,7 @@
 #include <QDragEnterEvent>
 #include "ui/common/section_splitter.h"
 #include <algorithm>
+#include <utility>
 #include <QThread>
 #include <QScopedValueRollback>
 #include <QMessageBox>
@@ -38,69 +36,45 @@ namespace aster::ui
 {
 namespace
 {
-QString stateText(SourceFileState state)
+FileListStatus sourceStatus(SourceFileState state)
 {
     switch (state)
     {
-    case SourceFileState::Running: return text("ui.running");
-    case SourceFileState::Saved: return text("ui.complete_saved");
-    case SourceFileState::Unsaved: return text("ui.complete_unsaved");
-    case SourceFileState::Cancelled: return text("ui.cancelled");
-    case SourceFileState::Failed: return text("ui.failed_partial");
-    default: return text("ui.ready");
+    case SourceFileState::Running: return {"ui.running", "running"};
+    case SourceFileState::Saved: return {"ui.complete_saved", "success"};
+    case SourceFileState::Unsaved: return {"ui.complete_unsaved", "warning"};
+    case SourceFileState::Failed: return {"ui.failed_partial", "error"};
+    case SourceFileState::Cancelled: return {"ui.cancelled", "muted", true};
+    default: return {"ui.ready", "muted", true};
     }
 }
-void updateFileState(QListWidgetItem *item, SourceFileState state)
+void updateFileState(FileListItem *item, SourceFileState state)
 {
-    const auto label = stateText(state);
+    const auto status = sourceStatus(state);
+    item->setStatus(status);
+    const auto label = text(status.label);
     item->setData(Qt::UserRole + 1, label);
     item->setData(Qt::UserRole + 2, int(state));
     const auto details = item->data(Qt::UserRole + 3).toString();
-    item->setToolTip("<p>" + details.toHtmlEscaped().replace("\n", "<br>") +
-                     "<br>" + label.toHtmlEscaped() + "</p>");
     item->setData(Qt::AccessibleTextRole, item->text());
     item->setData(Qt::AccessibleDescriptionRole, details + "\n" + label);
 }
-class SourceFileDelegate : public QStyledItemDelegate
+class SourceFileDelegate final : public FileListDelegate
 {
   public:
-    using QStyledItemDelegate::QStyledItemDelegate;
-    void paint(QPainter *painter, const QStyleOptionViewItem &option,
-               const QModelIndex &index) const override
+    using FileListDelegate::FileListDelegate;
+
+  private:
+    Row describe(const QStyleOptionViewItem &option, const QModelIndex &index) const override
     {
-        auto opt = option;
-        initStyleOption(&opt, index);
-        const auto name = opt.text;
-        opt.text.clear();
-        const auto *style = opt.widget ? opt.widget->style() : QApplication::style();
-        style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, opt.widget);
-        painter->save();
-        painter->setFont(opt.font);
-        painter->setClipRect(opt.rect);
-        painter->setRenderHint(QPainter::Antialiasing);
-        const auto state = SourceFileState(index.data(Qt::UserRole + 2).toInt());
-        const char *role = state == SourceFileState::Running ? "running" :
-                           state == SourceFileState::Saved ? "success" :
-                           state == SourceFileState::Failed ? "error" :
-                           state == SourceFileState::Unsaved ? "warning" : "muted";
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(themeColor(role));
-        const QPointF center(opt.rect.left() + 11, opt.rect.center().y());
-        // Hollow marks distinguish pending/cancelled inputs without relying on color.
-        if (state == SourceFileState::Pending || state == SourceFileState::Cancelled)
-        { painter->setBrush(Qt::NoBrush); painter->setPen(QPen(themeColor(role), 1.4)); }
-        painter->drawEllipse(center, 3.5, 3.5);
-        const auto rect = opt.rect.adjusted(23, 3, -7, -3);
-        painter->setPen(themeColor((opt.state & QStyle::State_Selected) ? "selectionText" : "text"));
-        painter->drawText(rect, Qt::AlignLeft | Qt::AlignVCenter,
-                          opt.fontMetrics.elidedText(name, Qt::ElideMiddle, rect.width()));
-        painter->restore();
-    }
-    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
-    {
-        auto opt = option;
-        initStyleOption(&opt, index);
-        return {100, std::max(32, opt.fontMetrics.height() + 14)};
+        Row row;
+        row.name = index.data(Qt::DisplayRole).toString();
+        row.highlighted = option.state.testFlag(QStyle::State_Selected);
+        row.current = index == m_view->currentIndex();
+        const auto status = sourceStatus(SourceFileState(index.data(Qt::UserRole + 2).toInt()));
+        row.dotColor = status.color;
+        row.hollowDot = status.hollow;
+        return row;
     }
 };
 } // namespace
@@ -141,6 +115,7 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     m_files->setObjectName("sourceFiles");
     m_files->setItemDelegate(new SourceFileDelegate(m_files));
     m_files->setUniformItemSizes(true);
+    m_files->setMouseTracking(true);
     m_files->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_files->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_files->setTextElideMode(Qt::ElideMiddle);
@@ -183,6 +158,13 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     m_selectionHint->setObjectName("sourceSelectionHint");
     m_selectionHint->setWordWrap(true);
     filesLayout->addWidget(m_selectionHint);
+    m_optionsToggle = new QToolButton;
+    m_optionsToggle->setObjectName("sourceOptionsToggle");
+    m_optionsToggle->setText(text("ui.input_settings"));
+    m_optionsToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_optionsToggle->setArrowType(Qt::RightArrow);
+    m_optionsToggle->setCheckable(true);
+    filesLayout->addWidget(m_optionsToggle, 0, Qt::AlignLeft);
     splitter->addWidget(filesPanel);
     m_options = new FileOptionsEditor;
     connect(m_options, &FileOptionsEditor::previewInputChanged,
@@ -193,8 +175,18 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
     m_options->setMinimumHeight(180);
     splitter->addWidget(m_options);
     splitter->setStretchFactor(0, 3);
-    splitter->setStretchFactor(1, 2);
-    splitter->setSizes({420, 300});
+    splitter->setStretchFactor(1, 1);
+    connect(m_optionsToggle, &QToolButton::toggled, this,
+            [this, splitter, previousHeight = 0](bool expanded) mutable {
+        if (!expanded) previousHeight = splitter->sizes().value(1);
+        m_optionsToggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+        m_options->setVisible(expanded);
+        if (expanded) {
+            const int available = splitter->height() - splitter->handleWidth();
+            const int height = previousHeight > 0 ? previousHeight : available / 3;
+            splitter->setSizes({qMax(0, available - height), height});
+        }
+    });
     layout->addWidget(splitter, 1);
     connect(m_options, &FileOptionsEditor::readinessChanged, this,
             [this] { emit readinessChanged(readyToRun()); });
@@ -249,7 +241,10 @@ SourcePanel::SourcePanel(WorkflowDocument *d, QWidget *p) : QWidget(p), m_docume
         // Editing a task parameter does not rebuild thousands of input rows.
         if (!same) refresh();
     });
-    connect(m_document, &WorkflowDocument::sourcesChanged, this, &SourcePanel::refresh);
+    connect(m_document, &WorkflowDocument::sourcesChanged, this, [this] {
+        m_statusDatasets.clear();
+        refresh();
+    });
     refresh();
 }
 void SourcePanel::moveSelectedDatasets()
@@ -304,10 +299,22 @@ SourcePanel::~SourcePanel()
     m_optionsCancel.cancel();
     if (m_optionsWorker) { m_optionsWorker->wait(); delete m_optionsWorker; }
 }
+void SourcePanel::updateRunControls()
+{
+    const bool editable = !m_document->editingLocked();
+    findChild<QPushButton *>("importFiles")->setEnabled(editable);
+    findChild<QPushButton *>("moveSourceInputs")->setEnabled(editable && !m_optionsWorker);
+    findChild<QPushButton *>("removeSourceInput")->setEnabled(editable && !m_optionsWorker);
+    m_optionsToggle->setEnabled(editable);
+    m_options->setVisible(editable && !m_optionsToggle->isHidden() && m_optionsToggle->isChecked());
+    setAcceptDrops(editable);
+    updateSelectionHint();
+}
+
 void SourcePanel::updateSelectionHint()
 {
     m_selectionHint->setText(text("ui.input_selection_scope").arg(m_files->selectedItems().size()));
-    m_options->setEnabled(m_files->currentItem() && m_files->currentItem()->isSelected());
+    m_options->setEnabled(!m_document->editingLocked() && m_files->currentItem() && m_files->currentItem()->isSelected());
 }
 void SourcePanel::captureOptionsSelection()
 {
@@ -462,10 +469,12 @@ void SourcePanel::refresh()
     if (idx >= 0)
         m_roots->setCurrentIndex(idx);
     m_roots->setVisible(m_roots->count() > 1);
+    m_visibleFiles.clear();
     m_files->clear();
     const auto *rootNode = m_document->node(root());
     const bool nonFile = rootNode && rootNode->method != "file_source";
-    m_options->setVisible(!nonFile);
+    m_optionsToggle->setVisible(!nonFile);
+    m_options->setVisible(!nonFile && m_optionsToggle->isChecked() && !m_document->editingLocked());
     m_selectionHint->setVisible(!nonFile);
     findChild<QToolButton *>("sourceSelectionHelp")->setVisible(!nonFile);
     findChild<QPushButton *>("removeSourceInput")->setVisible(!nonFile);
@@ -476,16 +485,17 @@ void SourcePanel::refresh()
         for (const auto &source : m_document->sources().value(root()))
         {
             auto ref = OutputReference::fromJson(source.provenance["database_source"].toObject());
-            auto *item = new QListWidgetItem(source.label, m_files);
-            item->setData(Qt::UserRole, source.label);
             const auto dataset = QUuid(source.provenance["dataset_id"].toString());
+            const auto state = m_states.value({root(), dataset}, SourceFileState::Pending);
+            const auto location = ref.valid() ? ref.databasePath + "\n" + ref.nodeId.toString() + " / " + ref.port : ref.databasePath;
+            auto *item = new FileListItem(source.label, m_files, {location, {}, {}}, sourceStatus(state));
+            m_visibleFiles.insert(source.label, item);
+            item->setData(Qt::UserRole, source.label);
             item->setData(Qt::UserRole + 4, dataset);
             if (!currentDataset.isNull() && dataset == currentDataset)
                 m_files->setCurrentItem(item, QItemSelectionModel::ClearAndSelect);
-            item->setData(Qt::UserRole + 3, source.label + "\n" + ref.databasePath +
-                          "\n" + ref.nodeId.toString() + " / " + ref.port);
-            updateFileState(item, m_states.value(root().toString() + "|" + source.label,
-                                                 SourceFileState::Pending));
+            item->setData(Qt::UserRole + 3, location);
+            updateFileState(item, state);
         }
         m_files->setToolTip(text("ui.read_only_reference_a_run_saves_an_independent_input_snapsho"));
         m_count->setText(text("ui.bound_inputs_count").arg(m_files->count()));
@@ -505,11 +515,16 @@ void SourcePanel::refresh()
                          m_files->model()->index(lastRow, 0));
         selectionStart = -1;
     };
-    for (const auto &path : m_document->files(root()))
+    const auto rootId = root();
+    for (const auto &source : m_document->sources().value(rootId))
     {
-        const auto state = m_states.value(root().toString() + "|" + path, SourceFileState::Pending);
-        auto *item = new QListWidgetItem(QFileInfo(path).fileName(), m_files);
+        const auto path = source.provenance["path"].toString();
+        const QUuid dataset(source.provenance["dataset_id"].toString());
+        const auto state = m_states.value({rootId, dataset}, SourceFileState::Pending);
+        auto *item = new FileListItem(QFileInfo(path).fileName(), m_files, {path, {}, {}}, sourceStatus(state));
+        m_visibleFiles.insert(path, item);
         item->setData(Qt::UserRole, path);
+        item->setData(Qt::UserRole + 4, dataset);
         item->setData(Qt::UserRole + 3, path);
         updateFileState(item, state);
         if (path == currentPath)
@@ -598,6 +613,7 @@ void SourcePanel::notifyPreviewSource()
 }
 void SourcePanel::showFileOptions()
 {
+    if (m_document->editingLocked()) return; // Browsing status starts no file probe.
     m_options->flushEdits();
     m_optionsRoot = root();
     const auto path =
@@ -610,19 +626,35 @@ void SourcePanel::showFileOptions()
 void SourcePanel::clearFileStates()
 {
     m_states.clear();
-    refresh();
+    for (auto *item : std::as_const(m_visibleFiles))
+        if (item->data(Qt::UserRole + 2).toInt() != int(SourceFileState::Pending))
+            updateFileState(item, SourceFileState::Pending);
 }
 void SourcePanel::setFileState(NodeId id, const QString &path, SourceFileState state)
 {
-    m_states[id.toString() + "|" + path] = state;
-    if (root() != id)
-        return;
-    for (int i = 0; i < m_files->count(); ++i)
-    {
-        auto *item = m_files->item(i);
-        if (item->data(Qt::UserRole).toString() == path)
-            updateFileState(item, state);
+    // Batch events carry source labels. Resolve them once per tree and retain the
+    // dataset identity so removing and importing the same path starts a new run history.
+    if (!m_statusDatasets.contains(id)) {
+        auto &byLabel = m_statusDatasets[id];
+        for (const auto &source : m_document->sources().value(id)) {
+            const QUuid dataset(source.provenance["dataset_id"].toString());
+            if (!dataset.isNull()) byLabel.insert(source.label, dataset);
+        }
     }
+    const auto tree = m_statusDatasets.constFind(id);
+    const auto range = tree.value().equal_range(path);
+    bool changed = false;
+    for (auto it = range.first; it != range.second; ++it) {
+        const auto key = qMakePair(id, it.value());
+        if (m_states.value(key, SourceFileState::Pending) != state) {
+            m_states.insert(key, state);
+            changed = true;
+        }
+    }
+    if (!changed || root() != id) return;
+    const auto matches = m_visibleFiles.equal_range(path);
+    for (auto it = matches.first; it != matches.second; ++it)
+        updateFileState(it.value(), state);
 }
 void SourcePanel::dragEnterEvent(QDragEnterEvent *e)
 {
@@ -631,6 +663,7 @@ void SourcePanel::dragEnterEvent(QDragEnterEvent *e)
 }
 void SourcePanel::dropEvent(QDropEvent *e)
 {
+    if (m_document->editingLocked()) return;
     QStringList paths;
     for (const auto &url : e->mimeData()->urls())
         if (url.isLocalFile())

@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <QVector>
 #include <QHash>
+#include <QSet>
 #include <QTimer>
 class QTextBrowser;
 class QPushButton;
@@ -17,6 +18,7 @@ class QLabel;
 class QStackedWidget;
 namespace aster::ui
 {
+class HelpSearchHighlighter;
 struct HelpTopic
 {
     QString path;
@@ -40,6 +42,8 @@ class HelpDialog : public QDialog
     void rebuildNavigation();
     void syncNavigation();
     void updateSearch();
+    void updateSearchHighlights();
+    void resetPageFind();
     void buildSearchChunk();
     void findInPage(bool backwards = false);
     void savePosition();
@@ -50,6 +54,8 @@ class HelpDialog : public QDialog
     void updateHistoryButtons();
     void refreshLinkColors();
     QTextBrowser *m_browser;
+    HelpSearchHighlighter *m_highlighter;
+    QSet<QString> m_matchingPages;
     QPushButton *m_back;
     QPushButton *m_forward;
     QPushButton *m_home, *m_findButton, *m_online, *m_close;

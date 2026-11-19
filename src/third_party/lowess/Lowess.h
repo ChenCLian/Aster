@@ -29,6 +29,7 @@
 #ifndef CPPLOWESS_LOWESS_H
 #define CPPLOWESS_LOWESS_H
 
+#include <functional>
 #include <stdlib.h>
 #include <cmath>
 #include <algorithm>    // std::min, std::max
@@ -502,14 +503,17 @@ public:
                ValueType delta,
                ContainerType& ys,
                ContainerType& resid_weights,   // vector rw
-               ContainerType& weights   // vector res
+               ContainerType& weights,  // vector res
+               const std::function<bool(int,size_t)>& keepGoing = {}
                )
     {
       bool fit_ok;
       size_t i, last, nleft, nright, ns;
 
       size_t n = x.size();
-      if (n < 2)
+      if (n == 0 || y.size() != n || ys.size() != n ||
+          resid_weights.size() != n || weights.size() != n) return 1;
+      if (n == 1)
       {
         ys[0] = y[0];
         return 1;
@@ -532,6 +536,7 @@ public:
         // Fit all data points y[i] until the end of the array
         do
         {
+          if (keepGoing && (i % 32 == 0) && !keepGoing(iter - 1, i)) return -1;
           // Identify the neighborhood around the current x[i]
           // -> get the nearest ns points
           update_neighborhood(x, n, i, nleft, nright);

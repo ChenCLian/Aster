@@ -1,7 +1,7 @@
 QT = core sql
 TEMPLATE = lib
-SOURCES += ../src/processing/orbital_table_tasks.cpp
-HEADERS += ../src/processing/orbital_table_tasks.h
+SOURCES += ../src/processing/orbital_table_tasks.cpp ../src/math/smoothing/lowess_fit.cpp
+HEADERS += ../src/processing/orbital_table_tasks.h ../src/math/smoothing/lowess_fit.h
 CONFIG += staticlib c++17
 CONFIG -= app_bundle debug_and_release debug_and_release_target
 TARGET = aster_science
@@ -32,7 +32,7 @@ DISTFILES += ../src/third_party/wavelib/COPYRIGHT
 HEADERS += ../src/processing/database_source_task.h
 
 SOURCES += ../src/math/wavelet/cwt_support.cpp
-HEADERS += ../src/math/wavelet/cwt_support.h
+HEADERS += ../src/math/wavelet/cwt_support.h ../src/math/sample_scaling.h
 
 SOURCES += ../src/math/statistics/mtm_simulation.cpp ../src/processing/mtm_simulation_task.cpp
 SOURCES += ../src/math/statistics/monte_carlo_test.cpp
@@ -92,3 +92,6 @@ HEADERS += ../src/math/spectrum/cross_spectrum.h ../src/processing/cross_spectru
 
 SOURCES += ../src/processing/outlier_tasks.cpp
 HEADERS += ../src/processing/outlier_tasks.h
+
+SOURCES += ../src/processing/band_power_task.cpp
+HEADERS += ../src/processing/band_power_task.h ../src/model/frequency_units.h

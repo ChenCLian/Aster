@@ -9,7 +9,8 @@
 
 std::vector<double> wave_Significance(size_t nTime, size_t nPeriod,
     const double* power, const double* scale, double variance, double dt,
-    double parameter, const QString& mother, double lag1, double level)
+    double parameter, const QString& mother, double lag1, double level,
+    const std::function<void()>& checkpoint)
 {
     if (!power || !scale || nTime == 0 || nPeriod == 0 || nPeriod > std::numeric_limits<size_t>::max()/nTime ||
         !(variance > 0) || !std::isfinite(variance) || !(dt > 0) || !std::isfinite(dt) ||
@@ -19,8 +20,10 @@ std::vector<double> wave_Significance(size_t nTime, size_t nPeriod,
     const double dof = mother == "dog" ? 1 : 2;
     const double quantile = gsl_cdf_chisq_Pinv(level,dof)/dof;
     const double pi = std::acos(-1.0);
+    if (checkpoint) checkpoint();
     std::vector<double> ratio(nPeriod*nTime);
     for (size_t row=0; row<nPeriod; ++row) {
+        if (checkpoint) checkpoint();
         if (!(scale[row] > 0) || !std::isfinite(scale[row]))
             throw std::invalid_argument("Wavelet scale must be positive and finite");
         const double angle = 2*pi*(dt/scale[row])/factor;

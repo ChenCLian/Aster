@@ -24,7 +24,10 @@ NodeResult AffineTask::execute(const TaskInput& input, const ExecutionContext& c
     SeriesData result = *source;
     for (qsizetype i = 0; i < result.y.size(); ++i) {
         if (cancelled(context, i)) return NodeResult::cancelled();
-        result.y[i] = source->y[i] * m_factor + m_offset;
+        result.y[i] = std::fma(source->y[i], m_factor, m_offset);
+        if (!std::isfinite(result.y[i]))
+            return NodeResult::failure(makeError(ErrorCode::NumericRange,
+                {{"operation", "affine"}, {"point", double(i + 1)}}));
     }
     return NodeResult::success({{"series", makeData(std::move(result))}}, {{"factor", m_factor}, {"offset", m_offset}});
 }

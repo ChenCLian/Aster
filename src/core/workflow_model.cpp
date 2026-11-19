@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "core/workflow_model.h"
+#include "model/file_import_compat.h"
 #include <QHash>
 #include <QSet>
 #include <algorithm>
@@ -69,14 +70,18 @@ ValidationResult validateWorkflow(const WorkflowDefinition& d, const TaskRegistr
             continue;
         }
         children[input.parent].push_back(node.id);
-        const auto slot = static_cast<int>(input.slot);
-        if (slotName(input.slot).isEmpty() || usedSlots[input.parent].contains(slot))
-            result.add(path, QStringLiteral("Invalid or already-used child slot"));
-        usedSlots[input.parent].insert(slot);
-        if (d.layout.contains(input.parent) && d.layout.contains(node.id)) {
-            const auto expected = adjacentPosition(d.layout.value(input.parent), input.slot);
-            if (!expected || !(*expected == d.layout.value(node.id)))
-                result.add(path, QStringLiteral("Child is not in the declared adjacent cell"));
+        if (children[input.parent].size() > WorkflowChildLimit)
+            result.add(path, QStringLiteral("Too many direct child nodes"));
+        if (input.slot != ChildSlot::Append) {
+            const auto slot = static_cast<int>(input.slot);
+            if (slotName(input.slot).isEmpty() || usedSlots[input.parent].contains(slot))
+                result.add(path, QStringLiteral("Invalid or already-used child slot"));
+            usedSlots[input.parent].insert(slot);
+            if (d.layout.contains(input.parent) && d.layout.contains(node.id)) {
+                const auto expected = adjacentPosition(d.layout.value(input.parent), input.slot);
+                if (!expected || !(*expected == d.layout.value(node.id)))
+                    result.add(path, QStringLiteral("Child is not in the declared adjacent cell"));
+            }
         }
         const auto* parentEntry = registry.find(parent->method);
         const auto* childEntry = registry.find(node.method);
@@ -84,7 +89,7 @@ ValidationResult validateWorkflow(const WorkflowDefinition& d, const TaskRegistr
             const auto& outputs = parentEntry->descriptor.outputs;
             const auto port = std::find_if(outputs.begin(), outputs.end(), [&](const OutputSpec& item) { return item.key == input.output; });
             if (port == outputs.end()) result.add(path, QStringLiteral("Unknown parent output: ") + input.output);
-            else if (!childEntry->descriptor.inputKind || port->kind != *childEntry->descriptor.inputKind)
+            else if (!childEntry->descriptor.acceptsInput(*port))
                 result.add(path, QStringLiteral("Input/output kind mismatch"));
         }
     }
@@ -104,8 +109,10 @@ EditResult WorkflowModel::commit(WorkflowDefinition candidate, NodeId affected, 
 {
     const auto validation = validateWorkflow(candidate, m_registry);
     if (!validation.ok()) return {validation.message(), {}, 0};
-    for (auto& node : candidate.nodes)
+    for (auto& node : candidate.nodes) {
         node.parameters = m_registry.normalize(node.method, node.parameters).parameters;
+        upgradeFileImportOverrides(node);
+    }
     if (m_retainHistory) {
         if (m_undo.size() == HistoryLimit) m_undo.removeFirst();
         m_undo.push_back(m_definition);
@@ -113,6 +120,11 @@ EditResult WorkflowModel::commit(WorkflowDefinition candidate, NodeId affected, 
     }
     m_definition = std::move(candidate);
     return {{}, affected, count};
+}
+qsizetype WorkflowModel::childCount(const NodeId& parent) const
+{
+    return std::count_if(m_definition.nodes.cbegin(), m_definition.nodes.cend(),
+        [&](const NodeDefinition &n) { return n.input && n.input->parent == parent; });
 }
 EditResult WorkflowModel::addRoot(const QString& method, GridPosition position, QJsonObject params)
 {
@@ -144,13 +156,18 @@ ChildPreview WorkflowModel::previewChild(const NodeId& parentId, ChildSlot slot,
     const auto* entry = m_registry.find(method);
     if (!parent || !entry) return {QStringLiteral("Unknown parent or method"), {}, {}};
     if (!entry->descriptor.inputKind) return {QStringLiteral("Source tasks must be roots"), {}, {}};
-    const auto position = adjacentPosition(m_definition.layout.value(parentId), slot);
+    if (childCount(parentId) >= WorkflowChildLimit) return {QStringLiteral("Too many direct child nodes"), {}, {}};
+    const auto anchor = m_definition.layout.value(parentId);
+    const auto position = slot == ChildSlot::Append
+        ? std::optional<GridPosition>(freeGridPosition(m_definition,
+              {anchor.column, std::min(anchor.row + 1, GridCoordinateLimit)}))
+        : adjacentPosition(anchor, slot);
     if (!position) return {QStringLiteral("Invalid slot or grid boundary"), {}, {}};
     if (output.isEmpty()) {
         const auto& parentDescriptor = m_registry.find(parent->method)->descriptor;
         QStringList compatible;
         for (const auto& port : parentDescriptor.outputs)
-            if (port.kind == *entry->descriptor.inputKind) compatible.push_back(port.key);
+            if (entry->descriptor.acceptsInput(port)) compatible.push_back(port.key);
         if (compatible.contains(parentDescriptor.defaultOutput)) output = parentDescriptor.defaultOutput;
         else if (compatible.size() == 1) output = compatible[0];
         else if (compatible.isEmpty()) return {QStringLiteral("No compatible parent output"), *position, {}};

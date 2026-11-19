@@ -118,7 +118,7 @@ void Acceptance::resultScreenMatrix(){
  QTest::mouseClick(step->viewport(),Qt::LeftButton,Qt::NoModifier,step->visualItemRect(step->item(1,1)).center());QVERIFY(waitPlots(*page.workspace()));
  auto* outputs=page.findChild<QTableView*>("resultOutputs");QVERIFY(outputs);
  auto* model=qobject_cast<QStandardItemModel*>(outputs->model());QVERIFY(model);
- for(int i=0;i<model->rowCount();++i)if(model->item(i,0)->isCheckable())model->item(i,0)->setCheckState(Qt::Checked);
+ outputs->selectAll();QCOMPARE(page.checkedOutputs().size(),model->rowCount());
  auto* add=page.findChild<QPushButton*>("plotCheckedOutputs");auto* overlay=page.findChild<QPushButton*>("overlayCheckedOutputs");QVERIFY(add);QVERIFY(overlay);
  auto* destination=page.findChild<QLabel*>("plotDestination");QVERIFY(destination);
  QTest::qWait(80); // Text changes post a Qt layout request; inspect after event delivery.
@@ -215,7 +215,7 @@ void Acceptance::parameterCatalogFits(){
 void Acceptance::denseLegendStaysInsideAxes(){
  setLanguage("en");ResultsPage page(makeScientificRegistry());page.resize(1280,800);page.setDatabase(path);page.show();page.openRecord(scientificId);QTRY_COMPARE(page.recordId(),scientificId);QVERIFY(waitPlots(*page.workspace()));
  page.selectStep(1,false);auto*table=page.findChild<QTableView*>("resultOutputs");QVERIFY(table);auto*model=qobject_cast<QStandardItemModel*>(table->model());QVERIFY(model);
- for(int i=0;i<model->rowCount();++i)if(model->item(i,0)->isCheckable())model->item(i,0)->setCheckState(Qt::Checked);
+ table->selectAll();QCOMPARE(page.checkedOutputs().size(),model->rowCount());
  page.plotChecked(PlotWorkspace::Target::Subplot);QVERIFY(waitPlots(*page.workspace()));
  auto*view=page.workspace()->currentView();auto*plot=view->plotWidget();QVERIFY(plot->legend->itemCount()>=10);QTest::qWait(200);
  const auto check=[&]{return plot->axisRect()->rect().contains(plot->legend->outerRect());};

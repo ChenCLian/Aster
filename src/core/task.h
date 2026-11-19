@@ -37,12 +37,18 @@ class CancellationToken
     std::shared_ptr<std::atomic_bool> m_flag;
 };
 
+struct InputOrigin
+{
+    QString method, port;
+    QJsonObject report;
+};
 struct TaskInput
 {
     DataRef data;
     // Paired tasks receive A in data and B in second. Ordinary tasks receive
     // only data; neither input may be looked up from mutable UI/global state.
     DataRef second{};
+    InputOrigin origin{}, secondOrigin{}; // Supplied to consumers requesting scientific metadata.
 }; // Empty for source tasks.
 struct ExecutionContext
 {

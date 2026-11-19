@@ -1,0 +1,67 @@
+{
+  "version": "1.3.2-beta.7",
+  "date": "2026-11-19",
+  "environment": "Linux x86-64, Qt 6.8.2 Release (-O1), offscreen",
+  "scope": "Qt Release on Linux. Directory filters, figure backgrounds and manual X limits, MTM peak-table export, output row selection and existing plotting actions.",
+  "executables": 14,
+  "passed": 2448,
+  "failed": 0,
+  "skipped": 0,
+  "targets": {
+    "aster_core_tests": 67,
+    "aster_batch_tests": 69,
+    "aster_analysis_tests": 724,
+    "aster_cross_spectrum_tests": 81,
+    "aster_ui_tests": 956,
+    "aster_joint_ui_tests": 39,
+    "aster_rewrite_tests": 32,
+    "aster_linked_input_tests": 53,
+    "aster_style_export_tests": 70,
+    "aster_workspace_tests": 85,
+    "aster_integration_tests": 92,
+    "aster_update_tests": 76,
+    "aster_download_tests": 75,
+    "aster_interaction_acceptance": 29
+  },
+  "regressions": {
+    "peak_filter": {
+      "synthetic_spectrum_samples": 10001,
+      "peak_table_rows": 5000,
+      "filter": "Peak period <= 1, compared in the selected unit",
+      "previous_tooltip_lines": 4903,
+      "older_database": "Repeated the plot-range and complete CSV export checks on the database written by beta.6 without rerunning the workflow.",
+      "checks": [
+        "Peak lookup still filters the directory",
+        "Wide and manual-range spectrum background pixels in light and dark themes",
+        "X range 0 to 1 after asynchronous refinement, switching steps and reopening the spectrum",
+        "Disabling manual X restores the full extent",
+        "Step output count and compact input tooltip",
+        "All 5000 data rows in exported peak CSV"
+      ]
+    },
+    "output_selection": [
+      "Whole-row click in either column",
+      "Ctrl toggle, Shift range, select all, deselect last",
+      "Selections restored across steps and cleared when changing records",
+      "Export port can move independently",
+      "Add, overlay, replacement eligibility and scientific plot grouping"
+    ],
+    "display_scales_percent": [
+      100,
+      125,
+      150,
+      200
+    ]
+  },
+  "release_checks": {
+    "python_tests_run": 231,
+    "python_tests_skipped": 1,
+    "skip_reason": "Homebrew Ruby unavailable on Linux",
+    "help_tests_run": 8,
+    "bundled_resource_hashes": 15
+  },
+  "not_run": [
+    "Native Windows and macOS builds and desktop tests",
+    "Hosted release builds"
+  ]
+}

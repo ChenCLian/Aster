@@ -19,6 +19,68 @@ namespace
 {
 constexpr qint64 maxControlBytes = 4 * 1024 * 1024;
 using namespace chronology_detail;
+NodeResult mapProxy(const SeriesData &s, SeriesData controls, const QString &depth,
+                    const QString &controlUnit, const QString &age, const QString &ageReference,
+                    const QString &boundary, const ExecutionContext &c)
+{
+    const double conversion = metres(controlUnit) / metres(depth);
+    for (qsizetype i = 0; i < controls.x.size(); ++i)
+    {
+        if ((i & 1023) == 0 && c.cancellation.isCancelled())
+            return NodeResult::cancelled();
+        controls.x[i] *= conversion;
+    }
+    controls.xAxis = {"Depth", depth};
+    controls.yAxis = {"Age", age};
+    const bool extrapolate = boundary == "linear";
+    if (c.progress)
+        c.progress(30, "progress.chronology_mapping");
+    auto r = chronology::mapDepth(values(s.x), values(controls.x), values(controls.y),
+                                  extrapolate ? chronology::Boundary::Linear
+                                              : chronology::Boundary::Reject,
+                                  [&] { return c.cancellation.isCancelled(); });
+    SeriesData output{vector(r.age), s.y, {"Age", age}, s.yAxis};
+    TableData intervals;
+    intervals.columns = {"Depth start (" + depth + ")", "Depth end (" + depth + ")",
+                         "Age start (" + age + ")", "Age end (" + age + ")",
+                         "Interval rate (" + depth + "/" + age + ")"};
+    intervals.rows.reserve(controls.x.size() - 1);
+    for (qsizetype i = 0; i + 1 < controls.x.size(); ++i)
+    {
+        if ((i & 1023) == 0 && c.cancellation.isCancelled())
+            return NodeResult::cancelled();
+        intervals.rows.push_back({controls.x[i], controls.x[i + 1], controls.y[i],
+                                  controls.y[i + 1], r.intervalRate[std::size_t(i)]});
+    }
+    const double minimum = controls.x.front(), maximum = controls.x.back();
+    auto result = NodeResult::success(
+        {{"aged_series", makeData(std::move(output))},
+         {"age_model", makeData(std::move(controls))},
+         {"age_intervals", makeData(std::move(intervals))}},
+        {{"method", "piecewise_linear_depth_to_age"},
+         {"depth_unit", depth},
+         {"age_unit", age},
+         {"age_reference", ageReference},
+         {"age_increases_with_depth", true},
+         {"control_depth_to_input_factor", conversion},
+         {"control_depth_min", minimum},
+         {"control_depth_max", maximum},
+         {"boundary", extrapolate ? "linear_endpoint_secant" : "reject"},
+         {"extrapolated_samples", double(r.extrapolated)},
+         {"rows", double(s.x.size())},
+         {"resampled", false},
+         {"proxy_changed", false},
+         {"sorted", false}});
+    result.warnings << "warning.chronology_deterministic"
+                    << "warning.chronology_no_resampling";
+    if (s.xAxis.unit.isEmpty())
+        result.warnings << "warning.chronology_declared_units";
+    if (r.extrapolated)
+        result.warnings << "warning.chronology_extrapolated";
+    if (c.progress)
+        c.progress(100, "progress.chronology_mapping");
+    return result;
+}
 } // namespace
 TaskDescriptor SedrateToAgeTask::descriptor()
 {
@@ -164,9 +226,12 @@ NodeResult ApplyAgeModelTask::execute(const TaskInput &input, const ExecutionCon
                     return NodeResult::cancelled();
                 const auto chunk =
                     file.read(std::min<qint64>(262144, maxControlBytes + 1 - bytes.size()));
-                if (chunk.isEmpty() && file.error() != QFileDevice::NoError)
-                    return NodeResult::failure(
-                        makeError(ErrorCode::FileRead, {{"path", path}}, file.errorString()));
+                if (chunk.isEmpty()) {
+                    if (file.error() == QFileDevice::NoError && file.atEnd()) break;
+                    const auto reason = file.error() == QFileDevice::NoError
+                        ? QStringLiteral("Input stopped before the end of the file") : file.errorString();
+                    return NodeResult::failure(makeError(ErrorCode::FileRead, {{"path", path}}, reason));
+                }
                 bytes += chunk;
                 if (bytes.size() > maxControlBytes)
                     return NodeResult::failure(
@@ -193,68 +258,58 @@ NodeResult ApplyAgeModelTask::execute(const TaskInput &input, const ExecutionCon
                 return NodeResult::failure(
                     ErrorInfo::fromJson(read.report["diagnostic"].toObject()));
             auto controls = *dataAs<SeriesData>(read.data);
-            const double conversion = metres(controlUnit) / metres(depth);
-            for (qsizetype i = 0; i < controls.x.size(); ++i)
-            {
-                if ((i & 1023) == 0 && c.cancellation.isCancelled())
-                    return NodeResult::cancelled();
-                controls.x[i] *= conversion;
-            }
-            controls.xAxis = {"Depth", depth};
-            controls.yAxis = {"Age", age};
-            const bool extrapolate = m_parameters["chrono_boundary"] == "linear";
-            if (c.progress)
-                c.progress(30, "progress.chronology_mapping");
-            auto r = chronology::mapDepth(values(s.x), values(controls.x), values(controls.y),
-                                          extrapolate ? chronology::Boundary::Linear
-                                                      : chronology::Boundary::Reject,
-                                          [&] { return c.cancellation.isCancelled(); });
-            SeriesData output{vector(r.age), s.y, {"Age", age}, s.yAxis};
-            TableData intervals;
-            intervals.columns = {"Depth start (" + depth + ")", "Depth end (" + depth + ")",
-                                 "Age start (" + age + ")", "Age end (" + age + ")",
-                                 "Interval rate (" + depth + "/" + age + ")"};
-            intervals.rows.reserve(controls.x.size() - 1);
-            for (qsizetype i = 0; i + 1 < controls.x.size(); ++i)
-            {
-                if ((i & 1023) == 0 && c.cancellation.isCancelled())
-                    return NodeResult::cancelled();
-                intervals.rows.push_back({controls.x[i], controls.x[i + 1], controls.y[i],
-                                          controls.y[i + 1], r.intervalRate[std::size_t(i)]});
-            }
             read.report["sha256"] = QString::fromLatin1(
                 QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
             read.report["snapshot_scope"] = "captured_bytes_per_node_execution";
-            const double minimum = controls.x.front(), maximum = controls.x.back();
-            auto result = NodeResult::success(
-                {{"aged_series", makeData(std::move(output))},
-                 {"age_model", makeData(std::move(controls))},
-                 {"age_intervals", makeData(std::move(intervals))}},
-                {{"method", "piecewise_linear_depth_to_age"},
-                 {"control_file", read.report},
-                 {"depth_unit", depth},
-                 {"age_unit", age},
-                 {"age_reference", m_parameters["chrono_age_reference"]},
-                 {"age_increases_with_depth", true},
-                 {"control_depth_to_input_factor", conversion},
-                 {"control_depth_min", minimum},
-                 {"control_depth_max", maximum},
-                 {"boundary", extrapolate ? "linear_endpoint_secant" : "reject"},
-                 {"extrapolated_samples", double(r.extrapolated)},
-                 {"rows", double(s.x.size())},
-                 {"resampled", false},
-                 {"proxy_changed", false},
-                 {"sorted", false}});
-            result.warnings << "warning.chronology_deterministic"
-                            << "warning.chronology_no_resampling"
-                            << "warning.chronology_control_snapshot";
-            if (s.xAxis.unit.isEmpty())
-                result.warnings << "warning.chronology_declared_units";
-            if (r.extrapolated)
-                result.warnings << "warning.chronology_extrapolated";
-            if (c.progress)
-                c.progress(100, "progress.chronology_mapping");
+            auto result = mapProxy(s, std::move(controls), depth, controlUnit, age,
+                                   m_parameters["chrono_age_reference"].toString(),
+                                   m_parameters["chrono_boundary"].toString(), c);
+            if (result.state == NodeState::Succeeded)
+            {
+                result.report["control_file"] = read.report;
+                result.warnings << "warning.chronology_control_snapshot";
+            }
             return result;
         });
+}
+TaskDescriptor LinkedAgeModelTask::descriptor()
+{
+    auto d = ApplyAgeModelTask::descriptor();
+    d.label = "Apply connected age model";
+    d.pairedInput = true;
+    d.requiredSecondPort = "age_model";
+    d.readsInputMetadata = true;
+    auto depth = science_detail::text("linked_depth_unit", "Proxy depth unit", "from_input",
+                                      {"from_input", "m", "dm", "cm", "mm", "ft", "km"});
+    depth.group = "chronology_units";
+    d.parameters = {depth, d.parameters.last()};
+    return d;
+}
+NodeResult LinkedAgeModelTask::execute(const TaskInput &input, const ExecutionContext &c)
+{
+    return checked(input, c, [&](const SeriesData &proxy) {
+        const auto *model = dataAs<SeriesData>(input.second);
+        if (!model || input.secondOrigin.port != "age_model")
+            return NodeResult::failure(ErrorInfo{"CHRONOLOGY_LINK", {}, "Choose a depth-age model output for B"});
+        if (model->x.size() > qsizetype(chronology::maxControlPoints))
+            return NodeResult::failure(ErrorInfo{"CHRONOLOGY_BUDGET", {}, "Too many model control points"});
+        const auto modelDepth = canonicalLength(model->xAxis.unit);
+        const auto modelAge = canonicalTime(model->yAxis.unit);
+        const auto setting = m_parameters["linked_depth_unit"].toString();
+        const auto depth = setting == "from_input" ? canonicalLength(proxy.xAxis.unit) : setting;
+        if (depth.isEmpty() || modelDepth.isEmpty() || modelAge.isEmpty())
+            return NodeResult::failure(ErrorInfo{"CHRONOLOGY_LINK_UNITS", {}, "Declare the proxy depth unit and use a model with depth and age units"});
+        const auto mismatch = unitMismatch(proxy.xAxis.unit, depth);
+        if (!mismatch.isEmpty()) return NodeResult::failure(mismatch);
+        const auto reference = input.secondOrigin.report["age_reference"].toString("unspecified");
+        auto result = mapProxy(proxy, *model, depth, modelDepth, modelAge, reference,
+                               m_parameters["chrono_boundary"].toString(), c);
+        if (result.state == NodeState::Succeeded) {
+            result.report["control_source"] = "upstream_output";
+            result.report["control_method"] = input.secondOrigin.method;
+            result.report["control_output"] = input.secondOrigin.port;
+        }
+        return result;
+    });
 }
 } // namespace aster

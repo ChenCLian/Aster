@@ -46,6 +46,13 @@ class VersionUpdateTests(unittest.TestCase):
     def snapshot(self):
         return {p.relative_to(self.root).as_posix():p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
 
+    def test_bump_does_not_recreate_a_retired_review(self):
+        (self.root / 'REVIEW_CN.md').unlink()
+        (self.root / 'RELEASE_NOTES.md').write_text('# Aster ' + self.old + '\n', encoding='utf-8')
+        bump.write_changes(bump.plan(self.root, self.new, 'Update the directory.'))
+        self.assertFalse((self.root / 'REVIEW_CN.md').exists())
+        self.assertEqual(bump.check(self.root), [])
+
     def test_small_bump_preserves_body_dependencies_and_evidence(self):
         before=self.snapshot(); changes=bump.plan(self.root,self.new,'修复偶发的刷新问题。')
         self.assertEqual(self.snapshot(),before)

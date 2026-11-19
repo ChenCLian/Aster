@@ -1,6 +1,6 @@
 # 文档维护
 
-适用版本：Aster 1.3.1-beta.2。
+适用版本：Aster 1.3.2-beta.7。
 
 ## 面向读者组织内容
 
@@ -38,7 +38,7 @@ python -m unittest discover -s tools/help_reference -p "test_*.py"
 
 ## 归档与源码导出
 
-当前文档从 `docs/README.md` 进入；版本专属的检查报告放在 `docs/history/`，原始日志和结构化记录保存在 `docs/validation_results/<版本>/`。科学参照数据、测试工具、许可证及依赖来源属于项目材料，不作为临时文件删除。
+当前文档从 `docs/README.md` 进入。随包保留当前验证摘要、已引用的历史证据、科学参照数据、测试工具、许可证和依赖来源。开发中的截图、排查笔记和中间日志放在源码目录之外。
 
 源码导出排除构建目录、下载缓存、发行程序和 Python 缓存；`package_source.py` 为本次导出重新生成 `PACKAGE_MANIFEST.json`，不能用旧清单说明已修改的源码。清理规则见[发布维护](../release_maintenance_zh.md)。
 

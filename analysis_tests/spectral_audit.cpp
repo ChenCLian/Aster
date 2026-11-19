@@ -41,6 +41,7 @@ private slots:
     void fdrScaleInvariance();
     void realEndpointsAndDegreesOfFreedom();
     void distancePrefersProminence();
+    void longRepeatedPeaksAndCancellation();
     void rejectsInvalidInput();
     void workflowMetadataAndDensityUnits();
 };
@@ -176,6 +177,21 @@ void SpectralAudit::realEndpointsAndDegreesOfFreedom()
     QVERIFY(close(r.theored,p)); QVERIFY(close(r.pxxsmooth,p));
     QVERIFY(std::abs(r.chiConf.chi95[0]-gsl_cdf_chisq_Qinv(.05,5)/5)<1e-10);
     QVERIFY(std::abs(r.chiConf.chi95[100]-2*gsl_cdf_chisq_Qinv(.05,10)/10)<1e-10);
+}
+void SpectralAudit::longRepeatedPeaksAndCancellation()
+{
+    std::vector<double> power(60001,0);
+    for (size_t i=1; i<power.size(); i+=2) power[i]=3;
+    const auto peaks = spectrum::findSpectrumPeaks(int(power.size()), power.data());
+    QCOMPARE(peaks.size(), size_t(30000));
+    for (size_t i=0; i<peaks.size(); ++i) {
+        QCOMPARE(peaks[i].index, int(2*i+1));
+        QCOMPARE(peaks[i].prominence, 3.);
+        QCOMPARE(peaks[i].width, 1.);
+    }
+    int checks=0;
+    QVERIFY_EXCEPTION_THROWN(spectrum::findSpectrumPeaks(int(power.size()), power.data(), {},
+        [&] { return ++checks >= 5; }), std::runtime_error);
 }
 void SpectralAudit::distancePrefersProminence()
 {

@@ -2,7 +2,7 @@
 
 操作与输出解释：[中文](spectral_inference.md#wavelet) · [English](spectral_inference_en.md#wavelet)。公共概念见[统计解释](../concepts/statistical_interpretation.md)。
 
-适用版本：Aster 1.3.1-beta.2。
+适用版本：Aster 1.3.2-beta.7。
 
 [使用手册](../USER_GUIDE.md) · [参数参考](../reference/task_parameters.md#m-cwt) · [统计限制](statistical_limits.md#cwt)
 
@@ -56,3 +56,5 @@
 为识别已保存设置，两种方式的参数标识分别保留为 `acycle_cwt` 和 `torrence_compo`。较早版本界面中的“Acycle CWT（标准化、尺度校正）”即当前“方差归一化与尺度校正”。名称调整不改写旧记录，不改变默认值或计算结果。结果来源中的参考实现与方法版本也予以保留。
 
 方法比较与验证范围见[与 Acycle 的方法对照](acycle_compatibility.md)，原始证据见[科学来源记录](../reference/scientific_evidence.json)。Acycle 的文献为 Li, Hinnov & Kump (2019), *Acycle: Time-series analysis software for paleoclimate research and education*, Computers & Geosciences 127, 12–22，[DOI](https://doi.org/10.1016/j.cageo.2019.02.011)。软件实现与第三方归属见[第三方说明](../third_party.md)。
+
+计算期间点击取消后，变换会在相邻尺度之间检查请求。生成功率图、尺度校正图和显著性图时也会检查。取消的节点不保存部分图像。

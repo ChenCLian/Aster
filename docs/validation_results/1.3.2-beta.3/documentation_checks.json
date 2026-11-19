@@ -1,0 +1,14 @@
+{
+  "version": "1.3.2-beta.3",
+  "documentation": {
+    "status": "reviewed",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "scope": "Input identity, effective bulk edits, keyboard navigation in results, workflow Undo/Redo scope, acceptance and performance tool usage.",
+    "catalog_tasks": 58,
+    "catalog_parameters": 270,
+    "portable_resources": 136
+  }
+}

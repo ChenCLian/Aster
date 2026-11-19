@@ -34,6 +34,13 @@ contains(CONFIG, help_reference):!contains(CONFIG, core_only) {
     help_reference.depends = core io science
 }
 
+# Opt in on release CI; the standalone acceptance tool stays outside program packages.
+contains(CONFIG, interaction_acceptance):!contains(CONFIG, core_only):!contains(CONFIG, no_gui) {
+    SUBDIRS += interaction_acceptance
+    interaction_acceptance.file = tools/acceptance/acceptance.pro
+    interaction_acceptance.depends = desktop_ui application science io core
+}
+
 # Optional validation of the current registered AR1 global test.
 contains(CONFIG, calibration):!contains(CONFIG, core_only) {
     SUBDIRS += ar1_global_validation
@@ -57,5 +64,7 @@ DISTFILES += tools/ar1_global_validation/portable_random.h
 DISTFILES += resources/astronomy/solutions/La2010_README.TXT resources/astronomy/solutions/PT_README.txt
 
 DISTFILES += tools/release/package_windows.ps1 $$files($$PWD/tools/release/*.sh)
-DISTFILES += .github/workflows/build-desktop.yml .github/workflows/mirror-gitee.yml resources/manual_files.json
+DISTFILES += $$files($$PWD/.github/workflows/*.yml) resources/manual_files.json
+DISTFILES += tools/acceptance/acceptance.pro tools/acceptance/interaction_acceptance.cpp
+DISTFILES += $$files($$PWD/tools/performance/*.pro) $$files($$PWD/tools/performance/*.cpp)
 DISTFILES += resources/app/aster-256.png

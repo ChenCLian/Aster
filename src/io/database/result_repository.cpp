@@ -9,13 +9,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSqlError>
+#include <QScopeGuard>
 #include <QSqlQuery>
 #include <QVariant>
 #include <QFileInfo>
 #include <QDir>
 #include <QSet>
-#include <QSaveFile>
-#include <QTextStream>
 #include <exception>
 #include <new>
 #include <algorithm>
@@ -298,63 +297,44 @@ RecordList ResultRepository::listBefore(const RecordFilter &filter, int limit, q
 {
     return queryList(filter, limit, 0, beforeId);
 }
-QString ResultRepository::exportRecordNames(const RecordFilter &filter, const QString &path,
-                                            qint64 *written, const CancellationToken &cancel) const
+qint64 ResultRepository::recordCount(QString &error) const
 {
-    if (written) *written = 0;
-    auto error = checkThread();
-    if (error.isEmpty()) error = filter.validate();
-    if (!error.isEmpty()) return error;
-    const auto destination = QFileInfo(path).absoluteFilePath();
-    const auto database = QFileInfo(m_db.databaseName()).absoluteFilePath();
-    for (const auto &suffix : {QString(), QString("-wal"), QString("-shm"), QString("-journal")}) {
-        const QFileInfo protectedFile(database + suffix), target(destination);
-        if (destination == protectedFile.absoluteFilePath() ||
-            (target.exists() && !target.canonicalFilePath().isEmpty() &&
-             target.canonicalFilePath() == protectedFile.canonicalFilePath()))
-            return "CSV destination must not replace the database or its journal files";
-    }
-    if (cancel.isCancelled()) return "Export cancelled";
-    QVariantList values;
-    QString statement = "SELECT r.id,r.source_label,r.provenance FROM aster_runs r WHERE 1=1";
-    statement += database_detail::recordConditions(filter, values);
-    statement += " ORDER BY r.id DESC";
+    error = checkThread();
+    if (!error.isEmpty()) return -1;
     QSqlQuery query(m_db);
-    query.setForwardOnly(true);
-    if (!query.prepare(statement)) return query.lastError().text();
-    for (const auto &value : values) query.addBindValue(value);
-    if (!query.exec()) return query.lastError().text();
-    QSaveFile file(path);
-    file.setDirectWriteFallback(false);
-    if (!file.open(QIODevice::WriteOnly)) return file.errorString();
-    QTextStream out(&file);
-    out.setEncoding(QStringConverter::Utf8);
-    out.setGenerateByteOrderMark(true); // Chinese names also open correctly in Excel.
-    out << "ID,Filename\r\n";
-    qint64 count = 0;
-    while (query.next()) {
-        if (cancel.isCancelled()) return "Export cancelled";
-        auto name = query.value(1).toString();
-        const auto provenance = QJsonDocument::fromJson(query.value(2).toByteArray()).object();
-        // Keep generated/pair labels intact, including slashes in their names.
-        if (!provenance.contains("batch_pair") && !provenance["path"].toString().isEmpty()) {
-            name = provenance["path"].toString();
-            name.replace('\\', '/'); // Saved Windows paths are portable across hosts.
-            name = name.section('/', -1);
+    if (query.exec("SELECT COUNT(*) FROM aster_runs") && query.next())
+        return query.value(0).toLongLong();
+    error = query.lastError().text();
+    return -1;
+}
+RecordList ResultRepository::directoryPage(const RecordFilter &filter, int limit, qint64 beforeId)
+{
+    if (beforeId) return listBefore(filter, limit, beforeId);
+    RecordList page;
+    page.error = checkThread();
+    if (!page.error.isEmpty()) return page;
+    if (!m_db.transaction()) { page.error = m_db.lastError().text(); return page; }
+    // Count against the same snapshot as the first page, even during batch saves.
+    const auto finish = qScopeGuard([this] { m_db.rollback(); });
+    page = listBefore(filter, limit);
+    if (!page.error.isEmpty()) return page;
+    page.totalRecords = recordCount(page.error);
+    if (!page.error.isEmpty()) return page;
+    page.totalMatching = page.records.size();
+    if (page.hasMore) {
+        QVariantList values;
+        const auto conditions = database_detail::recordConditions(filter, values);
+        if (conditions.isEmpty()) {
+            page.totalMatching = page.totalRecords;
+        } else {
+            QSqlQuery count(m_db);
+            count.prepare("SELECT COUNT(*) FROM aster_runs r WHERE 1=1" + conditions);
+            for (const auto &value : values) count.addBindValue(value);
+            if (!count.exec() || !count.next()) page.error = count.lastError().text();
+            else page.totalMatching = count.value(0).toLongLong();
         }
-        name.replace('"', "\"\"");
-        out << query.value(0).toLongLong() << ",\"" << name << "\"\r\n";
-        ++count;
-        if (out.status() != QTextStream::Ok) return "CSV write failed";
     }
-    if (query.lastError().isValid()) return query.lastError().text();
-    out.flush();
-    if (cancel.isCancelled()) return "Export cancelled";
-    if (out.status() != QTextStream::Ok || file.error() != QFileDevice::NoError)
-        return "CSV write failed";
-    if (!file.commit()) return file.errorString();
-    if (written) *written = count;
-    return {};
+    return page;
 }
 RecordList ResultRepository::queryList(const RecordFilter &filter, int limit, int offset, qint64 beforeId) const
 {
@@ -370,9 +350,12 @@ RecordList ResultRepository::queryList(const RecordFilter &filter, int limit, in
         result.error = "Invalid pagination";
         return result;
     }
-    QString statement = "SELECT "
-                        "r.id,r.run_uuid,r.source_label,r.state,r.started_utc,r.finished_utc,r."
-                        "display_name,r.notes FROM aster_runs r WHERE 1=1";
+    // Cancellation takes precedence in the aggregate run state. A previously failed
+    // branch is still an error; look at node states only for cancelled rows on this page.
+    QString statement = "SELECT r.id,r.run_uuid,r.source_label,r.state,r.started_utc,r.finished_utc,"
+                        "r.display_name,r.notes,CASE WHEN r.state='Cancelled' THEN "
+                        "EXISTS(SELECT 1 FROM aster_nodes n WHERE n.run_id=r.id AND n.state='Failed') "
+                        "ELSE r.state IN ('Failed','PartialFailed') END FROM aster_runs r WHERE 1=1";
     QVariantList values;
     statement += database_detail::recordConditions(filter, values);
     if (beforeId > 0) { statement += " AND r.id<?"; values << beforeId; }
@@ -392,7 +375,7 @@ RecordList ResultRepository::queryList(const RecordFilter &filter, int limit, in
                                   q.value(2).toString(), q.value(3).toString(),
                                   QDateTime::fromString(q.value(4).toString(), Qt::ISODateWithMs),
                                   QDateTime::fromString(q.value(5).toString(), Qt::ISODateWithMs),
-                                  q.value(6).toString(), q.value(7).toString()});
+                                  q.value(6).toString(), q.value(7).toString(), q.value(8).toBool()});
     result.hasMore = result.records.size() > limit;
     if (result.hasMore) result.records.removeLast();
     return result;

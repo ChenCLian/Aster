@@ -32,6 +32,7 @@
 #include <QStatusBar>
 #include <QMenu>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QScreen>
@@ -46,6 +47,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <algorithm>
+#include <numeric>
 namespace aster::ui
 {
 MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
@@ -147,7 +149,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_canvas = new WorkflowCanvas(m_document);
     cv->addWidget(m_canvas, 1);
     m_preview = new WorkflowPreviewPanel(m_document);
-    m_previewPanel = new CollapsiblePanel(text("ui.preview_column"), m_preview, 400);
+    m_previewPanel = new CollapsiblePanel(text("ui.preview_column"), m_preview, 520);
     m_previewPanel->setObjectName("previewSidePanel");
     m_previewPanel->setExpandedWidthRange(300, 720);
     m_previewPanel->setGripOnRight(true);
@@ -179,10 +181,10 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_catalogPanel->setObjectName("catalogSidePanel");
     m_taskSplitter->addWidget(m_parameterPanel);
     m_taskSplitter->addWidget(m_catalogPanel);
-    m_parameterPanel->setResizeTarget(canvasPanel);
-    m_catalogPanel->setResizeTarget(canvasPanel);
+    m_parameterPanel->setResizeTarget(canvasPanel, m_previewPanel);
+    m_catalogPanel->setResizeTarget(canvasPanel, m_previewPanel);
+    m_taskSplitter->setStretchFactor(1, 1);
     m_taskSplitter->setStretchFactor(2, 1);
-    m_taskSplitter->setSizes({270, 400, 600, 280, 260});
     m_pages->addWidget(taskPage);
     m_results = new ResultsPage(m_document->model().registry());
     m_results->workspace()->setDefaultPlotNewPage(m_settings.defaultPlotNewPage);
@@ -210,6 +212,8 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
             });
     m_status = new QLabel(text("ui.ready_b796f2"));
     m_status->setObjectName("runStatus");
+    m_status->setTextFormat(Qt::PlainText);
+    m_status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     statusBar()->addWidget(m_status, 1);
     auto *version = new QLabel(QCoreApplication::applicationVersion());
     statusBar()->addPermanentWidget(version);
@@ -287,33 +291,52 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_canvas, &WorkflowCanvas::zoomChanged, this,
             [this](int n) { m_zoom->setText(QString::number(n) + "%"); });
     connect(m_run, &QPushButton::clicked, this, &MainWindow::startRun);
+    struct ActiveStep {
+        QString file, method, phase;
+        qint64 started = 0;
+        int percent = -1;
+    };
     struct PendingRunUi {
         QMap<QPair<NodeId, QString>, SourceFileState> files;
-        QString status;
-        bool progress = false, directory = false, cancelling = false;
+        QHash<QPair<RunId, NodeId>, ActiveStep> active;
+        QElapsedTimer clock;
+        int saved = 0;
+        bool directory = false, cancelling = false;
     };
     const auto pendingUi = std::make_shared<PendingRunUi>();
     auto *runUiRefresh = new QTimer(this);
-    runUiRefresh->setSingleShot(true);
-    runUiRefresh->setInterval(100);
+    runUiRefresh->setInterval(200);
     const auto flushRunUi = [this, pendingUi] {
-        // Update all states before the progress bar requests a synchronous paint.
         for (auto it = pendingUi->files.cbegin(); it != pendingUi->files.cend(); ++it)
             m_sources->setFileState(it.key().first, it.key().second, it.value());
         pendingUi->files.clear();
-        if (pendingUi->progress) m_progress->setValue(m_terminalSteps.size());
-        pendingUi->progress = false;
-        if (!pendingUi->status.isEmpty()) m_status->setText(pendingUi->status);
-        pendingUi->status.clear();
-        if (pendingUi->directory) m_results->refresh();
-        pendingUi->directory = false;
+        m_progress->setValue(m_terminalSteps.size());
+        if (pendingUi->directory) {
+            m_results->recordsAdded();
+            pendingUi->directory = false;
+        }
+        if (pendingUi->cancelling) return;
+        auto status = text("ui.batch_live_counts").arg(m_terminalSteps.size())
+                          .arg(m_progress->maximum()).arg(pendingUi->saved);
+        // Show the oldest active step, including time spent in native algorithms
+        // that have no percentage callback. The step count only advances on completion.
+        const auto &active = pendingUi->active;
+        auto oldest = std::min_element(active.cbegin(), active.cend(), [](const auto &a, const auto &b) {
+            return a.started < b.started;
+        });
+        if (oldest != active.cend()) {
+            status += "  ·  " + oldest->file + "  ·  " +
+                (oldest->phase.isEmpty() ? oldest->method : oldest->phase);
+            if (oldest->percent >= 0) status += QString(" %1%").arg(oldest->percent);
+            status += text("ui.step_elapsed").arg((pendingUi->clock.elapsed() - oldest->started) / 1000);
+        }
+        if (status != m_status->text()) m_status->setText(status);
     };
     connect(runUiRefresh, &QTimer::timeout, this, flushRunUi);
     connect(m_cancel, &QPushButton::clicked, this,
             [this, pendingUi]
             {
                 pendingUi->cancelling = true;
-                pendingUi->status.clear();
                 m_runner->cancel();
                 m_status->setText(text("ui.cancelling_waiting_for_the_current_algorithm"));
             });
@@ -321,28 +344,31 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     connect(m_retry, &QPushButton::clicked, this,
             [this] { m_runner->retry(m_unsaved.values(), m_settings.databasePath); });
     connect(m_runner, &RunController::eventReady, this,
-            [this, pendingUi, runUiRefresh](const RunEvent &e)
+            [this, pendingUi](const RunEvent &e)
             {
-                if (e.state == NodeState::Running && e.progressPercent < 0)
-                    pendingUi->files[{e.root, e.sourceLabel}] = SourceFileState::Running;
-                if (e.state == NodeState::Running && e.progressPercent >= 0 && !pendingUi->cancelling)
-                    pendingUi->status = text("ui.task_progress").arg(e.sourceLabel)
-                                          .arg(translatedLabel(e.message, e.message)).arg(e.progressPercent);
-                if (e.state != NodeState::Pending && e.state != NodeState::Running)
-                {
-                    m_terminalSteps.insert(e.runId.toString() + e.nodeId.toString());
-                    pendingUi->progress = true;
-                    if (!pendingUi->cancelling)
-                        pendingUi->status = QString(text("ui.running_1_2_steps_finished"))
-                                          .arg(m_terminalSteps.size())
-                                          .arg(m_progress->maximum());
+                const auto key = qMakePair(e.runId, e.nodeId);
+                if (e.state == NodeState::Running) {
+                    auto it = pendingUi->active.find(key);
+                    if (it == pendingUi->active.end()) {
+                        const auto *node = m_document->node(e.nodeId);
+                        const auto label = node ? methodLabel(m_document->model().registry().find(node->method)->descriptor) : QString();
+                        it = pendingUi->active.insert(key, {QFileInfo(e.sourceLabel).fileName(), label, {},
+                                                           pendingUi->clock.elapsed(), -1});
+                        pendingUi->files[{e.root, e.sourceLabel}] = SourceFileState::Running;
+                    }
+                    if (e.progressPercent >= 0) {
+                        it->percent = e.progressPercent;
+                        it->phase = translatedLabel(e.message, e.message);
+                    }
+                } else if (e.state != NodeState::Pending) {
+                    pendingUi->active.remove(key);
+                    m_terminalSteps.insert(key);
                 }
-                if (e.state != NodeState::Pending && !runUiRefresh->isActive()) runUiRefresh->start();
             });
     // Fast batches produce many notifications between paints. Preserve every
     // terminal step, but coalesce their presentation and directory queries.
     connect(m_runner, &RunController::itemReady, this,
-            [pendingUi, runUiRefresh](const BatchItem &item)
+            [pendingUi](const BatchItem &item)
             {
                 pendingUi->files[{item.root, item.sourceLabel}] =
                                         item.computation == RunState::Succeeded
@@ -353,29 +379,31 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                                             ? SourceFileState::Cancelled
                                             : SourceFileState::Failed;
                 pendingUi->directory |= item.persistence.saved();
-                if (!runUiRefresh->isActive()) runUiRefresh->start();
+                if (item.persistence.saved()) ++pendingUi->saved;
             });
     connect(m_runner, &RunController::batchReady, this,
             [this, pendingUi, runUiRefresh, flushRunUi](std::shared_ptr<const BatchResult> batch) {
                 runUiRefresh->stop();
-                // batchFinished refreshes the last saved result. If work threw
-                // after some itemReady signals, keep those records visible too.
-                if (std::any_of(batch->items.cbegin(), batch->items.cend(),
-                                [](const BatchItem &item) { return item.persistence.saved(); }))
-                    pendingUi->directory = false;
                 flushRunUi();
                 batchFinished(std::move(batch));
             });
     connect(m_runner, &RunController::busyChanged, this,
             [this, pendingUi, runUiRefresh](bool busy)
             {
-                if (busy) { runUiRefresh->stop(); *pendingUi = {}; }
+                if (busy) {
+                    *pendingUi = {};
+                    pendingUi->clock.start();
+                    runUiRefresh->start();
+                    m_browsedRunResults = false;
+                } else {
+                    runUiRefresh->stop();
+                }
                 m_document->setEditingLocked(busy);
                 m_results->setDatabaseMutationsEnabled(!busy);
                 m_canvas->setEditable(!busy);
-                m_sources->setEnabled(!busy);
+                m_sources->updateRunControls();
                 if (!busy && !m_closeWhenIdle)
-                    m_sources->syncPreviewInput();
+                    m_sources->showFileOptions();
                 m_preview->setSuspended(busy || m_closeWhenIdle);
                 m_editor->setEnabled(!busy);
                 m_catalog->setEnabled(!busy);
@@ -386,6 +414,9 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
                     m_closeWhenIdle)
                     QTimer::singleShot(0, this, &QWidget::close);
             });
+    connect(m_results, &ResultsPage::recordChanging, this, [this] {
+        if (m_runner->busy()) m_browsedRunResults = true;
+    });
     connect(m_results, &ResultsPage::databaseMutationBusyChanged, this, [this] { updateActions(); });
     connect(m_results, &ResultsPage::databaseBusyChanged, this,
             [this](bool busy)
@@ -416,21 +447,32 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_previewPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+1"));
     m_parameterPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+2"));
     m_catalogPanel->setToggleShortcut(QKeySequence("Ctrl+Shift+3"));
-    auto *undoShortcut = new QShortcut(QKeySequence::Undo, this);
+    auto *undoShortcut = new QShortcut(QKeySequence::Undo, m_taskActions);
     connect(undoShortcut, &QShortcut::activated, m_undo, &QPushButton::click);
-    auto *redoShortcut = new QShortcut(QKeySequence::Redo, this);
+    auto *redoShortcut = new QShortcut(QKeySequence::Redo, m_taskActions);
     connect(redoShortcut, &QShortcut::activated, m_redo, &QPushButton::click);
     updateActions();
     initializeWindowGeometry();
-    QTimer::singleShot(0, this, [this]
+    QTimer::singleShot(0, this, [this, canvasPanel]
     {
         m_catalogPanel->setCollapsed(width() < 1750);
         m_parameterPanel->setCollapsed(width() < 1250);
-        const int side = (m_parameterPanel->isCollapsed() ? 28 : 280) +
-                         (m_catalogPanel->isCollapsed() ? 28 : 260);
-        m_taskSplitter->setSizes({270, 380, std::max(300, width() - 680 - side),
-                                  m_parameterPanel->isCollapsed() ? 28 : 280,
-                                  m_catalogPanel->isCollapsed() ? 28 : 260});
+        const int settingsWidth = m_parameterPanel->isCollapsed() ? m_parameterPanel->minimumWidth() : 280;
+        const int catalogWidth = m_catalogPanel->isCollapsed() ? m_catalogPanel->minimumWidth() : 260;
+        const auto sizes = m_taskSplitter->sizes();
+        // Splitter sizes exclude the handles, including their theme-dependent widths.
+        const int available = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
+        const int workspaceWidth = available - settingsWidth - catalogWidth;
+        constexpr int compactPreviewWidth = 380;
+        const int filesWidth = std::clamp(workspaceWidth - canvasPanel->minimumWidth() - compactPreviewWidth,
+                                          m_sources->minimumWidth(), 270);
+        const int centerWidth = workspaceWidth - filesWidth;
+        const int canvasReserve = std::max(canvasPanel->minimumWidth(), std::min(available / 4, 360));
+        const int preferredPreview = std::max(compactPreviewWidth, width() / 3);
+        const int previewWidth = std::clamp(std::min(preferredPreview, centerWidth - canvasReserve),
+                                            m_previewPanel->minimumWidth(), m_previewPanel->maximumWidth());
+        m_taskSplitter->setSizes({filesWidth, previewWidth, std::max(canvasPanel->minimumWidth(), centerWidth - previewWidth),
+                                  settingsWidth, catalogWidth});
         m_canvas->fitWorkflow();
     });
 }
@@ -448,6 +490,7 @@ void MainWindow::setPage(int page)
 {
     if (page == 0)
         m_sources->syncPreviewInput();
+    if (page == 1 && m_runner->busy()) m_browsedRunResults = true;
     m_pages->setCurrentIndex(page);
     m_taskTab->setChecked(page == 0);
     m_resultTab->setChecked(page == 1);
@@ -611,7 +654,7 @@ void MainWindow::childMenu(NodeId parent, ChildSlot slot, QPoint pos)
                     return false;
                 const auto *p = m_document->model().registry().find(n->method);
                 for (const auto &output : p->descriptor.outputs)
-                    if (output.kind == *d.inputKind &&
+                    if (d.acceptsInput(output) &&
                         m_document->model().previewChild(parent, slot, d.key, {}, output.key).ok())
                         return true;
                 return false;
@@ -634,10 +677,14 @@ void MainWindow::addTask(QString method, NodeId parent, ChildSlot slot)
     auto *registration = m_document->model().registry().find(method);
     if (!n || !registration || !registration->descriptor.inputKind)
         return;
+    if (m_document->model().childCount(parent) >= WorkflowChildLimit) {
+        showMessage(text("ui.child_limit").arg(WorkflowChildLimit));
+        return;
+    }
     const auto *input = m_document->model().registry().find(n->method);
     QStringList ports;
     for (const auto &port : input->descriptor.outputs)
-        if (port.kind == *registration->descriptor.inputKind)
+        if (registration->descriptor.acceptsInput(port))
             ports.push_back(port.key);
     const auto add = [this, parent, slot, method](const QString &port)
     {
@@ -649,7 +696,13 @@ void MainWindow::addTask(QString method, NodeId parent, ChildSlot slot)
             return;
         }
         selectNode(r.nodeId);
+        m_canvas->ensureVisible(m_canvas->nodeRect(r.nodeId).adjusted(0, 0, 40, 0), 16, 16);
     };
+    if (!registration->descriptor.requiredSecondPort.isEmpty() && ports.contains(registration->descriptor.requiredSecondPort))
+    {
+        add(registration->descriptor.requiredSecondPort);
+        return;
+    }
     if (ports.size() == 1)
     {
         add(ports.front());
@@ -760,27 +813,10 @@ void MainWindow::catalogActivate(QString method)
     const auto id = m_canvas->selectedNode();
     if (id.isNull())
     {
-        showMessage(text("ui.select_a_parent_task_then_drag_into_a_slot_or_choose_a_direc"));
+        showMessage(text("ui.choose_parent_for_task"));
         return;
     }
-    auto *menu = new QMenu(this);
-    menu->setAttribute(Qt::WA_DeleteOnClose);
-    for (auto slot : {ChildSlot::Left, ChildSlot::Right, ChildSlot::Down})
-    {
-        auto *a = menu->addAction(slot == ChildSlot::Left    ? text("ui.add_left")
-                                  : slot == ChildSlot::Right ? text("ui.add_right")
-                                                             : text("ui.add_below"));
-        const auto *n = m_document->node(id);
-        bool valid = false;
-        for (const auto &p : m_document->model().registry().find(n->method)->descriptor.outputs)
-            if (p.kind == *registration->descriptor.inputKind &&
-                m_document->model().previewChild(id, slot, method, {}, p.key).ok())
-                valid = true;
-        a->setEnabled(valid);
-        connect(a, &QAction::triggered, menu,
-                [this, method, id, slot] { addTask(method, id, slot); });
-    }
-    showMenuWithinWindow(menu, this, taskAnchor(id));
+    addTask(method, id, ChildSlot::Append);
 }
 void MainWindow::removeTask(NodeId id)
 {
@@ -832,16 +868,18 @@ void MainWindow::startRun()
         return;
     }
     int total = 0;
+    QHash<NodeId, int> stepsPerRoot;
     for (const auto &r : plan.requests)
     {
-        QHash<NodeId, QVector<NodeId>> children;
-        for (const auto &n : r.workflow->definition().nodes)
-            if (n.input)
-                children[n.input->parent].push_back(n.id);
-        QVector<NodeId> queue{r.root};
-        for (qsizetype i = 0; i < queue.size(); ++i)
-            queue += children.value(queue[i]);
-        total += queue.size();
+        if (!stepsPerRoot.contains(r.root)) {
+            QHash<NodeId, QVector<NodeId>> children;
+            for (const auto &n : r.workflow->definition().nodes)
+                if (n.input) children[n.input->parent].push_back(n.id);
+            QVector<NodeId> queue{r.root};
+            for (qsizetype i = 0; i < queue.size(); ++i) queue += children.value(queue[i]);
+            stepsPerRoot.insert(r.root, queue.size());
+        }
+        total += stepsPerRoot.value(r.root);
     }
     for (const auto &batch : plan.batches) total += batch->jobs().size();
     m_sources->clearFileStates();
@@ -879,10 +917,13 @@ void MainWindow::batchFinished(std::shared_ptr<const BatchResult> batch)
             .arg(failed));
     m_retry->setVisible(!m_unsaved.isEmpty());
     m_retry->setText(text("ui.retry_saving_d6b31c") + QString::number(m_unsaved.size()));
-    if (last)
+    if (batch->notStarted) m_status->setText(m_status->text() + text("ui.batch_not_started").arg(batch->notStarted));
+    if (last && !m_browsedRunResults && !m_closeWhenIdle)
     {
         m_results->refresh(last);
         setPage(1);
+    } else if (!m_closeWhenIdle) {
+        m_results->refreshPendingIfVisible();
     }
     updateActions();
 }
@@ -952,11 +993,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     if (m_runner->busy() || m_results->exportBusy())
     {
-        if (!m_closeWhenIdle &&
+        if (!m_closeWhenIdle && ((m_runner->cancelling() && !m_results->exportBusy()) ||
             QMessageBox::question(
                 this, text("ui.work_is_running"),
                 text("ui.cancel_active_computation_export_and_close_after_workers_fin")) ==
-                QMessageBox::Yes)
+                QMessageBox::Yes))
         {
             m_closeWhenIdle = true;
             m_runner->cancel();

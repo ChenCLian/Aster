@@ -34,6 +34,8 @@ Strong extremes can influence the fit. Reduced low-frequency power after detrend
 <a id="lowess"></a>
 ## LOWESS detrending
 
+With positive robust iterations, the estimated work is the number of samples times neighbors per window times the number of fitting passes (robust iterations plus one). More than one billion neighborhood terms stops the node before fitting. Ordinary LOWESS has its own evaluation path.
+
 Input must be finite with strictly increasing X and at least two points; irregular spacing is allowed. Local linear fits are used. Defaults are fraction 0.35, zero robust iterations and retain-mean disabled.
 
 The fraction ranges from 0.001 to 1. The base neighborhood count is `max(2,min(N,floor(fraction×N)))`, with weights based on X distances. This is not a percentage of physical X span: 35% of 101 points gives a base neighborhood of 35 points. Edge neighborhoods are asymmetric and do not automatically avoid large gaps. Very small fractions may closely follow individual observations and leave near-zero residuals.
@@ -45,6 +47,9 @@ By default, `detrended=y−trend`, with the fitted background in `trend`. LOWESS
 Both outputs retain X, count and Y units. With retain-mean enabled, subtract the adjustment from “residual + trend” to reconstruct Y. [Parameters](../reference/task_parameters_en.md#m-detrend_lowess) · [Units and standardization](../concepts/data_processing_en.md#units).
 
 <a id="selection"></a>
+
+For long series, ordinary LOWESS reuses partial sums across neighbouring windows and fits every input coordinate. The report records the evaluation method in `fit_evaluation`. The running task displays fitting progress and accepts cancellation during the fit.
+
 ## Choosing and checking
 
 | Goal or problem | What to check |

@@ -1,0 +1,67 @@
+{
+  "version": "1.3.2-beta.5",
+  "date": "2026-11-19",
+  "environment": "Linux x86-64, Qt 6.8.2 Release (-O1), offscreen widgets",
+  "executables": 14,
+  "passed": 2443,
+  "failed": 0,
+  "skipped": 0,
+  "targets": {
+    "aster_core_tests": 67,
+    "aster_batch_tests": 69,
+    "aster_analysis_tests": 724,
+    "aster_cross_spectrum_tests": 81,
+    "aster_ui_tests": 952,
+    "aster_joint_ui_tests": 39,
+    "aster_rewrite_tests": 32,
+    "aster_linked_input_tests": 53,
+    "aster_style_export_tests": 70,
+    "aster_workspace_tests": 84,
+    "aster_integration_tests": 92,
+    "aster_update_tests": 76,
+    "aster_download_tests": 75,
+    "aster_interaction_acceptance": 29
+  },
+  "file_lists": {
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "display_scales_percent": [
+      100,
+      125,
+      150,
+      200
+    ],
+    "scope": "Uniform rows, pointer hover, contiguous input selection, current-but-unselected input, keyboard focus after a mouse click, result activation, checkbox toggles, filtering, refresh and a missing record."
+  },
+  "batch_input_options": {
+    "input_files": 2287,
+    "applied": 2287,
+    "skipped": 0
+  },
+  "result_directory": {
+    "total": 4159,
+    "match_count": 244,
+    "checked_counts": [
+      4159,
+      4159,
+      3915,
+      0
+    ],
+    "opened_record_id": 4159,
+    "initial_rows": 100,
+    "rows_after_one_scroll": 200,
+    "scope": "Checked identities across all records, filter changes and page appends; the open record stays independent of checkbox focus."
+  },
+  "release_tools": {
+    "python_tests_run": 231,
+    "failed": 0,
+    "skipped": 1,
+    "bundled_resource_hashes": 15
+  },
+  "not_run": [
+    "Native Windows and macOS desktop checks",
+    "Hosted release builds"
+  ]
+}

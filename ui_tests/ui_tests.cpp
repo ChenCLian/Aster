@@ -1,3 +1,5 @@
+#include "ui/panels/record_filter_panel.h"
+#include "ui/results/record_item_delegate.h"
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include <QTextBlock>
@@ -5,6 +7,8 @@
 #include "ui/help/help_dialog.h"
 #include "ui/help/help_catalog.h"
 #include <QElapsedTimer>
+#include <QProgressBar>
+#include <QSqlQuery>
 #include <QAbstractTextDocumentLayout>
 #include "ui/settings/settings_dialog.h"
 #include <QTextBrowser>
@@ -32,6 +36,8 @@
 #include <QtTest/qtestspontaneevent.h>
 #include <QApplication>
 #include <QListWidget>
+#include <QScopeGuard>
+#include <QtMath>
 #include <cmath>
 #include "ui/settings/theme_manager.h"
 #include <QSplitter>
@@ -85,6 +91,13 @@ using namespace aster;
 using namespace aster::ui;
 namespace
 {
+QColor viewColorAt(QWidget *view, QPoint point)
+{
+    const auto shot = view->grab();
+    const qreal scale = shot.devicePixelRatio();
+    const QPoint pixel(qFloor((point.x() + .5) * scale), qFloor((point.y() + .5) * scale));
+    return shot.toImage().pixelColor(pixel);
+}
 DataRef series()
 {
     return makeData(SeriesData{{0, 1, 2, 3}, {1, 4, 2, 5}, {"Time", "ka"}, {"Signal", "u"}});
@@ -168,6 +181,9 @@ class UiTests : public QObject
     void helpDirectoryLinks();
     void helpTreeAndParameterSelection();
     void helpGlobalSearchAndCancellation();
+    void helpSearchHighlightsFollowTheArticle();
+    void hoverCardsRenderLiteralFileDetails();
+    void stepStatusRetainsColorWhenSelected();
     void helpFindAndReadingHistory();
     void helpNavigationResponsiveLayout();
     void allTaskGuidesAndIndexStayOffline();
@@ -180,6 +196,10 @@ class UiTests : public QObject
     void parameterHelpTracksSelectedNode();
     void fileReadinessSurvivesDisabledPanel();
     void compactInputStatesAndFrequencyEditor();
+    void inputListDistinguishesHoverAndSelection_data();
+    void inputListDistinguishesHoverAndSelection();
+    void resultListSeparatesOpenCheckAndHover_data();
+    void resultListSeparatesOpenCheckAndHover();
     void legacyFrequencyZeroCommit_data();
     void legacyFrequencyZeroCommit();
     void evolutionSettingsAndPlotDefaults();
@@ -223,10 +243,16 @@ class UiTests : public QObject
     void previewCloseAndDesktopCapture();
     void parameterLayoutDefaultsAndVisibility();
     void menuTouchTargetsAndPeakMarkers();
-    void frequencyFilterShowsMatchingNode();
+    void peakFilterLeavesFigureIndependent_data();
+    void peakFilterLeavesFigureIndependent();
+    void compactDirectoryAndPeakPeriods();
     void closeWaitsForDatabaseEdits();
     void fileOptionsRemainPerInput();
     void directoryServiceQueriesAndMutations();
+    void cancelAndCloseDuringLowess_data();
+    void cancelAndCloseDuringLowess();
+    void liveDirectoryDuringLargeFileBatch_data();
+    void liveDirectoryDuringLargeFileBatch();
     void directoryServiceReentrantEnqueue();
     void directoryServiceReentrantEnqueue_data();
     void directoryServiceDestroyedByObserver();
@@ -239,11 +265,15 @@ class UiTests : public QObject
     void scopedParametersAndMove();
     void scopedParameterEditAcceptsBorrowedNodeId();
     void scopedEditingAndPointReview();
+    void selectedImportRulesAndApplyAllReachStoredOutputs();
     void movedInputKeepsNavigationAndHistory();
     void outlierLegendUsesDisplayLabels();
     void scopedMetadataDoesNotCopySamples();
     void batchImportSkipsIncompatibleFiles();
     void batchImportCapturesSelectionAndLatestEdit();
+    void revertedImportEditLeavesOtherFilesUntouched();
+    void reimportingAPathStartsWithANewStatus();
+    void filePreviewPreservesFiniteValues();
     void batchImportKeyboardMouseScope();
     void batchImportPreservesConcurrentOptions();
     void sourceActionsFitNarrowPanel();
@@ -271,6 +301,7 @@ class UiTests : public QObject
     void scientificParametersReachPreviewAndRun();
     void verticalLayoutPreservesWorkflow();
     void persistentAddControlsUseTheirOwnParent();
+    void appendEightChildrenFromCanvasAndCatalogue();
     void exampleSourcePreviewAndLabels();
     void syntheticSourcePreviewAndParameters();
     void canvasClickAndAtomicDelete();
@@ -401,6 +432,182 @@ void UiTests::helpGlobalSearchAndCancellation()
     QPointer<HelpDialog> pendingGuard(pending);pending->close();QTRY_VERIFY(pendingGuard.isNull());
     QTest::qWait(150);
 }
+void UiTests::helpSearchHighlightsFollowTheArticle()
+{
+    const auto restore = qScopeGuard([] { setLanguage("zh"); ThemeManager::instance().apply(*qApp, "light"); });
+    setLanguage("zh");
+    auto *dialog = new HelpDialog;
+    dialog->show();
+    QVERIFY(dialog->navigate({"docs/README.md", {}}));
+    auto *browser = dialog->findChild<QTextBrowser *>("helpBrowser");
+    auto *global = dialog->findChild<QLineEdit *>("helpGlobalSearch");
+    auto *local = dialog->findChild<QLineEdit *>("helpSearch");
+    auto *results = dialog->findChild<QListWidget *>("helpSearchResults");
+    const auto marks = [&] {
+        QStringList words;
+        for (auto block = browser->document()->begin(); block.isValid(); block = block.next())
+            for (const auto &range : block.layout()->formats())
+                if (range.format.background().color() == themeColor("helpMatch"))
+                    words << block.text().mid(range.start, range.length);
+        return words;
+    };
+    const auto original = browser->document()->toHtml();
+    global->setText("分类");
+    QTRY_VERIFY_WITH_TIMEOUT(marks().contains("分类"), 15000);
+    QCOMPARE(browser->document()->toHtml(), original);
+    auto *indexHit = results->findItems("文档索引", Qt::MatchStartsWith).value(0);
+    QVERIFY(indexHit);
+    QTest::mouseClick(results->viewport(), Qt::LeftButton, Qt::NoModifier, results->visualItemRect(indexHit).center());
+    QCOMPARE(dialog->currentTopic().path, QString("docs/README.md"));
+    QVERIFY(marks().contains("分类"));
+    ThemeManager::instance().apply(*qApp, "dark");
+    QVERIFY(marks().contains("分类"));
+    QCoreApplication::processEvents(); // Finish navigation to the clicked section.
+    browser->verticalScrollBar()->setValue(42);
+    const int scroll = browser->verticalScrollBar()->value();
+    global->setText("左侧 搜索");
+    QVERIFY(marks().isEmpty());
+    QTRY_VERIFY(marks().contains("左侧") && marks().contains("搜索"));
+    QCOMPARE(browser->verticalScrollBar()->value(), scroll);
+    local->setText("浏览");
+    QTest::keyClick(local, Qt::Key_Return);
+    QCOMPARE(browser->textCursor().selectedText(), QString("浏览"));
+    global->clear();
+    QVERIFY(marks().isEmpty());
+    QCOMPARE(browser->textCursor().selectedText(), QString("浏览"));
+    global->setText("分类");
+    QTRY_VERIFY(marks().contains("分类"));
+    dialog->findChild<QPushButton *>("helpFindClose")->click();
+    QVERIFY(!browser->textCursor().hasSelection());
+    QVERIFY(marks().contains("分类"));
+
+    QVERIFY(dialog->navigate({"LICENSE", {}}));
+    QVERIFY(marks().isEmpty());
+    dialog->findChild<QPushButton *>("helpBack")->click();
+    QTRY_VERIFY(marks().contains("分类"));
+    global->setText("分类 __no_matching_section__");
+    QVERIFY(marks().isEmpty());
+    QTRY_COMPARE(dialog->findChild<QLabel *>("helpSearchStatus")->text(), text("help.no_results"));
+    QVERIFY(marks().isEmpty());
+    global->setText("aStEr");
+    QTest::keyClick(global, Qt::Key_Return);
+    QTRY_VERIFY(marks().contains("Aster", Qt::CaseInsensitive));
+    setLanguage("en");
+    QVERIFY(dialog->navigate(userGuideTopic()));
+    QVERIFY(global->text().isEmpty());
+    QVERIFY(marks().isEmpty());
+    global->setText("sampling");
+    QPointer<HelpDialog> guard(dialog);
+    dialog->close();
+    QTRY_VERIFY(guard.isNull());
+    HelpDialog reopened;
+    QVERIFY(reopened.navigate(userGuideTopic()));
+    QVERIFY(reopened.findChild<QLineEdit *>("helpGlobalSearch")->text().isEmpty());
+    QVERIFY(reopened.findChild<QTextBrowser *>("helpBrowser")->document()->begin().layout()->formats().isEmpty());
+}
+
+void UiTests::hoverCardsRenderLiteralFileDetails()
+{
+    const auto restore = qScopeGuard([] { QToolTip::hideText(); setLanguage("zh"); ThemeManager::instance().apply(*qApp, "light"); });
+    setLanguage("zh");
+    QListWidget list;
+    list.resize(350, 250);
+    const QString name = "82107<&>.csv";
+    const QString source = "C:/归档/" + QString(140, 'x') + "/" + name;
+    const QString metadata = "ID 4247 · 2026-11-19 11:26";
+    auto *item = new FileListItem(name, &list, {source, metadata, "<a href='test'>literal</a>", true},
+                                  RecordItemDelegate::statusFor("PartialFailed"));
+    list.show();
+    list.activateWindow();
+    QCoreApplication::processEvents();
+    for (const auto *theme : {"light", "dark"}) {
+        ThemeManager::instance().apply(*qApp, theme);
+        const auto at = list.visualItemRect(item).center();
+        QTest::mouseMove(list.viewport(), at);
+        QCoreApplication::processEvents();
+        QHelpEvent event(QEvent::ToolTip, at, list.viewport()->mapToGlobal(at));
+        QApplication::sendEvent(list.viewport(), &event);
+        const QString html = QToolTip::text();
+        QVERIFY(html.contains(themeColor("error").name()));
+        QTextDocument document;
+        document.setHtml(html);
+        const auto body = document.toPlainText().remove('\n');
+        QVERIFY(body.startsWith(name));
+        QVERIFY(body.contains(source));
+        QVERIFY(body.contains(metadata));
+        QVERIFY(body.contains(text("ui.record_partial_failure")));
+        QVERIFY(body.contains("<a href='test'>literal</a>"));
+        QVERIFY(body.contains(text("ui.record_workflow_error")));
+        QVERIFY(document.find(name).charFormat().font().bold());
+        QWidget *tip = nullptr;
+        for (auto *widget : QApplication::topLevelWidgets())
+            if (widget->isVisible() && widget->windowType() == Qt::ToolTip) tip = widget;
+        QVERIFY(tip);
+        QVERIFY(tip->width() < 460);
+    }
+}
+
+void UiTests::stepStatusRetainsColorWhenSelected()
+{
+    const auto restore = qScopeGuard([] { setLanguage("zh"); ThemeManager::instance().apply(*qApp, "light"); });
+    setLanguage("zh");
+    QTemporaryDir directory;
+    const auto path = directory.filePath("steps.sqlite");
+    WorkflowModel model(makeScientificRegistry());
+    const auto root = model.addRoot("sine_source", {0, 0}, {{"count", 8}}).nodeId;
+    const auto failed = model.addChild(root, ChildSlot::Append, "affine").nodeId;
+    const auto skipped = model.addChild(failed, ChildSlot::Append, "affine").nodeId;
+    auto run = WorkflowExecutor().run({model.freeze().snapshot, root, {"82107.csv", {}, {}}});
+    run.state = RunState::PartialFailed;
+    run.nodes[failed] = NodeResult::failure("upstream fixture");
+    auto blocked = NodeResult::failure(makeError(ErrorCode::UpstreamFailed));
+    blocked.state = NodeState::Blocked;
+    run.nodes[skipped] = blocked;
+    ResultRepository repo;
+    QVERIFY(repo.open(path).isEmpty());
+    const auto saved = repo.save(run);
+    QVERIFY(saved.saved());
+    ResultsPage page(makeScientificRegistry());
+    page.resize(1100, 800);
+    page.show();
+    page.setDatabase(path);
+    QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
+    page.openRecord(saved.recordId);
+    QTRY_COMPARE(loaded.count(), 1);
+    auto *steps = page.findChild<QTableWidget *>("resultSteps");
+    QCOMPARE(steps->rowCount(), 3);
+    QCOMPARE(steps->item(1, 0)->text(), QString("失败"));
+    QCOMPARE(steps->item(2, 0)->text(), QString("跳过"));
+    QVERIFY(steps->item(2, 0)->toolTip() != steps->item(2, 0)->text());
+    for (const auto *theme : {"light", "dark"}) {
+        ThemeManager::instance().apply(*qApp, theme);
+        for (int row = 0; row < 3; ++row) {
+            const auto rect = steps->visualItemRect(steps->item(row, 0));
+            QTest::mouseClick(steps->viewport(), Qt::LeftButton, Qt::NoModifier, rect.center());
+            QCOMPARE(steps->currentRow(), row);
+            const auto expected = themeColor(row == 0 ? "success" : row == 1 ? "error" : "muted");
+            const auto pixels = steps->viewport()->grab(rect).toImage();
+            bool hasInk = false;
+            for (int y = 0; y < pixels.height() && !hasInk; ++y)
+                for (int x = 0; x < pixels.width(); ++x) {
+                    const auto c = pixels.pixelColor(x, y);
+                    if (qAbs(c.red() - expected.red()) + qAbs(c.green() - expected.green()) +
+                        qAbs(c.blue() - expected.blue()) < 45) { hasInk = true; break; }
+                }
+            QVERIFY2(hasInk, qPrintable(QString("%1 row %2").arg(theme).arg(row)));
+            const auto background = viewColorAt(steps->viewport(), {rect.right()-4, rect.center().y()});
+            const auto expectedFill = themeColor("selection");
+            // Native keyboard focus can slightly tint the current cell within the selected row.
+            QVERIFY(qAbs(background.red() - expectedFill.red()) <= 6 &&
+                    qAbs(background.green() - expectedFill.green()) <= 6 &&
+                    qAbs(background.blue() - expectedFill.blue()) <= 6);
+        }
+    }
+    QCOMPARE(stateLabel(NodeState::Cancelled), text("ui.cancelled"));
+    setLanguage("en");
+    QCOMPARE(stateLabel(NodeState::Blocked), QString("Skipped"));
+}
+
 void UiTests::helpFindAndReadingHistory()
 {
     setLanguage("zh");HelpDialog dialog;dialog.show();QVERIFY(dialog.navigate(userGuideTopic("database")));
@@ -1455,7 +1662,7 @@ void UiTests::canvasRejectsIllegalDrop()
     QSignalSpy dropped(&canvas, &WorkflowCanvas::methodDropped);
     QMimeData mime;
     mime.setData(TaskMimeType, "affine");
-    auto pos = canvas.slotViewportPosition(ChildSlot::Down);
+    auto pos = canvas.addViewportPosition(root);
     QDragEnterEvent enter(pos, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(canvas.viewport(), &enter);
     QVERIFY(enter.isAccepted());
@@ -1811,10 +2018,12 @@ void UiTests::directoryServiceReentrantEnqueue_data()
 void UiTests::directoryServiceDestroyedByObserver()
 {
     QTemporaryDir dir; const auto path=dir.filePath("directory.sqlite");
-    { ResultRepository repo; QVERIFY(repo.open(path).isEmpty()); }
+    RecordIdentities checked;
+    { ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+      QVERIFY(repo.save(storedRun("selected")).saved()); checked = repo.identities({}).existing; }
     QPointer<RecordDirectoryService> service=new RecordDirectoryService;
     connect(service,&RecordDirectoryService::namesExported,this,[&](QString,qint64,QString) { delete service.data(); });
-    service->exportNames(path,{},dir.filePath("names.csv"));
+    service->exportNames(path,checked,dir.filePath("names.csv"));
     QTRY_VERIFY(service.isNull());
     QVERIFY(QFileInfo::exists(dir.filePath("names.csv")));
 }
@@ -1874,29 +2083,41 @@ void UiTests::recordNameExportIncludesUnloadedRows()
         QVERIFY(repo.save(run).saved());
     }
     QCOMPARE(repo.list().records.size(),100); QVERIFY(repo.list().hasMore);
+    const auto all = repo.identities({}).existing;
+    RecordIdentities checked{{1, all.value(1)}, {105, all.value(105)}};
+    const auto first = repo.directoryPage({},100,0);
+    QCOMPARE(first.totalMatching,105); QCOMPARE(first.records.size(),100);
+    QCOMPARE(first.totalRecords, 105);
+    const auto next = repo.directoryPage({}, 100, first.records.last().id);
+    QCOMPARE(next.totalMatching, -1);
+    QCOMPARE(next.totalRecords, -1);
+    RecordFilter filter;
+    filter.text = "pair A";
+    const auto one = repo.directoryPage(filter, 100, 0);
+    QCOMPARE(one.totalMatching, 1);
+    QCOMPARE(one.totalRecords, 105);
+    filter.text = "absent";
+    const auto none = repo.directoryPage(filter, 100, 0);
+    QCOMPARE(none.totalMatching, 0);
+    QCOMPARE(none.totalRecords, 105);
     RecordDirectoryService service;
     QSignalSpy exported(&service,&RecordDirectoryService::namesExported);
-    service.exportNames(database,{},csv);
+    service.exportNames(database,checked,csv);
     QTRY_COMPARE(exported.size(),1);
-    QVERIFY(exported[0][2].toString().isEmpty()); QCOMPARE(exported[0][1].toLongLong(),105);
+    QVERIFY(exported[0][2].toString().isEmpty()); QCOMPARE(exported[0][1].toLongLong(),2);
     QFile output(csv); QVERIFY(output.open(QIODevice::ReadOnly)); const auto bytes=output.readAll(); output.close();
-    QVERIFY(bytes.startsWith(QByteArray::fromHex("efbbbf")+"ID,Filename\r\n"));
-    QCOMPARE(bytes.count('\n'),106);
-    QVERIFY(bytes.contains("105,\"pair A / B\"\r\n"));
-    QVERIFY(bytes.contains(QString::fromUtf8("1,\"中文,\"\"名字\"\".csv\"\r\n").toUtf8()));
-    QVERIFY(!bytes.contains("C:"));
-    RecordFilter filter; filter.text="pair A";
+    QCOMPARE(bytes,QByteArray::fromHex("efbbbf") + QString::fromUtf8(
+        "ID,Filename\r\n105,\"pair A / B\"\r\n1,\"中文,\"\"名字\"\".csv\"\r\n").toUtf8());
     qint64 count=0;
-    QVERIFY(repo.exportRecordNames(filter,csv,&count).isEmpty()); QCOMPARE(count,1);
-    QVERIFY(output.open(QIODevice::ReadOnly)); const auto filtered=output.readAll(); output.close();
     CancellationToken cancelled; cancelled.cancel();
-    QVERIFY(!repo.exportRecordNames({},csv,&count,cancelled).isEmpty()); QCOMPARE(count,0);
-    QVERIFY(output.open(QIODevice::ReadOnly)); QCOMPARE(output.readAll(),filtered); output.close();
-    QVERIFY(!repo.exportRecordNames({},database).isEmpty());
-    QVERIFY(!repo.exportRecordNames({},database+"-wal").isEmpty());
+    QVERIFY(!repo.exportRecordNames(checked,csv,&count,cancelled).isEmpty()); QCOMPARE(count,0);
+    QVERIFY(!repo.exportRecordNames(checked,database).isEmpty());
+    QVERIFY(!repo.exportRecordNames(checked,database+"-wal").isEmpty());
+    QVERIFY(!repo.exportRecordNames({},csv,&count).isEmpty()); QCOMPARE(count,0);
+    checked[1] = QUuid::createUuid();
+    QVERIFY(!repo.exportRecordNames(checked,csv,&count).isEmpty()); QCOMPARE(count,0);
+    QVERIFY(output.open(QIODevice::ReadOnly)); QCOMPARE(output.readAll(),bytes); output.close();
     QCOMPARE(repo.list(1000).records.size(),105);
-    filter.text="absent";
-    QVERIFY(repo.exportRecordNames(filter,csv,&count).isEmpty()); QCOMPARE(count,0);
     service.exportNames(dir.filePath("missing.sqlite"),{},csv);
     QTRY_COMPARE(exported.size(),2); QVERIFY(!exported[1][2].toString().isEmpty());
     QVERIFY(!QFileInfo::exists(dir.filePath("missing.sqlite")));
@@ -1905,12 +2126,20 @@ void UiTests::recordNameExportButtonAndDialog()
 {
     QTemporaryDir dir;
     const auto database=dir.filePath("db.sqlite"), csv=dir.filePath("chosen.csv");
-    { ResultRepository repo; QVERIFY(repo.open(database).isEmpty()); QVERIFY(repo.save(storedRun("sample")).saved()); }
+    { ResultRepository repo; QVERIFY(repo.open(database).isEmpty());
+      QVERIFY(repo.save(storedRun("sample")).saved());
+      QVERIFY(repo.save(storedRun("highlighted")).saved()); }
     RecordDirectoryPanel panel; panel.resize(330,700); panel.setDatabase(database); panel.show();
     auto *button=panel.findChild<QPushButton*>("exportRecordNames"); QVERIFY(button);
+    auto *list=panel.findChild<QListWidget*>("resultRecords");
     auto *remove=panel.findChild<QPushButton*>("deleteCheckedRecords"); QVERIFY(remove);
-    QTRY_VERIFY(button->isEnabled()); QVERIFY(panel.checkedRecords().isEmpty());
-    QVERIFY(button->geometry().left()>remove->geometry().left());
+    QTRY_COMPARE(list->count(),2);
+    list->setCurrentRow(0);
+    QVERIFY(!button->isEnabled()); QVERIFY(!remove->isEnabled());
+    list->item(1)->setCheckState(Qt::Checked);
+    panel.findChild<QLineEdit*>("recordSearch")->setText("highlighted");
+    QTRY_COMPARE(list->count(),1); QTRY_VERIFY(button->isEnabled());
+    QCOMPARE(panel.checkedRecords().size(),1);
     QSignalSpy messages(&panel,&RecordDirectoryPanel::message);
     const bool wasNativeDisabled=QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
     QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,true);
@@ -1931,7 +2160,8 @@ void UiTests::recordNameExportButtonAndDialog()
     QTRY_VERIFY(!messages.isEmpty());
     QTRY_VERIFY(button->isEnabled());
     QFile file(csv); QVERIFY(file.open(QIODevice::ReadOnly));
-    QVERIFY(file.readAll().contains("1,\"sample\""));
+    const auto content = file.readAll();
+    QVERIFY(content.contains("1,\"sample\"")); QVERIFY(!content.contains("highlighted"));
 }
 void UiTests::nodeActionsAndFrequencyFilter()
 {
@@ -1953,7 +2183,7 @@ void UiTests::nodeActionsAndFrequencyFilter()
     QVERIFY(!page.findChild<QToolButton *>("plotNode_0"));
     QVERIFY(!page.findChild<QToolButton *>("saveNode_0"));
     QTRY_VERIFY(page.plotView()->hasPlot()); // Record clicks now open their default output.
-    outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectRow(0);
     page.findChild<QPushButton *>("plotCheckedOutputs")->click();
     QTRY_VERIFY(page.plotView()->hasPlot());
     const auto csv = dir.filePath("node.csv");
@@ -1995,47 +2225,181 @@ void UiTests::closeWaitsForDatabaseEdits()
     QVERIFY(repo.open(settings.databasePath).isEmpty());
     QCOMPARE(repo.load(id).displayName, QString("edited before closing"));
 }
-void UiTests::frequencyFilterShowsMatchingNode()
+void UiTests::compactDirectoryAndPeakPeriods()
 {
+    QTemporaryDir dir; const auto path = dir.filePath("period.sqlite");
+    WorkflowModel model(makeScientificRegistry());
+    const auto root = model.addRoot("sine_source", {0,0}).nodeId;
+    const auto mtm = model.addChild(root, ChildSlot::Append, "mtm", {{"ar1",false},{"swa",false}}).nodeId;
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    for (const auto &unit : {QString(), QString("1/ka"), QString("1/m")}) {
+        auto run = WorkflowExecutor().run({model.freeze().snapshot,root,{"core.csv",{}, {}}});
+        auto value = spectrumResult();
+        auto spectrum = *dataAs<SpectrumData>(value.outputs["spectrum"]); spectrum.frequencyAxis.unit = unit;
+        value.outputs["spectrum"] = makeData(spectrum); run.nodes[mtm] = value; QVERIFY(repo.save(run).saved());
+    }
+    RecordDirectoryPanel panel; panel.resize(320,560); panel.show(); panel.setDatabase(path);
+    auto *list = panel.findChild<QListWidget *>("resultRecords");
+    auto *filters = panel.findChild<RecordFilterPanel *>();
+    QTRY_COMPARE(panel.recordCount(),3);
+    QCOMPARE(list->item(0)->data(RecordRole::FileName).toString(), QString("core.csv"));
+    QVERIFY(list->item(0)->toolTip().contains("ID "));
+    QVERIFY(list->height() > panel.height()/2);
+    const int originalHeight = list->height();
+    auto *button = panel.findChild<QToolButton *>("recordFilterButton");
+    button->click();
+    auto *popup = panel.findChild<QDialog *>("recordFilterPopup");
+    QVERIFY(popup->isVisible()); QCOMPARE(list->height(), originalHeight);
+    auto *axis = panel.findChild<QComboBox *>("recordPeakAxis");
+    auto *unit = panel.findChild<QComboBox *>("frequencyUnit");
+    auto *low = panel.findChild<QLineEdit *>("minimumFrequency"), *high = panel.findChild<QLineEdit *>("maximumFrequency");
+    QCOMPARE(axis->currentIndex(),1); low->setText("9"); high->setText("11");
+    QTRY_COMPARE(panel.recordCount(),1);
+    QVERIFY(filters->filter().frequencyUnit.isEmpty()); QCOMPARE(list->item(0)->data(RecordRole::Id).toLongLong(),1LL);
+    QCOMPARE(filters->filter().minFrequency,1./11); QCOMPARE(filters->filter().maxFrequency,1./9);
+    unit->setCurrentIndex(unit->findData("1/ka")); QCOMPARE(unit->currentText(),QString("ka"));
+    QTRY_COMPARE(list->item(0)->data(RecordRole::Id).toLongLong(),2LL);
+    unit->setCurrentIndex(unit->findData("1/m")); QCOMPARE(unit->currentText(),QString("m"));
+    QTRY_COMPARE(list->item(0)->data(RecordRole::Id).toLongLong(),3LL);
+    low->clear(); QCOMPARE(filters->filter().maxFrequency,-1.);
+    axis->setCurrentIndex(0); QCOMPARE(filters->filter().maxFrequency,-1.); QCOMPARE(filters->filter().minFrequency,1./11);
+    axis->setCurrentIndex(1); low->setText("0"); QVERIFY(!filters->filter().validate().isEmpty());
+    low->setText("12"); QVERIFY(!filters->filter().validate().isEmpty());
+    low->setText("10"); high->setText("10"); QVERIFY(filters->filter().validate().isEmpty());
+    const auto resets = popup->findChildren<QPushButton *>();
+    for (auto *reset : resets)
+        if (reset->text() == text("ui.reset_filters")) {
+            axis->setCurrentIndex(0);
+            reset->click();
+            QCOMPARE(axis->currentIndex(),1);
+            QVERIFY(!filters->filter().hasFrequency() && filters->filter().frequencyUnit.isEmpty());
+        }
+    popup->reject(); QVERIFY(!popup->isVisible()); QVERIFY(list->height() > panel.height()/2);
+}
+void UiTests::peakFilterLeavesFigureIndependent_data()
+{
+    QTest::addColumn<QString>("theme");
+    QTest::addColumn<QString>("frequencyUnit");
+    QTest::newRow("light-unitless") << QString("light") << QString("");
+    QTest::newRow("dark-declared-unit") << QString("dark") << QString("1/ka");
+}
+
+void UiTests::peakFilterLeavesFigureIndependent()
+{
+    QFETCH(QString, theme);
+    QFETCH(QString, frequencyUnit);
+    const auto previousTheme = ThemeManager::instance().name();
+    QVERIFY(ThemeManager::instance().apply(*qApp, theme).isEmpty());
+    auto restoreTheme = qScopeGuard([&] { ThemeManager::instance().apply(*qApp, previousTheme); });
     QTemporaryDir dir;
     const auto path = dir.filePath("frequency.sqlite");
     WorkflowModel model(makeScientificRegistry());
     const auto root = model.addRoot("sine_source", {0, 0}).nodeId;
-    const auto node =
-        model.addChild(root, ChildSlot::Down, "mtm", {{"ar1", false}, {"swa", false}}).nodeId;
-    auto run =
-        WorkflowExecutor().run({model.freeze().snapshot, root, {"frequency fixture", {}, {}}});
-    QCOMPARE(run.state, RunState::Succeeded);
-    run.nodes[node] = spectrumResult();
-    qint64 id;
-    {
-        ResultRepository repo;
-        QVERIFY(repo.open(path).isEmpty());
-        id = repo.save(run).recordId;
-        QVERIFY(id > 0);
+    const auto node = model.addChild(root, ChildSlot::Down, "mtm").nodeId;
+    auto run = WorkflowExecutor().run({model.freeze().snapshot, root, {"dense peaks", {}, {}}});
+    SpectrumData spectrum;
+    spectrum.frequencyAxis = {"Frequency", frequencyUnit};
+    spectrum.powerAxis = {"Power", "PSD"};
+    TableData peaks{{"frequency", "power"}, {}};
+    for (int i = 0; i <= 10000; ++i) {
+        const double f = i / 200.;
+        const double power = i == 1 ? 8. : (i % 2 ? .2 : .1);
+        spectrum.frequency.append(f);
+        spectrum.power.append(power);
+        if (i % 2) peaks.rows.append({f, power});
     }
+    run.nodes[node] = NodeResult::success({{"spectrum", makeData(spectrum)}, {"peaks", makeData(peaks)}});
+    ResultRepository repo;
+    QVERIFY(repo.open(path).isEmpty());
+    const auto saved = repo.save(run);
+    QVERIFY(saved.saved());
+    QVERIFY(repo.save(storedRun("no peak table")).saved());
+
     ResultsPage page(makeScientificRegistry());
+    page.resize(1450, 900);
+    page.show();
     page.setDatabase(path);
+    QTRY_COMPARE(page.recordCount(), 2);
     auto *unit = page.findChild<QComboBox *>("frequencyUnit");
-    QTRY_VERIFY(unit->findData("1/ka") >= 0);
-    unit->setCurrentIndex(unit->findData("1/ka"));
-    auto *low = page.findChild<QLineEdit *>("minimumFrequency");
+    QTRY_VERIFY(unit->findData(frequencyUnit) >= 0);
+    unit->setCurrentIndex(unit->findData(frequencyUnit));
     auto *high = page.findChild<QLineEdit *>("maximumFrequency");
-    low->setText("0.09");
-    high->setText("0.11");
-    QTest::qWait(300);
-    QTRY_VERIFY(!page.databaseBusy());
-    QCOMPARE(page.recordCount(), 1);
-    QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
-    page.openRecord(id);
-    QTRY_COMPARE(loaded.count(), 1);
-    auto *steps = page.findChild<QTableWidget *>("resultSteps");
-    QVERIFY(steps->item(1, 2)->text().contains(QString::fromUtf8("峰命中")));
-    QVERIFY(steps->item(1, 2)->toolTip().contains("0.1 1/ka"));
-    low->setText("0.15");
-    high->setText("0.16");
+    QCOMPARE(page.findChild<QComboBox *>("recordPeakAxis")->currentIndex(), 1);
+    high->setText("1"); // Period <= 1 selects indexed frequencies >= 1.
+    QTRY_COMPARE(page.recordCount(), 1);
+    page.openRecord(saved.recordId);
+    QTRY_COMPARE(page.recordId(), saved.recordId);
+    QTRY_VERIFY(page.plotView()->hasPlot() && !page.workspace()->loading());
+    auto *detail = page.findChild<QTableWidget *>("resultSteps")->item(1, 2);
+    QCOMPARE(detail->text(), QString("2"));
+    QCOMPARE(detail->toolTip(), text("ui.from_step_1_2").arg(1).arg(portLabel("series")));
+
+    auto *view = page.plotView();
+    auto *plot = view->plotWidget();
+    const auto backgroundAt = [&](double x) {
+        plot->replot();
+        return viewColorAt(plot, QPoint(qRound(plot->xAxis->coordToPixel(x)),
+                                        qRound(plot->yAxis->coordToPixel(5.37))));
+    };
+    QVERIFY(plot->xAxis->range().upper >= 50.);
+    QCOMPARE(backgroundAt(24.37), view->style().background);
+    auto *tabs = page.findChild<QTabWidget *>("plotStyleSections");
+    tabs->setCurrentIndex(1);
+    auto *manual = tabs->findChild<QCheckBox *>("axisManual");
+    QVERIFY(!manual->isChecked());
+    manual->click();
+    auto *lower = tabs->findChild<QLineEdit *>("axisLower");
+    auto *upper = tabs->findChild<QLineEdit *>("axisUpper");
+    QSignalSpy refined(view, &PlotView::displayDataChanged);
+    const auto enter = [](QLineEdit *edit, const char *number) {
+        edit->setFocus();
+        edit->selectAll();
+        QTest::keyClicks(edit, number);
+        QTest::keyClick(edit, Qt::Key_Return);
+    };
+    enter(lower, "0");
+    enter(upper, "1");
+    QTRY_COMPARE(plot->xAxis->range().lower, 0.);
+    QTRY_COMPARE(plot->xAxis->range().upper, 1.);
+    QTRY_VERIFY(!refined.isEmpty() && !page.workspace()->loading());
+    QVERIFY(manual->isChecked());
+    QCOMPARE(plot->xAxis->range().lower, 0.);
+    QCOMPARE(plot->xAxis->range().upper, 1.);
+    QCOMPARE(backgroundAt(.637), view->style().background);
+    page.selectStep(0, true);
+    QTRY_COMPARE(page.workspace()->currentReference().nodeId, root);
+    QTRY_VERIFY(!page.workspace()->loading());
+    page.selectStep(1, true);
+    QTRY_COMPARE(page.workspace()->currentReference().nodeId, node);
+    QTRY_VERIFY(!page.workspace()->loading());
+    // Returning to a saved figure page recreates its on-screen plot widget.
+    QTRY_VERIFY(page.plotView() && page.plotView()->hasPlot());
+    view = page.plotView();
+    plot = view->plotWidget();
+    QVERIFY(manual->isChecked());
+    QCOMPARE(plot->xAxis->range().lower, 0.);
+    QCOMPARE(plot->xAxis->range().upper, 1.);
+    manual->click();
+    QTRY_VERIFY(plot->xAxis->range().upper >= 50.);
+    QCOMPARE(backgroundAt(24.37), view->style().background);
+    high->setText(".001");
     QTRY_COMPARE(page.recordCount(), 0);
+    high->clear();
+    QTRY_COMPARE(page.recordCount(), 2);
+    QCOMPARE(backgroundAt(24.37), view->style().background);
+
+    auto *ports = page.findChild<QComboBox *>("outputPort");
+    ports->setCurrentIndex(ports->findData("peaks"));
+    QSignalSpy exported(page.exporter(), &ExportController::finished);
+    const auto csv = dir.filePath("peaks.csv");
+    QVERIFY(page.startCsvExport(csv));
+    QTRY_COMPARE(exported.size(), 1);
+    QVERIFY(exported.first()[1].toString().isEmpty());
+    QFile contents(csv);
+    QVERIFY(contents.open(QIODevice::ReadOnly));
+    QCOMPARE(contents.readAll().trimmed().split('\n').size(), peaks.rows.size() + 1);
 }
+
 void UiTests::parameterLayoutDefaultsAndVisibility()
 {
     const auto registry=makeScientificRegistry();
@@ -2518,7 +2882,19 @@ void UiTests::previewCloseAndDesktopCapture()
     auto *preview=window.findChild<WorkflowPreviewPanel*>();
     QTRY_COMPARE(preview->controller()->state(),WorkflowPreviewController::State::Ready);
     auto *column=window.findChild<CollapsiblePanel*>("previewSidePanel");QVERIFY(!column->isCollapsed());
-    QVERIFY(column->width()>=300&&column->width()<=720);
+    QVERIFY(column->width() >= window.width() * .30 && column->width() <= window.width() * .38);
+    auto *rawPlot = preview->findChild<QCustomPlot *>("filePreviewPlot");
+    auto *outputPlot = preview->findChild<PlotView *>("nodePreviewPlot");
+    QVERIFY(rawPlot && outputPlot);
+    for (const auto *plot : {rawPlot, outputPlot->plotWidget()}) {
+        const auto axes = plot->axisRect()->rect();
+        QVERIFY(axes.width() > axes.height());
+    }
+    const int initialWidth = column->width();
+    window.resize(1800, 960);
+    QTRY_VERIFY(column->width() > initialWidth);
+    window.resize(1640, 960);
+    QTRY_VERIFY(qAbs(column->width() - initialWidth) <= 1);
     const auto capture=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
     if(!capture.isEmpty()) {
         QDir().mkpath(capture);QTest::qWait(60);QVERIFY(window.grab().save(capture+"/workflow_preview.png"));
@@ -2526,8 +2902,10 @@ void UiTests::previewCloseAndDesktopCapture()
         ThemeManager::instance().apply(*qApp,"light");window.resize(1366,768);QTest::qWait(60);
         QVERIFY(window.grab().save(capture+"/workflow_preview_1366.png"));
     }
+    const int openWidth = column->width();
     column->setCollapsed(true);QCOMPARE(preview->controller()->state(),WorkflowPreviewController::State::Paused);
     column->setCollapsed(false);QTRY_COMPARE(preview->controller()->state(),WorkflowPreviewController::State::Ready);
+    QVERIFY(qAbs(column->width() - openWidth) <= 1);
     window.close();QTRY_VERIFY(!window.isVisible());
 }
 
@@ -2604,7 +2982,7 @@ void UiTests::restoredCatalogueMatchesMenusAndDrag()
     canvas.setSelectedNode(root); canvas.fitWorkflow();
     QSignalSpy dropped(&canvas, &WorkflowCanvas::methodDropped);
     QMimeData mime; mime.setData(TaskMimeType, "evolution_mtm");
-    const auto pos = canvas.slotViewportPosition(ChildSlot::Down);
+    const auto pos = canvas.addViewportPosition(root);
     QDragEnterEvent enter(pos,Qt::CopyAction,&mime,Qt::LeftButton,Qt::NoModifier);
     QApplication::sendEvent(canvas.viewport(),&enter); QVERIFY(enter.isAccepted());
     QDropEvent drop(pos,Qt::CopyAction,&mime,Qt::LeftButton,Qt::NoModifier);
@@ -3199,18 +3577,21 @@ void UiTests::persistentAddControlsUseTheirOwnParent()
     QVERIFY(!compact.isNull());
     QTest::mouseClick(canvas.viewport(), Qt::LeftButton, Qt::NoModifier, compact);
     QCOMPARE(activations.count(), 1); QCOMPARE(activations[0][0].toUuid(), child);
-    QCOMPARE(qvariant_cast<ChildSlot>(activations[0][1]), ChildSlot::Down);
+    QCOMPARE(qvariant_cast<ChildSlot>(activations[0][1]), ChildSlot::Append);
     QMimeData mime; mime.setData(TaskMimeType, "demean");
     QDragEnterEvent enter(compact, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(canvas.viewport(), &enter);
     QDropEvent drop(compact, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
     QApplication::sendEvent(canvas.viewport(), &drop);
     QCOMPARE(dropped.count(), 1); QCOMPARE(dropped[0][1].toUuid(), child);
-    for (auto slot : {ChildSlot::Left, ChildSlot::Right}) {
-        QTest::mouseClick(canvas.viewport(), Qt::LeftButton, Qt::NoModifier, canvas.slotViewportPosition(slot));
-        QCOMPARE(activations.last()[0].toUuid(), root);
-        QCOMPARE(qvariant_cast<ChildSlot>(activations.last()[1]), slot);
-    }
+    const auto add = canvas.addViewportPosition(root);
+    QVERIFY(canvas.mapToScene(add).x() > canvas.nodeRect(root).right());
+    QVERIFY(canvas.mapToScene(add).y() < canvas.nodeRect(root).bottom());
+    QTest::mouseClick(canvas.viewport(), Qt::LeftButton, Qt::NoModifier, add);
+    QCOMPARE(activations.last()[0].toUuid(), root);
+    QCOMPARE(qvariant_cast<ChildSlot>(activations.last()[1]), ChildSlot::Append);
+    canvas.setSelectedNode(child);
+    QCOMPARE(canvas.addViewportPosition(root), add);
     canvas.setEditable(false);
     for (auto *item : canvas.scene()->items()) QVERIFY(item->data(0).toInt() != 2);
 }
@@ -3482,6 +3863,179 @@ void UiTests::evolutionSettingsAndPlotDefaults()
     }
     setLanguage("zh");
 }
+void UiTests::inputListDistinguishesHoverAndSelection_data()
+{
+    QTest::addColumn<QString>("theme");
+    QTest::newRow("light") << QStringLiteral("light");
+    QTest::newRow("dark") << QStringLiteral("dark");
+}
+void UiTests::inputListDistinguishesHoverAndSelection()
+{
+    QFETCH(QString, theme);
+    auto &themes = ThemeManager::instance();
+    const auto previous = themes.name();
+    const auto restore = qScopeGuard([&] { themes.apply(*qApp, previous); });
+    QVERIFY(themes.apply(*qApp, theme).isEmpty());
+    WorkflowDocument doc(makeScientificRegistry());
+    const auto root = doc.addRoot("file_source").nodeId;
+    doc.setFiles(root, {"A.csv", "B.csv", "C.csv", "D.csv", "E.csv", "F.csv"});
+    SourcePanel panel(&doc);
+    panel.resize(320, 600);
+    panel.show();
+    auto *list = panel.findChild<QListWidget *>("sourceFiles");
+    QVERIFY(list && !list->alternatingRowColors());
+    auto *view = list->viewport();
+    const auto row = [&](int n) { return list->visualItemRect(list->item(n)); };
+    QTRY_VERIFY(row(4).isValid() && view->rect().contains(row(4).center()));
+    const auto fill = [&](int n) { return viewColorAt(view, {row(n).right() - 20, row(n).center().y()}); };
+    const auto mark = [&](int n) { return viewColorAt(view, {row(n).left() + 3, row(n).center().y()}); };
+    QTest::mouseClick(view, Qt::LeftButton, Qt::NoModifier, row(1).center());
+    QTest::mouseMove(view, row(3).center());
+    QTRY_COMPARE(fill(3), themeColor("fileListHover"));
+    QCOMPARE(fill(1), themeColor("fileListSelection"));
+    QCOMPARE(mark(1), themeColor("fileListMark"));
+    QCOMPARE(fill(4), themeColor("navigation"));
+    QCOMPARE(fill(5), fill(4));
+    QCOMPARE(viewColorAt(view, {row(4).center().x(), row(4).top()}), themeColor("navigation"));
+    QCOMPARE(viewColorAt(view, {row(4).left() + 7, row(4).top()}), themeColor("navigation"));
+    QCOMPARE(list->currentRow(), 1);
+    QCOMPARE(list->selectedItems().size(), 1);
+    QTest::mouseMove(view, row(1).center());
+    QTRY_COMPARE(fill(3), themeColor("navigation"));
+    QCOMPARE(fill(1), themeColor("fileListSelection"));
+    QCOMPARE(mark(1), themeColor("fileListMark"));
+    QTest::mouseClick(view, Qt::LeftButton, Qt::ShiftModifier, row(3).center());
+    QTest::mouseMove(view, row(4).center());
+    panel.findChild<QPushButton *>("importFiles")->setFocus();
+    QCOMPARE(list->selectedItems().size(), 3);
+    for (int n = 1; n <= 3; ++n) {
+        QCOMPARE(fill(n), themeColor("fileListSelection"));
+        QCOMPARE(mark(n), themeColor(n == list->currentRow() ? "fileListMark" : "fileListSelection"));
+    }
+    list->setFocus(Qt::TabFocusReason);
+    QTest::keyClick(list, Qt::Key_Up);
+    QCOMPARE(list->currentRow(), 2);
+    QCOMPARE(list->selectedItems().size(), 1);
+    QCOMPARE(mark(2), themeColor("fileListMark"));
+    QTest::keyClick(list, Qt::Key_Down, Qt::ControlModifier);
+    QCOMPARE(list->currentRow(), 3);
+    QCOMPARE(list->selectedItems(), QList<QListWidgetItem *>{list->item(2)});
+    QCOMPARE(mark(3), themeColor("fileListMark"));
+    QCOMPARE(fill(3), themeColor("navigation"));
+    QCOMPARE(mark(2), themeColor("fileListSelection"));
+}
+
+void UiTests::resultListSeparatesOpenCheckAndHover_data()
+{
+    inputListDistinguishesHoverAndSelection_data();
+}
+void UiTests::resultListSeparatesOpenCheckAndHover()
+{
+    QFETCH(QString, theme);
+    auto &themes = ThemeManager::instance();
+    const auto previous = themes.name();
+    const auto restore = qScopeGuard([&] { themes.apply(*qApp, previous); });
+    QVERIFY(themes.apply(*qApp, theme).isEmpty());
+    QTemporaryDir dir;
+    const QString path = dir.filePath("files.sqlite");
+    {
+        ResultRepository repo;
+        QVERIFY(repo.open(path).isEmpty());
+        for (int i = 5; i >= 1; --i)
+            QVERIFY(repo.save(storedRun(QString::number(80000 + i) + ".csv")).saved());
+    }
+    ResultsPage page(makeScientificRegistry());
+    page.resize(1100, 720);
+    page.show();
+    page.activateWindow();
+    page.setDatabase(path);
+    auto *list = page.findChild<QListWidget *>("resultRecords");
+    auto *search = page.findChild<QLineEdit *>("recordSearch");
+    auto *all = page.findChild<QPushButton *>("checkAllRecords");
+    QVERIFY(list && search && all);
+    QTRY_COMPARE(list->count(), 5);
+    QTRY_VERIFY(all->isEnabled());
+    auto *view = list->viewport();
+    const auto rect = [&](int row) { return list->visualItemRect(list->item(row)); };
+    const auto fill = [&](int row) { return viewColorAt(view, {rect(row).right() - 20, rect(row).center().y()}); };
+    const auto mark = [&](int row) { return viewColorAt(view, {rect(row).left() + 3, rect(row).center().y()}); };
+    const auto hasFocusLine = [&](int row) {
+        const QRect strip(rect(row).left() + 40, rect(row).top(), 32, 3);
+        const auto pixels = view->grab(strip).toImage();
+        const auto background = fill(row);
+        for (int y = 0; y < pixels.height(); ++y)
+            for (int x = 0; x < pixels.width(); ++x)
+                if (pixels.pixelColor(x, y) != background) return true;
+        return false;
+    };
+    const qint64 a = list->item(0)->data(RecordRole::Id).toLongLong();
+    const qint64 b = list->item(1)->data(RecordRole::Id).toLongLong();
+    QCOMPARE(list->item(0)->text(), QString("80001.csv"));
+    QCOMPARE(list->item(1)->text(), QString("80002.csv"));
+    QVERIFY(!list->alternatingRowColors());
+    QTest::mouseMove(view, rect(2).center());
+    QCOMPARE(fill(3), fill(4));
+    QCOMPARE(viewColorAt(view, {rect(3).right() - 20, rect(3).top()}), themeColor("navigation"));
+
+    QTest::mouseClick(view, Qt::LeftButton, Qt::NoModifier, rect(0).center());
+    list->setCurrentRow(1);
+    QTest::keyClick(list, Qt::Key_Space);
+    QTRY_COMPARE(page.recordId(), a);
+    QTest::mouseMove(view, rect(3).center());
+    QTest::mouseMove(view, rect(2).center());
+    QCOMPARE(list->currentRow(), 1);
+    QCOMPARE(list->item(1)->checkState(), Qt::Checked);
+    QCOMPARE(mark(0), themeColor("fileListMark"));
+    QCOMPARE(fill(0), themeColor("fileListSelection"));
+    QCOMPARE(mark(1), themeColor("navigation"));
+    QTRY_COMPARE(fill(2), themeColor("fileListHover"));
+    QVERIFY(hasFocusLine(1)); // Space entered batch selection from the keyboard.
+    QTest::keyClick(list, Qt::Key_Down);
+    QCOMPARE(list->currentRow(), 2);
+    QVERIFY(hasFocusLine(2));
+    QCOMPARE(mark(0), themeColor("fileListMark"));
+    QTest::keyClick(list, Qt::Key_Up);
+    QTest::keyClick(list, Qt::Key_Space);
+    QCOMPARE(list->item(1)->checkState(), Qt::Unchecked);
+    QCOMPARE(page.recordId(), a);
+    QTest::keyClick(list, Qt::Key_Space);
+    QTest::mouseClick(view, Qt::LeftButton, Qt::NoModifier, RecordItemDelegate::checkRect(rect(3)).center());
+    QCOMPARE(list->item(1)->checkState(), Qt::Checked);
+    QVERIFY(!hasFocusLine(3));
+    list->setCurrentRow(1);
+
+    all->click();
+    QTRY_COMPARE(list->item(4)->checkState(), Qt::Checked);
+    QTRY_VERIFY(all->isEnabled());
+    search->setFocus();
+    QCOMPARE(mark(0), themeColor("fileListMark"));
+    QCOMPARE(fill(4), themeColor("navigation"));
+    page.refresh();
+    QTRY_VERIFY(!page.databaseBusy());
+    QCOMPARE(list->currentRow(), 1);
+    QCOMPARE(mark(0), themeColor("fileListMark"));
+    search->setText("80002");
+    QTRY_COMPARE(list->count(), 1);
+    QCOMPARE(page.recordId(), a);
+    QCOMPARE(list->item(0)->data(RecordRole::Id).toLongLong(), b);
+    QVERIFY(mark(0) != themeColor("fileListMark"));
+    search->clear();
+    QTRY_COMPARE(list->count(), 5);
+    QCOMPARE(mark(0), themeColor("fileListMark"));
+    QCOMPARE(list->currentRow(), 1);
+    list->setFocus(Qt::TabFocusReason);
+    QTest::keyClick(list, Qt::Key_Return);
+    QTRY_COMPARE(page.recordId(), b);
+    QCOMPARE(mark(1), themeColor("fileListMark"));
+    QVERIFY(mark(0) != themeColor("fileListMark"));
+    QCOMPARE(list->item(0)->checkState(), Qt::Checked);
+
+    QSignalSpy messages(&page, &ResultsPage::message);
+    page.openRecord(1000);
+    QTRY_VERIFY(!messages.isEmpty() && !messages.last().first().toString().isEmpty());
+    QCOMPARE(page.recordId(), qint64(0));
+    QVERIFY(mark(1) != themeColor("fileListMark"));
+}
 void UiTests::compactInputStatesAndFrequencyEditor()
 {
     WorkflowDocument doc(makeScientificRegistry());
@@ -3555,30 +4109,66 @@ void UiTests::visibleSelectionActionsPreserveFilterScope()
     }
     RecordDirectoryPanel panel; panel.resize(280, 620); panel.show(); panel.setDatabase(path);
     QTRY_COMPARE(panel.recordCount(), 2);
-    auto *select = panel.findChild<QPushButton *>("checkMatchingRecords");
-    auto *unselect = panel.findChild<QPushButton *>("uncheckMatchingRecords");
-    auto *clear = panel.findChild<QPushButton *>("clearRecordChecks");
+    auto *all = panel.findChild<QPushButton *>("checkAllRecords");
+    auto *matches = panel.findChild<QPushButton *>("checkMatchingRecords");
     auto *search = panel.findChild<QLineEdit *>("recordSearch");
-    QVERIFY(select && unselect && clear && search);
-    QVERIFY(select->isVisible() && unselect->isVisible() && clear->isVisible());
-    QVERIFY(!select->menu());
-    QTRY_VERIFY(select->isEnabled()); select->click();
-    QTRY_COMPARE(panel.checkedRecords().size(), 2);
+    auto *summary = panel.findChild<QLabel *>("recordSelectionCount");
+    auto *list = panel.findChild<QListWidget *>("resultRecords");
+    QVERIFY(all && matches && search && summary && list);
+    QVERIFY(all->isCheckable() && matches->isCheckable());
+    QVERIFY(!all->isChecked() && !matches->isChecked());
+    QVERIFY(!list->alternatingRowColors());
+    QCOMPARE(summary->text(), text("ui.records_selected_of").arg(0).arg(2));
     search->setText("keep.csv");
     QTRY_COMPARE(panel.recordCount(), 1);
+    QTRY_VERIFY(all->isEnabled() && matches->isEnabled());
+    all->click();
+    QTRY_COMPARE(panel.checkedRecords().size(), 2);
+    QTRY_VERIFY(matches->isEnabled());
+    QVERIFY(all->isChecked() && !matches->isChecked());
+    QCOMPARE(summary->text(), text("ui.records_selected_of").arg(2).arg(2));
+    list->setCurrentRow(0);
+    QPersistentModelIndex current = list->currentIndex();
+    QSignalSpy resets(list->model(), &QAbstractItemModel::modelReset);
+    matches->click();
+    QTRY_VERIFY(matches->isChecked() && matches->isEnabled());
     QCOMPARE(panel.checkedRecords().size(), 2);
-    QTRY_VERIFY(unselect->isEnabled()); unselect->click();
+    QVERIFY(all->isChecked());
+    QCOMPARE(resets.size(), 0);
+    QVERIFY(current.isValid() && current == list->currentIndex());
+    matches->click();
     QTRY_COMPARE(panel.checkedRecords().size(), 1);
+    QTRY_VERIFY(matches->isEnabled());
     QVERIFY(panel.checkedRecords().contains(remove));
     QVERIFY(!panel.checkedRecords().contains(keep));
-    QTRY_VERIFY(select->isEnabled());
-    select->click(); QTRY_COMPARE(panel.checkedRecords().size(), 2);
-    // Selection changes are followed by an asynchronous directory refresh.
-    // The new count alone does not mean that another action can run yet.
-    QTRY_VERIFY(clear->isEnabled());
-    clear->click(); QCOMPARE(panel.checkedRecords().size(), 0);
-    search->clear(); QTRY_COMPARE(panel.recordCount(), 2);
-    auto *list = panel.findChild<QListWidget *>("resultRecords"); list->setCurrentRow(0);
+    QVERIFY(all->isChecked() && !matches->isChecked());
+    QCOMPARE(summary->text(), text("ui.records_selected_of").arg(1).arg(2));
+    list->item(0)->setCheckState(Qt::Checked);
+    QCOMPARE(panel.checkedRecords().size(), 2);
+    QVERIFY(all->isChecked() && !matches->isChecked());
+    matches->click();
+    QTRY_VERIFY(matches->isChecked() && all->isEnabled());
+    all->click();
+    QCOMPARE(panel.checkedRecords().size(), 0);
+    QVERIFY(!all->isChecked() && matches->isChecked());
+    search->setText("absent");
+    QTRY_COMPARE(panel.recordCount(), 0);
+    QTRY_VERIFY(all->isEnabled());
+    QVERIFY(matches->isChecked() && !matches->isEnabled());
+    QCOMPARE(summary->text(), text("ui.records_selected_of").arg(0).arg(2));
+    all->click();
+    QTRY_COMPARE(panel.checkedRecords().size(), 2);
+    QTRY_VERIFY(all->isEnabled());
+    QCOMPARE(summary->text(), text("ui.records_selected_of").arg(2).arg(2));
+    search->clear();
+    QTRY_COMPARE(panel.recordCount(), 2);
+    QTRY_VERIFY(matches->isEnabled());
+    QVERIFY(all->isChecked() && matches->isChecked());
+    matches->click();
+    QTRY_COMPARE(panel.checkedRecords().size(), 0);
+    QTRY_VERIFY(all->isEnabled());
+    QVERIFY(all->isChecked() && !matches->isChecked());
+    list->setCurrentRow(0);
     const auto capture = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
     if (!capture.isEmpty()) QDir().mkpath(capture);
     for (const auto *language : {"zh", "en"})
@@ -4419,6 +5009,103 @@ void UiTests::batchImportDoesNotModifyReimportedDataset()
     for(auto *message:panel.findChildren<QMessageBox*>()) message->close();
 }
 
+void UiTests::filePreviewPreservesFiniteValues()
+{
+    QTemporaryDir dir;
+    const auto path = dir.filePath("missing.csv");
+    QFile f(path);
+    QVERIFY(f.open(QIODevice::WriteOnly));
+    f.write("age,value\n999999,-9999\n2,NA\n3,999999\n"); f.close();
+    FileOptionsEditor editor;
+    editor.setFile(path, {{"missing_value_code","999999"}});
+    QTRY_VERIFY(editor.ready());
+    QVERIFY(!editor.findChild<QLineEdit*>("fileMissingValueCode"));
+    QVERIFY(!editor.options().contains("missing_value_code"));
+    const auto *table = editor.findChild<QTableWidget*>("fileRowPreview");
+    QVERIFY(table);
+    QCOMPARE(table->rowCount(), 3);
+    QCOMPARE(table->item(0,1)->text(), QString("999999"));
+    QCOMPARE(table->item(0,2)->text(), QString("-9999"));
+    QCOMPARE(table->item(0,1)->background().style(), Qt::NoBrush);
+    QCOMPARE(table->item(2,2)->background().style(), Qt::NoBrush);
+    QVERIFY(table->item(1,2)->background().style() != Qt::NoBrush);
+    auto *skip = editor.findChild<QCheckBox*>("fileSkipInvalidRows");
+    QVERIFY(skip);
+    skip->setChecked(true);
+    SeriesFileOptions options;
+    QVERIFY(applyFileOptions(editor.options(), options).isEmpty());
+    const auto parsed = readSeriesFile(path, options);
+    QVERIFY(parsed.ok());
+    QCOMPARE(parsed.report["skipped_rows"].toInt(), 1);
+    QCOMPARE(dataAs<SeriesData>(parsed.data)->y, QVector<double>({-9999,999999}));
+}
+
+void UiTests::revertedImportEditLeavesOtherFilesUntouched()
+{
+    QTemporaryDir dir;
+    const QStringList paths{dir.filePath("first.csv"), dir.filePath("second.csv")};
+    for (const auto &path : paths) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("x,a,b\n1,2,3\n2,4,6\n");
+    }
+    WorkflowDocument doc(makeScientificRegistry());
+    SourcePanel panel(&doc);
+    panel.resize(380, 740);
+    panel.show();
+    panel.addFiles(paths);
+    const auto root = panel.root();
+    auto before = doc.fileOptions(root, paths[1]);
+    before["y_column"] = 2;
+    before["x_unit"] = "Ma";
+    QVERIFY(doc.setFileOptions(root, {paths[1]}, before));
+    auto *list = panel.findChild<QListWidget *>("sourceFiles");
+    list->setCurrentRow(0);
+    list->setFocus();
+    QTest::keySequence(list, QKeySequence::SelectAll);
+    QCOMPARE(list->selectedItems().size(), 2);
+    QTest::mouseClick(panel.findChild<QToolButton *>("sourceOptionsToggle"), Qt::LeftButton);
+    auto *form = panel.findChild<FileOptionsEditor *>();
+    QTRY_VERIFY(form->ready());
+    auto *unit = form->findChild<QLineEdit *>("fileXUnit");
+    QSignalSpy commits(&panel, &SourcePanel::batchOptionsFinished);
+    QTest::mouseClick(unit, Qt::LeftButton);
+    QTest::keyClicks(unit, "x");
+    QTest::keyClick(unit, Qt::Key_Backspace);
+    QTest::keyClick(unit, Qt::Key_Tab);
+    QTRY_VERIFY_WITH_TIMEOUT(panel.readyToRun(), 5000);
+    QCOMPARE(doc.fileOptions(root, paths[1]), before);
+    QCOMPARE(commits.size(), 0);
+    const auto revision = doc.revision();
+    QVERIFY(panel.applyCurrentOptions());
+    QCOMPARE(doc.revision(), revision);
+}
+void UiTests::reimportingAPathStartsWithANewStatus()
+{
+    QTemporaryDir dir;
+    const auto path = dir.filePath("sample.csv");
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    file.write("x,y\n0,1\n1,2\n");
+    file.close();
+    WorkflowDocument doc(makeScientificRegistry());
+    SourcePanel panel(&doc);
+    panel.addFiles({path});
+    const auto root = panel.root();
+    const auto originalId = doc.datasets(root).front().id;
+    auto *list = panel.findChild<QListWidget *>("sourceFiles");
+    panel.setFileState(root, path, SourceFileState::Failed);
+    QCOMPARE(list->item(0)->data(Qt::UserRole+2).toInt(), int(SourceFileState::Failed));
+    doc.setFiles(root, {});
+    QCOMPARE(list->count(), 0);
+    panel.addFiles({path});
+    QVERIFY(doc.datasets(root).front().id != originalId);
+    QCOMPARE(list->item(0)->data(Qt::UserRole+2).toInt(), int(SourceFileState::Pending));
+    QVERIFY(doc.undo().ok());
+    QVERIFY(doc.undo().ok());
+    QCOMPARE(doc.datasets(root).front().id, originalId);
+    QCOMPARE(list->item(0)->data(Qt::UserRole+2).toInt(), int(SourceFileState::Failed));
+}
 void UiTests::batchImportCapturesSelectionAndLatestEdit()
 {
     QTemporaryDir dir; QStringList paths;
@@ -4435,11 +5122,14 @@ void UiTests::batchImportCapturesSelectionAndLatestEdit()
     unit->setText("ka"); editor->flushEdits();
     unit->setText("yr"); editor->flushEdits(); // queued while the first validation runs
     unit->setText("Ma"); // capture A/B before the delayed edit is flushed by selecting C
+    editor->findChild<QLineEdit*>("fileYUnit")->setText("counts");
     files->setCurrentRow(2,QItemSelectionModel::ClearAndSelect);
     QTRY_COMPARE_WITH_TIMEOUT(done.size(),3,10000);
     QTRY_VERIFY(panel.readyToRun());
     QCOMPARE(doc.fileOptions(root,paths[0])["x_unit"].toString(),QString("Ma"));
     QCOMPARE(doc.fileOptions(root,paths[1])["x_unit"].toString(),QString("Ma"));
+    QCOMPARE(doc.fileOptions(root,paths[0])["y_unit"].toString(),QString("counts"));
+    QCOMPARE(doc.fileOptions(root,paths[1])["y_unit"].toString(),QString("counts"));
     QCOMPARE(doc.fileOptions(root,paths[2]),untouched);
     QCOMPARE(doc.node(node)->parameters,nodeParameters);
     for (const auto &event:done) QVERIFY(event[1].toStringList().isEmpty());
@@ -4531,6 +5221,19 @@ void UiTests::sourceActionsFitNarrowPanel()
                 QVERIFY2(position.x()>=0 && position.x()+button->width()<=panel.width(),qPrintable(context));
             }
         }
+        auto *toggle = panel.findChild<QToolButton *>("sourceOptionsToggle");
+        auto *options = panel.findChild<FileOptionsEditor *>();
+        auto *split = panel.findChild<QSplitter *>("sourceOptionsSplitter");
+        auto *list = panel.findChild<QListWidget *>("sourceFiles");
+        QVERIFY(toggle && options && split && list);
+        QVERIFY(!toggle->isChecked() && options->isHidden());
+        const auto fullHeight = list->height();
+        toggle->click(); QTRY_VERIFY(options->isVisible() && list->height() < fullHeight);
+        split->setSizes({400, 225});
+        const int chosenHeight = split->sizes().at(1);
+        toggle->click(); QTRY_COMPARE(list->height(),fullHeight);
+        toggle->click(); QTRY_COMPARE(split->sizes().at(1),chosenHeight);
+        toggle->click();
         // Force the two action labels to exceed the available row width even
         // on hosts with compact fonts, then verify wrapping and recovery.
         auto *move=panel.findChild<QAbstractButton*>("moveSourceInputs");
@@ -5034,6 +5737,107 @@ void UiTests::evolutionResolvedPreviewFollowsInput()
     }
 }
 
+void UiTests::selectedImportRulesAndApplyAllReachStoredOutputs()
+{
+    QTemporaryDir dir;
+    AppSettings settings;
+    settings.databasePath = dir.filePath("scope-chain.sqlite");
+    MainWindow window(settings, false);
+    window.resize(1500, 920);
+    window.show();
+    auto *doc = window.document();
+    auto *sources = window.findChild<SourcePanel *>();
+    QStringList paths;
+    for (const auto *name : {"a.csv", "b.csv", "c.csv", "other.csv"}) {
+        const auto path = dir.filePath(name);
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("depth,age,proxy\n100,0,10\n200,1,20\n300,2,30\n");
+        paths << path;
+    }
+    sources->addFiles(paths.mid(0,3));
+    const auto root = sources->root();
+    const auto scale = doc->addChild(root, ChildSlot::Append, "affine").nodeId;
+    const auto sibling = doc->addChild(root, ChildSlot::Append, "affine", {{"factor", 5}}).nodeId;
+    const auto other = doc->addRoot("file_source").nodeId;
+    doc->setFiles(other, {paths.last()});
+    const auto otherScale = doc->addChild(other, ChildSlot::Append, "affine", {{"factor", 9}}).nodeId;
+    const auto inputs = doc->datasets(root);
+    auto *canvas = window.canvas();
+    canvas->fitWorkflow();
+    const auto hit = canvas->mapFromScene(canvas->nodeRect(scale).center());
+    QTest::mouseClick(canvas->viewport(), Qt::LeftButton, Qt::NoModifier, hit);
+    QCOMPARE(canvas->selectedNode(), scale);
+    auto *list = sources->findChild<QListWidget *>("sourceFiles");
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::NoModifier, list->visualItemRect(list->item(0)).center());
+    QTest::mouseClick(list->viewport(), Qt::LeftButton, Qt::ShiftModifier, list->visualItemRect(list->item(1)).center());
+    QCOMPARE(list->selectedItems().size(), 2);
+    QTest::mouseClick(sources->findChild<QToolButton *>("sourceOptionsToggle"), Qt::LeftButton);
+    auto *reader = sources->findChild<FileOptionsEditor *>();
+    QTRY_VERIFY(reader->ready());
+    auto *x = reader->findChild<QComboBox *>("fileXColumn");
+    auto *y = reader->findChild<QComboBox *>("fileYColumn");
+    y->setFocus();
+    QTest::keyClick(y, Qt::Key_End);
+    QTRY_COMPARE(doc->fileOptions(root, paths[0])["y_column"].toInt(), 2);
+    QTRY_VERIFY(sources->readyToRun());
+    x->setFocus();
+    QTest::keyClick(x, Qt::Key_Down);
+    QTRY_COMPARE(doc->fileOptions(root, paths[1])["x_column"].toInt(), 1);
+    QTRY_VERIFY(sources->readyToRun());
+    for (const auto &file : paths.mid(0,2)) {
+        QCOMPARE(doc->fileOptions(root, file)["x_column"].toInt(), 1);
+        QCOMPARE(doc->fileOptions(root, file)["y_column"].toInt(), 2);
+    }
+    QCOMPARE(doc->fileOptions(root, paths[2])["x_column"].toInt(), 0);
+    QCOMPARE(doc->fileOptions(root, paths[2])["y_column"].toInt(), 1);
+    auto *editor = window.findChild<ParameterEditor *>();
+    auto *factor = editor->findChild<QDoubleSpinBox *>("parameter_factor");
+    QVERIFY(factor && factor->isVisible());
+    factor->setFocus();
+    QTest::keySequence(factor, QKeySequence::SelectAll);
+    QTest::keyClicks(factor, "3");
+    QTest::keyClick(factor, Qt::Key_Tab);
+    const auto effective = [&](int idx) {
+        return effectiveParameters(*doc->node(scale), inputs[idx].id)["factor"].toDouble();
+    };
+    QTRY_COMPARE(effective(1), 3.);
+    QCOMPARE(effective(0), 1.);
+    QCOMPARE(effective(2), 1.);
+    auto *all = editor->findChild<QPushButton *>("applyNodeAllData");
+    QTest::mouseClick(all, Qt::LeftButton);
+    QTRY_COMPARE(effective(0), 3.);
+    QCOMPARE(effective(2), 3.);
+    QTest::mouseClick(window.findChild<QPushButton *>("undoWorkflowEdit"), Qt::LeftButton);
+    QCOMPARE(effective(0), 1.);
+    QCOMPARE(effective(1), 3.);
+    QCOMPARE(effective(2), 1.);
+    QTest::mouseClick(window.findChild<QPushButton *>("redoWorkflowEdit"), Qt::LeftButton);
+    QCOMPARE(effective(2), 3.);
+    window.startRun();
+    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy(), 15000);
+    ResultRepository repo;
+    QVERIFY(repo.open(settings.databasePath, false).isEmpty());
+    const auto rows = repo.list();
+    QCOMPARE(rows.records.size(), 4);
+    for (const auto &record : rows.records) {
+        const auto loaded = repo.load(record.id);
+        QVERIFY(loaded.ok());
+        const int file = paths.indexOf(record.sourceLabel);
+        QVERIFY(file >= 0);
+        QCOMPARE(loaded.run.state, RunState::Succeeded);
+        const auto data = dataAs<SeriesData>(loaded.run.nodes.value(file == 3 ? otherScale : scale).outputs.value("series"));
+        QVERIFY(data && data->x.size() == 3);
+        QCOMPARE(data->x[1], file < 2 ? 1. : 200.);
+        QCOMPARE(data->y[1], file < 2 ? 60. : file == 2 ? 3. : 9.);
+        if (file < 3) {
+            const auto side = dataAs<SeriesData>(loaded.run.nodes.value(sibling).outputs.value("series"));
+            QVERIFY(side);
+            QCOMPARE(side->y[1], file < 2 ? 100. : 5.);
+        }
+    }
+}
+
 void UiTests::scopedEditingAndPointReview()
 {
     QTemporaryDir dir; AppSettings settings; settings.databasePath=dir.filePath("scope.sqlite");
@@ -5093,4 +5897,268 @@ void UiTests::scopedEditingAndPointReview()
     const auto *output=dataAs<SeriesData>(controller->result()->output.outputs["series"]);
     QVERIFY(original && output); QCOMPARE(output->y[1],original->y[1]*7);
 
+}
+
+void UiTests::cancelAndCloseDuringLowess_data()
+{
+    QTest::addColumn<bool>("cancelFirst");
+    QTest::newRow("cancel-then-close") << true;
+    QTest::newRow("close-running-window") << false;
+}
+void UiTests::cancelAndCloseDuringLowess()
+{
+    QFETCH(bool, cancelFirst);
+    QTemporaryDir dir;
+    const auto small = dir.filePath("first.csv"), longInput = dir.filePath("sparse.csv");
+    {
+        QFile file(small); QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("Age,Value\n0,4\n1,2\n2,1\n3,5\n4,1\n5,3\n");
+    }
+    {
+        QFile file(longInput); QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("Age,Value\n");
+        for (int i=0; i<427; ++i)
+            file.write(QByteArray::number(i)+','+QByteArray::number(std::sin(.31*i))+'\n');
+        file.write("555575,3\n");
+    }
+    AppSettings settings; settings.language="en"; settings.concurrency=1;
+    settings.databasePath=dir.filePath("cancel.sqlite");
+    MainWindow window(settings,false); window.show();
+    const auto root=window.document()->addRoot("file_source").nodeId;
+    auto parent=root;
+    for (const auto* name : {"clean_series","preprocess","detrend_lowess","mtm"}) {
+        // Exercise cancellation inside the fit after explicitly allowing this synthetic gap.
+        QJsonObject parameters;
+        if (QString::fromLatin1(name) == "preprocess") parameters.insert("allow_extreme_gap", true);
+        const auto edit=window.document()->addChild(parent,ChildSlot::Append,name,parameters);
+        QVERIFY(edit.ok()); parent=edit.nodeId;
+    }
+    QStringList paths{small,longInput};
+    for (int j=0; j<40; ++j) {
+        const auto spare=dir.filePath(QString("pending-%1.csv").arg(j));
+        QVERIFY(QFile::copy(small,spare)); paths << spare;
+    }
+    window.document()->setFiles(root,paths);
+    QTRY_VERIFY(window.findChild<SourcePanel*>()->readyToRun());
+    bool closing=false;
+    std::shared_ptr<const BatchResult> finished;
+    connect(window.runner(), &RunController::batchReady, &window,
+            [&](std::shared_ptr<const BatchResult> batch) { finished=std::move(batch); });
+    connect(window.runner(), &RunController::eventReady, &window, [&](const RunEvent& e) {
+        if (closing || e.message!="progress.lowess_fit" || !e.sourceLabel.endsWith("sparse.csv")) return;
+        closing=true;
+        if (cancelFirst) window.findChild<QPushButton*>("cancelRun")->click();
+        else QTimer::singleShot(0, [] {
+            if (auto *box=qobject_cast<QMessageBox*>(QApplication::activeModalWidget()))
+                box->button(QMessageBox::Yes)->click();
+        });
+        window.close();
+    });
+    window.startRun();
+    QTRY_VERIFY_WITH_TIMEOUT(closing && !window.isVisible() && !window.runner()->busy(),10000);
+    QVERIFY(finished);
+    QCOMPARE(finished->notStarted, qsizetype(40));
+    QCOMPARE(finished->items.size(), 2);
+    QCOMPARE(finished->items[0].computation,RunState::Succeeded);
+    QCOMPARE(finished->items[1].computation,RunState::Cancelled);
+    ResultRepository repo; QVERIFY(repo.open(settings.databasePath).isEmpty());
+    QCOMPARE(repo.list().records.size(), 2);
+    for (const auto& item : finished->items) {
+        QVERIFY(item.persistence.saved());
+        const auto stored=repo.load(item.persistence.recordId);
+        QVERIFY(stored.ok());
+        QCOMPARE(stored.run.state,item.computation);
+    }
+}
+
+void UiTests::liveDirectoryDuringLargeFileBatch_data()
+{
+    QTest::addColumn<QVector<int>>("lengths");
+    QTest::addColumn<int>("workers");
+    QTest::addColumn<bool>("background");
+    QTest::newRow("four-workers") << QVector<int>{256} << 4 << false;
+    QTest::newRow("eight-workers-full-mtm") << QVector<int>{512, 768, 1024, 1536, 2048} << 8 << true;
+}
+void UiTests::liveDirectoryDuringLargeFileBatch()
+{
+    QFETCH(QVector<int>, lengths);
+    QFETCH(int, workers);
+    QFETCH(bool, background);
+    constexpr int fileCount = 2200, checkedCount = 391;
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    QVector<QByteArray> inputs;
+    for (const int count : lengths) {
+        QByteArray csv("x,y\n");
+        for (int i = 0; i < count; ++i) {
+            const double y = std::sin(i * 0.3926990817) + 0.4 * std::sin(i * 0.19);
+            csv += QByteArray::number(i * 100) + ',' + QByteArray::number(y, 'g', 12) + '\n';
+        }
+        inputs.append(std::move(csv));
+    }
+    QStringList paths;
+    for (int i = 0; i < fileCount; ++i) {
+        paths << dir.filePath(QString("input_%1.csv").arg(i));
+        QFile file(paths.back());
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        const auto &bytes = inputs[i % inputs.size()];
+        QCOMPARE(file.write(bytes), bytes.size());
+    }
+    AppSettings settings;
+    settings.databasePath = dir.filePath("live.sqlite");
+    settings.concurrency = workers;
+    const QJsonObject mtm{{"ar1", background}, {"swa", background}};
+    WorkflowModel seed(makeScientificRegistry());
+    const auto seedRoot = seed.addRoot("file_source", {0, 0}).nodeId;
+    QVERIFY(seed.addChild(seedRoot, ChildSlot::Down, "mtm", mtm).ok());
+    auto record = WorkflowExecutor().run({seed.freeze().snapshot, seedRoot,
+                                          {"marked", {}, {{"path", paths.front()}}}});
+    QCOMPARE(record.state, RunState::Succeeded);
+    ResultRepository reader;
+    QVERIFY(reader.open(settings.databasePath).isEmpty());
+    QSet<RunId> historical;
+    for (int i = 0; i < checkedCount; ++i) {
+        record.runId = QUuid::createUuid();
+        record.sourceLabel = QString("marked_%1.csv").arg(i);
+        QVERIFY(reader.save(record).saved());
+        historical.insert(record.runId);
+    }
+    MainWindow window(settings, false);
+    window.resize(1100, 760);
+    window.show();
+    const auto root = window.document()->addRoot("file_source").nodeId;
+    QVERIFY(window.document()->addChild(root, ChildSlot::Append, "mtm", mtm).ok());
+    window.document()->setFiles(root, paths);
+    window.showResults();
+    auto *panel = window.findChild<RecordDirectoryPanel *>();
+    auto *select = panel->findChild<QPushButton *>("checkMatchingRecords");
+    auto *remove = panel->findChild<QPushButton *>("deleteCheckedRecords");
+    auto *progress = window.findChild<QProgressBar *>("runProgress");
+    panel->findChild<QLineEdit *>("recordSearch")->setText("marked_");
+    panel->findChild<QComboBox *>("recordPeakAxis")->setCurrentIndex(0);
+    panel->findChild<QLineEdit *>("minimumFrequency")->setText("0.0001");
+    panel->findChild<QLineEdit *>("maximumFrequency")->setText("0.001");
+    QTRY_VERIFY(select->isEnabled());
+    select->click();
+    QTRY_COMPARE(panel->checkedRecords().size(), checkedCount);
+    QTRY_VERIFY(remove->isEnabled());
+    QTRY_VERIFY(window.findChild<SourcePanel *>()->readyToRun());
+    QSet<RunId> saved;
+    int unsuccessful = 0, progressTicks = 0;
+    QObject::connect(window.runner(), &RunController::itemReady, &window, [&](const BatchItem &item) {
+        if (item.persistence.saved()) saved.insert(item.runId);
+        if (!item.persistence.saved() || item.computation != RunState::Succeeded) ++unsuccessful;
+    });
+    QObject::connect(progress, &QProgressBar::valueChanged, &window, [&](int value) {
+        if (value > 0 && value < fileCount * 2) ++progressTicks;
+    });
+    QElapsedTimer elapsed;
+    elapsed.start();
+    window.startRun();
+    QVERIFY(window.runner()->busy());
+    auto *sources = window.findChild<SourcePanel *>();
+    auto *inputsList = sources->findChild<QListWidget *>("sourceFiles");
+    QVERIFY(inputsList->isEnabled()); QVERIFY(!inputsList->alternatingRowColors());
+    QVERIFY(!sources->findChild<QPushButton *>("importFiles")->isEnabled());
+    QVERIFY(!sources->findChild<QPushButton *>("removeSourceInput")->isEnabled());
+    QVERIFY(!sources->findChild<FileOptionsEditor *>()->isEnabled());
+    QSignalSpy probes(sources,&SourcePanel::previewInputChanged);
+    inputsList->setCurrentRow(1);
+    QVERIFY(inputsList->currentItem()->toolTip().contains(paths.at(1)));
+    QCOMPARE(probes.size(),0);
+    QTRY_VERIFY_WITH_TIMEOUT(saved.size() > 10 && progress->value() > 0, 30000);
+    window.results()->refresh();
+    QTRY_VERIFY(!window.results()->databaseBusy());
+    QVERIFY(window.runner()->busy());
+    QVERIFY(!remove->isEnabled());
+    QCOMPARE(panel->checkedRecords().size(), checkedCount);
+    QTRY_VERIFY_WITH_TIMEOUT(!window.runner()->busy(), 120000);
+    QTRY_VERIFY(!window.results()->databaseBusy());
+    qInfo() << "large batch: files" << saved.size() << "progress updates" << progressTicks
+            << "elapsed ms" << elapsed.elapsed();
+    QCOMPARE(unsuccessful, 0);
+    QCOMPARE(saved.size(), fileCount);
+    QVERIFY(progressTicks >= (background ? 2 : 1));
+    QTRY_VERIFY(remove->isEnabled());
+    QCOMPARE(progress->value(), fileCount * 2);
+    const auto rows = reader.identities({});
+    QVERIFY2(rows.error.isEmpty(), qPrintable(rows.error));
+    QCOMPARE(rows.existing.size(), fileCount + checkedCount);
+    const auto expected = historical | saved;
+    for (const auto &runId : rows.existing) QVERIFY(expected.contains(runId));
+    const auto loaded = reader.load(rows.existing.lastKey());
+    QVERIFY2(loaded.ok(), qPrintable(loaded.error));
+    QCOMPARE(loaded.run.workflowSnapshot.value("schema_version").toInt(), 3);
+    RecordFilter frequency;
+    frequency.minFrequency = 0.0001;
+    frequency.maxFrequency = 0.001;
+    QCOMPARE(reader.identities(frequency).matching, fileCount + checkedCount);
+    const auto connection = QUuid::createUuid().toString();
+    {
+        auto db = QSqlDatabase::addDatabase("QSQLITE", connection);
+        db.setDatabaseName(settings.databasePath);
+        QVERIFY(db.open());
+        QSqlQuery query(db);
+        QVERIFY(query.exec("PRAGMA integrity_check") && query.next());
+        QCOMPARE(query.value(0).toString(), QString("ok"));
+        QVERIFY(query.exec("PRAGMA foreign_key_check"));
+        QVERIFY(!query.next());
+    }
+    QSqlDatabase::removeDatabase(connection);
+}
+
+void UiTests::appendEightChildrenFromCanvasAndCatalogue()
+{
+    QTemporaryDir dir;
+    AppSettings settings;
+    settings.databasePath = dir.filePath("branches.sqlite");
+    MainWindow window(settings, false);
+    window.resize(1200, 800);
+    window.show();
+    auto *doc = window.document();
+    auto *canvas = window.canvas();
+    auto *catalog = window.findChild<TaskCatalog *>();
+    const auto root = doc->addRoot("sine_source").nodeId;
+    canvas->fitWorkflow();
+    QTest::mouseClick(canvas->viewport(), Qt::LeftButton, Qt::NoModifier, canvas->addViewportPosition(root));
+    QTRY_VERIFY(QApplication::activePopupWidget());
+    auto *menu = qobject_cast<QMenu *>(QApplication::activePopupWidget());
+    QVERIFY(menu);
+    auto *action = findAction(menu, "demean");
+    QVERIFY(action);
+    action->trigger();
+    menu->close();
+    QCOMPARE(doc->model().childCount(root), 1);
+    for (int i = 1; i < WorkflowChildLimit; ++i) {
+        canvas->nodeSelected(root);
+        catalog->methodActivated("demean");
+        QCOMPARE(doc->model().childCount(root), i + 1);
+    }
+    const auto before = workflowToJson(doc->model().definition());
+    QCOMPARE(canvas->addViewportPosition(root), QPoint(-1, -1));
+    canvas->nodeSelected(root);
+    catalog->methodActivated("demean");
+    QCOMPARE(workflowToJson(doc->model().definition()), before);
+    const auto nodes = doc->model().definition().nodes;
+    for (qsizetype i = 1; i < nodes.size(); ++i) {
+        QCOMPARE(nodes[i].input->parent, root);
+        QCOMPARE(nodes[i].input->slot, ChildSlot::Append);
+        const auto rect = canvas->nodeRect(nodes[i].id);
+        QVERIFY(rect.top() > canvas->nodeRect(root).bottom());
+        if (i > 1) QVERIFY(rect.left() > canvas->nodeRect(nodes[i-1].id).right());
+    }
+    QVERIFY(doc->removeSubtree(nodes[3].id).ok());
+    QVERIFY(canvas->addViewportPosition(root) != QPoint(-1, -1));
+    QVERIFY(doc->undo().ok());
+    QCOMPARE(workflowToJson(doc->model().definition()), before);
+    // Insert still works when all eight branches are occupied, and undo restores
+    // every sibling and its output binding.
+    const auto edit = doc->prepareRewrite({NodeRewriteKind::InsertBefore, nodes[4].id,
+        "demean", "series", {{nodes[4].id, "series"}}, {}});
+    QVERIFY2(edit.ok(), qPrintable(edit.error));
+    QVERIFY(doc->commitEdit(edit.edit).ok());
+    QCOMPARE(doc->model().childCount(root), WorkflowChildLimit);
+    QCOMPARE(doc->node(nodes[4].id)->input->parent, edit.nodeId);
+    QVERIFY(doc->undo().ok());
+    QCOMPARE(workflowToJson(doc->model().definition()), before);
 }

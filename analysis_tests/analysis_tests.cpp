@@ -13,8 +13,11 @@
 #include <condition_variable>
 #include <mutex>
 #include "application/batch_runner.h"
+#include "core/batch_workflow.h"
 #include "processing/scientific_registry.h"
 #include "io/files/series_file_reader.h"
+#include "model/workflow_codec.h"
+#include "third_party/lowess/Lowess.h"
 #include "io/database/data_codec.h"
 #include "math/spectrum/mtm_spectrum.h"
 #include "math/statistics/significance.h"
@@ -113,6 +116,7 @@ class AnalysisTests : public QObject
     void scientificCatalogue();
     void quotedUtf8File();
     void missingValuePolicies();
+    void finiteNumbersSurviveLegacyImportAndStorage();
     void readerBoundsAndCancellation();
     void deferredFileSource();
     void preprocessSortDuplicatesAndResample();
@@ -146,12 +150,15 @@ class AnalysisTests : public QObject
     void batchSaveFailureAndRetry();
     void lateSaveFailureRollsBackAndRetries();
     void batchCancellationAndObserver();
+    void lowessLongSeriesAndShortInputs();
     void fullScientificRoundTrip();
 };
 void AnalysisTests::scientificCatalogue()
 {
     const auto r = makeScientificRegistry();
-    QCOMPARE(r.descriptors().size(), 56);
+    QCOMPARE(r.descriptors().size(), 58);
+    QCOMPARE(r.find("linked_age_model")->descriptor.requiredSecondPort, QString("age_model"));
+    QCOMPARE(r.find("band_power")->descriptor.inputKind.value(), DataKind::Spectrum);
     QVERIFY(r.find("cross_spectrum"));
     QVERIFY(r.find("cross_spectrum")->descriptor.pairedInput);
     QVERIFY(r.find("cross_spectrum")->descriptor.catalogVisible);
@@ -215,6 +222,104 @@ void AnalysisTests::missingValuePolicies()
     QCOMPARE(dataAs<SeriesData>(r.data)->x, QVector<double>({0, 3}));
     QCOMPARE(r.report["skipped_rows"].toInt(), 2);
     QVERIFY(!r.warnings.isEmpty());
+    QCOMPARE(r.report["missing_rows"].toInt(), 2);
+    p.autoHeader = true;
+    const QByteArray fields("N/A,2\n0,1\n1, nUlL \n2,nA\n3,NaN\n4,\n5,typo\n"
+                            "6,Inf\n7,1e9999\n8,9\n9\n10,\"bad\n");
+    QVERIFY(writeFile(path, fields));
+    const auto preview = probeSeriesFile(path, p);
+    QVERIFY(preview.ok());
+    QVERIFY(!preview.header);
+    QCOMPARE(preview.preview.front().line, 1);
+    const auto parsed = readSeriesBytes(fields, path, p);
+    QVERIFY(parsed.ok());
+    QCOMPARE(dataAs<SeriesData>(parsed.data)->x, QVector<double>({0, 8}));
+    QCOMPARE(parsed.report["skipped_rows"].toInt(), 10);
+    QCOMPARE(parsed.report["missing_rows"].toInt(), 5);
+    p.skipInvalidRows = false;
+    const auto strict = readSeriesFile(path, p);
+    QVERIFY(!strict.ok());
+    QCOMPARE(strict.report["input_error"].toObject()["line"].toInt(), 1);
+    for (const auto &marker : {QByteArray(""), QByteArray(" Na "), QByteArray("N/a"),
+                               QByteArray("nUlL"), QByteArray("NaN")}) {
+        const auto first = marker + ",5\n0,2\n1,3\n";
+        QVERIFY(writeFile(path, first));
+        const auto probe = probeSeriesFile(path, p);
+        QVERIFY(probe.ok() && !probe.header);
+        QCOMPARE(readSeriesFile(path, p).report["input_error"].toObject()["line"].toInt(), 1);
+    }
+}
+
+void AnalysisTests::finiteNumbersSurviveLegacyImportAndStorage()
+{
+    QTemporaryDir dir;
+    const auto path = dir.filePath("finite.csv");
+    QVERIFY(writeFile(path, "age,value,note\n0,999998,NA\n999999,-10000,ok\n-9999,999999,ok\n5,-9999,ok\n"));
+    const auto registry = makeScientificRegistry();
+    WorkflowModel graph(registry);
+    const auto root = graph.addRoot("file_source", {0,0}).nodeId;
+    const auto scaled = graph.addChild(root, ChildSlot::Down, "affine", {{"offset", 1}}).nodeId;
+    const auto retired = QStringLiteral("missing_value_code");
+    const auto item = QUuid::createUuid();
+    auto old = graph.definition();
+    old.nodes.front().parameters[retired] = QStringLiteral("999999");
+    old.nodes.front().parameterOverrides[item] = {{retired, "-9999"}};
+    const auto decoded = workflowFromJson(workflowToJson(old));
+    QVERIFY(decoded.validation.ok());
+    // Stored records compare their original snapshot and node parameters exactly.
+    QCOMPARE(workflowToJson(decoded.definition), workflowToJson(old));
+    QVERIFY(graph.replaceDefinition(decoded.definition).ok());
+    QVERIFY(!graph.definition().nodes.front().parameters.contains(retired));
+    QVERIFY(!graph.definition().nodes.front().parameterOverrides.contains(item));
+    QVERIFY(!registry.normalize("file_source", {{"unknown_option", 42}}).validation.ok());
+
+    // Old per-file values can also arrive directly through a run request.
+    for (const auto &legacy : {QJsonValue("999999"), QJsonValue(-9999)}) {
+        const QJsonObject settings{{retired,legacy},{"x_unit","m"},{"skip_invalid_rows",true}};
+        SeriesFileOptions parsed;
+        QVERIFY(applyFileOptions(settings, parsed).isEmpty());
+        QVERIFY(!fileOptionsToJson(parsed).contains(retired));
+        const SourceItem source{path, {}, {{"path", path}, {"dataset_id", item.toString()}, {"file_options", settings}}};
+        const auto frozen = graph.freeze().snapshot;
+        const QVector<BatchDataset> inputs{{item, source}};
+        for (const auto &plan : {prepareBatch(frozen, root, inputs, {}),
+                                 prepareLinkedBatch(frozen, {{root, inputs}}, {})}) {
+            QVERIFY2(plan.validation.ok(), qPrintable(plan.validation.message()));
+            QVERIFY(plan.snapshot);
+            QVERIFY(!QJsonDocument(plan.snapshot->manifest(item)).toJson().contains(retired.toLatin1()));
+        }
+        const auto run = WorkflowExecutor().run({frozen, root, source});
+        QCOMPARE(run.state, RunState::Succeeded);
+        QVERIFY(!run.provenance["file_options"].toObject().contains(retired));
+        QVERIFY(!QJsonDocument(run.workflowSnapshot).toJson().contains(retired.toLatin1()));
+        const auto read = run.nodes.value(root);
+        QVERIFY(!read.report.contains(retired) && !read.report.contains("missing_code_rows"));
+        QCOMPARE(read.report["skipped_rows"].toInt(), 0);
+        const auto original = dataAs<SeriesData>(read.outputs.value("series"));
+        QVERIFY(original);
+        QCOMPARE(original->xAxis.unit, QString("m"));
+        QCOMPARE(original->x, QVector<double>({0,999999,-9999,5}));
+        QCOMPARE(original->y, QVector<double>({999998,-10000,999999,-9999}));
+        ResultRepository repo;
+        QVERIFY(repo.open(":memory:").isEmpty());
+        const auto saved = repo.save(run);
+        QVERIFY2(saved.saved(), qPrintable(saved.error));
+        const auto loaded = repo.load(saved.recordId);
+        QVERIFY2(loaded.ok(), qPrintable(loaded.error));
+        const auto output = dataAs<SeriesData>(loaded.run.nodes.value(scaled).outputs.value("series"));
+        QVERIFY(output);
+        QCOMPARE(output->y, QVector<double>({999999,-9999,1000000,-9998}));
+        auto archive = run;
+        archive.runId = QUuid::createUuid();
+        archive.workflowSnapshot = workflowToJson(old);
+        archive.provenance["file_options"] = settings;
+        const auto archived = repo.save(archive);
+        QVERIFY2(archived.saved(), qPrintable(archived.error));
+        const auto record = repo.load(archived.recordId);
+        QVERIFY2(record.ok(), qPrintable(record.error));
+        QCOMPARE(record.run.workflowSnapshot, archive.workflowSnapshot);
+        QCOMPARE(record.run.provenance, archive.provenance);
+    }
 }
 void AnalysisTests::readerBoundsAndCancellation()
 {
@@ -869,6 +974,80 @@ void AnalysisTests::lateSaveFailureRollsBackAndRetries()
     QCOMPARE(loaded.run.nodes.size(),2);
     QCOMPARE(repo.list().records.size(),2);
 }
+void AnalysisTests::lowessLongSeriesAndShortInputs()
+{
+    const auto registry = makeScientificRegistry();
+    CppLowess::TemplatedLowess<std::vector<double>,double> direct;
+    std::vector<double> empty, fit, robust, residual;
+    QVERIFY(direct.lowess(empty, empty, .35, 0, 0., fit, robust, residual) != 0);
+    for (int n : {0, 1, 2}) {
+        SeriesData shortInput;
+        for (int i = 0; i < n; ++i) { shortInput.x << i; shortInput.y << i*3.; }
+        const auto result = registry.create("detrend_lowess", {})->execute({makeData(shortInput)}, {});
+        if (n < 2) QCOMPARE(result.diagnostic().code, errorCodeName(ErrorCode::TooFewSamples));
+        else {
+            QCOMPARE(result.state, NodeState::Succeeded);
+            QCOMPARE(dataAs<SeriesData>(result.outputs.value("trend"))->y, shortInput.y);
+        }
+    }
+    SeriesData duplicate{{5,5,5},{1,2,3},{},{}};
+    QCOMPARE(registry.create("clean_series", {})->execute({makeData(duplicate)}, {}).state, NodeState::Failed);
+    SeriesData gaps{{0, 1, 2, 3, 12003}, {1, 2, 1, 2, 1}, {}, {}};
+    const auto rejected = registry.create("preprocess", {{"allow_extreme_gap", false}})->execute({makeData(gaps)}, {});
+    QCOMPARE(rejected.diagnostic().code, QString("RESAMPLE_EXTREME_GAP"));
+    QCOMPARE(rejected.diagnostic().context["largest_gap_from"].toDouble(), 3.);
+    QVERIFY(rejected.outputs.isEmpty());
+    const auto sampled = registry.create("preprocess", {})->execute({makeData(gaps)}, {});
+    QCOMPARE(sampled.state, NodeState::Succeeded);
+    QVERIFY(sampled.warnings.contains("warning.resampling_large_gap"));
+    QCOMPARE(sampled.report.value("largest_gap_from").toDouble(), 3.);
+    QCOMPARE(sampled.report.value("output_rows").toInt(), 12004);
+    const auto original = registry.create("preprocess", {{"spacing_mode", "none"}})->execute({makeData(gaps)}, {});
+    QCOMPARE(original.state, NodeState::Succeeded);
+    QCOMPARE(dataAs<SeriesData>(original.outputs["series"])->x, gaps.x);
+    gaps.x.back() = 2003;
+    const auto moderate = registry.create("preprocess", {})->execute({makeData(gaps)}, {});
+    QCOMPARE(moderate.state, NodeState::Succeeded);
+    QVERIFY(moderate.warnings.contains("warning.resampling_large_gap"));
+    const auto tooLarge = registry.create("detrend_lowess", {{"iterations", 5}})->execute({signal(25000)}, {});
+    QCOMPARE(tooLarge.diagnostic().code, QString("LOWESS_WORK_LIMIT"));
+    QVERIFY(tooLarge.outputs.isEmpty());
+    for (double magnitude : {1e200, 1e-220}) {
+        SeriesData extreme{{0, 1}, {-magnitude, magnitude}, {}, {}};
+        const auto summary = execute("series_summary", makeData(extreme));
+        QCOMPARE(summary.diagnostic().code, errorCodeName(ErrorCode::NumericRange));
+        QVERIFY(summary.outputs.isEmpty());
+    }
+    // Intermediate squares/sums can overflow binary64 even though the population variance fits.
+    const SeriesData representable{{0, 1, 2, 3}, {-1e154, 1e154, -1e154, 1e154}, {}, {}};
+    const auto summary = execute("series_summary", makeData(representable));
+    QCOMPARE(summary.state, NodeState::Succeeded);
+    const auto &row = dataAs<TableData>(summary.outputs["summary"])->rows.front();
+    QVERIFY(std::abs(row[2] / 1e308 - 1) < 1e-14);
+    for (bool irregular : {false, true}) {
+        const int n = 4096;
+        SeriesData series;
+        std::vector<double> x(n), y(n), expected(n), weights(n), residual(n);
+        for (int i=0; i<n; ++i) {
+            const double v = double(i)/(n-1);
+            x[i] = irregular ? v*v : v;
+            y[i] = 2.*v + std::sin(17.*v) + .14*std::cos(i*.53);
+            series.x << x[i]; series.y << y[i];
+        }
+        const auto input = makeData(series);
+        CppLowess::TemplatedLowess<std::vector<double>,double> reference;
+        QCOMPARE(reference.lowess(x,y,.35,0,0.,expected,weights,residual),0);
+        const auto result = registry.create("detrend_lowess", {})->execute({input},{});
+        QCOMPARE(result.state,NodeState::Succeeded);
+        const auto &trend = dataAs<SeriesData>(result.outputs.value("trend"))->y;
+        for (int i=0; i<n; ++i) QVERIFY(std::abs(trend[i]-expected[i]) < 1e-10);
+        ExecutionContext ctx{};
+        ctx.progress = [&](int percent, const QString&) { if (percent >= 5) ctx.cancellation.cancel(); };
+        const auto stopped = registry.create("detrend_lowess", {{"iterations",irregular ? 3 : 0}})->execute({input},ctx);
+        QCOMPARE(stopped.state,NodeState::Cancelled);
+        QVERIFY(stopped.outputs.isEmpty());
+    }
+}
 void AnalysisTests::batchCancellationAndObserver()
 {
     QTemporaryDir dir;
@@ -1154,8 +1333,8 @@ void AnalysisTests::structuredAlgorithmDiagnostics_data()
     QTest::newRow("wavelet-paul-order") << "cwt" << "ordinary" << QJsonObject{{"mother", "paul"}, {"parameter", 1.5}} << "CWT_ORDER_INVALID";
     QTest::newRow("wavelet-dog-order") << "cwt" << "ordinary" << QJsonObject{{"mother", "dog"}, {"parameter", 3}} << "CWT_ORDER_INVALID";
     QTest::newRow("wavelet-grid") << "cwt" << "large" << QJsonObject{{"dj", .02}} << "CWT_GRID_LIMIT";
-    QTest::newRow("affine-output-range") << "affine" << "huge_y" << QJsonObject{{"factor", 1e100}} << "TASK_OUTPUT_INVALID";
-    QTest::newRow("summary-output-range") << "series_summary" << "huge_y" << QJsonObject{} << "TASK_OUTPUT_INVALID";
+    QTest::newRow("affine-output-range") << "affine" << "huge_y" << QJsonObject{{"factor", 1e100}} << "NUMERIC_RANGE";
+    QTest::newRow("summary-output-range") << "series_summary" << "huge_y" << QJsonObject{} << "NUMERIC_RANGE";
 }
 void AnalysisTests::structuredAlgorithmDiagnostics()
 {

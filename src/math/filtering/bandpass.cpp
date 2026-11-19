@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/filtering/bandpass.h"
 #include "math/backend/numeric_backend.h"
+#include "math/sample_scaling.h"
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -22,21 +23,26 @@ double gainAt(Shape shape, double f, double low, double high, double q) {
     return std::exp(-a*std::pow(offset, exponent)); // overflow of power => gain zero
 }
 struct Working { std::vector<double> y; double scale=0, mean=0; };
-Working normalized(const std::vector<double>& values, bool demean, const Cancel& cancel) {
+Working normalized(const std::vector<double>& values, const Cancel& cancel) {
     if (values.size() < 2) throw std::invalid_argument("At least two samples required");
     if (values.size() > maximumSamples) throw std::length_error("Filter input exceeds sample budget");
     Working w;
     for (std::size_t i=0;i<values.size();++i) {
         if ((i&4095)==0) check(cancel);
         if (!std::isfinite(values[i])) throw std::invalid_argument("Input must be finite");
-        w.scale=std::max(w.scale,std::abs(values[i]));
     }
     w.y.resize(values.size());
-    if (w.scale==0) return w;
+    const auto bounds=std::minmax_element(values.begin(),values.end());
+    const auto scaling=numeric::centeredSampleScale(*bounds.first,*bounds.second);
+    w.scale=scaling.scale;
     long double mean=0;
-    if (demean) for (double v:values) mean += (v/w.scale)/static_cast<long double>(values.size());
-    w.mean=static_cast<double>(mean)*w.scale;
-    for (std::size_t i=0;i<values.size();++i) w.y[i]=values[i]/w.scale-static_cast<double>(mean);
+    for (std::size_t i=0;i<values.size();++i) {
+        if ((i&4095)==0) check(cancel);
+        w.y[i]=scaling.unit(values[i]);
+        mean+=w.y[i]/static_cast<long double>(values.size());
+    }
+    w.mean=std::fma(static_cast<double>(mean),w.scale,scaling.origin);
+    for (auto& value:w.y) value-=static_cast<double>(mean);
     return w;
 }
 double restored(double value, double scale) {
@@ -66,7 +72,7 @@ FilterResult bandpass(const std::vector<double>& values, double spacing, Shape s
     FilterResult r; r.fftLength=fftLength(shape,values.size());
     const double df=(1./spacing)/double(r.fftLength);
     if(!std::isfinite(df) || df<=0) throw std::overflow_error("Unrepresentable frequency grid");
-    auto w=normalized(values,true,cancel);r.removedMean=w.mean;
+    auto w=normalized(values,cancel);r.removedMean=w.mean;
     w.y.resize(r.fftLength,0);
     check(cancel);
     auto coefficients=numeric::backend::realFft(std::move(w.y),r.fftLength);
@@ -88,7 +94,9 @@ FilterResult bandpass(const std::vector<double>& values, double spacing, Shape s
 }
 AnalyticResult hilbert(const std::vector<double>& values, bool removeMean, const Cancel& cancel) {
     check(cancel);
-    auto w=normalized(values,removeMean,cancel);
+    // The quadrature has no DC term in either mode. Use the original real
+    // channel for the envelope when the user wants to retain its DC level.
+    auto w=normalized(values,cancel);
     auto spectrum=numeric::backend::realFft(w.y,values.size());
     check(cancel);
     // H(f)=-i for positive f, +i for negative f. irfft supplies the conjugate
@@ -97,12 +105,15 @@ AnalyticResult hilbert(const std::vector<double>& values, bool removeMean, const
     for(std::size_t k=1;k<spectrum.size();++k) spectrum[k]*=std::complex<double>(0,-1);
     if(values.size()%2==0) spectrum.back()=0;
     auto q=numeric::backend::inverseRealFft(std::move(spectrum),values.size());
-    AnalyticResult r; r.removedMean=w.mean;r.envelope.resize(values.size());
+    AnalyticResult r; r.removedMean=removeMean ? w.mean : 0;r.envelope.resize(values.size());
     for(std::size_t i=0;i<values.size();++i) {
         if((i&4095)==0)check(cancel);
-        r.envelope[i]=restored(std::hypot(w.y[i],q[i]),w.scale);
         q[i]=restored(q[i],w.scale);
+        if (removeMean) w.y[i]=restored(w.y[i],w.scale);
+        r.envelope[i]=std::hypot(removeMean ? w.y[i] : values[i],q[i]);
+        if (!std::isfinite(r.envelope[i])) throw std::overflow_error("Hilbert envelope exceeds double precision range");
     }
+    if (removeMean) r.demeanedSignal=std::move(w.y);
     r.quadrature=std::move(q);return r;
 }
 }

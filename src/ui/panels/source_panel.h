@@ -10,9 +10,11 @@ class QComboBox;
 class QListWidget;
 class QLabel;
 class QThread;
+class QToolButton;
 namespace aster::ui
 {
 class FileOptionsEditor;
+class FileListItem;
 enum class SourceFileState { Pending, Running, Saved, Unsaved, Cancelled, Failed };
 class SourcePanel : public QWidget
 {
@@ -33,6 +35,8 @@ class SourcePanel : public QWidget
     bool applyCurrentOptions();
     bool readyToRun() const;
     void syncPreviewInput();
+    void updateRunControls();
+    void showFileOptions();
   signals:
     void batchOptionsFinished(QStringList applied, QStringList skipped);
     void importRequested();
@@ -50,7 +54,7 @@ class SourcePanel : public QWidget
 
   private:
     std::function<bool()> m_beforeInputRemoval;
-    void showFileOptions();
+    QToolButton *m_optionsToggle;
     struct OptionsEdit {
         NodeId root;
         QStringList paths;
@@ -69,7 +73,9 @@ class SourcePanel : public QWidget
     CancellationToken m_optionsCancel;
     void notifyPreviewSource();
     FileOptionsEditor *m_options;
-    QHash<QString, SourceFileState> m_states;
+    QHash<QPair<NodeId, QUuid>, SourceFileState> m_states;
+    QHash<NodeId, QMultiHash<QString, QUuid>> m_statusDatasets;
+    QMultiHash<QString, FileListItem *> m_visibleFiles;
     WorkflowDocument *m_document;
     QComboBox *m_roots;
     QListWidget *m_files;

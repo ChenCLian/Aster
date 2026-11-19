@@ -9,7 +9,7 @@ namespace aster::ui
 {
 QMap<NodeId, QRectF> verticalWorkflowLayout(const WorkflowDefinition &definition)
 {
-    constexpr double lane = 246, row = 180;
+    constexpr double lane = 254, row = 180;
     QHash<NodeId, QVector<const NodeDefinition *>> children;
     QVector<NodeId> roots;
     for (const auto &node : definition.nodes)
@@ -19,7 +19,8 @@ QMap<NodeId, QRectF> verticalWorkflowLayout(const WorkflowDefinition &definition
             roots.push_back(node.id);
     const auto order = [](ChildSlot slot)
     {
-        return slot == ChildSlot::Left ? 0 : slot == ChildSlot::Down ? 1 : 2;
+        // Preserve the placement of old projects. New siblings follow in creation order.
+        return slot == ChildSlot::Left ? 0 : slot == ChildSlot::Down ? 1 : slot == ChildSlot::Right ? 2 : 3;
     };
     for (auto it = children.begin(); it != children.end(); ++it)
         std::stable_sort(it->begin(), it->end(), [&](auto a, auto b)

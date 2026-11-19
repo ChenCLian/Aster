@@ -47,7 +47,10 @@ def main():
     parser.add_argument('build', type=Path)
     parser.add_argument('--timeout', type=int, default=900,
                         help='Maximum seconds per test executable (default: 900)')
+    parser.add_argument('--include-interaction', action='store_true',
+                        help='Also require the Qt keyboard, mouse and layout acceptance executable')
     args = parser.parse_args()
+    targets = [*TARGETS, 'aster_interaction_acceptance'] if args.include_interaction else TARGETS
     if args.timeout <= 0:
         parser.error('--timeout must be a positive number of seconds')
     build = args.build.resolve()
@@ -69,7 +72,7 @@ def main():
         temporary.replace(summary)
     checkpoint()  # Never retain an earlier run's successful summary.
     print(f'Live test logs: {logs}', flush=True)
-    for name in TARGETS:
+    for name in targets:
         candidates = [build / 'bin' / name, build / 'bin' / (name + '.exe'),
                       build / 'tests' / name, build / 'tests' / (name + '.exe'),
                       build / 'bin' / (name + '.app') / 'Contents/MacOS' / name]
@@ -123,7 +126,7 @@ def main():
             print(failure_excerpt(output), flush=True)
         if status == 'interrupted':
             break
-    if len(results) != len(TARGETS) or any(r['status'] != 'passed' for r in results):
+    if len(results) != len(targets) or any(r['status'] != 'passed' for r in results):
         raise SystemExit('Regression verification failed; inspect test-results/*.txt')
 
 if __name__ == '__main__':

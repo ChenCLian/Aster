@@ -77,11 +77,7 @@ NodeResult executeFilter(const TaskInput& input,const ExecutionContext& c,const 
         if(envelopeOnly) {
             removedMean=analytic.removedMean;
             outputs.insert("quadrature",series(analytic.quadrature));
-            if (demean) {
-                auto analysed = values;
-                for (auto &value : analysed) value -= removedMean;
-                outputs.insert("signal",series(analysed));
-            } else outputs.insert("signal",input.data);
+            outputs.insert("signal",demean ? series(analytic.demeanedSignal) : input.data);
         }
         outputs.insert("envelope",series(analytic.envelope));
         report["removed_mean"]=removedMean;report["demeaned"]=!envelopeOnly || demean;

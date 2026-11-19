@@ -218,7 +218,7 @@ private slots:
         QVERIFY(drop(canvas,canvas.mapFromScene(canvas.nodeRect(f.target).center()),"linear_detrend")); QCOMPARE(replaceDrop.count(),1);
         QVERIFY(!drop(canvas,canvas.mapFromScene(canvas.nodeRect(f.root).center()),"linear_detrend"));
         QVERIFY(!drop(canvas,canvas.mapFromScene(canvas.nodeRect(f.target).center()),"mtm"));
-        canvas.setSelectedNode(f.child); QVERIFY(drop(canvas,canvas.slotViewportPosition(ChildSlot::Down),"affine")); QCOMPARE(addDrop.count(),1);
+        canvas.setSelectedNode(f.child); QVERIFY(drop(canvas,canvas.addViewportPosition(f.child),"affine")); QCOMPARE(addDrop.count(),1);
         const auto screenshots=qEnvironmentVariable("ASTER_REWRITE_SCREENSHOTS");
         if(!screenshots.isEmpty()) QVERIFY(canvas.grab().save(screenshots+"/canvas-insert-controls.png"));
         canvas.setEditable(false); QVERIFY(!drop(canvas,canvas.mapFromScene(canvas.nodeRect(f.target).center()),"linear_detrend"));

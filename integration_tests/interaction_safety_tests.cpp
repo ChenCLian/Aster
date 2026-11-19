@@ -41,6 +41,7 @@
 #include "io/database/data_codec.h"
 #include "io/exports/export_path.h"
 #include "io/files/series_file_reader.h"
+#include <cstring>
 #include "ui/workflow/workflow_document.h"
 #include "ui/panels/source_panel.h"
 #include "ui/panels/parameter_editor.h"
@@ -125,6 +126,7 @@ class InteractionSafetyTests : public QObject
     void themeTemplateAndTaskResourcesCoverDeclaredChoices();
     void bulkSourceRefreshKeepsSelectionsAndOptions();
     void whitespaceReadersRemainIndependent();
+    void interruptedFileReadStops();
     void compactToolbarAndIndependentSidePanels();
     void detrendOutputMenuKeepsExplicitPortBinding();
     void invalidFileIsReportedAndCorrectColumnsRecover();
@@ -182,7 +184,10 @@ void InteractionSafetyTests::fileToBranchesToDatabaseAndCsv()
     const auto item = qvariant_cast<BatchItem>(items[0][0]);
     QCOMPARE(item.computation, RunState::Succeeded);
     QVERIFY2(item.persistence.saved(), qPrintable(item.persistence.error));
-    QCOMPARE(events.size(), 6 * 3); // pending, running, completed per node
+    int stateTransitions = 0;
+    for (const auto &args : events)
+        if (qvariant_cast<RunEvent>(args.front()).progressPercent < 0) ++stateTransitions;
+    QCOMPARE(stateTransitions, 6 * 3); // pending, running, completed per node
     ResultRepository repo;
     QVERIFY(repo.open(db).isEmpty());
     const auto loaded = repo.load(item.persistence.recordId);
@@ -552,6 +557,49 @@ void InteractionSafetyTests::bulkSourceRefreshKeepsSelectionsAndOptions()
     QVERIFY(document.undo().ok());
     QCOMPARE(list->count(), paths.size());
     QTRY_VERIFY(editor->ready());
+}
+void InteractionSafetyTests::interruptedFileReadStops()
+{
+    class InterruptedFile final : public QIODevice {
+    public:
+        InterruptedFile(bool ioError, CancellationToken token) : error(ioError), cancel(token)
+        {
+            open(ReadOnly);
+        }
+        qint64 size() const override { return 4096; }
+        int attempts = 0;
+    private:
+        qint64 readData(char *out, qint64 length) override
+        {
+            const QByteArray prefix("x,y\n0,1\n1,2\n");
+            if (++attempts == 1) {
+                const auto n = qMin<qint64>(length, prefix.size());
+                std::memcpy(out, prefix.constData(), size_t(n));
+                return n;
+            }
+            // Bound a regression so the test itself always terminates.
+            if (attempts >= 32) cancel.cancel();
+            setErrorString("Injected read failure");
+            return error ? -1 : 0;
+        }
+        qint64 writeData(const char *, qint64) override { return -1; }
+        bool error;
+        CancellationToken cancel;
+    };
+    for (bool ioError : {false, true}) {
+        CancellationToken cancel;
+        InterruptedFile file(ioError, cancel);
+        SeriesFileOptions options;
+        options.skipInvalidRows = true;
+        const auto result = readSeriesDevice(file, "interrupted.csv", options, cancel);
+        const auto error = ErrorInfo::fromJson(result.report["diagnostic"].toObject());
+        QCOMPARE(error.code, errorCodeName(ErrorCode::FileRead));
+        QCOMPARE(error.context["path"].toString(), QString("interrupted.csv"));
+        QCOMPARE(error.context["line"].toInt(), 4);
+        QVERIFY(!result.data);
+        QVERIFY(file.attempts < 32);
+        QVERIFY(!cancel.isCancelled());
+    }
 }
 void InteractionSafetyTests::whitespaceReadersRemainIndependent()
 {

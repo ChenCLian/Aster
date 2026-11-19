@@ -30,6 +30,7 @@ SOURCES += \
 HEADERS += \
     ../src/core/error_info.h \
     ../src/model/data_types.h \
+    ../src/model/file_import_compat.h \
     ../src/model/workflow_types.h \
     ../src/model/workflow_codec.h \
     ../src/core/task.h \
@@ -49,3 +50,4 @@ HEADERS += \
     ../src/processing/series_summary_task.h
 
 HEADERS += ../src/processing/task_categories.h
+HEADERS += ../src/math/sample_scaling.h

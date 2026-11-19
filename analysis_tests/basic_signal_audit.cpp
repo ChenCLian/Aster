@@ -3,6 +3,7 @@
 #include "basic_signal_audit.h"
 #include "math/smoothing/smoothing.h"
 #include "math/spectrum/evolutionary_spectrum.h"
+#include "math/spectrum/mtm_spectrum.h"
 #include "processing/scientific_registry.h"
 #include "core/workflow_executor.h"
 #include "io/database/result_repository.h"
@@ -73,12 +74,80 @@ class BasicSignalAudit : public QObject
     void references_data();
     void references();
     void polynomialAndMeanEdges();
+    void isolatedSpikeOutsideWindow();
+    void spectraOnLargeBaseline();
+    void linearResidualOnLargeBaseline();
+    void amplitudeAndLowessOffsets();
     void numericErrorsAndCancellation();
     void spectrumUnitsAndStreaming();
     void contractsAndFailures();
     void workflowDatabaseCsv();
     void defaultsAndTranslations();
+    void integratedBandPower();
+    void bandWorkflowAndStoredSpectrum();
 };
+void BasicSignalAudit::integratedBandPower()
+{
+    const auto registry = makeScientificRegistry();
+    const SpectrumData curve{{0, 1, 2, 4}, {0, 2, 4, 8}, {"Frequency", ""}, {"Power", "PSD"}};
+    TaskInput input{makeData(curve)};
+    input.origin = {"mtm", "spectrum", {{"rayleigh_frequency", .25}}};
+    const auto power = [&](QJsonObject parameters, ExecutionContext context = {}) {
+        return registry.create("band_power", parameters)->execute(input, context);
+    };
+    QJsonObject params{{"band_axis", "frequency"}, {"band_min", .5}, {"band_max", 2.5}};
+    const auto initial = power(params);
+    QCOMPARE(initial.state, NodeState::Succeeded);
+    QCOMPARE(initial.report["target_power"].toDouble(), 6.);
+    QCOMPARE(initial.report["reference_power"].toDouble(), 16.);
+    QCOMPARE(initial.report["fraction"].toDouble(), .375);
+    QVERIFY(initial.report["period_unit"].toString().isEmpty());
+    params = {{"band_min", .4}, {"band_max", 2.}, {"band_reference", "custom"},
+              {"band_ref_min", .25}, {"band_ref_max", 4.}};
+    const auto reciprocal = power(params);
+    QCOMPARE(reciprocal.state, NodeState::Succeeded);
+    QCOMPARE(reciprocal.report["target_power"].toDouble(), 6.);
+    QCOMPARE(reciprocal.report["reference_power"].toDouble(), 16. - .0625);
+    params["band_ref_min"] = .5;
+    QCOMPARE(power(params).diagnostic().code, QString("BAND_COVERAGE"));
+    params = {{"band_axis", "frequency"}, {"band_min", 1.}, {"band_max", 1.1}};
+    QCOMPARE(power(params).diagnostic().code, QString("BAND_RESOLUTION"));
+    params["band_max"] = 2.;
+    input.origin.port = "ar1_95";
+    QCOMPARE(power(params).diagnostic().code, QString("BAND_PSD_INPUT"));
+    input.origin.port = "spectrum";
+    auto zero = curve; zero.power.fill(0);
+    input.data = makeData(zero);
+    QCOMPARE(power(params).diagnostic().code, QString("BAND_ZERO_POWER"));
+    ExecutionContext cancelled; cancelled.cancellation.cancel();
+    QCOMPARE(power(params, cancelled).state, NodeState::Cancelled);
+}
+void BasicSignalAudit::bandWorkflowAndStoredSpectrum()
+{
+    auto s = sample(256);
+    for (int i = 0; i < s.y.size(); ++i)
+        s.y[i] = 2 * std::sin(2 * std::acos(-1.) * i / 16.) + std::sin(2 * std::acos(-1.) * i / 8.);
+    WorkflowModel model(makeScientificRegistry());
+    const auto root = model.addRoot("input_series", {0,0}).nodeId;
+    const auto spec = model.addChild(root, ChildSlot::Append, "fft_spectrum", {{"psd_taper", "rectangular"}}).nodeId;
+    const QJsonObject band{{"band_axis", "frequency"}, {"band_min", 15./256}, {"band_max", 17./256}};
+    const auto node = model.addChild(spec, ChildSlot::Append, "band_power", band).nodeId;
+    const auto result = WorkflowExecutor{}.run({model.freeze().snapshot, root, {"demo", makeData(s), {}}});
+    QCOMPARE(result.state, RunState::Succeeded);
+    const auto calc = result.nodes[node];
+    QVERIFY(std::abs(calc.report["fraction"].toDouble() - .8) < 1e-10);
+    QCOMPARE(calc.report["period_unit"].toString(), QString("ka"));
+    QTemporaryDir dir; const auto path = dir.filePath("bands.sqlite");
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    const auto saved = repo.save(result); QVERIFY(saved.saved());
+    OutputReference ref{path, saved.recordId, result.runId, spec, "spectrum", "Spectrum"};
+    WorkflowModel reused(makeScientificRegistry());
+    const auto db = reused.addRoot("database_spectrum", {0,0}).nodeId;
+    const auto child = reused.addChild(db, ChildSlot::Append, "band_power", band).nodeId;
+    const auto reread = WorkflowExecutor{}.run({reused.freeze().snapshot, db, {"saved", {}, {{"database_source", ref.toJson()}}}});
+    QCOMPARE(reread.state, RunState::Succeeded);
+    QCOMPARE(encodeData(reread.nodes[child].outputs["band_power"]).bytes, encodeData(calc.outputs["band_power"]).bytes);
+}
 void BasicSignalAudit::references_data()
 {
     QTest::addColumn<QJsonObject>("c");
@@ -145,6 +214,92 @@ void BasicSignalAudit::polynomialAndMeanEdges()
         const std::vector<double> constant(31, 1.7e308);
         QVERIFY(smoothSeries(constant, 11, 2, method) == constant);
         QVERIFY(near(smoothSeries({1, 2, 3}, 1, 0, method), {1, 2, 3}));
+    }
+}
+void BasicSignalAudit::isolatedSpikeOutsideWindow()
+{
+    std::vector<double> values(48);
+    for (size_t i = 0; i < values.size(); ++i)
+        values[i] = (1 + i % 3) * 1e-200;
+    auto withSpike = values;
+    withSpike.back() = 1e300;
+    for (auto method : {numeric::SmoothingMethod::MovingMean, numeric::SmoothingMethod::SavitzkyGolay}) {
+        const auto base = numeric::smoothSeries(values, 11, 2, method);
+        const auto affected = numeric::smoothSeries(withSpike, 11, 2, method);
+        for (size_t i = 0; i < 32; ++i) {
+            QVERIFY(base[i] > 0);
+            QCOMPARE(affected[i], base[i]);
+        }
+    }
+}
+void BasicSignalAudit::spectraOnLargeBaseline()
+{
+    const double cycle[] = {0, 2, 4, 2};
+    std::vector<double> base(1151), shifted(base.size());
+    for (size_t i = 0; i < base.size(); ++i) {
+        base[i] = cycle[i % 4];
+        shifted[i] = 1e16 + base[i];
+    }
+    for (auto method : {numeric::EvolutionMethod::Fft, numeric::EvolutionMethod::Mtm}) {
+        for (auto trend : {numeric::SegmentTrend::Mean, numeric::SegmentTrend::Linear}) {
+            numeric::EvolutionOptions o;
+            o.method = method; o.trend = trend; o.windowSamples = 256; o.stepSamples = 128;
+            const auto a = numeric::evolutionarySpectrum(base, 1, o);
+            const auto b = numeric::evolutionarySpectrum(shifted, 1, o);
+            QVERIFY(near(a.power, b.power));
+            QVERIFY(near(a.meanPower, b.meanPower));
+            if (method == numeric::EvolutionMethod::Fft && trend == numeric::SegmentTrend::Mean)
+                QVERIFY(std::abs(b.meanPower[64] - 1024. / 3) < 1e-10);
+        }
+    }
+    // An odd record length exposes accumulated DC error in the MTM mean.
+    const auto a = numeric::mtmSpectrum(base, 1, 2, 3, .5);
+    const auto b = numeric::mtmSpectrum(shifted, 1, 2, 3, .5);
+    QVERIFY(near(a.power, b.power));
+}
+void BasicSignalAudit::linearResidualOnLargeBaseline()
+{
+    const QVector<double> residual{-0.8, 1.2, -0.8, 1.2, -0.8};
+    for (double baseline : {0., 1e16}) {
+        SeriesData s{{0,1,2,3,4}, {baseline,baseline+2,baseline,baseline+2,baseline}, {}, {}};
+        const auto result = run("linear_detrend", makeData(s));
+        QCOMPARE(result.state, NodeState::Succeeded);
+        const auto actual = dataAs<SeriesData>(result.outputs["detrended"])->y;
+        for (int i = 0; i < residual.size(); ++i)
+            QVERIFY(std::abs(actual[i] - residual[i]) < 1e-14);
+    }
+}
+void BasicSignalAudit::amplitudeAndLowessOffsets()
+{
+    auto extreme = sample(32);
+    extreme.y.fill(1e-200);
+    extreme.y.back() = 1e300;
+    const auto rejected = run("detrend_lowess", makeData(extreme));
+    QCOMPARE(rejected.diagnostic().code, QString("NUMERIC_RANGE"));
+    QVERIFY(rejected.outputs.isEmpty());
+    for (int n : {31, 3001}) {
+        auto a = sample(n), b = a;
+        for (int i = 0; i < n; ++i) {
+            a.y[i] = 2 * ((i % 7) - 3);
+            b.y[i] = a.y[i] + 1e16;
+        }
+        for (const char* key : {"demean", "standardize", "hilbert_envelope", "detrend_lowess"}) {
+            const QString task = key;
+            const QString port = task == "hilbert_envelope" ? "signal" : task == "detrend_lowess" ? "detrended" : "series";
+            auto parameters = task == "hilbert_envelope" ? QJsonObject{{"hilbert_remove_mean",true}} : QJsonObject{};
+            const auto verify = [&] {
+                const auto x = run(key, makeData(a), parameters), y = run(key, makeData(b), parameters);
+                QCOMPARE(x.state, NodeState::Succeeded); QCOMPARE(y.state, NodeState::Succeeded);
+                const auto v = dataAs<SeriesData>(x.outputs[port]), w = dataAs<SeriesData>(y.outputs[port]);
+                QVERIFY(v && w);
+                for (int i=0; i<n; ++i) QVERIFY(std::abs(v->y[i]-w->y[i])<1e-8);
+            };
+            verify();
+            if (task == "detrend_lowess" && n == 31) {
+                parameters["iterations"] = 3;
+                verify();
+            }
+        }
     }
 }
 void BasicSignalAudit::numericErrorsAndCancellation()

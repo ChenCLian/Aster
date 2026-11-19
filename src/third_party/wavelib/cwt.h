@@ -8,6 +8,8 @@ extern "C" {
 #endif
 
 /* Aster checked entry: 0 success, -1 allocation, -2 invalid dimensions. */
+int cwavelet_checked_cancel(const double *y, int N, double dt, int mother, double param, double s0, double dj, int jtot, int npad,
+        double *wave, double *scale, double *period, double *coi, cwt_cancel_fn cancelled, const void *context);
 int cwavelet_checked(const double *y, int N, double dt, int mother, double param, double s0, double dj, int jtot, int npad,
 		double *wave, double *scale, double *period, double *coi);
 

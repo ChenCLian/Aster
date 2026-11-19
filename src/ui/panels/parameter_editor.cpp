@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/common/choice_editor.h"
+#include "ui/common/wrapping_button.h"
 #include "ui/common/numeric_editor.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/panels/parameter_editor.h"
@@ -180,7 +181,7 @@ ParameterEditor::ParameterEditor(QWidget *p) : QWidget(p)
     scopeHint->setObjectName("Muted");
     scopeHint->setWordWrap(true);
     footer->addWidget(scopeHint);
-    m_applyAll = new QPushButton(text("ui.apply_node_all"));
+    m_applyAll = new WrappingPushButton(text("ui.apply_node_all"));
     m_applyAll->setObjectName("applyNodeAllData");
     m_applyAll->setToolTip(text("ui.apply_node_all_hint"));
     footer->addWidget(m_applyAll);
@@ -264,7 +265,7 @@ void ParameterEditor::showNode(const NodeDefinition *n, const TaskRegistry &r)
     }
     QString lastGroup;
     if (!d.parameters.isEmpty()) {
-        auto *reset = new QPushButton(text("ui.reset_node_defaults"));
+        auto *reset = new WrappingPushButton(text("ui.reset_node_defaults"));
         reset->setObjectName("resetNodeDefaults");
         reset->setToolTip(text("ui.reset_node_defaults_hint"));
         m_form->addWidget(reset);

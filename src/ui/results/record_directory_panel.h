@@ -13,7 +13,9 @@ class QProgressDialog;
 namespace aster::ui
 {
 class RecordFilterPanel;
+class RecordItemDelegate;
 class RecordDirectoryService;
+enum class RecordSelectionScope;
 // Browsing and checked records are separate: rebuilding a page cannot lose checks.
 class RecordDirectoryPanel final : public QWidget
 {
@@ -22,7 +24,9 @@ class RecordDirectoryPanel final : public QWidget
     explicit RecordDirectoryPanel(QWidget *parent = nullptr);
     void setDatabase(const QString &path);
     void refresh();
-    void setCurrentRecord(qint64 id);
+    bool refreshIfIdle();
+    void focusRecord(qint64 id);
+    void setOpenedRecord(qint64 id);
     void setMutationsEnabled(bool enabled);
     int recordCount() const;
     RecordFilter filter() const;
@@ -43,12 +47,11 @@ class RecordDirectoryPanel final : public QWidget
 
   private:
     void load(bool append);
-    void receive(RecordList list, QStringList units, qint64 beforeId);
+    void receive(RecordList list, QStringList units, qint64 beforeId, bool selectionOnly);
     void syncChecks();
     void updateActions();
     void fetchIfNeeded();
-    void selectMatching(bool checked);
-    void clearChecks();
+    void selectRecords(RecordSelectionScope scope, bool checked);
     void mergeDatabaseFile();
     void backupDatabaseFile();
     void exportFileNames();
@@ -61,15 +64,16 @@ class RecordDirectoryPanel final : public QWidget
     RecordDirectoryService *m_service;
     RecordFilterPanel *m_filters;
     QListWidget *m_list;
-    QLabel *m_count, *m_selection;
+    RecordItemDelegate *m_delegate;
+    QLabel *m_selection;
     QToolButton *m_database;
     QProgressDialog *m_transferProgress = nullptr;
-    QPushButton *m_delete, *m_clear, *m_select, *m_unselect, *m_exportNames;
+    QPushButton *m_delete, *m_selectAll, *m_selectFiltered, *m_exportNames;
     QString m_path;
     RecordIdentities m_checked;
-    qint64 m_current = 0, m_cursor = 0, m_matching = 0, m_pressedCheck = 0;
+    qint64 m_cursor = 0, m_matching = 0, m_databaseTotal = -1, m_pressedCheck = 0;
     bool m_busy = false, m_hasMore = false, m_filterValid = true, m_mutationsEnabled = true,
-         m_filterPending = false;
+         m_filterPending = false, m_pagePending = false;
 };
 } // namespace aster::ui
 #endif

@@ -18,6 +18,7 @@ namespace aster
     };
 ASTER_CHRONOLOGY_TASK(SedrateToAgeTask)
 ASTER_CHRONOLOGY_TASK(ApplyAgeModelTask)
+ASTER_CHRONOLOGY_TASK(LinkedAgeModelTask)
 #undef ASTER_CHRONOLOGY_TASK
 } // namespace aster
 #endif

@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "core/workflow_editor.h"
+#include "model/file_import_compat.h"
 #include <QHash>
 #include <QSet>
 #include <QJsonArray>
@@ -128,8 +129,10 @@ PreparedEditResult WorkflowEditor::prepare(WorkflowEditDraft draft) const
     if (!out.validation.ok()) return out;
     out.validation = validateWorkflow(draft.state.definition, m_model.registry());
     if (!out.validation.ok()) return out;
-    for (auto& node : draft.state.definition.nodes)
+    for (auto& node : draft.state.definition.nodes) {
         node.parameters = m_model.registry().normalize(node.method, node.parameters).parameters;
+        upgradeFileImportOverrides(node);
+    }
     out.validation = validateBindings(draft.state);
     if (!out.validation.ok()) return out;
     auto prepared = std::make_shared<PreparedWorkflowEdit>();
@@ -231,7 +234,9 @@ ValidationResult WorkflowEditor::validateBindings(const WorkflowEditState& candi
                 if (candidate.sources.value(originRoot).size() > BatchDatasetLimit) return false;
                 return datasetIds.value(originRoot).contains(ref.dataset) || unchanged;
             };
-            if (!valid(pair.a, true) || !valid(pair.b, false)) {
+            const auto &requiredPort = registry.find(n->method)->descriptor.requiredSecondPort;
+            if ((!requiredPort.isEmpty() && pair.b.port != requiredPort) ||
+                !valid(pair.a, true) || !valid(pair.b, false)) {
                 result.add("grouping", "Pair member or compatible output is absent from this upstream batch"); return result;
             }
         }

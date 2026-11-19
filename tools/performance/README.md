@@ -13,6 +13,7 @@ make -j4
 With MSVC, use the kit's qmake and matching make tool. These commands do not install dependencies. Run each case in a fresh process and capture stdout as JSON; diagnostics go to stderr. A nonzero exit means a correctness assertion or setup failed.
 
 ```sh
+./aster_recent_features_benchmark import 1
 ./aster_recent_features_benchmark import 100
 ./aster_recent_features_benchmark import 1000
 ./aster_recent_features_benchmark import 10000
@@ -26,7 +27,7 @@ Set `QT_QPA_PLATFORM=offscreen` for headless Linux. Remove it when checking a na
 
 | Mode | Workload and validation |
 | --- | --- |
-| import | Create 100/1000/10000 tiny files, four data rows each; select all and type an X unit. Assert every selected source receives the correct settings with no skipped files. File creation is outside timing. |
+| import | Create 1, 100, 1000 or 10000 tiny files with four data rows each. Open the import settings, select all inputs and type an X unit. Check the saved settings for every input. File creation is outside the timing interval. |
 | remove | Select all, click Remove and verify the current workflow has no remaining source files. |
 | numeric | 1001/10001/100001 samples; fixed window 200, hop 64, FFT 800, linear detrending and rectangular taper; also 20% span / 4× padding with either legacy 99.2% overlap or a target of 500 windows. One warmup, ten measured executions per case. The target mode must succeed at 1001 and 10001 samples; the legacy overlap mode at 1001. Larger preset cases must return `EVOLUTION_BUDGET`; rejection time is not computation time. |
 | cancel | 400001 samples, window 256, hop 64, FFT 1024, maximum frequency 0.02. Request cancellation from another thread after approximately 5 ms and require a cancelled result. |
@@ -34,4 +35,4 @@ Set `QT_QPA_PLATFORM=offscreen` for headless Linux. Remove it when checking a na
 
 Times are wall-clock milliseconds. Import timer lateness includes initial import work and is not native input latency. Numeric and plot timing summarize repeated executions; file-operation and cancellation results are single trials. Repeat fresh processes for statistical comparisons and avoid concurrent workloads. `rss_kib` uses Linux `/proc`; `peak_rss_kib` uses supported Unix process accounting. Unsupported metrics return -1. Stable RSS over this workload is not proof of no leaks.
 
-The release's validation directory contains the measured environment and JSON evidence. The broader UI suite separately checks selection capture, concurrent-option conflicts, same-path reimport identity, undo/redo, and narrow translated layouts.
+Each benchmark prints its measured environment and results as JSON. The UI suite also checks selection capture, concurrent edits, same-path reimport, undo/redo, and narrow translated layouts.

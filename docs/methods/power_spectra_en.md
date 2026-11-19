@@ -103,3 +103,11 @@ Current limits are one million input samples, 262144 FFT samples and 20000 compl
 Because a full-record FFT must accommodate the entire input, its input also cannot exceed the FFT-length ceiling. Cropping frequency does not reduce the work-budget product. If MTM reports unconverged windows, inspect the report and estimator settings rather than assuming reliable convergence.
 
 References: [Evolutionary FFT](../reference/task_parameters_en.md#m-evolution_fft) · [Evolutionary MTM](../reference/task_parameters_en.md#m-evolution_mtm).
+
+<a id="band-power"></a>
+
+## Period-band power integration
+
+Connect this task to a measured MTM, FFT or Welch PSD, an unnormalized evolutionary `mean_spectrum`, or a saved measured spectrum reused as a data source. Set both target bounds. The default reference is the published spectrum. To compare records, specify the same reference band. Both bands use the selected coordinate. On an age axis declared in ka, periods 90–130 correspond to frequencies 1/130 to 1/90 per ka. Undeclared axes retain their raw numerical scale.
+
+The task integrates linear PSD on the frequency axis with trapezoids and linearly interpolated edge values. Bounds must lie within the published grid. The table gives effective frequency bounds, band and reference power, fraction and percent. A zero reference yields a diagnostic. The target width and its nonzero low-frequency limit must each reach one Rayleigh frequency. This uses the record length for FFT and MTM and the actual window length for Welch and evolutionary means; zero padding does not increase resolution. Window and MTM smoothing also affect peak separation. Power fractions are descriptive.

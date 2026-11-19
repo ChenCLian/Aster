@@ -11,6 +11,7 @@
 #include "ui/common/popup_placement.h"
 #include "ui/panels/joint_input_dialog.h"
 #include <QGraphicsItem>
+#include <QStyleOptionGraphicsItem>
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QMenu>
@@ -22,6 +23,38 @@ namespace aster::ui
 {
 namespace
 {
+class AddButton final : public QGraphicsItem
+{
+  public:
+    AddButton(QRectF target, bool full) : m_target(target), m_full(full)
+    {
+        setAcceptHoverEvents(!full);
+        setAcceptedMouseButtons(Qt::NoButton);
+        setCursor(full ? Qt::ArrowCursor : Qt::PointingHandCursor);
+        setZValue(2);
+    }
+    QRectF boundingRect() const override { return m_target; }
+    void paint(QPainter *p, const QStyleOptionGraphicsItem *option, QWidget *) override
+    {
+        const bool hover = option->state & QStyle::State_MouseOver;
+        const auto middle = m_target.center();
+        const auto border = themeColor(m_full ? "border" : "controlBorder");
+        p->setRenderHint(QPainter::Antialiasing);
+        p->setPen(QPen(border, 1.5));
+        p->drawLine(QLineF(m_target.left(), middle.y(), middle.x(), middle.y()));
+        p->setPen(QPen(hover ? themeColor("accent") : border, 1.2));
+        p->setBrush(themeColor(hover ? "accentFill" : "surface"));
+        p->drawEllipse(middle, 12.5, 12.5);
+        p->setPen(QPen(themeColor(m_full ? "muted" : hover ? "accentText" : "accent"),
+                       1.8, Qt::SolidLine, Qt::RoundCap));
+        p->drawLine(middle - QPointF(5, 0), middle + QPointF(5, 0));
+        p->drawLine(middle - QPointF(0, 5), middle + QPointF(0, 5));
+    }
+  private:
+    QRectF m_target;
+    bool m_full;
+};
+
 class Card : public QGraphicsItem
 {
   public:
@@ -110,12 +143,13 @@ void WorkflowCanvas::setPreviewPair(QUuid pair)
 }
 void WorkflowCanvas::rebuild()
 {
-    const auto center = mapToScene(viewport()->rect().center());
+    const int scrollX = horizontalScrollBar()->value();
+    const int scrollY = verticalScrollBar()->value();
     scene()->clear();
     m_dropHighlight = nullptr;
     m_insertions.clear();
     m_rects.clear();
-    m_slots.clear();
+    m_addControls.clear();
     const auto &definition = m_document->model().definition();
     if (!m_document->node(m_selected))
         m_selected = {};
@@ -240,7 +274,7 @@ void WorkflowCanvas::rebuild()
         else if (n.method == "detrend_lowess")
             card->detail = text("ui.window") + QString::number(n.parameters["fraction"].toDouble());
         else if (n.method == "file_source")
-            card->detail = text("ui.selected") + QString::number(m_document->files(n.id).size()) +
+            card->detail = text("ui.selected") + QString::number(m_document->sources().value(n.id).size()) +
                            text("ui.files");
         else if (n.method == "cwt")
             card->detail = n.parameters["mother"].toString() + "  ·  dj " +
@@ -257,9 +291,9 @@ void WorkflowCanvas::rebuild()
     }
     if (m_editable && definition.nodes.size() < WorkflowNodeLimit)
     {
-        QSet<QPair<int, int>> occupied;
-        for (const auto &p : definition.layout)
-            occupied.insert({p.column, p.row});
+        QHash<NodeId, int> childCounts;
+        for (const auto &child : definition.nodes)
+            if (child.input) ++childCounts[child.input->parent];
         QSet<int> acceptedKinds;
         const auto &registry = m_document->model().registry();
         for (const auto &d : registry.descriptors())
@@ -275,44 +309,20 @@ void WorkflowCanvas::rebuild()
                 compatible |= acceptedKinds.contains(int(port.kind));
             if (!compatible)
                 continue;
-            QVector<ChildSlot> available;
-            // Prefer a continuation for the compact, always-visible plus control.
-            for (auto slot : {ChildSlot::Down, ChildSlot::Left, ChildSlot::Right})
-            {
-                const auto p = adjacentPosition(definition.layout.value(node.id), slot);
-                if (p && !occupied.contains({p->column, p->row}))
-                    available.push_back(slot);
-            }
-            if (available.isEmpty())
-                continue;
-            const auto rect = m_rects.value(node.id);
-            const bool selected = node.id == m_selected;
-            for (auto slot : available)
-            {
-                if (!selected && slot != available.front())
-                    continue;
-                const int column = slot == ChildSlot::Left ? 0 : slot == ChildSlot::Down ? 1 : 2;
-                const QRectF target =
-                    selected ? QRectF(rect.left() + column * 68, rect.bottom() + 6, 62, 28)
-                             : QRectF(rect.right() - 34, rect.bottom() + 6, 34, 28);
-                if (selected)
-                    m_slots.insert(int(slot), target);
-                auto *control = new Card;
-                control->rect = target;
-                control->ghost = true;
-                control->title = selected ? text(slot == ChildSlot::Left    ? "ui.add_left_branch"
-                                                 : slot == ChildSlot::Right ? "ui.add_right_branch"
-                                                                            : "ui.add_next")
-                                          : "+";
-                control->setToolTip(text("ui.add_to_node").arg(methodLabel(entry->descriptor)));
+            const auto card = m_rects.value(node.id);
+            // Leave the bottom edge free for tree connections and insert controls.
+            const QRectF target(card.right(), card.top() + 2, 40, 34);
+            const bool full = childCounts.value(node.id) >= WorkflowChildLimit;
+            auto *control = new AddButton(target, full);
+            control->setToolTip(full ? text("ui.child_limit").arg(WorkflowChildLimit)
+                                     : text("ui.add_to_node").arg(methodLabel(entry->descriptor)));
+            if (!full) {
+                m_addControls.insert(node.id, target);
                 control->setData(0, 2);
-                control->setData(1, int(slot));
+                control->setData(1, int(ChildSlot::Append));
                 control->setData(2, node.id);
-                control->setAcceptedMouseButtons(Qt::NoButton);
-                control->setCursor(Qt::PointingHandCursor);
-                control->setZValue(2);
-                scene()->addItem(control);
             }
+            scene()->addItem(control);
         }
     }
     if (definition.nodes.isEmpty())
@@ -335,12 +345,14 @@ void WorkflowCanvas::rebuild()
         hint->setPos((260 - hint->boundingRect().width()) / 2, 122);
     }
     setSceneRect(scene()->itemsBoundingRect().adjusted(-420, -240, 420, 240));
-    centerOn(center);
+    horizontalScrollBar()->setValue(scrollX);
+    verticalScrollBar()->setValue(scrollY);
     viewport()->update();
 }
-QPoint WorkflowCanvas::slotViewportPosition(ChildSlot slot) const
+QPoint WorkflowCanvas::addViewportPosition(NodeId parent) const
 {
-    return mapFromScene(m_slots.value(int(slot)).center());
+    const auto it = m_addControls.constFind(parent);
+    return it == m_addControls.cend() ? QPoint(-1, -1) : mapFromScene(it->center());
 }
 void WorkflowCanvas::fitWorkflow()
 {
@@ -514,7 +526,7 @@ bool WorkflowCanvas::dropTarget(const QPoint &pos, const QString &method, NodeId
         return false;
     const auto *p = m_document->model().registry().find(n->method);
     for (const auto &port : p->descriptor.outputs)
-        if (port.kind == *child->descriptor.inputKind)
+        if (child->descriptor.acceptsInput(port))
             if (m_document->model().previewChild(parent, slot, method, {}, port.key).ok())
                 return true;
     return false;

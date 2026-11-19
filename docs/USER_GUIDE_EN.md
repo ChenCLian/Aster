@@ -1,4 +1,4 @@
-# Aster 1.3.1-beta.2 User Guide
+# Aster 1.3.2-beta.7 User Guide
 
 [Classified contents](README_EN.md)
 
@@ -16,7 +16,7 @@ If Windows reports missing `VCRUNTIME` or `MSVCP` files, install the [Microsoft 
 
 ## Workspace
 
-Build a task tree on the Tasks page, inspect the selected node's output preview, then run the workflow to save results. The Results page provides database browsing, figures and export. Panel separators can be dragged; side controls collapse panels. Language, theme and concurrency are configured in Settings.
+Build a task tree on the Tasks page, inspect the selected node's output preview, then run the workflow to save results. The Results page provides database browsing, figures and export. On a wide window, the live preview starts at about one third of the window width. Drag its right edge to give the source and output plots more room, or click the grip to collapse it. Language, theme and concurrency are configured in Settings.
 
 <a id="inputs"></a>
 
@@ -29,7 +29,10 @@ See the [data-source guide](methods/data_sources_en.md) for files, saved outputs
 Built-in sources include sine signals, synthetic orbital proxies, ODP records and astronomical curves. Independent sources are not repeated for each imported file. Check the age/depth axis, provenance and sampling of ODP data. Coordinate units are metadata; changing a unit label does not convert the numbers. Use an age-model task to transform depth to age.
 
 <a id="input-selection"></a>
+
 ### Input-list shortcuts and selection scope
+
+The input and result lists use a plain background. Hovering shades a row gray. In the input list, blue-gray shading identifies the selected files and a short bar marks the file being browsed. The dot next to the filename shows its run status. Hover over a file for details. Removing a file and importing the same path creates a new pending input. Undoing the removal restores the original input and its run status. During a run you can scroll and browse the list. Expand Columns and import settings to edit, then drag the divider to resize the list.
 
 Click **?** next to Move/Remove to open this section. Focus the file list first.
 
@@ -39,19 +42,19 @@ Click **?** next to Move/Remove to open this section. Focus the file list first.
 - Move and Remove operate on selected inputs. Remove does not delete disk files. Wait for bulk validation before moving inputs or running the workflow.
 - Selection controls only left-side initialization/import and list operations. **It does not batch-edit right-side task parameters.** Those still belong to the current data/pair; use Apply to all data in this workflow in the separated right footer to unify one node.
 
-Incompatible files retain their settings with an explanation. Edits are undoable and processed in order. Changing selection does not retarget pending edits. If the focused row is deselected, select it before editing import settings.
+Incompatible files retain their settings with an explanation. Returning a field to its original value before committing preserves each selected file’s own settings. Effective edits are undoable and processed in order. Changing selection does not retarget pending edits. If the focused row is deselected, select it before editing import settings.
 
 <a id="workflow"></a>
 
 ## Tasks and parameters
 
-Add a source, then use downstream or branch controls to connect processing and analysis tasks. Tasks can also be searched, double-clicked or dragged from the catalogue. Select the appropriate upstream output when a task has several outputs. Delete selected nodes with the toolbar or Del and check the confirmation. Nodes, connections, parameters, imported file lists, file import options and pairs share one undo/redo history, limited to 100 effective edits and a conservative 64 MiB metadata budget. Older history may expire sooner when the budget is reached. Undoing a node deletion restores its source bindings and pairs; undoing input removal restores the original dataset identity. Undo does not restore file contents on disk or remove saved results. Preserve original data separately. Workflow editing is disabled during a run.
+Click the round plus on the right of a node to choose a downstream task. Each node supports eight direct children. New siblings appear from left to right on the next row. You can also select a parent and double-click a task in the catalogue, or drag a task onto the parent’s plus button. Select the appropriate upstream output when a task has several outputs. Delete selected nodes with the toolbar or Del and check the confirmation. Nodes, connections, parameters, imported file lists, file import options and pairs share one undo/redo history, limited to 100 effective edits and a conservative 64 MiB metadata budget. Older history may expire sooner when the budget is reached. Undoing a node deletion restores its source bindings and pairs; undoing input removal restores the original dataset identity. Undo does not restore file contents on disk or remove saved results. Preserve original data separately. Workflow editing is disabled during a run.
 
 When several compatible outputs are available, the chooser opens near the source node. Rows have a consistent height and the default output is bold. More than eight choices enable search and scrolling. Hover for the full name; click or press Enter to confirm. Escape or clicking outside cancels without adding a task. A single compatible output connects directly.
 
 Click the small “+” on an existing connection, or drop a task there, to insert a step. To replace an ordinary node, use its context menu or drop another task onto the node. When the input and every downstream connection have exactly one compatible output, the edit is applied immediately without a selection dialog. Otherwise, the review dialog lists the new input and the output for each downstream branch. Check their meaning: compatible data types do not imply equivalent scientific content. Ambiguous outputs require an explicit choice. The new method starts with its own defaults; adjust them in Step settings after the edit. Replacement preserves downstream branches; insertion preserves existing nodes.
 
-When a choice is needed, nothing changes before confirmation and Cancel leaves the workflow untouched. One undo restores either an immediate or a confirmed insertion or replacement. Source nodes, joint nodes and edits directly involving joint inputs or outputs are not enabled. Insertion requires room for the whole downstream subtree in the logical grid. If no placement is available, the workflow remains unchanged and an explanation is shown.
+When a choice is needed, nothing changes before confirmation and Cancel leaves the workflow untouched. One undo restores either an immediate or a confirmed insertion or replacement. Source nodes, joint nodes and edits directly involving joint inputs or outputs are not enabled. Inserting into a legacy directional connection requires room for its downstream subtree in the logical grid.
 
 Valid parameter changes update the preview. Decimal parameters in Step settings accept scientific notation such as `1e-15`, within the declared range. Confirm with Enter or Tab; changing nodes or running the workflow also commits the current edit. A numeric editor accepts wheel changes only after deliberate click or Tab focus. A closed choice list ignores wheel selection. FFT, Welch and MTM require suitable regularly spaced input; inspect sampling and resample explicitly when necessary, or consider Lomb–Scargle for irregular sampling. Compare detrended and original branches when investigating long trends.
 
@@ -161,13 +164,15 @@ Preview runs in the background up to the selected node and does not create datab
 
 ## Run and inspect results
 
+During a batch, you can open and filter saved results. The directory keeps your reading position. Use “Refresh · New results” to see the latest saves. Cancelling stops dispatching further files. The window can close once active inputs have finished saving. Deletion, metadata editing and database management become available when the run ends.
+
 Run workflow saves the outputs actually produced by tasks, with parameters, method versions and diagnostics. It cannot restore content explicitly omitted by a method. For example, sampling-detail row limits differ from preview decimation; see [display and output limits (Chinese)](ui/live_preview.md#display-limits). Editing parameters does not modify existing records: run again to create new ones.
 
-The bottom **Steps and outputs** area has two resizable columns. Choose a step on the left and check outputs on the right. Opening a record shows the default output of its last successful graphical step, or the last successful table if no graphical output exists. Clicking a step shows its default output.
+The bottom **Steps and outputs** area has two resizable columns. Choose a step on the left and click output rows on the right. Opening a record shows the default output of its last successful graphical step, or the last successful table if no graphical output exists. Clicking a step shows its default output.
 
-An already open primary output is selected with its style preserved. A missing default plot opens on a new figure page. Choose **Settings → Default plot destination → Current figure page** to add it to the active page instead, starting a new page after four plots. Browsing or checking an output does not change the step's default output or this preference. Failed steps with no output show diagnostics and retain existing figures.
+An already open primary output is selected with its style preserved. A missing default plot opens on a new figure page. Choose **Settings → Default plot destination → Current figure page** to add it to the active page instead, starting a new page after four plots. Failed steps with no output show diagnostics and retain existing figures.
 
-Choose one step at a time; checked outputs can span several steps in the same record. Click the checked count to review or remove them. Changing records clears checks; checking outputs does not change the plot destination. Drag the dividers to resize the lists, or collapse them for more plotting space. Reopening restores their previous height.
+Click a row to select one output in the current step. Ctrl-click (Command-click on macOS) to add or remove individual rows. Shift-click to select a range. Selections persist across steps in the same record. Click the selected count to review or clear them. Changing records clears the selection. Drag the dividers to resize the lists, or collapse them for more plotting space. Reopening restores their previous height.
 
 Choose the destination by clicking a page tab or subplot header/plot. **Add plots** groups related outputs from the same step: spectra with their backgrounds, thresholds and peak markers; wavelet power with its cone of influence (COI). Heatmaps for different quantities, such as raw power, scale-corrected power and significance ratios, remain separate. Other outputs remain independent.
 
@@ -179,7 +184,7 @@ Overlay requires matching X and Y unit strings. If X units are unspecified, the 
 
 Axes that have not been zoomed, panned or given a manual range fit the combined data after a successful overlay. Manually adjusted axes retain their viewport. **Fit** restores the full range of visible curves.
 
-Right-click **Clear plot** to retain the subplot's position and size. Select the empty slot, check outputs, and choose **Fill current subplot** to draw curves or a heatmap; multiple outputs must be compatible in one subplot. Previous styles are not retained. Loading or failed plots are not empty slots. Clearing a plot does not delete saved results.
+Right-click **Clear plot** to retain the subplot's position and size. Select the empty slot and the desired output rows, and choose **Fill current subplot** to draw curves or a heatmap; multiple outputs must be compatible in one subplot. Previous styles are not retained. Loading or failed plots are not empty slots. Clearing a plot does not delete saved results.
 
 Subplot layout is adjustable. Three plots default to two above one full-width plot; four use a two-by-two layout. Hover over the gap to reveal a divider, drag to resize, and release to refresh the plots. Double-click the divider to equalize its two regions. Small windows scroll instead of collapsing plots. Dense legends retain enough subplot space without shrinking fonts or omitting entries.
 
@@ -187,7 +192,7 @@ Drag a subplot title to arrange it: drop at another subplot's center (including 
 
 Moving retains data, zoom, styles and the target of any submitted overlay. Switching pages restores layout and proportions. Layout is retained while the page remains open and is not saved in the analysis database. Whole-page PNG/PDF follows the arrangement and proportions; single-plot export fills the page. Changes made after export begins do not affect that file’s layout or styles.
 
-CSV and Use as data source are in the right Export tab and act on the currently browsed step/output. Checks are for plotting, not batch CSV export. PNG/PDF acts on the active subplot or page. Both targets are labelled separately.
+CSV and Use as data source are in the right Export tab and act on the currently browsed step/output. Add plots uses the outputs selected across steps. CSV exports the single output chosen in the Export tab. PNG/PDF acts on the active subplot or page. Both targets are labelled separately.
 
 Record browsing and figure selection are independent. Changing records preserves open figure pages.
 
@@ -221,9 +226,11 @@ Click samples, peaks or grid cells to inspect coordinates. The readout displays 
 
 SQLite stores results. Changing the database path does not copy or delete records in the previous database. Use the Database menu for backup and merging compatible Aster databases. Imported records receive new IDs; incompatible schemas are rejected.
 
-Browsing a record and checking it for a bulk operation are separate. Filtering and pagination retain checks. Select all checks every matching record, including unloaded pages. Uncheck removes checks from current filter matches. Clear all removes all checks, including records outside the filter; it does not delete data. Delete checked requires confirmation. Back up before bulk deletion and inspect the count outside the current filter.
+Click a file name to browse it. Use the checkboxes for batch actions. With the list focused, move to a row using the arrow keys. Enter opens that record and Space toggles its check. The footer shows selected records / all records in this database. Select all records and Deselect all records act on the whole database. Select matches and Deselect matches act on all pages of the current filter. Each button remembers its own next action across row edits, filter changes and paging. After selecting the whole database, selecting matches leaves the count unchanged. Clicking Deselect matches then removes just that group. Delete checked confirms the full selection and the count outside the current filter.
 
-Print filenames exports IDs and source names for all matching records, including unloaded pages, independently of checked records. It is not a numerical-output export. Output CSV and Use as data source are on the right-hand Export tab; see [saved-output reuse](methods/data_sources_en.md#database) for references and database retention.
+The results directory marks the open record with blue-gray shading and a short bar at the left. Right-click a row and choose Check this record, or press Space to check the first record. Checkboxes then share the leading slot normally used for status. Clearing the last check restores the status indicators. Filenames stay aligned throughout. The marker stays with the open record when you check another file or move keyboard focus. Hover for ID, date and source. Filters opens the ID lookup and peak bounds. The default is period. Switch to frequency to enter frequency bounds. A period range queries reciprocal frequency within the selected unit. Undeclared units form a separate group. Click a date or peak-range chip to clear it. The filter searches records for matching peaks. Use Axes in the figure inspector to set the plot’s visible range. Successful records have a green dot before the name. A record with a workflow error has a single red exclamation mark at the right. Hover for its run status. In Steps and outputs, Failed identifies the step with the error. Skipped means an upstream step did not supply its input. Select the skipped step to inspect the cause. Warnings and cancellation alone leave the row unmarked.
+
+Export filenames writes the IDs and original names of all checked records to CSV, including checks across pages and filters. Generated data uses the source name. Use the right-hand Export tab for numerical outputs or to reuse a saved output. See [saved-output reuse](methods/data_sources_en.md#database).
 
 <a id="shortcuts"></a>
 
@@ -236,6 +243,7 @@ Buttons and panel grips include shortcuts in their tooltips. The table uses Wind
 | F1 | Open the user guide, including from Settings |
 | Ctrl+, | Open Settings |
 | Ctrl+1 / Ctrl+2 | Switch to Tasks / Results |
+| System Undo / Redo shortcuts | Undo or redo workflow edits on the Tasks page |
 | Ctrl+Shift+1 | Toggle the preview panel |
 | Ctrl+Shift+2 | Toggle step settings |
 | Ctrl+Shift+3 | Toggle the task catalogue |
@@ -257,7 +265,7 @@ The collapsible left-hand contents tree groups Getting started, Features, Shared
 | Return to a reading position | Back/Forward preserves the scroll position when leaving a page |
 | Return to the contents tree | Clear the left search box; the document and history remain |
 
-Full-text search is case-insensitive. Space-separated terms must all occur in the same section. Parameter identifiers such as `evo_target_windows` are searchable. Only compiled help is indexed, not external online material. Search uses the interface language, with untranslated built-in material retained and marked “中文” where appropriate. The first search builds the index in small batches with progress feedback. Clearing the query or closing the window stops pending search work.
+Full-text search is case-insensitive. Space-separated terms must all occur in the same section. Parameter identifiers such as `evo_target_windows` are searchable. Only compiled help is indexed, not external online material. Search uses the interface language, with untranslated built-in material retained and marked “中文” where appropriate. The first search builds the index in small batches with progress feedback. Matching terms are highlighted in the displayed article. Editing or clearing the query removes the old highlights, and opening another article updates them for that page. Clearing the query or closing the window stops pending search work.
 
 Find in page shows the current match number and total, with wraparound. F3/Shift+F3, or the platform’s Find next/previous shortcuts, also move between matches. This is independent of the left-hand search. Hover for full titles; drag the divider to resize the contents pane.
 

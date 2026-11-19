@@ -1,0 +1,17 @@
+{
+  "version": "1.3.2-beta.7",
+  "documentation": {
+    "status": "reviewed",
+    "scope": "Chinese and English help and interface strings for peak filters, the X-axis display range, row selection and plot and export targets.",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "manual_files": 137,
+    "parameter_reference": {
+      "tasks": 58,
+      "parameters": 270
+    },
+    "help_generator_tests": 8
+  }
+}

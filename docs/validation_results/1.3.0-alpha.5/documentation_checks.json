@@ -1,8 +1,0 @@
-{
-  "version": "1.3.0-alpha.5",
-  "documentation": {
-    "scope": "Scoped-edit ID lifetime, plot/file editor teardown, stale import and directory-service fixes; previous feature inventory retained",
-    "version_headers": "Updated current instructions; retained historical evidence",
-    "platform_limitations": "Native Windows/macOS and full leak scan remain pending"
-  }
-}

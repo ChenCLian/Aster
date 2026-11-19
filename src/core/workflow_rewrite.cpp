@@ -55,16 +55,16 @@ NodeRewriteOptions inspectNodeRewrite(const WorkflowModel& model, NodeRewriteKin
     result.previousInput = target->input->output;
     const auto* parent = find(model.definition(), result.parent);
     for (const auto& port : registry.find(parent->method)->descriptor.outputs)
-        if (port.kind == *entry->descriptor.inputKind) result.inputs.push_back(port);
+        if (entry->descriptor.acceptsInput(port)) result.inputs.push_back(port);
     if (result.inputs.isEmpty()) { result.error = "NODE_EDIT_INPUT"; return result; }
     for (const auto& child : model.definition().nodes) {
         const bool affected = kind == NodeRewriteKind::InsertBefore ? child.id == id :
             child.input && child.input->parent == id;
         if (!affected) continue;
         NodeOutputMapping mapping{child.id, child.input->output, {}};
-        const auto childKind = registry.find(child.method)->descriptor.inputKind;
+        const auto &downstream = registry.find(child.method)->descriptor;
         for (const auto& port : entry->descriptor.outputs)
-            if (childKind && port.kind == *childKind) mapping.choices.push_back(port);
+            if (downstream.acceptsInput(port)) mapping.choices.push_back(port);
         if (mapping.choices.isEmpty()) { result.error = "NODE_EDIT_OUTPUT"; return result; }
         result.outputs.push_back(std::move(mapping));
     }
@@ -105,38 +105,44 @@ PreparedNodeRewrite prepareNodeRewrite(const WorkflowEditor& editor, const NodeR
                                          request.parameters, binding});
         graph.nodes[targetIndex + 1].input->parent = inserted;
         graph.nodes[targetIndex + 1].input->output = request.childOutputs.value(original.id);
-        graph.layout[inserted] = originalPosition;
-        const auto subtree = editor.model().removalPreview(original.id);
-        QSet<NodeId> moving(subtree.begin(), subtree.end());
-        QSet<QPair<int, int>> fixed;
-        for (auto i = graph.layout.cbegin(); i != graph.layout.cend(); ++i)
-            if (!moving.contains(i.key())) fixed.insert({i->column, i->row});
-        bool placed = false;
-        QSet<int> tried;
-        // Keep the old continuation direction when possible. Alternative slots
-        // translate the entire subtree; unrelated branches never move.
-        for (auto slot : {original.input->slot, ChildSlot::Down, ChildSlot::Left, ChildSlot::Right}) {
-            if (tried.contains(int(slot))) continue;
-            tried.insert(int(slot));
-            const auto next = adjacentPosition(originalPosition, slot);
-            if (!next) continue;
-            const int dx = next->column - originalPosition.column, dy = next->row - originalPosition.row;
-            bool valid = true;
-            for (const auto id : subtree) {
-                const auto p = editor.model().definition().layout.value(id);
-                const GridPosition shifted{p.column + dx, p.row + dy};
-                if (!validPosition(shifted) || fixed.contains({shifted.column, shifted.row})) { valid = false; break; }
+        if (binding.slot == ChildSlot::Append) {
+            // The old subtree keeps all its storage cells and relative branch order.
+            graph.layout[inserted] = freeGridPosition(graph, originalPosition);
+        } else {
+            graph.layout[inserted] = originalPosition;
+            const auto subtree = editor.model().removalPreview(original.id);
+            QSet<NodeId> moving(subtree.begin(), subtree.end());
+            QSet<QPair<int, int>> fixed;
+            for (auto i = graph.layout.cbegin(); i != graph.layout.cend(); ++i)
+                if (!moving.contains(i.key())) fixed.insert({i->column, i->row});
+            bool placed = false;
+            QSet<int> tried;
+            // Keep the old continuation direction when possible. Alternative slots
+            // translate the entire subtree; unrelated branches never move.
+            for (auto slot : {original.input->slot, ChildSlot::Down, ChildSlot::Left, ChildSlot::Right}) {
+                if (tried.contains(int(slot))) continue;
+                tried.insert(int(slot));
+                const auto next = adjacentPosition(originalPosition, slot);
+                if (!next) continue;
+                const int dx = next->column - originalPosition.column, dy = next->row - originalPosition.row;
+                bool valid = true;
+                for (const auto id : subtree) {
+                    const auto p = editor.model().definition().layout.value(id);
+                    const GridPosition shifted{p.column + dx, p.row + dy};
+                    if (!validPosition(shifted) || fixed.contains({shifted.column, shifted.row})) { valid = false; break; }
+                }
+                if (!valid) continue;
+                for (const auto id : subtree) {
+                    const auto p = editor.model().definition().layout.value(id);
+                    graph.layout[id] = {p.column + dx, p.row + dy};
+                }
+                graph.nodes[targetIndex + 1].input->slot = slot;
+                placed = true; break;
             }
-            if (!valid) continue;
-            for (const auto id : subtree) {
-                const auto p = editor.model().definition().layout.value(id);
-                graph.layout[id] = {p.column + dx, p.row + dy};
-            }
-            graph.nodes[targetIndex + 1].input->slot = slot;
-            placed = true; break;
+            if (!placed) { result.error = "NODE_EDIT_LAYOUT"; return result; }
+            result.shiftedNodes = subtree.size();
         }
-        if (!placed) { result.error = "NODE_EDIT_LAYOUT"; return result; }
-        result.nodeId = inserted; result.shiftedNodes = subtree.size();
+        result.nodeId = inserted;
     }
     const auto prepared = editor.prepare(std::move(draft));
     if (!prepared.validation.ok()) result.error = prepared.validation.message();

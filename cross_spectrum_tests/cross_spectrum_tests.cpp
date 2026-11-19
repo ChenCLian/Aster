@@ -92,6 +92,7 @@ class CrossTests : public QObject
     void reference();
     void analyticPhaseAndSwap();
     void oppositeScaleAndPsd();
+    void separateBaselines();
     void meanOfComplexNotMagnitude();
     void invalid_data();
     void invalid();
@@ -113,6 +114,28 @@ class CrossTests : public QObject
     void maskedPayloadBudget();
 };
 
+void CrossTests::separateBaselines()
+{
+    const double repeatA[] = {0,2,4,2}, repeatB[] = {4,2,0,2,2,4,2,0};
+    std::vector<double> a(512), b(512), shiftedA(512), shiftedB(512);
+    for (size_t i = 0; i < a.size(); ++i) {
+        a[i] = repeatA[i % 4]; b[i] = repeatB[i % 8];
+        shiftedA[i] = 1e16 + a[i]; shiftedB[i] = -1e16 + b[i];
+    }
+    for (auto trend : {CrossDetrend::Mean, CrossDetrend::Linear}) {
+        CrossSpectrumOptions o; o.detrend = trend;
+        const auto reference = crossSpectrum(a, b, 1, o);
+        const auto shifted = crossSpectrum(shiftedA, shiftedB, 1, o);
+        for (size_t i = 0; i < shifted.frequency.size(); ++i) {
+            QVERIFY(std::abs(reference.autoA[i] - shifted.autoA[i]) < 1e-11);
+            QVERIFY(std::abs(reference.autoB[i] - shifted.autoB[i]) < 1e-11);
+            QVERIFY(std::abs(reference.real[i] - shifted.real[i]) < 1e-11);
+            QVERIFY(std::abs(reference.imaginary[i] - shifted.imaginary[i]) < 1e-11);
+        }
+        QCOMPARE(reference.coherence[64], shifted.coherence[64]);
+        QCOMPARE(reference.phaseDegrees[64], shifted.phaseDegrees[64]);
+    }
+}
 void CrossTests::realReference_data()
 {
     QTest::addColumn<QJsonObject>("record");

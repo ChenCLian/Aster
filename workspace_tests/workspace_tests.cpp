@@ -153,6 +153,7 @@ class WorkspaceTests : public QObject
     void overlayKeepsClickedDestination_data();
     void overlayKeepsClickedDestination();
     void outputBrowserSelectionAndTargets();
+    void outputRowsUseExtendedSelection();
     void batchPlotTransactionsAndLimits();
     void familyOverlayHasNoDuplicateCurve();
     void largeOutputBrowserReadsOnlyMetadata();
@@ -377,7 +378,7 @@ void WorkspaceTests::clearedSubplotCanBeFilled()
     // Browsing outputs must leave the chosen empty destination intact.
     page.selectStep(0, false);
     auto *outputs = page.findChild<QTableView *>("resultOutputs");
-    QVERIFY(outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole));
+    outputs->selectRow(0);
     auto *fill = page.findChild<QPushButton *>("overlayCheckedOutputs");
     QVERIFY(fill->isEnabled());
     const auto captures = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
@@ -610,10 +611,7 @@ void WorkspaceTests::defaultPlotIgnoresBrowsedAuxiliaryOutput()
     auto *steps = page.findChild<QTableWidget *>("resultSteps");
     for (int row = 0; row < outputs->model()->rowCount(); ++row)
         if (outputs->model()->index(row, 0).data(Qt::UserRole).value<OutputReference>().port == "coi")
-        {
-            outputs->setCurrentIndex(outputs->model()->index(row, 0));
-            outputs->model()->setData(outputs->model()->index(row, 0), Qt::Checked, Qt::CheckStateRole);
-        }
+            outputs->selectRow(row);
     QCOMPARE(page.checkedOutputs().size(), 1);
     QCOMPARE(page.checkedOutputs()[0].port, QString("coi"));
     // Browsing an auxiliary output must not change a later navigation default.
@@ -672,7 +670,7 @@ void WorkspaceTests::defaultPlotsReusePagesAndExplicitSelection()
     QCOMPARE(w->currentReference().key(), refs[0].key());
     QCOMPARE(w->pageCount(), 2); QCOMPARE(w->subplotCount(), 4);
     auto *outputs = page.findChild<QTableView *>("resultOutputs");
-    outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectRow(0);
     QCOMPARE(w->currentReference().key(), refs[0].key());
     page.findChild<QPushButton *>("overlayCheckedOutputs")->click();
     QTRY_VERIFY(!w->loading());
@@ -719,6 +717,98 @@ void WorkspaceTests::overlayKeepsClickedDestination()
         QVERIFY(message.contains("ka / u")); QVERIFY(message.contains("rmcd / 1"));
     }
 }
+void WorkspaceTests::outputRowsUseExtendedSelection()
+{
+    QTemporaryDir dir;
+    const auto path = dir.filePath("output-rows.sqlite");
+    ResultRepository repo;
+    QVERIFY(repo.open(path).isEmpty());
+    auto execution = run();
+    for (int i = 1; i <= 4; ++i)
+        execution.nodes[execution.root].outputs[QString("aux_%1").arg(i)] = series(4);
+    const auto saved = repo.save(execution);
+    QVERIFY(saved.saved());
+
+    ResultsPage page(makeScientificRegistry());
+    page.resize(1450, 950);
+    page.show();
+    page.setDatabase(path);
+    page.openRecord(saved.recordId);
+    QTRY_COMPARE(page.recordId(), saved.recordId);
+    QTRY_VERIFY(!page.workspace()->loading());
+    page.selectStep(0);
+    auto *outputs = page.findChild<QTableView *>("resultOutputs");
+    auto *ports = page.findChild<QComboBox *>("outputPort");
+    auto *add = page.findChild<QPushButton *>("plotCheckedOutputs");
+    auto *overlay = page.findChild<QPushButton *>("overlayCheckedOutputs");
+    auto *more = page.findChild<QToolButton *>("addResultPlot");
+    QVERIFY(outputs && ports && add && overlay && more);
+    QAction *replace = nullptr;
+    for (auto *action : more->menu()->actions())
+        if (action->text() == text("ui.replace_selected_subplot")) replace = action;
+    QVERIFY(replace);
+    const auto target = page.workspace()->currentReference().key();
+    const auto click = [outputs](int row, Qt::KeyboardModifiers keys = Qt::NoModifier, int column = 0) {
+        const auto index = outputs->model()->index(row, column);
+        outputs->scrollTo(index);
+        QTest::mouseClick(outputs->viewport(), Qt::LeftButton, keys, outputs->visualRect(index).center());
+    };
+    const auto rows = [outputs] {
+        QList<int> result;
+        for (const auto &index : outputs->selectionModel()->selectedRows())
+            result.append(index.row());
+        std::sort(result.begin(), result.end());
+        return result;
+    };
+    QCOMPARE(outputs->model()->rowCount(), 5);
+    QVERIFY(rows().isEmpty());
+    QVERIFY(!outputs->model()->index(0, 0).flags().testFlag(Qt::ItemIsUserCheckable));
+    QVERIFY(!add->isEnabled() && !overlay->isEnabled() && !more->isEnabled() && !replace->isEnabled());
+
+    click(0, Qt::NoModifier, 1); // The type cell selects the whole row too.
+    QCOMPARE(rows(), QList<int>{0});
+    QVERIFY(add->isEnabled() && overlay->isEnabled() && more->isEnabled() && replace->isEnabled());
+    click(2, Qt::ControlModifier);
+    QCOMPARE(rows(), (QList<int>{0, 2}));
+    QVERIFY(overlay->isEnabled() && !replace->isEnabled());
+    click(0, Qt::ControlModifier);
+    QCOMPARE(rows(), QList<int>{2});
+    click(1);
+    click(3, Qt::ShiftModifier);
+    QCOMPARE(rows(), (QList<int>{1, 2, 3}));
+    QCOMPARE(page.checkedOutputs().size(), 3);
+    QCOMPARE(ports->currentIndex(), 3);
+    ports->setCurrentIndex(4);
+    QCOMPARE(outputs->currentIndex().row(), 4);
+    QCOMPARE(rows(), (QList<int>{1, 2, 3}));
+    QCOMPARE(page.workspace()->currentReference().key(), target);
+
+    page.selectStep(1);
+    QVERIFY(rows().isEmpty());
+    QCOMPARE(page.checkedOutputs().size(), 3);
+    click(0);
+    QCOMPARE(page.checkedOutputs().size(), 4);
+    QVERIFY(!overlay->isEnabled()); // A numerical table and several series.
+    page.selectStep(0);
+    QCOMPARE(rows(), (QList<int>{1, 2, 3}));
+    click(4); // Replace the current step's rows, keep the other step's table.
+    QCOMPARE(rows(), QList<int>{4});
+    QCOMPARE(page.checkedOutputs().size(), 2);
+    QCOMPARE(page.checkedOutputs().front().port, QString("aux_4"));
+    QCOMPARE(page.checkedOutputs().back().kind, QString("Table"));
+    QCOMPARE(page.workspace()->currentReference().key(), target);
+    QTest::keySequence(outputs, QKeySequence::SelectAll);
+    QCOMPARE(rows().size(), 5);
+    QCOMPARE(page.checkedOutputs().size(), 6);
+    page.selectStep(1);
+    click(0, Qt::ControlModifier);
+    page.selectStep(0);
+    click(0);
+    click(0, Qt::ControlModifier);
+    QVERIFY(page.checkedOutputs().isEmpty());
+    QVERIFY(!add->isEnabled() && !overlay->isEnabled() && !more->isEnabled() && !replace->isEnabled());
+}
+
 void WorkspaceTests::outputBrowserSelectionAndTargets()
 {
     QVERIFY(ThemeManager::instance().apply(*qApp, "light").isEmpty());
@@ -746,7 +836,7 @@ void WorkspaceTests::outputBrowserSelectionAndTargets()
     QCOMPARE(page.checkedOutputs().size(), 1);
 
     page.selectStep(1); QCOMPARE(page.checkedOutputs().size(), 1);
-    outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectRow(0);
     QCOMPARE(page.checkedOutputs().size(), 2);
     QCOMPARE(page.checkedOutputs()[0].nodeId, first.nodeId);
     QCOMPARE(page.checkedOutputs()[1].kind, QString("Table"));
@@ -1019,8 +1109,7 @@ void WorkspaceTests::checkedReviewClearsInOneUpdate()
     QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
     page.openRecord(saved.recordId); QTRY_COMPARE(loaded.size(), 1);
     auto *outputs = page.findChild<QTableView *>("resultOutputs"); QVERIFY(outputs);
-    for (int i = 0; i < outputs->model()->rowCount(); ++i)
-        outputs->model()->setData(outputs->model()->index(i, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectAll();
     QCOMPARE(page.checkedOutputs().size(), 41);
     QSignalSpy rebuilds(outputs->model(), &QAbstractItemModel::rowsRemoved);
     QTimer::singleShot(0, &page, [&] {
@@ -1043,7 +1132,7 @@ void WorkspaceTests::checkedReviewClosesBeforeRecordReload()
     QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
     page.openRecord(ref.recordId); QTRY_COMPARE(loaded.size(), 1);
     auto *outputs = page.findChild<QTableView *>("resultOutputs");
-    outputs->model()->setData(outputs->model()->index(0, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectRow(0);
     bool closedImmediately = false;
     QTimer::singleShot(0, &page, [&] {
         auto *dialog = page.findChild<QDialog *>("checkedOutputsDialog"); QVERIFY(dialog);
@@ -1726,8 +1815,7 @@ void WorkspaceTests::addAllScientificOutputs()
     auto *workspace = page.workspace(); QTRY_VERIFY(!workspace->loading());
     QCOMPARE(workspace->subplotCount(), 1);
     auto *outputs = page.findChild<QTableView *>("resultOutputs");
-    for (int i = 0; i < outputs->model()->rowCount(); ++i)
-        outputs->model()->setData(outputs->model()->index(i, 0), Qt::Checked, Qt::CheckStateRole);
+    outputs->selectAll();
     auto *add = page.findChild<QPushButton *>("plotCheckedOutputs");
     QCOMPARE(add->text(), text("ui.add_plot_count").arg(expectedGroups));
     auto *tabs = workspace->findChild<QTabWidget *>("plotPages");

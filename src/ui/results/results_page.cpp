@@ -8,6 +8,7 @@
 #include "ui/exports/figure_export_dialog.h"
 #include "ui/settings/theme_manager.h"
 #include "ui/results/results_page.h"
+#include <QTimer>
 #include "ui/results/plot_recipe.h"
 #include "ui/common/source_provenance.h"
 #include "ui/results/record_directory_panel.h"
@@ -23,6 +24,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "ui/common/section_splitter.h"
+#include <QPainter>
+#include <QStyledItemDelegate>
 #include <QTableWidget>
 #include <QTableView>
 #include <QStandardItemModel>
@@ -53,6 +56,38 @@ namespace aster::ui
 {
 namespace
 {
+// Qt normally replaces the selected cell's foreground with HighlightedText.
+// Keep the same row background while drawing the status in its semantic color.
+class StepStatusDelegate final : public QStyledItemDelegate
+{
+  public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option,
+               const QModelIndex &index) const override
+    {
+        if (!option.state.testFlag(QStyle::State_Selected)) {
+            QStyledItemDelegate::paint(painter, option, index);
+            return;
+        }
+        QStyleOptionViewItem opt(option);
+        initStyleOption(&opt, index);
+        const auto *widget = opt.widget;
+        auto *style = widget ? widget->style() : QApplication::style();
+        const int margin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, &opt, widget) + 1;
+        const auto bounds = style->subElementRect(QStyle::SE_ItemViewItemText, &opt, widget)
+                                .adjusted(margin, 0, -margin, 0);
+        const auto label = opt.fontMetrics.elidedText(opt.text, opt.textElideMode, bounds.width());
+        opt.text.clear();
+        style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
+        painter->save();
+        painter->setClipRect(opt.rect, Qt::IntersectClip);
+        painter->setFont(opt.font);
+        painter->setPen(index.data(Qt::ForegroundRole).value<QBrush>().color());
+        painter->drawText(bounds, QStyle::visualAlignment(opt.direction, opt.displayAlignment), label);
+        painter->restore();
+    }
+};
+
 class ResultSectionSplitter final : public SectionSplitter
 {
   public:
@@ -94,9 +129,11 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_title->setWordWrap(true);
     m_title->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     bar->addWidget(m_title, 1);
-    auto *reload = new QPushButton(text("ui.refresh"));
-    bar->addWidget(reload);
-    connect(reload, &QPushButton::clicked, this, [this] { refresh(m_recordId); });
+    m_reload = new QPushButton(text("ui.refresh"));
+    bar->addWidget(m_reload);
+    connect(m_reload, &QPushButton::clicked, this, [this] { refresh(m_recordId); });
+    m_liveRefresh = new QTimer(this);
+    m_liveRefresh->setSingleShot(true);
     outer->addLayout(bar);
     m_splitter = new QSplitter;
     m_splitter->setObjectName("resultsSplitter");
@@ -104,6 +141,12 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     outer->addWidget(m_splitter, 1);
     m_directory = new RecordDirectoryPanel;
     m_splitter->addWidget(m_directory);
+    connect(m_liveRefresh, &QTimer::timeout, this, [this] {
+        if (m_newRecords && m_directory->refreshIfIdle()) {
+            m_newRecords = false;
+            m_reload->setText(text("ui.refresh"));
+        }
+    });
     connect(m_directory, &RecordDirectoryPanel::recordActivated, this, &ResultsPage::openRecord);
     connect(m_directory, &RecordDirectoryPanel::message, this, &ResultsPage::message);
     connect(m_directory, &RecordDirectoryPanel::busyChanged, this, [this](bool busy) {
@@ -123,6 +166,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
             emit recordChanging();
             m_checked.clear(); m_outputModel->removeRows(0, m_outputModel->rowCount());
             m_loader->invalidate(); m_record.reset(); m_recordId = m_requestedRecordId = 0;
+            m_directory->setOpenedRecord(0);
             m_nodeIds.clear(); m_primaryPorts.clear();
             m_steps->setRowCount(0); m_ports->clear(); m_details->clear();
             m_stepNotice->hide(); m_errorDetailsButton->hide();
@@ -223,6 +267,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     browser->setChildrenCollapsible(false);
     m_steps = new QTableWidget(0, 3);
     m_steps->setObjectName("resultSteps");
+    m_steps->setItemDelegateForColumn(0, new StepStatusDelegate(m_steps));
     m_steps->setHorizontalHeaderLabels({text("ui.status"), text("ui.task"), text("ui.outputs_input")});
     m_steps->verticalHeader()->hide();
     m_steps->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -249,7 +294,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_outputs->verticalHeader()->hide();
     m_outputs->verticalHeader()->setDefaultSectionSize(30);
     m_outputs->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_outputs->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_outputs->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_outputs->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_outputs->setShowGrid(false);
     m_outputs->setWordWrap(false);
@@ -309,14 +354,19 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
         else center->setSizes({std::max(0, center->height() - center->handleWidth() - collapsedHeight),
                                collapsedHeight});
     });
-    connect(m_outputModel, &QStandardItemModel::itemChanged, this, [this](QStandardItem *item) {
-        if (item->column() != 0) return;
-        const auto ref = item->data(Qt::UserRole).value<OutputReference>();
-        if (!ref.valid()) return;
-        if (item->checkState() == Qt::Checked) m_checked.insert(ref.key(), ref);
-        else m_checked.remove(ref.key());
-        updateOutputActions();
-    });
+    connect(m_outputs->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+        [this](const QItemSelection &selected, const QItemSelection &deselected) {
+            // Only this step is visible. Keep the selections made on other steps.
+            for (const auto &index : deselected.indexes())
+                if (index.column() == 0)
+                    m_checked.remove(index.data(Qt::UserRole).value<OutputReference>().key());
+            for (const auto &index : selected.indexes())
+                if (index.column() == 0) {
+                    const auto ref = index.data(Qt::UserRole).value<OutputReference>();
+                    m_checked.insert(ref.key(), ref);
+                }
+            updateOutputActions();
+        });
     connect(m_outputs->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
         [this](const QModelIndex &index) {
             if (index.isValid() && m_ports)
@@ -390,9 +440,10 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     connect(m_ports, qOverload<int>(&QComboBox::currentIndexChanged), this,
             [this] {
                 QSignalBlocker block(m_outputs->selectionModel());
-                for (int row = 0; row < m_outputModel->rowCount(); ++row)
-                    if (m_outputModel->item(row, 0)->data(Qt::UserRole).value<OutputReference>().port == m_ports->currentData().toString())
-                        m_outputs->setCurrentIndex(m_outputModel->index(row, 0));
+                const auto row = m_ports->currentIndex();
+                if (row >= 0 && row != m_outputs->currentIndex().row())
+                    m_outputs->selectionModel()->setCurrentIndex(m_outputModel->index(row, 0),
+                                                                QItemSelectionModel::NoUpdate);
                 updateOutputActions();
             });
     connect(m_exportPanel, &ResultExportPanel::cancelRequested, this, &ResultsPage::cancelExports);
@@ -527,6 +578,9 @@ int ResultsPage::recordCount() const
 }
 void ResultsPage::setDatabase(const QString &p)
 {
+    m_newRecords = false;
+    m_liveRefresh->stop();
+    m_reload->setText(text("ui.refresh"));
     emit recordChanging();
     m_loader->invalidate();
     m_checked.clear();
@@ -552,8 +606,29 @@ void ResultsPage::setDatabaseMutationsEnabled(bool enabled)
 {
     m_directory->setMutationsEnabled(enabled);
 }
+void ResultsPage::recordsAdded()
+{
+    if (!m_newRecords) {
+        m_newRecords = true;
+        m_reload->setText(text("ui.refresh_new_results"));
+    }
+    // A visible directory is a stable reading position. New commits mark the
+    // refresh control; re-entering this page loads the latest available page.
+}
+void ResultsPage::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    refreshPendingIfVisible();
+}
+void ResultsPage::refreshPendingIfVisible()
+{
+    if (isVisible() && m_newRecords) m_liveRefresh->start(0);
+}
 void ResultsPage::refresh(qint64 selected)
 {
+    m_newRecords = false;
+    m_liveRefresh->stop();
+    m_reload->setText(text("ui.refresh"));
     m_directory->refresh();
     if (selected)
         openRecord(selected);
@@ -575,24 +650,28 @@ void ResultsPage::openRecord(qint64 id)
     m_selectedNode = {};
     m_record.reset();
     m_recordId = 0;
-    m_directory->setCurrentRecord(id);
+    m_title->setText(text("ui.results_workspace"));
+    m_directory->setOpenedRecord(0);
+    m_directory->focusRecord(id);
     updateOutputActions();
     m_defaultPlotOnLoad = true;
-    m_loader->request(m_path, id, m_directory->filter());
+    m_loader->request(m_path, id);
 }
 void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result)
 {
     if (!result->ok())
     {
         // Loading a missing record must not destroy existing figures.
+        m_requestedRecordId = 0;
         emit message(translatedLabel(result->error, result->error));
         return;
     }
     m_record = std::move(result);
     m_recordId = id;
+    m_directory->setOpenedRecord(id);
     const auto &run = m_record->run;
     auto definition = workflowFromJson(run.workflowSnapshot).definition;
-    m_title->setText(QString("ID %1  ·  %2")
+    m_title->setText(QString("%2  ·  ID %1")
                          .arg(id)
                          .arg(m_record->displayName.isEmpty()
                                   ? QFileInfo(run.sourceLabel).fileName()
@@ -613,7 +692,12 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
         const auto *registration = m_registry.find(n.method);
         if (registration) m_primaryPorts.insert(n.id, registration->descriptor.defaultOutput);
         auto *state = new QTableWidgetItem(stateLabel(node.state));
-        state->setToolTip(state->text());
+        state->setToolTip(node.state == NodeState::Blocked ? resultError(node) : state->text());
+        if (node.state == NodeState::Failed) {
+            auto font = m_steps->font();
+            font.setWeight(QFont::DemiBold);
+            state->setFont(font);
+        }
         state->setForeground(stateColor(node.state));
         m_steps->setItem(i, 0, state);
         m_steps->setItem(i, 1,
@@ -643,22 +727,7 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
             }
             parentText = inputs.join("\n");
         }
-        QStringList matches;
-        for (const auto &peak : m_record->matchingPeaks)
-            if (peak.node == n.id)
-                matches << QString::number(peak.frequency, 'g', 8) + " " + peak.unit;
         detail->setToolTip(parentText);
-        QStringList warnings;
-        for (const auto &warning : node.warnings)
-            warnings << translatedLabel(warning, warning);
-        detail->setToolTip(parentText + "\n" + presentError(node).details + "\n" + warnings.join("\n") + "\n" +
-                           matches.join("\n"));
-        if (!matches.isEmpty())
-        {
-            detail->setData(Qt::UserRole, true);
-            auto font = detail->font(); font.setBold(true); detail->setFont(font);
-            detail->setText(detail->text() + text("ui.peak_match"));
-        }
         m_steps->setItem(i, 2, detail);
         const auto outputs = orderedOutputs(n.id);
         if (node.state == NodeState::Succeeded && !outputs.isEmpty())
@@ -953,6 +1022,7 @@ void ResultsPage::rebuildOutputs()
     QSignalBlocker selectionBlock(m_outputs->selectionModel());
     m_outputModel->removeRows(0, m_outputModel->rowCount());
     const auto outputs = orderedOutputs(m_selectedNode);
+    QItemSelection restored;
     for (int i = 0; i < outputs.size(); ++i)
     {
         const auto ref = reference(m_selectedNode, outputs[i]);
@@ -960,21 +1030,24 @@ void ResultsPage::rebuildOutputs()
         auto outputFont = name->font();
         outputFont.setBold(ref.port == m_primaryPorts.value(m_selectedNode));
         name->setFont(outputFont);
-        name->setCheckable(true);
         name->setData(QVariant::fromValue(ref), Qt::UserRole);
-        name->setCheckState(m_checked.contains(ref.key()) ? Qt::Checked : Qt::Unchecked);
         name->setToolTip(m_ports->itemText(i) + "\n" + ref.port);
         auto *kind = new QStandardItem(text((QString("kind.") + ref.kind).toUtf8().constData()));
         m_outputModel->appendRow({name, kind});
+        if (m_checked.contains(ref.key()))
+            restored.select(name->index(), kind->index());
     }
-    if (m_ports->currentIndex() >= 0)
-        m_outputs->setCurrentIndex(m_outputModel->index(m_ports->currentIndex(), 0));
+    auto *selection = m_outputs->selectionModel();
+    selection->select(restored, QItemSelectionModel::ClearAndSelect);
+    // The export port follows keyboard focus and may be outside the plotting selection.
+    selection->setCurrentIndex(m_outputModel->index(m_ports->currentIndex(), 0),
+                               QItemSelectionModel::NoUpdate);
 }
 QVector<OutputReference> ResultsPage::checkedOutputs() const
 {
     QVector<OutputReference> refs;
     // Stable workflow/output order, independent of click order and hash ordering.
-    if (m_record)
+    if (m_record && !m_checked.isEmpty())
         for (const auto &node : m_nodeIds)
             for (const auto &out : orderedOutputs(node))
             {

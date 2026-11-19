@@ -46,6 +46,8 @@
     X(butterworth_lowpass, ButterworthLowpassTask) \
     X(butterworth_highpass, ButterworthHighpassTask) \
     X(sedrate_to_age, SedrateToAgeTask) \
+    X(linked_age_model, LinkedAgeModelTask) \
+    X(band_power, BandPowerTask) \
     X(apply_age_model, ApplyAgeModelTask) \
     X(milankovitch_period, MilankovitchPeriodTask) \
     X(cycle_age_model, CycleAgeModelTask) \

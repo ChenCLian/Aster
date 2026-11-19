@@ -90,7 +90,7 @@ NodeResult SyntheticOrbitalTask::execute(const TaskInput&,const ExecutionContext
             {"rng","SplitMix64_BoxMuller_v1_four_streams_not_NumPy_seed_compatible"},{"sampling",builtin?"PANGAEA_817206_depth_template_irregular":"uniform_depth"},
             {"samples",double(depth.size())},{"snr_clean_over_noise_variance",options.snr},{"rho_per_sample",options.rho},{"ar1_burnin",256},
             {"frequency_arcsec_yr",array(latent.frequency)},{"g5_arcsec_yr",m.g5},{"beta_sin_then_cos",array(latent.beta)},{"inverse_rate_knots_Myr_per_m",array(r.inverseKnots)},
-            {"clipped_grid_fraction",r.clippedFraction},{"duration_ka",r.ageKa.back()},{"relative_age_zero","first_depth_no_absolute_epoch"},
+            {"clipped_grid_fraction",r.clippedFraction},{"duration_ka",r.ageKa.back()},{"relative_age_zero","first_depth_no_absolute_epoch"},{"age_reference","relative"},
             {"interpolation","not_a_knot_cubic_inverse_rate_then_clip"},{"integration","cumulative_trapezoid_on_actual_depth"},
             {"normalization","population_sd_ddof0; proxy=(clean+noise-raw_mean)/raw_sd"},{"raw_mean",r.rawMean},{"raw_sd",r.rawSd},
             {"source_license","GPL-3.0-or-later; AstroGeoFit (C) 2025 CNRS, J. Laskar"}};

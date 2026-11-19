@@ -29,11 +29,52 @@
 #include <QShortcut>
 #include <QTextBrowser>
 #include <QTextDocument>
+#include <QSyntaxHighlighter>
 #include <QTimer>
 #include <QVBoxLayout>
 
 namespace aster::ui
 {
+// Layout-only highlighting leaves links, copied text and the reading cursor intact.
+class HelpSearchHighlighter final : public QSyntaxHighlighter
+{
+  public:
+    explicit HelpSearchHighlighter(QObject *parent) : QSyntaxHighlighter(parent) {}
+
+    void showMatches(QTextDocument *page, const QStringList &terms)
+    {
+        if (terms.isEmpty()) {
+            if (document()) setDocument(nullptr);
+            m_terms.clear();
+            return;
+        }
+        QTextCharFormat format;
+        format.setBackground(themeColor("helpMatch"));
+        format.setForeground(themeColor("text"));
+        if (document() == page && m_terms == terms && m_format == format) return;
+        m_terms = terms;
+        m_format = format;
+        if (document() != page) setDocument(page);
+        rehighlight();
+    }
+
+  protected:
+    void highlightBlock(const QString &line) override
+    {
+        for (const auto &term : m_terms) {
+            qsizetype start = 0;
+            while ((start = line.indexOf(term, start, Qt::CaseInsensitive)) >= 0) {
+                setFormat(static_cast<int>(start), static_cast<int>(term.size()), m_format);
+                start += term.size();
+            }
+        }
+    }
+
+  private:
+    QStringList m_terms;
+    QTextCharFormat m_format;
+};
+
 namespace
 {
 QString safePath(const QString &path)
@@ -215,6 +256,7 @@ HelpDialog::HelpDialog(QWidget *parent) : QDialog(parent)
     findLayout->addWidget(previous); findLayout->addWidget(next); findLayout->addWidget(dismiss);
     body->addWidget(m_findBar); m_findBar->hide();
     m_browser = new QTextBrowser; m_browser->setObjectName("helpBrowser");
+    m_highlighter = new HelpSearchHighlighter(this);
     m_browser->setOpenLinks(false); m_browser->setOpenExternalLinks(false);
     m_browser->setMinimumWidth(0); m_browser->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Expanding);
     body->addWidget(m_browser,1);
@@ -230,16 +272,18 @@ HelpDialog::HelpDialog(QWidget *parent) : QDialog(parent)
     connect(m_back,&QPushButton::clicked,this,[this]{visitHistory(m_position-1);});
     connect(m_forward,&QPushButton::clicked,this,[this]{visitHistory(m_position+1);});
     connect(m_browser,&QTextBrowser::anchorClicked,this,&HelpDialog::followLink);
-    connect(&ThemeManager::instance(),&ThemeManager::changed,this,&HelpDialog::refreshLinkColors);
+    connect(&ThemeManager::instance(), &ThemeManager::changed, this, [this] {
+        refreshLinkColors();
+        updateSearchHighlights();
+    });
     auto showFind=[this]{m_findBar->show();m_pageSearch->setFocus();m_pageSearch->selectAll();};
     connect(m_findButton,&QPushButton::clicked,this,showFind);
     connect(new QShortcut(QKeySequence::Find,this),&QShortcut::activated,this,showFind);
     connect(new QShortcut(QKeySequence(Qt::CTRL|Qt::SHIFT|Qt::Key_F),this),&QShortcut::activated,this,[this]{m_globalSearch->setFocus();m_globalSearch->selectAll();});
     connect(dismiss,&QPushButton::clicked,this,[this]{m_pageSearch->clear();m_findBar->hide();m_browser->setFocus();});
     connect(m_pageSearch,&QLineEdit::textChanged,this,[this]{
-        m_lastFind.clear();m_findMatches.clear();m_findPosition=-1;m_findStatus->clear();
+        resetPageFind();
         if(!m_pageSearch->text().isEmpty())m_findBar->show();
-        auto cursor=m_browser->textCursor();cursor.clearSelection();m_browser->setTextCursor(cursor);
     });
     connect(m_pageSearch,&QLineEdit::returnPressed,this,[this]{findInPage();});
     connect(next,&QPushButton::clicked,this,[this]{findInPage();});
@@ -254,6 +298,8 @@ HelpDialog::HelpDialog(QWidget *parent) : QDialog(parent)
     connect(&m_indexTimer,&QTimer::timeout,this,&HelpDialog::buildSearchChunk);
     connect(m_globalSearch,&QLineEdit::textChanged,this,[this]{
         m_openSearchResult=false;
+        m_matchingPages.clear();
+        updateSearchHighlights();
         // Old results must not remain clickable under a newly entered query.
         m_results->clear();m_searchStatus->clear();
         if(m_globalSearch->text().trimmed().isEmpty()){m_searchTimer.stop();updateSearch();}
@@ -283,6 +329,7 @@ void HelpDialog::rebuildNavigation()
     m_navigationLanguage=LanguageCatalog::instance().language();
     m_searchTimer.stop();m_indexTimer.stop();m_indexReady=false;m_indexPosition=0;m_openSearchResult=false;
     m_searchEntries.clear();m_topicItems.clear();m_results->clear();
+    m_matchingPages.clear();updateSearchHighlights();
     const QSignalBlocker treeBlock(m_contents), searchBlock(m_globalSearch);
     m_contents->clear();m_globalSearch->clear();m_navigationStack->setCurrentWidget(m_contents);
     m_searchStatus->hide();
@@ -380,8 +427,10 @@ void HelpDialog::updateSearch()
     }
     std::stable_sort(matches.begin(),matches.end(),[](const auto &a,const auto &b){return a.first>b.first;});
     m_results->clear();
+    m_matchingPages.clear();
     for(const auto &match:matches){
         const auto &entry=m_searchEntries[match.second];
+        m_matchingPages.insert(entry.topic.path);
         int pos=entry.body.indexOf(terms.front(),0,Qt::CaseInsensitive);
         const int start=std::max(0,pos-25);
         auto snippet=entry.body.mid(start,110);
@@ -391,11 +440,37 @@ void HelpDialog::updateSearch()
         item->setData(Qt::UserRole,match.second);item->setToolTip(entry.trail+'\n'+entry.title+'\n'+snippet);
     }
     m_searchStatus->setText(matches.isEmpty()?text("help.no_results"):text("help.result_count").arg(matches.size()));
+    updateSearchHighlights();
     if(m_results->count())m_results->setCurrentRow(0);
     const bool openFirst=m_openSearchResult && m_searchActivationSerial==m_navigationSerial;
     m_openSearchResult=false;
     if(openFirst && !matches.isEmpty())navigate(m_searchEntries[matches.front().second].topic);
 }
+void HelpDialog::updateSearchHighlights()
+{
+    QStringList terms;
+    if (m_matchingPages.contains(m_current.path))
+        terms = m_globalSearch->text().simplified().split(' ', Qt::SkipEmptyParts);
+    terms.removeDuplicates();
+    m_highlighter->showMatches(m_browser->document(), terms);
+}
+
+void HelpDialog::resetPageFind()
+{
+    if (m_findPosition >= 0 && m_findPosition < m_findMatches.size()) {
+        auto cursor = m_browser->textCursor();
+        const auto match = m_findMatches.at(m_findPosition);
+        if (cursor.selectionStart() == match.first && cursor.selectionEnd() == match.second) {
+            cursor.clearSelection();
+            m_browser->setTextCursor(cursor);
+        }
+    }
+    m_lastFind.clear();
+    m_findMatches.clear();
+    m_findPosition = -1;
+    m_findStatus->clear();
+}
+
 void HelpDialog::findInPage(bool backwards)
 {
     m_findBar->show();
@@ -430,12 +505,14 @@ bool HelpDialog::display(const HelpTopic &topic, int scroll)
     const bool legal=topic.path=="LICENSE" || topic.path=="COPYRIGHT.md" || topic.path=="SOURCE_CODE.md" ||
         topic.path=="docs/LICENSE_GUIDE_ZH.md" || topic.path.startsWith("licenses/");
     setWindowTitle(text(legal?"ui.license":"help.title"));
+    resetPageFind();
     if(m_current.path!=topic.path){
+        m_highlighter->showMatches(m_browser->document(), {});
         QUrl base;base.setScheme("qrc");base.setPath("/help/"+safePath(topic.path));
         m_browser->document()->setBaseUrl(base);m_browser->setHtml(page.html);refreshLinkColors();
     }
-    m_lastFind.clear();m_findMatches.clear();m_findPosition=-1;m_findStatus->clear();
     m_current=topic;syncNavigation();
+    updateSearchHighlights();
     m_scrollPending=true;const auto serial=++m_navigationSerial;
     m_browser->verticalScrollBar()->setValue(0);
     QTimer::singleShot(0,this,[this,topic,scroll,serial]{

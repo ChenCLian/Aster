@@ -1,6 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "ui/workflow/workflow_document.h"
+#include "model/file_import_compat.h"
 #include <QFileInfo>
 #include <QSet>
 #include "io/files/series_file_reader.h"
@@ -43,6 +44,7 @@ QString WorkflowDocument::setSources(const NodeId &root, QVector<SourceItem> ite
     QSet<QUuid> ids;
     for (auto &item : items)
     {
+        upgradeFileImportMetadata(n->method, item.provenance);
         auto id = QUuid(item.provenance["dataset_id"].toString());
         if (id.isNull() || ids.contains(id)) id = QUuid::createUuid();
         ids.insert(id);
@@ -81,7 +83,7 @@ WorkflowEditResult WorkflowDocument::applyEdit(WorkflowEditDraft draft)
     notifyEdit(result);
     return result;
 }
-EditResult WorkflowDocument::editGraph(const std::function<EditResult(WorkflowModel&)> &operation)
+EditResult WorkflowDocument::editGraph(const std::function<EditResult(WorkflowModel&)> &operation, QVector<BatchPair> initialPairs)
 {
     auto draft = beginEdit();
     WorkflowModel candidate(model().registry(), false);
@@ -90,6 +92,7 @@ EditResult WorkflowDocument::editGraph(const std::function<EditResult(WorkflowMo
     const auto edited = operation(candidate);
     if (!edited.ok()) return edited;
     draft.state.definition = candidate.definition();
+    if (!initialPairs.isEmpty()) draft.state.grouping.insert(edited.nodeId, std::move(initialPairs));
     QSet<NodeId> active;
     for (const auto &n : candidate.definition().nodes) active.insert(n.id);
     // Only removed nodes lose bindings. Changing the kind of a retained node
@@ -113,7 +116,27 @@ EditResult WorkflowDocument::addRoot(const QString &method, QJsonObject p)
 EditResult WorkflowDocument::addChild(const NodeId &p, ChildSlot s, const QString &m, QJsonObject q,
                                       QString output)
 {
-    return editGraph([&](WorkflowModel &candidate) { return candidate.addChild(p, s, m, q, output); });
+    QVector<BatchPair> pairs;
+    const auto *parent = node(p);
+    if (m == "linked_age_model" && parent && (output.isEmpty() || output == "age_model")) {
+        NodeId proxy;
+        QString port;
+        if (parent->method == "cycle_age_model" && parent->input) {
+            proxy = parent->input->parent;
+            port = parent->input->output;
+        } else if (parent->method == "synthetic_orbital") {
+            proxy = p;
+            port = "series";
+        }
+        if (!proxy.isNull()) {
+            const auto records = datasets(p);
+            if (records.size() <= BatchPairLimit)
+                for (const auto &record : records)
+                    pairs.push_back({QUuid::createUuid(), record.source.label,
+                                     {record.id, port, proxy}, {record.id, "age_model", p}});
+        }
+    }
+    return editGraph([&](WorkflowModel &candidate) { return candidate.addChild(p, s, m, q, output); }, std::move(pairs));
 }
 EditResult WorkflowDocument::setParameters(const NodeId &id, const QJsonObject &p)
 {

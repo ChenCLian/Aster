@@ -15,7 +15,7 @@ bool jointMemberAvailable(const WorkflowDocument&, NodeId joint, const BatchSeri
 class JointInputDialog final : public QDialog {
     Q_OBJECT
 public:
-    JointInputDialog(WorkflowDocument*, NodeId joint, BatchSeriesRef current, QWidget* parent);
+    JointInputDialog(WorkflowDocument*, NodeId joint, BatchSeriesRef current, QWidget* parent, QString requiredPort = {});
     ~JointInputDialog() override;
     void openWithinOwner();
 protected:

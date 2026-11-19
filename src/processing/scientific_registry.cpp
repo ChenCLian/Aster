@@ -6,6 +6,7 @@
 #include "processing/coco_task.h"
 #include "processing/cycle_tuning_tasks.h"
 #include "processing/chronology_tasks.h"
+#include "processing/band_power_task.h"
 #include "processing/spectral_extension_tasks.h"
 #include "processing/basic_signal_tasks.h"
 #include "processing/evolutionary_tasks.h"

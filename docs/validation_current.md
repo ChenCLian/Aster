@@ -1,9 +1,7 @@
-# Aster 1.3.1-beta.2 验证范围
+# Aster 1.3.2-beta.7 验证范围
 
-[本版记录](validation_results/1.3.1-beta.2/checks.json) · [文档记录](validation_results/1.3.1-beta.2/documentation_checks.json)
+[应用验证](validation_results/1.3.2-beta.7/checks.json) · [文档验证](validation_results/1.3.2-beta.7/documentation_checks.json) · [上一版记录](validation_results/1.3.2-beta.6/checks.json)
 
-发布工具已在本地运行 Python 测试，结果为 `Ran 228 tests; OK (skipped=2)`。两项跳过涉及 Homebrew Ruby 和 Qt 6 qmake。模拟发布验证了两个草稿的附件清单、历史依赖复用、Gitee 四包上传、SHA-256 核验和中断后的重试。版本同步、手册链接与 15 份内置资源的 SHA-256 检查通过。
+Linux x86-64、Qt 6.8.2 Release 下，14 个原生测试程序共通过 2448 项检查。以 5,000 个模拟谱峰验证了目录检索、频谱背景、手动 X 轴范围和峰值表导出。输出列表覆盖整行点击、组合键多选、跨步骤选择、绘图按钮及单项 CSV 导出。针对性界面检查使用了 100%、125%、150%、200% 显示缩放。
 
-维护者提供的 Actions 截图显示，第 39 次构建的四个平台任务均成功，草稿汇总时因依赖附件的嵌套目录报错。本地用相同的目录结构复现了问题，再用修正后的补建工作流和模拟构件验证了汇总步骤。使用第 39 次真实构件补建草稿和后续线上镜像仍待执行。
-
-上一个版本的记录见[历史验证](validation_results/1.3.1-beta.1/checks.json)。
+Windows、macOS 原生桌面和托管发布构建待验证。

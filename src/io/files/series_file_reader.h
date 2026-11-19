@@ -4,6 +4,10 @@
 #define ASTER_IO_FILES_SERIES_FILE_READER_H
 #include "core/task.h"
 
+QT_BEGIN_NAMESPACE
+class QIODevice;
+QT_END_NAMESPACE
+
 namespace aster
 {
 struct SeriesFileOptions
@@ -49,6 +53,9 @@ struct FileReadResult
         return error.isEmpty() && data;
     }
 };
+// Parse a synchronous, already-open input device, reporting a partial read as a file error.
+FileReadResult readSeriesDevice(QIODevice &device, const QString &sourceLabel,
+                                const SeriesFileOptions &options, CancellationToken cancellation = {});
 FileReadResult readSeriesFile(const QString &path, const SeriesFileOptions &options,
                               CancellationToken cancellation = {});
 // Parse an already captured byte snapshot using the identical file parser.

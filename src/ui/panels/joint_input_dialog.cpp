@@ -82,7 +82,7 @@ public:
     QHash<NodeId,QVector<BatchDataset>> datasets;
     QHash<NodeId,QVector<QString>> dataNames;
     QHash<NodeId,QHash<QUuid,int>> indices;
-    explicit JointInputCatalog(const WorkflowDocument& doc,NodeId joint) {
+    explicit JointInputCatalog(const WorkflowDocument& doc,NodeId joint,const QString &requiredPort = {}) {
         const auto* target=doc.node(joint); if(!target || !target->input) return;
         parent=target->input->parent;
         const auto origins=linkedInputOrigins(doc.model(),joint);
@@ -112,9 +112,10 @@ public:
             }
             if(eligible.contains(node.id)) {
                 const auto& descriptor=doc.model().registry().find(node.method)->descriptor;
-                for(auto port:descriptor.outputs) if(port.kind==kind) {
+                for(auto port:descriptor.outputs) if(port.kind==kind && (requiredPort.isEmpty() || port.key==requiredPort)) {
                     port.label=portLabel(descriptor,port.key);ports[node.id].push_back(port);
                 }
+                if (ports.value(node.id).isEmpty()) eligible.remove(node.id);
             }
         }
         for(qsizetype i=0;i<order.size();++i)for(auto child:children.value(order[i])) {
@@ -250,8 +251,8 @@ struct JointInputDialog::Impl {
     QLineEdit* nodeSearch;QLineEdit* dataSearch;QLabel* status=nullptr;QLabel* help=nullptr;QPushButton* confirm;QSplitter* split=nullptr;
     BatchSeriesRef selected() const {return model->ref(proxy->mapToSource(table->currentIndex()).row());}
 };
-JointInputDialog::JointInputDialog(WorkflowDocument* doc,NodeId joint,BatchSeriesRef current,QWidget* parent):QDialog(parent),d(new Impl) {
-    d->doc=doc;d->joint=joint;d->previous=current;d->revision=doc->revision();d->catalog=std::make_shared<JointInputCatalog>(*doc,joint);
+JointInputDialog::JointInputDialog(WorkflowDocument* doc,NodeId joint,BatchSeriesRef current,QWidget* parent,QString requiredPort):QDialog(parent),d(new Impl) {
+    d->doc=doc;d->joint=joint;d->previous=current;d->revision=doc->revision();d->catalog=std::make_shared<JointInputCatalog>(*doc,joint,requiredPort);
     setObjectName("jointInputDialog");setAttribute(Qt::WA_DeleteOnClose);setWindowModality(Qt::WindowModal);
     setWindowTitle(text("ui.joint_choose_member"));auto* layout=new QVBoxLayout(this);layout->setContentsMargins(16,16,16,12);layout->setSpacing(10);
     d->help=plainLabel(text("ui.joint_choose_help"));layout->addWidget(d->help);setToolTip(text("ui.joint_choose_help"));
@@ -298,7 +299,11 @@ JointInputDialog::JointInputDialog(WorkflowDocument* doc,NodeId joint,BatchSerie
     connect(doc,&WorkflowDocument::changed,this,&QDialog::reject);connect(doc,&WorkflowDocument::sourcesChanged,this,&QDialog::reject);connect(doc,&QObject::destroyed,this,&QDialog::reject);
     if(auto* outer=qobject_cast<QDialog*>(parent))connect(outer,&QDialog::finished,this,&QDialog::reject);
     const auto initial=d->catalog->available(current)?d->catalog->origin(current):d->catalog->parent;
-    if(items.contains(initial)){d->tree->setCurrentItem(items[initial]);d->tree->scrollToItem(items[initial]);}
+    auto selectedNode = initial;
+    if (!requiredPort.isEmpty() && !d->catalog->eligible.contains(selectedNode))
+        for (const auto &candidate : d->catalog->order)
+            if (d->catalog->eligible.contains(candidate)) { selectedNode = candidate; break; }
+    if(items.contains(selectedNode)){d->tree->setCurrentItem(items[selectedNode]);d->tree->scrollToItem(items[selectedNode]);}
     if(d->catalog->available(current))for(int i=0;i<d->model->rowCount();++i){const auto ref=d->model->ref(i);if(ref.dataset==current.dataset&&ref.port==current.port){d->table->setCurrentIndex(d->proxy->mapFromSource(d->model->index(i,0)));d->table->scrollTo(d->table->currentIndex());break;}}
     update();
 }
@@ -315,18 +320,19 @@ struct PairingDialog::Impl {
     QPointer<WorkflowDocument> doc;NodeId joint;quint64 revision;bool committing=false,committed=false;
     std::shared_ptr<const JointInputCatalog> catalog;PairTable* table=nullptr;QLabel* status;QPushButton* confirm;QPushButton* add;
     QLabel* help=nullptr;QGridLayout* actions=nullptr;QPushButton* remove=nullptr;QPushButton* a=nullptr;QPushButton* b=nullptr;
-    bool compact=false;QString statusFull,statusShort;
+    bool compact=false;QString statusFull,statusShort,modelPort;
     void showStatus(){status->setText(compact?statusShort:statusFull);status->setToolTip(statusFull);}
     std::shared_ptr<const PreparedWorkflowEdit> prepared;
     QPointer<JointInputDialog> picker;
 };
 PairingDialog::PairingDialog(WorkflowDocument* doc,NodeId joint,QWidget* parent):QDialog(parent),d(new Impl) {
     d->doc=doc;d->joint=joint;d->revision=doc->revision();d->catalog=std::make_shared<JointInputCatalog>(*doc,joint);
+    d->modelPort=doc->model().registry().find(doc->node(joint)->method)->descriptor.requiredSecondPort;
     setObjectName("pairingDialog");setAttribute(Qt::WA_DeleteOnClose);setWindowModality(Qt::WindowModal);setWindowTitle(text("ui.manage_pairs"));
     auto* layout=new QVBoxLayout(this);layout->setContentsMargins(16,16,16,12);layout->setSpacing(10);
     layout->addWidget(plainLabel(jointOriginLabel(*doc,joint),"SectionTitle"));
-    d->help=plainLabel(text("ui.pair_help"));d->help->setToolTip(text("ui.pair_help"));layout->addWidget(d->help);
-    d->table=new PairTable(0,3);d->table->setObjectName("pairTable");d->table->setHorizontalHeaderLabels({text("ui.pair_name"),"A","B"});d->table->setSelectionBehavior(QAbstractItemView::SelectRows);d->table->setSelectionMode(QAbstractItemView::SingleSelection);d->table->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed);d->table->setMinimumSize(0,0);d->table->setWordWrap(false);
+    d->help=plainLabel(text(d->modelPort.isEmpty()?"ui.pair_help":"ui.age_pair_help"));d->help->setToolTip(d->help->text());layout->addWidget(d->help);
+    d->table=new PairTable(0,3);d->table->setObjectName("pairTable");d->table->setHorizontalHeaderLabels({text("ui.pair_name"), d->modelPort.isEmpty()?QString("A"):text("ui.proxy_input_a"), d->modelPort.isEmpty()?QString("B"):text("ui.model_input_b")});d->table->setSelectionBehavior(QAbstractItemView::SelectRows);d->table->setSelectionMode(QAbstractItemView::SingleSelection);d->table->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed);d->table->setMinimumSize(0,0);d->table->setWordWrap(false);
     d->table->horizontalHeader()->setSectionResizeMode(0,QHeaderView::Interactive);d->table->setColumnWidth(0,145);d->table->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);d->table->horizontalHeader()->setSectionResizeMode(2,QHeaderView::Stretch);d->table->horizontalHeader()->setMinimumSectionSize(90);d->table->verticalHeader()->setDefaultSectionSize(fontMetrics().height()*2+20);d->table->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     d->table->setItemDelegateForColumn(1,new MemberDelegate(d->table));d->table->setItemDelegateForColumn(2,new MemberDelegate(d->table));layout->addWidget(d->table,1);
     auto* actions=new QGridLayout;d->actions=actions;d->add=new QPushButton(text("ui.add_pair"));d->add->setObjectName("addPair");actions->addWidget(d->add,0,0);
@@ -355,7 +361,7 @@ PairingDialog::PairingDialog(WorkflowDocument* doc,NodeId joint,QWidget* parent)
         if(col<1||row<0||row>=d->table->rowCount()||!d->doc||d->doc->editingLocked())return;
         if(d->picker && d->picker->isVisible()){d->picker->raise();return;}
         const auto id=d->table->item(row,0)->data(Qt::UserRole).toUuid();
-        auto* picker=new JointInputDialog(d->doc,d->joint,loadRef(d->table->item(row,col)->data(Qt::UserRole)),this);d->picker=picker;
+        auto* picker=new JointInputDialog(d->doc,d->joint,loadRef(d->table->item(row,col)->data(Qt::UserRole)),this,col==2?d->modelPort:QString());d->picker=picker;
         connect(picker,&JointInputDialog::chosen,this,[this,id,col,setMember,update](QUuid node,QUuid dataset,QString port){
             for(int row=0;row<d->table->rowCount();++row)if(d->table->item(row,0)->data(Qt::UserRole).toUuid()==id){QSignalBlocker blocker(d->table);setMember(row,col,{dataset,port,node});break;}
             update();
@@ -365,7 +371,25 @@ PairingDialog::PairingDialog(WorkflowDocument* doc,NodeId joint,QWidget* parent)
     connect(a,&QPushButton::clicked,this,[this]{d->table->choose(d->table->currentRow(),1);});connect(b,&QPushButton::clicked,this,[this]{d->table->choose(d->table->currentRow(),2);});
     const auto selection=[this,a,b,remove]{const bool chosen=d->table->currentRow()>=0;a->setEnabled(chosen);b->setEnabled(chosen);remove->setEnabled(chosen);};
     connect(d->table,&QTableWidget::itemSelectionChanged,this,selection);
-    connect(d->add,&QPushButton::clicked,this,[this,addRow,update]{if(d->table->rowCount()>=BatchPairLimit)return;addRow({});d->table->setCurrentCell(d->table->rowCount()-1,0);d->table->scrollToBottom();update();});
+    connect(d->add,&QPushButton::clicked,this,[this,addRow,update] {
+        if (d->table->rowCount() >= BatchPairLimit) return;
+        BatchPair pair;
+        if (!d->modelPort.isEmpty()) {
+            const auto node = d->catalog->parent;
+            const auto records = d->catalog->datasets.value(d->catalog->roots.value(node));
+            if (records.size() == 1) {
+                BatchSeriesRef model{records.front().id, d->modelPort, node};
+                if (d->catalog->available(model)) pair.b = model;
+                else {
+                    const auto *target = d->doc->node(d->joint);
+                    pair.a = {records.front().id, target->input->output, node};
+                }
+            }
+        }
+        addRow(pair);
+        d->table->setCurrentCell(d->table->rowCount()-1,0); d->table->scrollToBottom();
+        update();
+    });
     connect(remove,&QPushButton::clicked,this,[this,selection,update]{d->table->removeRow(d->table->currentRow());selection();update();});
     connect(buttons,&QDialogButtonBox::rejected,this,&QDialog::reject);
     connect(buttons,&QDialogButtonBox::accepted,this,[this]{
@@ -389,7 +413,7 @@ void PairingDialog::resizeEvent(QResizeEvent* event) {
         d->actions->setColumnStretch(2,compact?0:1);
         d->actions->addWidget(d->add,0,0);d->actions->addWidget(d->remove,0,1);
         d->actions->addWidget(d->a,compact?1:0,compact?0:3);d->actions->addWidget(d->b,compact?1:0,compact?1:4);
-        d->help->setText(text(compact?"ui.pair_help_short":"ui.pair_help"));d->showStatus();
+        d->help->setText(text(!d->modelPort.isEmpty()?"ui.age_pair_help":compact?"ui.pair_help_short":"ui.pair_help"));d->showStatus();
     }
     d->table->setColumnWidth(0,compact?std::max(80,width()/5):145);
 }

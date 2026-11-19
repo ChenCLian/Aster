@@ -46,6 +46,10 @@ jobs:
           python-version: '3.12'
       - name: Verify resource checksums
         run: python3 tools/release/check_resource_integrity.py
+      - name: Verify bundled orbital data and maintenance tooling
+        run: |
+          python3 -m unittest discover -s tools/orbital_data -p 'test_*.py'
+          python3 tools/orbital_data/manage_data.py verify
       - name: Select requested targets
         id: targets
         env:
@@ -177,9 +181,9 @@ jobs:
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
           else
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | tee ci-logs/configure.log
+            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | tee ci-logs/configure.log
           fi
       - name: Build
         if: runner.os != 'Windows'
@@ -206,7 +210,7 @@ jobs:
             "$tool -> $resolved" | Tee-Object -FilePath build-release/ci-logs/environment.log -Append
           }
           Set-Location build-release
-          & qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference 2>&1 | Tee-Object -FilePath ci-logs/configure.log
+          & qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | Tee-Object -FilePath ci-logs/configure.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & (Join-Path $msvcBin 'nmake.exe') /NOLOGO 2>&1 | Tee-Object -FilePath ci-logs/build.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -215,7 +219,7 @@ jobs:
           python3 -m unittest discover -s tools/help_reference -p 'test_*.py' 2>&1 | tee build-release/ci-logs/help-generator-tests.log
           python3 tools/help_reference/generate.py --build build-release --check 2>&1 | tee build-release/ci-logs/help-reference.log
       - name: Run regression tests
-        run: python3 tools/release/run_tests.py build-release 2>&1 | tee build-release/ci-logs/tests.log
+        run: python3 tools/release/run_tests.py build-release --include-interaction 2>&1 | tee build-release/ci-logs/tests.log
       - name: Restore verified dependency download cache
         id: dependency-cache
         if: ${{ !inputs.check_only }}

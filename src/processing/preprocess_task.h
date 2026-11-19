@@ -12,6 +12,7 @@ public:
 private:
     QString m_duplicates, m_mode, m_interpolation;
     double m_spacing;
+    bool m_allowExtremeGap;
 };
 }
 #endif

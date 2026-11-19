@@ -3,6 +3,7 @@
 #ifndef ASTER_MATH_SPECTRUM_SPECTRUM_PEAKS_H
 #define ASTER_MATH_SPECTRUM_SPECTRUM_PEAKS_H
 
+#include <functional>
 #include <limits>
 #include <vector>
 
@@ -32,10 +33,10 @@ struct Peak {
 // This ordering intentionally differs from scipy.signal.find_peaks.
 // Defaults return interior local maxima above floating-point roundoff. Relative
 // prominence is an amplitude filter, NOT a significance or noise-model test.
-// Cost: O(N + P*W + P*log(P)), W <= N. Full-array worst case: O(N^2).
-// Memory: O(P). A short radius speeds scans but changes prominence and width.
+// O(N + P log N) time and O(N + P) memory, including full-array prominence.
 std::vector<Peak> findSpectrumPeaks(
-    int n, const double* y, const PeakOptions& opt = PeakOptions());
+    int n, const double* y, const PeakOptions& opt = PeakOptions(),
+    const std::function<bool()>& cancelled = {});
 
 std::vector<int> findSpectrumPeakIndices(
     int n, const double* y, const PeakOptions& opt = PeakOptions());

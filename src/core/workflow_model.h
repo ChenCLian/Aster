@@ -46,6 +46,7 @@ public:
         : m_registry(std::move(registry)), m_retainHistory(retainHistory) {}
     const WorkflowDefinition& definition() const { return m_definition; }
     const TaskRegistry& registry() const { return m_registry; }
+    qsizetype childCount(const NodeId& parent) const;
     EditResult addRoot(const QString& method, GridPosition position, QJsonObject parameters = {});
     EditResult addChild(const NodeId& parent, ChildSlot slot, const QString& method,
                         QJsonObject parameters = {}, QString output = {});

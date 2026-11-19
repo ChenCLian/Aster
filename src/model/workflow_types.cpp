@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "model/workflow_types.h"
 #include <QStringList>
+#include <QSet>
 
 namespace aster {
 QJsonObject effectiveParameters(const NodeDefinition &node, const QUuid &item)
@@ -35,17 +36,29 @@ std::optional<GridPosition> adjacentPosition(GridPosition p, ChildSlot slot)
     }
     return validPosition(p) ? std::optional<GridPosition>(p) : std::nullopt;
 }
+GridPosition freeGridPosition(const WorkflowDefinition& definition, GridPosition near)
+{
+    QSet<int> occupied;
+    for (const auto &p : definition.layout)
+        if (p.row == near.row) occupied.insert(p.column);
+    // One row has more cells than the maximum number of nodes in a workflow.
+    while (occupied.contains(near.column))
+        near.column = near.column == GridCoordinateLimit ? -GridCoordinateLimit : near.column + 1;
+    return near;
+}
 QString slotName(ChildSlot slot)
 {
     switch (slot) {
     case ChildSlot::Left: return QStringLiteral("left");
     case ChildSlot::Right: return QStringLiteral("right");
     case ChildSlot::Down: return QStringLiteral("down");
+    case ChildSlot::Append: return QStringLiteral("append");
     }
     return {};
 }
 std::optional<ChildSlot> slotFromName(const QString& name)
 {
+    if (name == QStringLiteral("append")) return ChildSlot::Append;
     if (name == QStringLiteral("left")) return ChildSlot::Left;
     if (name == QStringLiteral("right")) return ChildSlot::Right;
     if (name == QStringLiteral("down")) return ChildSlot::Down;

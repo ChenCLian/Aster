@@ -79,11 +79,11 @@ NodeEditDialog::NodeEditDialog(WorkflowDocument *doc, NodeRewriteKind kind, Node
             auto *box = choice(mapping.choices, mapping.previousOutput, entry->descriptor,
                                "nodeEditOutput_" + mapping.child.toString(QUuid::WithoutBraces));
             m_outputs.insert(mapping.child, box);
-            const auto slot = doc->node(mapping.child)->input->slot;
-            const auto branch = text(slot == ChildSlot::Left ? "ui.node_edit_left" :
-                                     slot == ChildSlot::Right ? "ui.node_edit_right" : "ui.node_edit_down");
-            const auto destination = kind == NodeRewriteKind::Replace
-                ? methodLabel(downstream) + " · " + branch : methodLabel(downstream);
+            const auto &nodes = doc->model().definition().nodes;
+            const auto *child = doc->node(mapping.child);
+            const auto ordinal = child - nodes.constData() + 1; // Same number as the canvas tooltip.
+            const auto destination = replacing
+                ? methodLabel(downstream) + QString(" · #%1").arg(ordinal) : methodLabel(downstream);
             auto *label = new QLabel(text("ui.node_edit_output_to").arg(destination));
             label->setWordWrap(true); form->addRow(label, box);
         }

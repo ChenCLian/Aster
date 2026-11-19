@@ -29,7 +29,7 @@ class WorkflowCanvas : public QGraphicsView
     {
         return m_rects.value(id);
     }
-    QPoint slotViewportPosition(ChildSlot slot) const;
+    QPoint addViewportPosition(NodeId parent) const;
     QPoint insertionViewportPosition(NodeId child) const { return mapFromScene(m_insertions.value(child).center()); }
     void rebuild();
     void fitWorkflow();
@@ -67,7 +67,7 @@ class WorkflowCanvas : public QGraphicsView
     NodeId m_selected;
     QMap<NodeId, QUuid> m_previewPairs;
     QMap<NodeId, QRectF> m_rects;
-    QMap<int, QRectF> m_slots;
+    QMap<NodeId, QRectF> m_addControls;
     QMap<NodeId, QRectF> m_insertions;
     QGraphicsRectItem *m_dropHighlight = nullptr;
     bool m_editable = true, m_panning = false;

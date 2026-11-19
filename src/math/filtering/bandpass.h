@@ -17,7 +17,7 @@ struct FilterResult {
     std::size_t fftLength = 0;
     double removedMean = 0;
 };
-struct AnalyticResult { std::vector<double> quadrature, envelope; double removedMean = 0; };
+struct AnalyticResult { std::vector<double> quadrature, envelope, demeanedSignal; double removedMean = 0; };
 // Half-power band edges. Taner exponent uses c=10^q (q is NOT dB/octave).
 // Gaussian: 10*nextpow2(N) trailing zero padding; Taner: N-point periodic DFT.
 double responseGain(Shape, double frequency, double lower, double upper, double q = 12);

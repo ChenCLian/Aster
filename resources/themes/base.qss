@@ -35,12 +35,16 @@ QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QTextEdi
 QLineEdit:disabled, QComboBox:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled, QTextEdit:disabled, QPlainTextEdit:disabled { color: @disabled@; background: @disabledSurface@; border-color: @border@; }
 QComboBox::drop-down, QSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::up-button, QDoubleSpinBox::down-button { border: 0; width: 18px; }
 QTreeView, QListView, QTableView { border: 0; background: @surface@; outline: none; selection-background-color: @selection@; selection-color: @selectionText@; }
+QListWidget#sourceFiles, QListWidget#resultRecords { border: 0; border-top: 1px solid @divider@; border-bottom: 1px solid @divider@; border-radius: 0; padding: 0; }
+QToolButton#sourceOptionsToggle { border: 0; padding: 4px 2px; font-weight: 600; }
 QTreeView::item, QListView::item { padding: 6px; border: 1px solid transparent; border-radius: 3px; }
 QTreeView::item:hover, QListView::item:hover { background: @hover@; }
 QTreeView::item:selected, QListView::item:selected { background: @selection@; color: @selectionText@; border-color: @accent@; }
+QTextBrowser#helpBrowser { selection-background-color: @fileListMark@; selection-color: @surface@; }
 QTableView { gridline-color: @divider@; }
 QTableView#resultSteps::item:hover:!selected { background: transparent; }
 QTableView#resultSteps::item:selected { background: @selection@; color: @selectionText@; }
+QTableView#resultOutputs::item:selected { background: @fileListSelection@; color: @text@; }
 QHeaderView::section { background: @surface@; border: 0; border-bottom: 1px solid @divider@; padding: 7px; color: @text@; font-weight: 600; }
 QTabWidget::pane { border: 0; background: transparent; }
 QTabBar::tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 7px 9px; margin-right: 2px; color: @muted@; }
@@ -184,3 +188,8 @@ QTextBrowser#updateNotes { background: @surface@; border: 0; padding: 0; }
 
 /* Keep input actions readable without a fixed width that can clip larger fonts. */
 QToolButton#sourceSelectionHelp { padding: 3px; }
+
+QDialog#recordFilterPopup { background: @surface@; border: 1px solid @controlBorder@; }
+QToolButton[filterChip="true"] { background: @selection@; color: @selectionText@; border: 0; border-radius: 5px; padding: 2px 6px; }
+QToolButton[filterChip="true"]:focus, QToolButton[filterChip="true"]:hover { border: 1px solid @accent@; }
+QLabel#filterValidation { color: @error@; }

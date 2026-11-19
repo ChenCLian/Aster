@@ -27,9 +27,6 @@ FileOptionsEditor::FileOptionsEditor(QWidget *parent) : QWidget(parent)
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
-    auto *section = new QLabel(text("ui.input_settings"));
-    section->setObjectName("SectionTitle");
-    layout->addWidget(section);
     auto *content = new QWidget;
     content->setObjectName("Surface");
     auto *contentLayout = new QVBoxLayout(content);
@@ -169,7 +166,7 @@ QJsonObject FileOptionsEditor::options() const
     auto o = m_options;
     o.delimiter = m_delimiter->currentData().toString();
     o.autoHeader = m_header->currentData().toInt() == -1;
-    o.header = m_header->currentData().toInt() == 1;
+    if (!o.autoHeader) o.header = m_header->currentData().toInt() == 1;
     if (m_x->currentIndex() >= 0)
         o.xColumn = m_x->currentData().toInt();
     if (m_y->currentIndex() >= 0)
@@ -192,6 +189,9 @@ void FileOptionsEditor::flushEdits()
     SeriesFileOptions parsed;
     if (!applyFileOptions(value, parsed).isEmpty()) return;
     m_dirty = false;
+    SeriesFileOptions previous;
+    if (applyFileOptions(m_loadedOptions, previous).isEmpty() && value == fileOptionsToJson(previous))
+        return;
     m_loadedOptions = value; // A synchronous document notification must not re-probe this edit.
     emit optionsEdited(m_path, value);
 }
@@ -343,8 +343,9 @@ void FileOptionsEditor::refreshPreview()
     for (int row = 0; row < m_preview->rowCount(); ++row)
         previewHeight += m_preview->rowHeight(row);
     m_preview->setFixedHeight(previewHeight);
-    m_previewHint->setText(invalid ? text(m_skip->isChecked() ? "ui.preview_skipped" : "ui.preview_invalid")
-                                   : text("ui.preview_not_full_validation"));
+    QString hint = invalid ? text(m_skip->isChecked() ? "ui.preview_skipped" : "ui.preview_invalid")
+                           : text("ui.preview_not_full_validation");
+    m_previewHint->setText(hint);
     auto palette = m_previewHint->palette();
     palette.setColor(QPalette::WindowText, themeColor(invalid ? "warning" : "muted"));
     m_previewHint->setPalette(palette);

@@ -9,28 +9,32 @@
 class QThread;
 namespace aster::ui
 {
+enum class RecordSelectionScope { Filtered, Database };
 class RecordDirectoryService : public QObject
 {
     Q_OBJECT
   public:
     explicit RecordDirectoryService(QObject *parent = nullptr) : QObject(parent) {}
     ~RecordDirectoryService() override;
-    void query(QString path, RecordFilter filter, qint64 beforeId, RecordIdentities selected = {});
+    void query(QString path, RecordFilter filter, qint64 beforeId, RecordIdentities selected = {},
+               bool selectionOnly = false);
     void edit(QString path, qint64 id, QString name, QString notes);
     void remove(QString path, qint64 id);
-    void selectMatching(QString path, RecordFilter filter, bool checked);
+    void selectMatching(QString path, RecordFilter filter, bool checked,
+                        RecordSelectionScope scope = RecordSelectionScope::Filtered);
     void removeMany(QString path, RecordIdentities selected);
     void merge(QString destination, QString source);
     void backup(QString source, QString newFile);
-    void exportNames(QString source, RecordFilter filter, QString newFile);
+    void exportNames(QString source, RecordIdentities selected, QString newFile);
     void cancelTransfer();
     void invalidate();
     void resetContext();
   signals:
-    void listed(aster::RecordList records, QStringList units, qint64 beforeId);
+    void listed(aster::RecordList records, QStringList units, qint64 beforeId, bool selectionOnly);
     void edited(QString path, qint64 id, bool removed, QString error);
     void selectionInspected(aster::RecordSelectionState state);
-    void selectionReady(QString path, aster::RecordSelectionState state, bool checked);
+    void selectionReady(QString path, aster::RecordSelectionState state, bool checked,
+                        aster::ui::RecordSelectionScope scope);
     void removed(QString path, aster::RecordRemoval result);
     void transferred(QString path, aster::DatabaseTransferResult result, bool merge);
     void transferProgress(QString stage, qint64 completed, qint64 total);
@@ -64,6 +68,8 @@ class RecordDirectoryService : public QObject
         quint64 context = 0;
         QString transferPath{};
         CancellationToken cancellation{};
+        RecordSelectionScope scope = RecordSelectionScope::Filtered;
+        bool selectionOnly = false;
     };
     void enqueue(Request request);
     void start();

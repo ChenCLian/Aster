@@ -4,6 +4,7 @@
 #define ASTER_MATH_STATISTICS_SIGNIFICANCE_H
 
 #include <vector>
+#include <functional>
 #include <array>
 #include <cstddef>
 #include <QString>
@@ -20,6 +21,7 @@ struct SpectrumInference {
     // bandwidth-H(floor(NW)) FDR with the last rejected observed p as curve.
     // This is the Hopkins/Weedon convention, not general-dependence BY.
     bool acycle = false;
+    std::function<void()> checkpoint; // Optional cooperative cancellation between work units.
 };
 struct SwaDiagnostics {
     int window = 0;
@@ -82,7 +84,8 @@ std::vector<double> wave_Significance(size_t N_time, size_t N_peridd,
                                       const double* pow, const double* scale,
                                       double variance, double dt,
                                       double parma, const QString& mother,
-                                      double lag1 = 0.0, double siglvl = 0.95);
+                                      double lag1 = 0.0, double siglvl = 0.95,
+                                      const std::function<void()>& checkpoint = {});
 
 // BY step-up cutoffs for q={.05,.01,.001,.0001}; NaN means no rejection.
 // Uses the full harmonic(m) dependence correction, distinct from Acycle's
@@ -90,6 +93,7 @@ std::vector<double> wave_Significance(size_t N_time, size_t N_peridd,
 std::array<double, 4> spectralFdrCutoffs(const std::vector<double>& pValues);
 std::array<double, 4> acycleFdrCutoffs(const std::vector<double>& pValues, double nw);
 std::vector<double> specswa(const std::vector<double>& freq, const std::vector<double>& xlogp,
-                           SwaDiagnostics* diagnostics = nullptr);
+                           SwaDiagnostics* diagnostics = nullptr,
+                           const std::function<void()>& checkpoint = {});
 
 #endif // ASTER_MATH_STATISTICS_SIGNIFICANCE_H

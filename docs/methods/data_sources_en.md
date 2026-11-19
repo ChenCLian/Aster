@@ -7,7 +7,7 @@ Choose an entry point by data origin, then check X, Y, units and sampling. The o
 
 Import delimited CSV, TXT, TSV or DAT files in Input data. A file may have many columns, but each series uses one X column and one Y column. Check delimiter and header before choosing columns and units. Displayed column numbers start at 1.
 
-Automatic header detection is an aid, not a substitute for inspection. Invalid numeric rows are not skipped by default. Enabling Skip invalid rows omits invalid numeric samples and may create gaps; inspect the reading report. It does not remove duplicate X values, sort or fill gaps; configure those operations separately.
+Completely blank lines are ignored. An empty field, NaN, NA, N/A or NULL in a selected X or Y column denotes a missing value. These text markers are case-insensitive. Other unparseable text and infinities are invalid. By default the reader reports the line. Enabling Skip invalid rows skips and counts these rows. The report gives the total in `skipped_rows` and the subset skipped solely for missing values in `missing_rows`. All finite numbers are read at their original values.
 
 Unit strings label the data without converting numbers. Reading and processing do not overwrite the source. Click Recalculate after externally editing a file; the program does not watch filesystem changes.
 

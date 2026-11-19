@@ -1,6 +1,6 @@
 # 文档索引
 
-适用版本：Aster 1.3.1-beta.2。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
+适用版本：Aster 1.3.2-beta.7。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
 
 按使用目的浏览下列主题。内置帮助左侧提供相同分类的可折叠目录与全文搜索，正文区另有独立的页内查找。
 
@@ -106,7 +106,7 @@
 - [1.2.0-alpha.20 交互与压力验收](history/acceptance_1.2.0_alpha20.md)
 - [1.2.0-alpha.10 发布前检查](history/release_audit_1.2.0_alpha10.md)
 - [开发变更记录](development/CHANGELOG_1.2.0.md)
-- [各版本原始验证材料](validation_results/)
+- [当前文档引用的验证材料](validation_results/)
 - [1.1.1 验证说明](validation.md)及[结构化记录](validation.json)
 
 文档编写、版本同步及归档要求见[文档维护](development/documentation.md)。
