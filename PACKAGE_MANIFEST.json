@@ -3534,8 +3534,8 @@
     },
     {
       "path": "tools/release/test_brew_query.py",
-      "bytes": 5768,
-      "sha256": "400a332deefc052f698ab34c7776980ce5c60cfa98007882d1cb0e9060ad6624"
+      "bytes": 5997,
+      "sha256": "85457320eb08cea396a153e8f04162e7ba9fbaaa800f5297cf9e4ece74506c9a"
     },
     {
       "path": "tools/release/test_check_packaged.py",

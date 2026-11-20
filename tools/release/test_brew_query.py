@@ -10,7 +10,6 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -18,8 +17,8 @@ import dependency_providers as providers
 
 
 # Exercise the production Ruby query rather than mocking its JSON response.
-# On macOS use the same Homebrew Ruby interpreter as the collector. Formula
-# objects are controlled fixtures; no installed formula or network is needed.
+# Use controlled formula objects for patch handling and the real, installed
+# GSL recipe for the integration test below.
 BOOTSTRAP = r'''
 module Kernel
   alias_method :aster_fixture_require, :require
@@ -98,20 +97,23 @@ class BrewQueryTests(unittest.TestCase):
     def test_homebrew_reads_the_saved_recipe_for_an_installed_version(self):
         if not self.brew:
             self.skipTest('Requires Homebrew')
-        with tempfile.TemporaryDirectory(prefix='brew recipes ') as td:
-            recipe = Path(td) / 'Cellar/gsl/1.2.3_2/.brew/gsl.rb'
-            recipe.parent.mkdir(parents=True)
-            url = 'https://example.org/gsl-1.2.3.tar.gz'
-            checksum = 'a' * 64
-            recipe.write_text(
-                f'class Gsl < Formula\n  url "{url}"\n  sha256 "{checksum}"\n  revision 2\nend\n',
-                encoding='utf-8')
-            result = subprocess.run([self.brew, 'ruby', '-e', providers.BREW_QUERY, '--', str(recipe)],
-                                    capture_output=True, text=True, timeout=60)
+        prefix = subprocess.check_output([self.brew, '--prefix'], text=True, timeout=60).strip()
+        keg = (Path(prefix) / 'opt' / 'gsl').resolve()
+        if not keg.is_dir() and os.environ.get('RUNNER_OS') != 'macOS':
+            self.skipTest('Requires an installed Homebrew GSL keg')
+        self.assertTrue((keg / 'INSTALL_RECEIPT.json').is_file(), f'Missing GSL receipt in {keg}')
+        recipe = keg / '.brew' / 'gsl.rb'
+        self.assertTrue(recipe.is_file(), f'Missing installed GSL recipe: {recipe}')
+        result = subprocess.run([self.brew, 'ruby', '-e', providers.BREW_QUERY, '--', str(recipe)],
+                                capture_output=True, text=True, timeout=60)
         self.assertEqual(result.returncode, 0, result.stderr)
         metadata = json.loads(result.stdout)
-        self.assertEqual((metadata['name'], metadata['version']), ('gsl', '1.2.3_2'))
-        self.assertEqual(metadata['sources'], [{'url': url, 'sha256': checksum, 'kind': 'source'}])
+        self.assertEqual((metadata['name'], metadata['version']), ('gsl', keg.name))
+        source = metadata['sources'][0]
+        self.assertEqual(source['kind'], 'source')
+        self.assertTrue(source['url'].startswith('https://'), source['url'])
+        self.assertRegex(source['sha256'], r'^[a-f0-9]{64}$')
+        self.assertIn(source['sha256'], recipe.read_text(encoding='utf-8'))
 
     def test_all_patch_kinds_preserve_bytes_and_scope_without_base64_gem(self):
         # Binary bytes, UTF-8, CRLF and a long line must survive Ruby -> JSON -> Python.
