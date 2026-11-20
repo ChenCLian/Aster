@@ -543,7 +543,14 @@ BREW_QUERY = r'''
 require "json"
 require "formula"
 require "formulary"
-f = Formulary.factory(ARGV.fetch(0))
+recipe = ARGV.fetch(0)
+# The saved keg recipe includes the revision and patches used to build the library.
+# New Homebrew releases reserve factory for names and provide a separate path loader.
+f = if Formulary.respond_to?(:from_path)
+  Formulary.from_path(recipe)
+else
+  Formulary.factory(recipe)
+end
 s = f.stable
 raise "No stable source" unless s
 sources = [{url: s.url, sha256: s.checksum.to_s, kind: "source"}]

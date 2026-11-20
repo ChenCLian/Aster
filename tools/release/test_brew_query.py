@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -69,8 +70,9 @@ end
 class BrewQueryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if sys.platform == 'darwin' and shutil.which('brew'):
-            cls.ruby = [shutil.which('brew'), 'ruby']
+        cls.brew = shutil.which('brew')
+        if cls.brew:
+            cls.ruby = [cls.brew, 'ruby']
         else:
             ruby = os.environ.get('ASTER_TEST_RUBY') or shutil.which('ruby')
             if not ruby:
@@ -92,6 +94,24 @@ class BrewQueryTests(unittest.TestCase):
         self.assertEqual(metadata['patches'], [])
         self.assertEqual(metadata['sources'], [
             {'url': 'https://example.org/gcc.tar.xz', 'sha256': 'a' * 64, 'kind': 'source'}])
+
+    def test_homebrew_reads_the_saved_recipe_for_an_installed_version(self):
+        if not self.brew:
+            self.skipTest('Requires Homebrew')
+        with tempfile.TemporaryDirectory(prefix='brew recipes ') as td:
+            recipe = Path(td) / 'Cellar/gsl/1.2.3_2/.brew/gsl.rb'
+            recipe.parent.mkdir(parents=True)
+            url = 'https://example.org/gsl-1.2.3.tar.gz'
+            checksum = 'a' * 64
+            recipe.write_text(
+                f'class Gsl < Formula\n  url "{url}"\n  sha256 "{checksum}"\n  revision 2\nend\n',
+                encoding='utf-8')
+            result = subprocess.run([self.brew, 'ruby', '-e', providers.BREW_QUERY, '--', str(recipe)],
+                                    capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        metadata = json.loads(result.stdout)
+        self.assertEqual((metadata['name'], metadata['version']), ('gsl', '1.2.3_2'))
+        self.assertEqual(metadata['sources'], [{'url': url, 'sha256': checksum, 'kind': 'source'}])
 
     def test_all_patch_kinds_preserve_bytes_and_scope_without_base64_gem(self):
         # Binary bytes, UTF-8, CRLF and a long line must survive Ruby -> JSON -> Python.

@@ -65,7 +65,7 @@ def main():
     env = dict(os.environ, QT_QPA_PLATFORM='offscreen', OPENBLAS_NUM_THREADS='1',
                QT_FORCE_STDERR_LOGGING='1')
     if sys.platform == 'win32' and not env.get('QT_QPA_FONTDIR'):
-        env['QT_QPA_FONTDIR'] = str(Path(env.get('SystemRoot') or 'C:/Windows') / 'Fonts')
+        env['QT_QPA_FONTDIR'] = str(Path(env.get('SYSTEMROOT') or 'C:/Windows') / 'Fonts')
     if env.get('QT_QPA_FONTDIR'):
         print(f"Qt offscreen font directory: {env['QT_QPA_FONTDIR']}", flush=True)
     results = []

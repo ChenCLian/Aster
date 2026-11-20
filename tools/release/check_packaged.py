@@ -61,7 +61,7 @@ def _run_checks(archive, version, platform, output):
         for name in ('LD_LIBRARY_PATH','DYLD_LIBRARY_PATH','DYLD_FRAMEWORK_PATH','DYLD_FALLBACK_LIBRARY_PATH','DYLD_FALLBACK_FRAMEWORK_PATH','QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH'):
             env.pop(name,None)
         if platform=='windows-x64':
-            windows=Path(env.get('SystemRoot') or 'C:/Windows')
+            windows=Path(env.get('SYSTEMROOT') or 'C:/Windows')
             env['PATH']=os.pathsep.join(map(str,[folder,windows/'System32',windows]))
             if not env.get('QT_QPA_FONTDIR'):
                 env['QT_QPA_FONTDIR']=str(windows/'Fonts')

@@ -29,12 +29,14 @@ class PackagedChecksTests(unittest.TestCase):
                 def startup(command, folder, env, log):
                     self.assertEqual(env['QT_QPA_PLATFORM'], 'offscreen')
                     self.assertEqual(env['QT_QPA_FONTDIR'], str(expected))
+                    self.assertEqual(env['PATH'].split(c.os.pathsep),
+                                     [str(folder), str(system / 'System32'), str(system)])
                     if '--release-smoke-output' in command:
                         Path(command[-1]).touch()
                     return subprocess.CompletedProcess(command, 0, 'AstroBatch ' + version)
 
                 with self.subTest(override=override), patch.dict(c.os.environ, {
-                    'SystemRoot': str(system), 'QT_QPA_FONTDIR': override
+                    'SYSTEMROOT': str(system), 'QT_QPA_FONTDIR': override
                 }), patch.object(c, 'probe', side_effect=startup) as probes:
                     c.run(archive, version, platform, base / 'report')
                     self.assertEqual(probes.call_count, 4)

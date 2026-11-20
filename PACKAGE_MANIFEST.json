@@ -3410,7 +3410,7 @@
     {
       "path": "tools/release/check_packaged.py",
       "bytes": 4791,
-      "sha256": "500bf830bd20d2eb2d6f95628fda16d1002bad1dbf9bc8f7abe042e85c0d84e1"
+      "sha256": "fd3f79ab5a2222b63076e7214a8754a834bc23a9eb72ba16f31c2670b4a42b0b"
     },
     {
       "path": "tools/release/check_resource_integrity.py",
@@ -3439,8 +3439,8 @@
     },
     {
       "path": "tools/release/dependency_providers.py",
-      "bytes": 45086,
-      "sha256": "3bc7cde890743cb23b00aa0b4b77090919fcb1413eedad66f203679b5c98801e"
+      "bytes": 45350,
+      "sha256": "932e6241304cf6d83a989fa9d33c5c673ff51a59fc915c800bf06563f767c211"
     },
     {
       "path": "tools/release/dependency_supplement.example.json",
@@ -3515,7 +3515,7 @@
     {
       "path": "tools/release/run_tests.py",
       "bytes": 6982,
-      "sha256": "d50ddb97016ac32c3dac6dbe89510bad720fac73c153abbd115f87b321f9536d"
+      "sha256": "d06fcca2509ec26d65b67c24c77d8c90dc1a202059cdd0c1f5895d39fd977722"
     },
     {
       "path": "tools/release/select_release_run.py",
@@ -3534,13 +3534,13 @@
     },
     {
       "path": "tools/release/test_brew_query.py",
-      "bytes": 4700,
-      "sha256": "c37514c6d8963356242efe06bdfd5f38d7bcc5f8552a2660d320d9209c815b87"
+      "bytes": 5768,
+      "sha256": "400a332deefc052f698ab34c7776980ce5c60cfa98007882d1cb0e9060ad6624"
     },
     {
       "path": "tools/release/test_check_packaged.py",
-      "bytes": 5996,
-      "sha256": "4faf05dddfa16ef052823f73e5398d2e97070ef60bbf8bde1975109a0a812b56"
+      "bytes": 6157,
+      "sha256": "754faf0f17e5143136e0ceaf1f40ca5bcfd3603790e58a5edf23dab5b8419292"
     },
     {
       "path": "tools/release/test_current_version.py",
@@ -3615,7 +3615,7 @@
     {
       "path": "tools/release/test_run_tests.py",
       "bytes": 11931,
-      "sha256": "e43cf1cb25659ada33f75c33f3a04788bbcb584af0e368a9cbec5468e40d357a"
+      "sha256": "64cc6048e47ed0789f73f3e588df5fb13a7d327cf2b3f6c507bb9c7bd19c231d"
     },
     {
       "path": "tools/release/test_select_release_run.py",

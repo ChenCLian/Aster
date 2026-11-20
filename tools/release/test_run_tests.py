@@ -108,7 +108,7 @@ class RunnerTests(unittest.TestCase):
         configured = self.build / 'test fonts'
         for override, expected in [('', system / 'Fonts'), (str(configured), configured)]:
             with self.subTest(override=override), patch.object(sys, 'platform', 'win32'), \
-                    patch.dict(runner.os.environ, {'SystemRoot': str(system), 'QT_QPA_FONTDIR': override}):
+                    patch.dict(runner.os.environ, {'SYSTEMROOT': str(system), 'QT_QPA_FONTDIR': override}):
                 code, calls = self.invoke(['gui'], lambda *a, **k:
                     self.emit('Totals: 1 passed, 0 failed, 0 skipped\n', k))
                 self.assertEqual(code, 0)
