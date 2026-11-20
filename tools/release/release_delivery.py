@@ -13,13 +13,13 @@ from document_links import release_body, mirror_release_body
 from release_asset_names import asset_name, validate_names, legacy_asset_names, dependency_tag
 
 ROOT = Path(__file__).resolve().parents[2]
-REPO = 'ChenCLian/Aster'
+REPO = 'ChenCLian/AstroBatch'
 
 
 def package_names(version):
     if not valid_version(version):
         raise ValueError('Only stable and beta releases can be delivered; alpha is development-only')
-    return {f'Aster-{version}-{p}' + ('.tar.gz' if p == 'linux-x64' else '.zip') for p in PLATFORMS}
+    return {f'AstroBatch-{version}-{p}' + ('.tar.gz' if p == 'linux-x64' else '.zip') for p in PLATFORMS}
 
 
 def mirror_plan(folder, version, limit=None):
@@ -49,7 +49,7 @@ def download_section(version):
     entries = []
     for platform in PLATFORMS:
         suffix = '.tar.gz' if platform == 'linux-x64' else '.zip'
-        url = f'{base}/download/v{version}/Aster-{version}-{platform}{suffix}'
+        url = f'{base}/download/v{version}/AstroBatch-{version}-{platform}{suffix}'
         entries.append(f'[{platform}]({url})')
     return ('## 程序下载\n\n' + ' · '.join(entries) + '\n\n' +
             f'[依赖源码、许可证与构建记录]({base}/tag/{dependency_tag(version)})')
@@ -59,7 +59,7 @@ def check_material_receipts(artifacts, version):
     for platform in PLATFORMS:
         directory = artifacts / ('dependency-materials-' + platform)
         for suffix in ('dependency-lock.json', 'dependency-records.zip'):
-            name = f'Aster-{version}-{platform}-{suffix}'
+            name = f'AstroBatch-{version}-{platform}-{suffix}'
             # Older wildcard uploads include <platform>/release-assets/ inside
             # the named artifact. New uploads contain the same files at its root.
             matches = sorted(directory.rglob(name))
@@ -87,7 +87,7 @@ def prepare(artifacts, destination, version, source=ROOT):
     destination.mkdir(parents=True,exist_ok=True)
     for name,path in found.items():shutil.copy2(path,destination/name)
     metadata=generate([destination/name for name in sorted(expected)],version)
-    (destination/'Aster-update.json').write_text(json.dumps(metadata,indent=2)+'\n',encoding='utf-8')
+    (destination/'AstroBatch-update.json').write_text(json.dumps(metadata,indent=2)+'\n',encoding='utf-8')
     # Dependency sources go to GitHub only. Identical shared archives are deduped;
     # equal names with different bytes are an error, not silent overwrites.
     materials = destination / 'dependency-materials' if split else destination
@@ -96,10 +96,10 @@ def prepare(artifacts, destination, version, source=ROOT):
     for directory in artifacts.glob('dependency-materials-*'):
         for path in directory.rglob('*'):
             if not path.is_file():continue
-            if path.name in expected or path.name in ('Aster-update.json','SHA256SUMS.txt'):
+            if path.name in expected or path.name in ('AstroBatch-update.json','SHA256SUMS.txt'):
                 raise ValueError('Dependency artifact collides with program metadata')
             if split and (path.is_symlink() or asset_name(path.name) in
-                          {'Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md','SHA256SUMS.txt'}):
+                          {'AstroBatch-asset-filenames.json','DEPENDENCY_DOWNLOADS.md','SHA256SUMS.txt'}):
                 raise ValueError('Invalid or reserved dependency asset: '+path.name)
             target=materials/path.name
             if target.exists():
@@ -130,7 +130,7 @@ def find_release(tag, commit=None, title=None):
             if release['tag_name']==tag:
                 matches.append(release)
             elif (release.get('draft') and release['tag_name'].startswith('untagged-')
-                  and release.get('name')==(title or 'Aster '+tag.removeprefix('v'))):
+                  and release.get('name')==(title or 'AstroBatch '+tag.removeprefix('v'))):
                 # Recover only an unambiguously matching draft left by older tooling.
                 if not commit or release.get('target_commitish')!=commit:
                     raise ValueError('An untagged draft has this version title but a different target; '
@@ -211,14 +211,14 @@ def upload_asset(release_id,tag,path,beta,protected_names=()):
 
 def write_asset_index(folder,version,files):
     entries=[dict(source_name=p.name,asset_name=asset_name(p.name),bytes=p.stat().st_size,sha256=digest(p)) for p in files]
-    mapping=folder/'Aster-asset-filenames.json'
+    mapping=folder/'AstroBatch-asset-filenames.json'
     mapping.write_text(json.dumps(dict(schema=1,version=version,assets=entries),indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
     guide=folder/'DEPENDENCY_DOWNLOADS.md'
     lines=['# Release files and dependency source filenames','',
            'Download links use the published names. Source archives retain their original bytes.',
            'Before rebuilding Debian sources, restore each downloaded source archive to its original filename',
            'shown below, so that .dsc references resolve. Verify SHA256SUMS.txt before renaming.',
-           'Aster-asset-filenames.json records both names and SHA-256. Files inside program packages are unchanged.',
+           'AstroBatch-asset-filenames.json records both names and SHA-256. Files inside program packages are unchanged.',
            'For older program packages whose dependency links contain special characters, use this index.',
            '', '| Original filename | Download |', '| --- | --- |']
     for entry in entries:
@@ -230,21 +230,21 @@ def write_asset_index(folder,version,files):
 
 
 def prepared_files(folder,version):
-    required=package_names(version)|{'Aster-update.json','RELEASE_GITHUB.md',f'Aster-{version}-source.zip'}
+    required=package_names(version)|{'AstroBatch-update.json','RELEASE_GITHUB.md',f'AstroBatch-{version}-source.zip'}
     if any(not (folder/name).is_file() or (folder/name).is_symlink() for name in required):
         raise ValueError('Incomplete release preparation: require four packages, metadata, notes and source ZIP')
     expected=generate([folder/name for name in sorted(package_names(version))],version)
-    if json.loads((folder/'Aster-update.json').read_text(encoding='utf-8'))!=expected:
+    if json.loads((folder/'AstroBatch-update.json').read_text(encoding='utf-8'))!=expected:
         raise ValueError('Prepared metadata differs from the actual program packages')
-    if not zipfile.is_zipfile(folder/f'Aster-{version}-source.zip'):
+    if not zipfile.is_zipfile(folder/f'AstroBatch-{version}-source.zip'):
         raise ValueError('Invalid source ZIP')
-    files=[p for p in folder.iterdir() if p.is_file() and p.name not in ('RELEASE_GITHUB.md','RELEASE_GITEE.md','mirror-plan.json','SHA256SUMS.txt','Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md')]
+    files=[p for p in folder.iterdir() if p.is_file() and p.name not in ('RELEASE_GITHUB.md','RELEASE_GITEE.md','mirror-plan.json','SHA256SUMS.txt','AstroBatch-asset-filenames.json','DEPENDENCY_DOWNLOADS.md')]
     if any(p.is_symlink() for p in files):raise ValueError('Release assets must be regular files')
     if dependency_tag(version) != 'v' + version:
-        allowed = package_names(version) | {'Aster-update.json', f'Aster-{version}-source.zip'}
+        allowed = package_names(version) | {'AstroBatch-update.json', f'AstroBatch-{version}-source.zip'}
         if {p.name for p in files} != allowed:
             raise ValueError('Unexpected file in the program release directory')
-    validate_names([p.name for p in files]+['SHA256SUMS.txt','Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md'])
+    validate_names([p.name for p in files]+['SHA256SUMS.txt','AstroBatch-asset-filenames.json','DEPENDENCY_DOWNLOADS.md'])
     return sorted(files)
 
 
@@ -266,20 +266,20 @@ def publish_draft(folder, version, commit):
         if not directory.is_dir() or directory.is_symlink():
             raise ValueError('Missing separate dependency materials directory')
         material_files = [p for p in sorted(directory.iterdir())
-                          if p.name not in ('SHA256SUMS.txt', 'Aster-asset-filenames.json', 'DEPENDENCY_DOWNLOADS.md')]
+                          if p.name not in ('SHA256SUMS.txt', 'AstroBatch-asset-filenames.json', 'DEPENDENCY_DOWNLOADS.md')]
         if any(not p.is_file() or p.is_symlink() for p in material_files):
             raise ValueError('Expected regular dependency assets')
-        required = {f'Aster-{version}-{platform}-{suffix}' for platform in PLATFORMS
+        required = {f'AstroBatch-{version}-{platform}-{suffix}' for platform in PLATFORMS
                     for suffix in ('dependency-lock.json', 'dependency-records.zip')}
         if not required <= {p.name for p in material_files}:
             raise ValueError('Missing platform dependency locks or records')
-        validate_names([p.name for p in material_files] + ['Aster-asset-filenames.json','DEPENDENCY_DOWNLOADS.md','SHA256SUMS.txt'])
+        validate_names([p.name for p in material_files] + ['AstroBatch-asset-filenames.json','DEPENDENCY_DOWNLOADS.md','SHA256SUMS.txt'])
         material_files += write_asset_index(directory, version, material_files)
         material_tag = dependency_tag(version)
-        title = 'Aster ' + version + ' dependency materials'
+        title = 'AstroBatch ' + version + ' dependency materials'
         material_release = find_release(material_tag, commit, title)
         base = f'https://github.com/{REPO}/releases'
-        material_notes = (f'[Aster {version} 程序下载与版本说明]({base}/tag/{tag})\n\n'
+        material_notes = (f'[AstroBatch {version} 程序下载与版本说明]({base}/tag/{tag})\n\n'
                           f'[依赖源码文件索引]({base}/download/{material_tag}/DEPENDENCY_DOWNLOADS.md) · '
                           '各平台的 dependency-records.zip 包含许可证、配方和依赖记录。')
         deliver_files(directory, material_files, material_tag, commit, title, material_notes,
@@ -287,7 +287,7 @@ def publish_draft(folder, version, commit):
         footer = download_section(version)
     else:
         files += write_asset_index(folder, version, files)
-    deliver_files(folder, files, tag, commit, 'Aster '+version, notes,
+    deliver_files(folder, files, tag, commit, 'AstroBatch '+version, notes,
                   '-beta.' in version, existing, footer=footer)
     print('Draft ready for review: '+tag)
 
@@ -366,7 +366,7 @@ def main():
         publish_draft(args.directory,args.version,args.commit)
         if dependency_tag(args.version) != 'v'+args.version and os.environ.get('GITHUB_STEP_SUMMARY'):
             with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
-                summary.write(f'## Aster {args.version}\n\n核验完成。打开 [Releases](https://github.com/{REPO}/releases)，依次检查并发布：\n\n'
+                summary.write(f'## AstroBatch {args.version}\n\n核验完成。打开 [Releases](https://github.com/{REPO}/releases)，依次检查并发布：\n\n'
                               f'1. `{dependency_tag(args.version)}` — 依赖源码、许可证、配方和文件索引。\n'
                               f'2. `v{args.version}` — 四个平台程序包、项目源码、更新清单和 SHA-256。\n')
     else:

@@ -17,11 +17,13 @@ using namespace aster::ui;
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
-    QCoreApplication::setOrganizationName("Aster");
-    QCoreApplication::setApplicationName("Aster_Workspace");
+    QCoreApplication::setOrganizationName("AstroBatch");
+    QCoreApplication::setApplicationName("AstroBatch");
+    QApplication::setApplicationDisplayName(QStringLiteral("AstroBatch"));
+    QApplication::setDesktopFileName(QStringLiteral("AstroBatch"));
     QCoreApplication::setApplicationVersion(ASTER_VERSION);
     QCommandLineParser parser;
-    parser.setApplicationDescription("Aster desktop workflow workspace");
+    parser.setApplicationDescription("AstroBatch — batch analysis of stratigraphic time and depth series");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption({"numeric-backend", "Print the actual numerical backend and exit"});
@@ -32,7 +34,6 @@ int main(int argc, char **argv)
     parser.process(app);
     const bool smoke=parser.isSet("release-smoke-output");
     if(smoke&&!parser.isSet("database")){QTextStream(stderr)<<"Release smoke checks require an isolated --database path\n";return 2;}
-    auto settings = smoke ? AppSettings{} : AppSettings::load();
     if (parser.isSet("numeric-backend")) {
         try {
             const auto info = aster::numeric::backend::backendInfo();
@@ -47,13 +48,14 @@ int main(int argc, char **argv)
             return 1;
         }
     }
+    auto settings = smoke ? AppSettings{} : AppSettings::load();
     if (parser.isSet("database")) settings.databasePath = parser.value("database");
     if (parser.isSet("language")) settings.language = parser.value("language");
     if (parser.isSet("theme")) settings.theme = parser.value("theme");
     setLanguage(settings.language);
     ThemeManager::instance().apply(app, settings.theme);
     // The theme manager initializes the resource collection in desktop_ui.
-    QApplication::setWindowIcon(QIcon(QStringLiteral(":/app/aster.png")));
+    QApplication::setWindowIcon(QIcon(QStringLiteral(":/app/AstroBatch.png")));
     int exitCode = 0;
     bool restart = false;
     {

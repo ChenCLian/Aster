@@ -1,4 +1,4 @@
-"""Independent O(N^2) DFT oracle; no Aster / PocketFFT / filter implementation import.
+"""Independent O(N^2) DFT oracle; no AstroBatch / PocketFFT / filter implementation import.
 Reference formulas: Acycle corrected-bandpass-v2. scipy.signal.hilbert provides
 an independent check of the analytic signal.
 Run this file to regenerate filter_reference.json (NumPy + SciPy).

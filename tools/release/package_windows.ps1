@@ -15,7 +15,7 @@ param(
 # This script packages a previously built MSVC x64 Release executable.
 $ErrorActionPreference = "Stop"
 
-function Assert-AsterExecutableVersion {
+function Assert-AstroBatchExecutableVersion {
     param([string]$App, [string]$Version, [string]$Arguments = "--version", [int]$TimeoutMilliseconds = 15000)
     # PE ProductVersion is numeric (e.g. 1.2.0.0); it cannot distinguish betas.
     # Probe the deployed executable with redirected handles, without opening UI
@@ -42,9 +42,9 @@ function Assert-AsterExecutableVersion {
         if ($process.ExitCode -ne 0) {
             throw "Executable version check exited with $($process.ExitCode): $stderr"
         }
-        $expected = "Aster_Workspace $Version"
+        $expected = "AstroBatch $Version"
         if ($stdout -cne $expected) {
-            throw "Executable reports '$stdout'; expected '$expected'. Clean and rebuild the root Aster.pro from this source, then package to a new OutputDir."
+            throw "Executable reports '$stdout'; expected '$expected'. Clean and rebuild the root AstroBatch.pro from this source, then package to a new OutputDir."
         }
         Write-Host "Verified executable version: $Version"
     } finally {
@@ -52,7 +52,7 @@ function Assert-AsterExecutableVersion {
     }
 }
 
-function Get-AsterPython {
+function Get-AstroBatchPython {
     param([string]$Explicit = "")
     $candidates = @()
     $names = if ($Explicit) { @($Explicit) } else { @("py", "python", "python3") }
@@ -95,20 +95,20 @@ function Get-AsterPython {
     throw "A working Python 3.10+ interpreter is required. Install Python or pass -PythonExe with its full executable path. No staging folder has been created.$detail"
 }
 
-function Invoke-AsterCollector {
+function Invoke-AstroBatchCollector {
     param([string]$Python, [string[]]$CollectorArguments, [string]$MaterialRoot, [string]$Version)
     New-Item -ItemType Directory -Path $MaterialRoot -Force | Out-Null
-    $marker = Join-Path $MaterialRoot ".aster-dependency-materials"
+    $marker = Join-Path $MaterialRoot ".astrobatch-dependency-materials"
     if ((Get-ChildItem -LiteralPath $MaterialRoot -Force | Select-Object -First 1) -and !(Test-Path -LiteralPath $marker)) {
         throw "Dependency output must be empty or a previous collector output: $MaterialRoot"
     }
     # The collector accepts only its own output directory. Mark it before the log
     # makes the directory nonempty, and never treat an old report as a new result.
-    Set-Content -LiteralPath $marker -Value "Aster dependency collector output" -Encoding ASCII
+    Set-Content -LiteralPath $marker -Value "AstroBatch dependency collector output" -Encoding ASCII
     $reportPath = Join-Path $MaterialRoot "report.json"
     $logPath = Join-Path $MaterialRoot "collector.log"
     if (Test-Path -LiteralPath $reportPath) { Remove-Item -LiteralPath $reportPath -Force }
-    Set-Content -LiteralPath $logPath -Value "Aster $Version dependency collector`nPython: $Python" -Encoding UTF8
+    Set-Content -LiteralPath $logPath -Value "AstroBatch $Version dependency collector`nPython: $Python" -Encoding UTF8
     $savedPreference = $ErrorActionPreference
     $savedEncoding = [Console]::OutputEncoding
     $PSNativeCommandUseErrorActionPreference = $false
@@ -142,7 +142,7 @@ function Invoke-AsterCollector {
         # Startup, argument, import and unexpected process failures may happen
         # before Python can write its normal report. Preserve that distinction.
         $message = "Collector terminated without a successful result. Exit code: $exitCode. See collector.log for process output."
-        $report = [ordered]@{ schema = 1; project = "Aster"; version = $Version; platform = "windows-x64";
+        $report = [ordered]@{ schema = 1; project = "AstroBatch"; version = $Version; platform = "windows-x64";
             status = "incomplete"; phase = "collector-process"; exit_code = $exitCode;
             components = @(); binaries = @(); errors = @(@{ component = "collector-process"; message = $message }) }
         try { [IO.File]::WriteAllText($reportPath, ($report | ConvertTo-Json -Depth 12), (New-Object System.Text.UTF8Encoding($false))) }
@@ -152,7 +152,7 @@ function Invoke-AsterCollector {
     throw "Dependency collector failed (exit $exitCode). $reportHint Log: $logPath. The staging folder is preserved for diagnosis; release preparation did not complete."
 }
 
-function Invoke-AsterReuse {
+function Invoke-AstroBatchReuse {
     param([string]$Python, [string[]]$ReuseArguments)
     $savedPreference = $ErrorActionPreference
     $savedEncoding = [Console]::OutputEncoding
@@ -182,8 +182,8 @@ if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') { throw "Invalid V
 $buildRoot = (Resolve-Path -LiteralPath $BuildDir).Path
 $qtRoot = (Resolve-Path -LiteralPath $QtBin).Path
 $dependencyRoot = (Resolve-Path -LiteralPath $VcpkgPrefix).Path
-$app = Join-Path $buildRoot "bin/Aster.exe"
-if (!(Test-Path -LiteralPath $app)) { throw "Build the root Aster.pro in Release first: missing bin/Aster.exe" }
+$app = Join-Path $buildRoot "bin/AstroBatch.exe"
+if (!(Test-Path -LiteralPath $app)) { throw "Build the root AstroBatch.pro in Release first: missing bin/AstroBatch.exe" }
 $deploy = Join-Path $qtRoot "windeployqt.exe"
 if (!(Test-Path -LiteralPath $deploy)) { throw "QtBin must contain windeployqt.exe from the matching Qt kit" }
 $dumpbin = (Get-Command dumpbin.exe -ErrorAction Stop).Source
@@ -201,7 +201,7 @@ if ($fileVersion -notmatch ('^' + [regex]::Escape($baseVersion) + '(?:\.0)?$')) 
 }
 if (!$OutputDir) { $OutputDir = Join-Path $projectRoot "dist" }
 $outputRoot = [IO.Path]::GetFullPath($OutputDir)
-$name = "Aster-$version-windows-x64"
+$name = "AstroBatch-$version-windows-x64"
 $stage = Join-Path $outputRoot $name
 if (Test-Path -LiteralPath $stage) { throw "Output already exists. Use a new OutputDir; existing packages are never overwritten." }
 if ($DependencyMode -ne "Collect" -and $DependencySupplement) {
@@ -211,7 +211,7 @@ if ($DependencyMode -ne "Collect" -and $DependencySupplement) {
 # material step, not by deployment itself. Keep preflight for Reuse and Collect.
 $python = $null
 if ($DependencyMode -ne "Stage") {
-    $python = Get-AsterPython -Explicit $PythonExe
+    $python = Get-AstroBatchPython -Explicit $PythonExe
     Write-Host "Dependency mode: $DependencyMode; Python $($python.Version) ($($python.Path))"
 } else {
     Write-Host "Dependency mode: Stage; deploy only, material collection is a separate step."
@@ -222,17 +222,17 @@ if ($LASTEXITCODE -ne 0) { throw "Cannot query windeployqt options" }
 if ($deployHelp -match '--no-system-dxc-compiler') { $deployArgs += "--no-system-dxc-compiler" }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 Set-Content -LiteralPath (Join-Path $stage "DEPENDENCY_MATERIALS_PENDING.txt") -Encoding UTF8 -Value "Dependency materials have not been verified. Do not publish this staging folder."
-Copy-Item -LiteralPath $app -Destination (Join-Path $stage "Aster.exe")
-# Aster's QWidget/QCustomPlot views use CPU painting; no software OpenGL or
+Copy-Item -LiteralPath $app -Destination (Join-Path $stage "AstroBatch.exe")
+# AstroBatch's QWidget/QCustomPlot views use CPU painting; no software OpenGL or
 # system D3D compiler redistributable is needed for these views.
-& $deploy @deployArgs --dir $stage (Join-Path $stage "Aster.exe")
+& $deploy @deployArgs --dir $stage (Join-Path $stage "AstroBatch.exe")
 if ($LASTEXITCODE -ne 0) { throw "windeployqt failed" }
 # The final-package smoke test must use the deployed plugin, not the Qt SDK.
 $offscreen = Join-Path (Split-Path $qtRoot) "plugins/platforms/qoffscreen.dll"
 if (!(Test-Path -LiteralPath $offscreen -PathType Leaf)) { throw "Matching Qt offscreen plugin is missing: $offscreen" }
 Copy-Item -LiteralPath $offscreen -Destination (Join-Path $stage "platforms/qoffscreen.dll")
 
-# Aster opens only QSQLITE connections. windeployqt can also copy optional
+# AstroBatch opens only QSQLITE connections. windeployqt can also copy optional
 # SQL plugins whose database clients are not part of this application.
 # Prune only the new deployment directory, before collecting DLL dependencies.
 $sqlDriverDir = Join-Path $stage "sqldrivers"
@@ -276,7 +276,7 @@ foreach ($required in @("Qt6Core.dll","Qt6Network.dll","platforms/qwindows.dll",
 }
 # Check the complete compiled version in every mode, before collecting/reusing
 # materials or reporting deployment success. A directory name proves no version.
-Assert-AsterExecutableVersion -App (Join-Path $stage "Aster.exe") -Version $version
+Assert-AstroBatchExecutableVersion -App (Join-Path $stage "AstroBatch.exe") -Version $version
 # Keep upstream notices alongside the executable. No developer database/settings are copied.
 $notices = Join-Path $stage "licenses"
 New-Item -ItemType Directory -Path $notices | Out-Null
@@ -324,15 +324,15 @@ foreach ($relative in $manualFiles) {
     Copy-Item -LiteralPath $source -Destination $target
 }
 New-Item -ItemType Directory -Path (Join-Path $stage "resources/app") -Force | Out-Null
-Copy-Item -LiteralPath (Join-Path $projectRoot "resources/app/aster.png") -Destination (Join-Path $stage "resources/app/aster.png")
+Copy-Item -LiteralPath (Join-Path $projectRoot "resources/app/AstroBatch.png") -Destination (Join-Path $stage "resources/app/AstroBatch.png")
 if ($VcRedist) {
     if (!(Test-Path -LiteralPath $VcRedist -PathType Leaf)) { throw "VcRedist must be the official vc_redist.x64.exe installer" }
     Copy-Item -LiteralPath $VcRedist -Destination (Join-Path $stage "vc_redist.x64.exe")
 }
 @"
-Aster $version (Windows x64)
+AstroBatch $version (Windows x64)
 
-No installation is required. Extract the complete package, then double-click Aster.exe.
+No installation is required. Extract the complete package, then double-click AstroBatch.exe.
 Keep all files and subfolders together.
 Copyright (C) 2026 ZiJie Chen. License: GPL-3.0-only; see LICENSE.
 Source and redistribution information: SOURCE_CODE.md.
@@ -340,18 +340,18 @@ Getting started: QUICK_START.md. Troubleshooting: FAQ.md.
 If the Microsoft Visual C++ x64 runtime is missing, install the official package:
 https://aka.ms/vc14/vc_redist.x64.exe
 
-To update: close Aster and extract the new full package to a NEW application folder.
+To update: close AstroBatch and extract the new full package to a NEW application folder.
 Your database and settings remain at their existing locations. If you manually placed
 a database inside the old application folder, keep that folder or move the database
 and select its new location in Settings. Do not delete the old folder before checking.
 
 Check for updates: Settings -> Check for updates.
 This release checks GitHub releases and opens the browser; it does not auto-install.
-Releases: https://github.com/ChenCLian/Aster/releases
+Releases: https://github.com/ChenCLian/AstroBatch/releases
 "@ | Set-Content -LiteralPath (Join-Path $stage "START_HERE.txt") -Encoding UTF8
 # This marker identifies the extracted package; it is not a code signature.
 $packageMarker = [ordered]@{ schema = 1; version = $version; platform = "windows-x64" }
-[IO.File]::WriteAllText((Join-Path $stage "aster-package.json"), ($packageMarker | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
+[IO.File]::WriteAllText((Join-Path $stage "astrobatch-package.json"), ($packageMarker | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
 # Stage intentionally leaves the pending marker. It is not a completed release.
 # The standalone collector installs verified materials and removes that marker.
 # Default Reuse and explicit Collect still fail if materials cannot be verified.
@@ -373,11 +373,11 @@ if ($DependencyMode -eq "Collect") {
     if ($VcpkgRoot) { $materialArgs += @("--vcpkg-root", $VcpkgRoot) }
     if ($DependencyCache) { $materialArgs += @("--cache", $DependencyCache) }
     if ($DependencySupplement) { $materialArgs += @("--supplement", $DependencySupplement) }
-    Invoke-AsterCollector -Python $python.Path -CollectorArguments $materialArgs -MaterialRoot $materialRoot -Version $version
+    Invoke-AstroBatchCollector -Python $python.Path -CollectorArguments $materialArgs -MaterialRoot $materialRoot -Version $version
 } else {
     $reuseArgs = @("$PSScriptRoot/reuse_dependency_materials.py", "--package-dir", $stage,
         "--materials", $materialRoot, "--qmake", (Join-Path $qtRoot "qmake.exe"))
-    Invoke-AsterReuse -Python $python.Path -ReuseArguments $reuseArgs
+    Invoke-AstroBatchReuse -Python $python.Path -ReuseArguments $reuseArgs
 }
 if (Test-Path -LiteralPath (Join-Path $stage "DEPENDENCY_MATERIALS_PENDING.txt")) {
     throw "Dependency material verification did not complete. The staging folder is not ready for publication."

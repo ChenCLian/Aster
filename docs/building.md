@@ -1,10 +1,10 @@
 # 源码构建与开发
 
-适用版本：Aster 1.3.2-beta.7。
+适用版本：AstroBatch 1.3.3-beta.1。
 
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 
-本文面向从源码编译或维护 Aster 的开发者。安装发行包无需配置 Qt、vcpkg 或编译器。
+本文面向从源码编译或维护 AstroBatch 的开发者。安装发行包无需配置 Qt、vcpkg 或编译器。
 
 ## 依赖
 
@@ -27,21 +27,21 @@
 1. 将源码解压到独立目录，为它创建单独的构建目录。
 2. 在 `config/local.pri` 中填写本机依赖路径；没有该文件时，可从 `config/local.pri.example` 创建。已有配置无需覆盖，不要提交该本地配置。
 3. 当前 vcpkg 配置需要 `gsl:x64-windows`、`openblas:x64-windows` 、`lapack-reference:x64-windows` 和 `libarchive:x64-windows`。
-4. Qt Creator 打开根目录 **`Aster.pro`**，选择 Kit 和 **Release**，运行 qmake，再构建整个工程。
-5. 运行配置选择 **desktop / Aster**。程序输出通常位于构建根目录的 **`bin/Aster.exe`**。
+4. Qt Creator 打开根目录 **`AstroBatch.pro`**，选择 Kit 和 **Release**，运行 qmake，再构建整个工程。
+5. 运行配置选择 **desktop / AstroBatch**。程序输出通常位于构建根目录的 **`bin/AstroBatch.exe`**。
 
-根工程统一构建依赖模块，使用 `bin/` 和 `lib/` 输出目录；桌面入口为 `Aster`。直接运行开发构建时，仍需匹配的 Qt 插件和第三方运行库；Debug 与 Release 依赖不可混用。
+根工程统一构建依赖模块，使用 `bin/` 和 `lib/` 输出目录；桌面入口为 `AstroBatch`。直接运行开发构建时，仍需匹配的 Qt 插件和第三方运行库；Debug 与 Release 依赖不可混用。
 
 ## Linux
 
-准备 Qt 6、QSQLITE、GSL、libarchive 开发包（Ubuntu 为 `libarchive-dev`）和 LP64 OpenBLAS/LAPACK 后，在包含 `Aster.pro` 的源码根目录执行以下命令。
+准备 Qt 6、QSQLITE、GSL、libarchive 开发包（Ubuntu 为 `libarchive-dev`）和 LP64 OpenBLAS/LAPACK 后，在包含 `AstroBatch.pro` 的源码根目录执行以下命令。
 
 ```sh
 mkdir build-release
 cd build-release
-qmake6 ../Aster.pro CONFIG+=release CONFIG-=debug
+qmake6 ../AstroBatch.pro CONFIG+=release CONFIG-=debug
 make -j4
-./bin/Aster
+./bin/AstroBatch
 ```
 
 部分环境中的 Qt 6 qmake 命令名为 `qmake`，请使用对应 Qt 6 安装提供的命令。
@@ -56,11 +56,11 @@ make -j4
 
 程序版本的统一入口是根目录 [VERSION](../VERSION)。修改版本或图标构建配置后，重新运行 qmake 并构建。完整版本通过生成头文件编入程序；版本文件变更会触发 qmake 更新及相关源文件重新编译。
 
-升级旧源码或发现界面版本与源码不一致时，使用新的 Release 构建目录编译整个根工程，避免沿用旧对象文件。打包脚本不编译源码，只部署现有构建产物（Windows 为 `BuildDir/bin/Aster.exe`，Linux 为 `BuildDir/bin/Aster`，macOS 为 `BuildDir/bin/Aster.app`）；修改输出目录名、导出源码或收集材料均不会重新编译程序。发布前打开实际程序包，在“设置”中核对完整版本（包括 `beta` 后缀）。
+升级旧源码或发现界面版本与源码不一致时，使用新的 Release 构建目录编译整个根工程，避免沿用旧对象文件。打包脚本不编译源码，只部署现有构建产物（Windows 为 `BuildDir/bin/AstroBatch.exe`，Linux 为 `BuildDir/bin/AstroBatch`，macOS 为 `BuildDir/bin/AstroBatch.app`）；修改输出目录名、导出源码或收集材料均不会重新编译程序。发布前打开实际程序包，在“设置”中核对完整版本（包括 `beta` 后缀）。
 
-- **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `Aster-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
+- **源码导出：**`tools/release/package_source.py --output ../release-source` 生成 `AstroBatch-source-export-<版本>/` 普通目录，排除本机配置、构建产物和用户数据库；不生成 ZIP 或独立校验文件。
 - **Windows 程序包：**完成 MSVC x64 Release 构建后，使用 `tools/release/package_windows.ps1 -DependencyMode Stage` 部署 EXE、Qt 插件和第三方 DLL，再单独收集依赖源码与许可材料。已有同版本匹配材料时可用默认的 `Reuse` 模式离线复用；`Collect` 模式一次完成部署与收集。操作见[依赖材料说明](dependency_materials_zh.md#windows-本机打包)。项目源码通过独立导出命令生成普通目录。发布前应在未安装开发环境的 Windows 主机测试。
-- **检查更新：**正式版和 Beta 分开；Alpha 和草稿不进入更新候选。发布包含 `Aster-update.json` 时，可下载完整包、核对 SHA-256 并解压到新目录；缺少下载信息时保留浏览器入口。
+- **检查更新：**正式版和 Beta 分开；Alpha 和草稿不进入更新候选。发布包含 `AstroBatch-update.json` 时，可下载完整包、核对 SHA-256 并解压到新目录；缺少下载信息时保留浏览器入口。
 - **使用新版：**解压完成后打开目录，关闭旧版，再启动新版并打开原数据库。程序不会覆盖旧版、自动启动新版或删除用户数据。
 - **macOS / Linux：**`package_macos.sh`、`package_linux.sh` 收集各平台依赖并生成完整程序包。`.github/workflows/build-desktop.yml` 可在 GitHub 的原生系统上自动构建、测试和打包；不自动发布。
 
@@ -69,9 +69,9 @@ make -j4
 常用命令行：
 
 ```sh
-Aster --version
-Aster --numeric-backend
-Aster --database ./results.sqlite --language zh --theme light
+AstroBatch --version
+AstroBatch --numeric-backend
+AstroBatch --database ./results.sqlite --language zh --theme light
 ```
 
 ## 开发与验证
@@ -85,7 +85,7 @@ Aster --database ./results.sqlite --language zh --theme light
 | `resources/`、`config/` | 图标、主题、翻译、数据资源与构建配置 |
 | `docs/`、`tools/` | 开发说明、验证工具与发布脚本 |
 
-新增算法从 [功能扩展清单](Aster_development_checklist.md) 和 [任务接入说明](add_task.md) 开始。任务目录、参数面板和预览共用注册描述；新增 C++ 算法需要实现、注册、加入构建清单并验证。
+新增算法从 [功能扩展清单](AstroBatch_development_checklist.md) 和 [任务接入说明](add_task.md) 开始。任务目录、参数面板和预览共用注册描述；新增 C++ 算法需要实现、注册、加入构建清单并验证。
 
 修改参数定义或帮助译文时，按[参数参考维护说明](../tools/help_reference/README.md)生成并校验两种语言的文档，再重新构建程序。常规编译不需要 Python；生成和发布校验需要 Python 3.10 或以上版本。
 

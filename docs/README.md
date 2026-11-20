@@ -1,6 +1,6 @@
 # 文档索引
 
-适用版本：Aster 1.3.2-beta.7。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
+适用版本：AstroBatch 1.3.3-beta.1。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
 
 按使用目的浏览下列主题。内置帮助左侧提供相同分类的可折叠目录与全文搜索，正文区另有独立的页内查找。
 
@@ -92,7 +92,7 @@
 | 依赖源码、许可证自动收集与 Release 附件 | [依赖材料](dependency_materials_zh.md) |
 | 参数参考生成、语言回退与同步校验 | [帮助维护](../tools/help_reference/README.md) |
 | 模块、工作流与数据传输 | [架构](architecture.md)、[预览接口](development/workflow_preview.md)、[绘图接口](development/plotting.md) |
-| 添加任务与组织分类 | [功能扩展清单](Aster_development_checklist.md)、[任务接入](add_task.md)、[任务分类](task_catalogue.md) |
+| 添加任务与组织分类 | [功能扩展清单](AstroBatch_development_checklist.md)、[任务接入](add_task.md)、[任务分类](task_catalogue.md) |
 | 数值后端与错误诊断 | [数值后端](numeric_backends.md)、[错误诊断](error_diagnostics.md) |
 | 当前版本验证 | [当前验证入口](validation_current.md)：构建环境、回归范围和文档检查结果 |
 | 科学验证与来源摘要 | [科学证据](reference/scientific_evidence.json) |

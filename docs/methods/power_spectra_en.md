@@ -84,7 +84,7 @@ The saved settings are rules—percentages, target counts and multipliers. Each 
 
 First check whether the 20% window contains the periods of interest, then inspect actual counts and cost. The target 500 is an upper count, not a guaranteed output count. The preset changes both calculation and display, so its effects cannot all be described as smoothing.
 
-Some choices reference Acycle LAH, without promising identical defaults or boundaries across versions. Aster does not pad both ends of the record, resample automatically or add a two-dimensional smoothing filter. Align numerical settings and coordinates before [display settings](../concepts/spectral_parameters_en.md#display). Sources and earlier comparison scope remain in the [method comparison (Chinese)](acycle_compatibility.md).
+Some choices reference Acycle LAH, without promising identical defaults or boundaries across versions. AstroBatch does not pad both ends of the record, resample automatically or add a two-dimensional smoothing filter. Align numerical settings and coordinates before [display settings](../concepts/spectral_parameters_en.md#display). Sources and earlier comparison scope remain in the [method comparison (Chinese)](acycle_compatibility.md).
 
 <a id="limits"></a>
 ## Errors and calculation size

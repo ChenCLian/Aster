@@ -82,7 +82,7 @@ class HTTPSRedirect(urllib.request.HTTPRedirectHandler):
 def open_url(url):
     check_url(url)
     return urllib.request.build_opener(HTTPSRedirect()).open(
-        urllib.request.Request(url, headers={'User-Agent': 'Aster-release-materials/1'}), timeout=20)
+        urllib.request.Request(url, headers={'User-Agent': 'AstroBatch-release-materials/1'}), timeout=20)
 
 
 def network_error(error):

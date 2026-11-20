@@ -31,7 +31,7 @@ void UpdateChecker::requestPage() {
     m_body.clear();m_transportFailure.clear();
     QNetworkRequest request(m_config.apiUrl(m_page,m_mirror));
     request.setRawHeader("Accept",m_mirror?"application/json":"application/vnd.github+json");
-    request.setRawHeader("User-Agent","Aster-update-checker");
+    request.setRawHeader("User-Agent","AstroBatch-update-checker");
     if(!m_mirror)request.setRawHeader("X-GitHub-Api-Version",m_config.apiVersion.toLatin1());
     // Use the configured public endpoint; do not follow redirects or ignore TLS errors.
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,QNetworkRequest::ManualRedirectPolicy);

@@ -11,11 +11,11 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: aster-gitee-mirror
+  group: astrobatch-gitee-mirror
   cancel-in-progress: false
 jobs:
   mirror:
-    if: vars.ENABLE_GITEE_MIRROR == 'true' && (github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v'))
+    if: github.repository == 'ChenCLian/AstroBatch' && vars.ENABLE_GITEE_MIRROR == 'true' && (github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'v'))
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     permissions:

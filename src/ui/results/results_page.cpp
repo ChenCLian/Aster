@@ -3,6 +3,7 @@
 #include <QScreen>
 #include "ui/common/error_presenter.h"
 #include <QApplication>
+#include <QAction>
 #include <QClipboard>
 #include "io/exports/export_path.h"
 #include "ui/exports/figure_export_dialog.h"
@@ -29,6 +30,7 @@
 #include <QTableWidget>
 #include <QTableView>
 #include <QStandardItemModel>
+#include <QMouseEvent>
 #include <QListWidget>
 #include <QHeaderView>
 #include <QComboBox>
@@ -100,7 +102,50 @@ class StepStatusDelegate final : public QStyledItemDelegate
     }
 };
 
-// One native selection model handles mouse and keyboard across the whole row.
+class OutputTableView final : public QTableView
+{
+  public:
+    std::function<bool()> hasSingleOutput;
+  protected:
+    void mouseDoubleClickEvent(QMouseEvent *event) override
+    {
+        // A fast second click arrives as a double-click instead of a press.
+        if (event->button() == Qt::LeftButton && event->modifiers() == Qt::NoModifier)
+            QTableView::mousePressEvent(event);
+        else
+            QTableView::mouseDoubleClickEvent(event);
+    }
+    QItemSelectionModel::SelectionFlags selectionCommand(const QModelIndex &index,
+                                                         const QEvent *event) const override
+    {
+        if (event && index.isValid() && (event->type() == QEvent::MouseButtonPress ||
+                                         event->type() == QEvent::MouseButtonDblClick)) {
+            const auto *mouse = static_cast<const QMouseEvent *>(event);
+            if (mouse->button() == Qt::LeftButton && mouse->modifiers() == Qt::NoModifier) {
+                if (selectionModel()->isSelected(index) && hasSingleOutput())
+                    return QItemSelectionModel::Deselect | QItemSelectionModel::Rows;
+                return QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows;
+            }
+        }
+        return QTableView::selectionCommand(index, event);
+    }
+};
+
+// Qt reports changes to visible rows only. A replacement can also discard
+// other steps, even when the visible selection itself did not change.
+class OutputSelectionModel final : public QItemSelectionModel
+{
+  public:
+    using QItemSelectionModel::QItemSelectionModel;
+    std::function<void()> discardOtherSteps;
+    void select(const QItemSelection &selection, SelectionFlags flags) override
+    {
+        QItemSelectionModel::select(selection, flags);
+        if (flags.testFlag(Clear) && !signalsBlocked() && discardOtherSteps)
+            discardOtherSteps();
+    }
+};
+
 class OutputRowDelegate final : public QStyledItemDelegate
 {
   public:
@@ -353,12 +398,31 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     outputsLayout->setContentsMargins(0, 0, 0, 0);
     m_outputsHeading = new QLabel(text("ui.available_outputs").arg(0));
     m_outputsHeading->setObjectName("outputListHeading");
-    outputsLayout->addWidget(m_outputsHeading);
-    m_outputs = new QTableView;
+    m_outputsHeading->setWordWrap(true);
+    auto *outputsHeader = new QHBoxLayout;
+    outputsHeader->addWidget(m_outputsHeading, 1);
+    auto *clearSelectionButton = new QToolButton;
+    clearSelectionButton->setObjectName("clearOutputSelection");
+    outputsHeader->addWidget(clearSelectionButton);
+    outputsLayout->addLayout(outputsHeader);
+    auto *outputTable = new OutputTableView;
+    outputTable->hasSingleOutput = [this] { return m_checked.size() == 1; };
+    m_outputs = outputTable;
     m_outputs->setObjectName("resultOutputs");
     m_outputModel = new QStandardItemModel(this);
     m_outputModel->setHorizontalHeaderLabels({text("ui.output"), text("ui.output_kind")});
     m_outputs->setModel(m_outputModel);
+    auto *defaultSelection = m_outputs->selectionModel();
+    auto *selection = new OutputSelectionModel(m_outputModel, m_outputs);
+    m_outputs->setSelectionModel(selection);
+    delete defaultSelection;
+    m_clearOutputs = new QAction(text("ui.clear_checked_outputs"), m_outputs);
+    m_clearOutputs->setShortcut(QKeySequence(Qt::Key_Escape));
+    m_clearOutputs->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_outputs->addAction(m_clearOutputs);
+    clearSelectionButton->setDefaultAction(m_clearOutputs);
+    clearSelectionButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    connect(m_clearOutputs, &QAction::triggered, this, &ResultsPage::clearOutputSelection);
     m_outputs->setItemDelegate(new OutputRowDelegate(m_outputs));
     m_outputs->setMouseTracking(true);
     m_outputs->setAccessibleName(text("ui.outputs_input"));
@@ -430,9 +494,14 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
         else center->setSizes({std::max(0, center->height() - center->handleWidth() - collapsedHeight),
                                collapsedHeight});
     });
-    connect(m_outputs->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+    selection->discardOtherSteps = [this] {
+        const auto removed = m_checked.removeIf([this](QMap<QString, OutputReference>::iterator entry) {
+            return entry.value().nodeId != m_selectedNode;
+        });
+        if (removed) updateOutputActions();
+    };
+    connect(selection, &QItemSelectionModel::selectionChanged, this,
         [this](const QItemSelection &selected, const QItemSelection &deselected) {
-            // Only this step is visible. Keep the selections made on other steps.
             for (const auto &index : deselected.indexes())
                 if (index.column() == 0)
                     m_checked.remove(index.data(Qt::UserRole).value<OutputReference>().key());
@@ -449,12 +518,12 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
                 m_ports->setCurrentIndex(m_ports->findData(m_outputModel->item(index.row(), 0)->data(Qt::UserRole).value<OutputReference>().port));
         });
     center->addWidget(stepsPanel);
-    center->preferredOutputHeight = [this, sl, browserHeader, bodyLayout, outputsLayout, actions] {
+    center->preferredOutputHeight = [this, sl, browserHeader, bodyLayout, outputsHeader, outputsLayout, actions] {
         m_steps->ensurePolished(); m_outputs->ensurePolished();
         const int rows = 5 * std::max(m_steps->verticalHeader()->defaultSectionSize(),
                                       m_outputs->verticalHeader()->defaultSectionSize());
         const int tables = std::max(m_steps->horizontalHeader()->sizeHint().height(),
-            m_outputsHeading->sizeHint().height() + outputsLayout->spacing());
+            outputsHeader->sizeHint().height() + outputsLayout->spacing());
         return sl->contentsMargins().top() + sl->contentsMargins().bottom() + sl->spacing() +
             browserHeader->sizeHint().height() + bodyLayout->spacing() + actions->sizeHint().height() +
             tables + rows + 2 * m_outputs->frameWidth() + 4;
@@ -1061,10 +1130,16 @@ void ResultsPage::updateOutputActions()
                               plotLabel, hasFigure);
     const auto checked = checkedOutputs();
     QSet<NodeId> nodes;
-    for (const auto &ref : checked) nodes.insert(ref.nodeId);
+    int elsewhere = 0;
+    for (const auto &ref : checked) {
+        nodes.insert(ref.nodeId);
+        if (ref.nodeId != m_selectedNode) ++elsewhere;
+    }
     const bool any = !checked.isEmpty();
     const int available = m_outputModel->rowCount();
-    m_outputsHeading->setText(text("ui.available_outputs").arg(available));
+    const auto heading = text("ui.available_outputs").arg(available);
+    m_outputsHeading->setText(elsewhere ? heading + QStringLiteral(" · ") +
+        text("ui.outputs_selected_elsewhere").arg(elsewhere) : heading);
     m_selectionHint->setVisible(!any && available > 0);
     if (any) {
         m_checkedButton->setText(text("ui.review_selected_count").arg(checked.size()));
@@ -1072,6 +1147,7 @@ void ResultsPage::updateOutputActions()
                                     "\n" + text("ui.review_checked_help"));
     }
     m_checkedButton->setVisible(any);
+    m_clearOutputs->setEnabled(any);
     m_addPlot->setEnabled(any);
     m_plotChecked->setEnabled(any);
     m_pageAction->setEnabled(any);
@@ -1136,6 +1212,14 @@ void ResultsPage::plotChecked(PlotWorkspace::Target target)
     m_workspace->openBatch(checkedOutputs(), target);
     updateOutputActions();
 }
+void ResultsPage::clearOutputSelection()
+{
+    m_checked.clear();
+    if (m_outputs->selectionModel()->hasSelection())
+        m_outputs->clearSelection();
+    else
+        updateOutputActions();
+}
 void ResultsPage::inspectChecked()
 {
     QDialog dialog(this);
@@ -1160,8 +1244,7 @@ void ResultsPage::inspectChecked()
         // would repeatedly rebuild and scan the whole browser.
         QSignalBlocker block(list);
         for (int i = 0; i < list->count(); ++i) list->item(i)->setCheckState(Qt::Unchecked);
-        m_checked.clear();
-        rebuildOutputs(); updateOutputActions();
+        clearOutputSelection();
     });
     connect(list, &QListWidget::itemChanged, &dialog, [this](QListWidgetItem *item) {
         const auto ref = item->data(Qt::UserRole).value<OutputReference>();

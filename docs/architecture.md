@@ -1,10 +1,10 @@
-# Aster 工作流契约
+# AstroBatch 工作流契约
 
-适用版本：Aster 1.3.2-beta.7。
+适用版本：AstroBatch 1.3.3-beta.1。
 
 ## 范围与依赖
 
-核心构建模块包含 model、core 和基础 processing；io、science、application 与 ui 按职责独立。完整分工见 [开发清单](Aster_development_checklist.md)。`model` 与 `core` 不引用 Widgets、图形项、数据库或科学计算外部库。`processing` 的各任务独立存放。
+核心构建模块包含 model、core 和基础 processing；io、science、application 与 ui 按职责独立。完整分工见 [开发清单](AstroBatch_development_checklist.md)。`model` 与 `core` 不引用 Widgets、图形项、数据库或科学计算外部库。`processing` 的各任务独立存放。
 
 核心可使用 Qt Core 的容器、字符串、JSON 和 UUID；不依赖 GUI 事件循环执行算法。普通工作流保留树结构；少量双输入任务通过独立配对引用同工作区的普通节点输出，见下文。未提供网络传输、插件动态加载、任意 DAG 接线、循环或项目存档系统。
 
@@ -97,15 +97,15 @@ RunId 是运行标识，与数据库自增 ID 分开管理。SaveReceipt 关联 
 
 WorkflowDocument 持有 WorkflowEditor，并在完整提交后通知界面；WorkflowCanvas 只处理绘制和命中。目录与参数面板读取注册描述；RunController 将普通请求交给 BatchRunner、联合批次交给 runJointBatch，并排队发送事件；ResultsPage 按 ID 读取步骤，PlotView 适配 typed 数据。工作流快照的版本由节点绑定和参数差异决定，数据库结构为 3；新增掩码表采用载荷 v2，旧版 1.1.1 无法读取这种载荷，不能据此声明双向兼容。
 
-具体文件所有权、传输、布局及后续扩展边界见 [开发清单](Aster_development_checklist.md)。新的编辑行为仍须先成为核心的原子命令，不能只在图形项里改连接。
+具体文件所有权、传输、布局及后续扩展边界见 [开发清单](AstroBatch_development_checklist.md)。新的编辑行为仍须先成为核心的原子命令，不能只在图形项里改连接。
 
 ## 结果显示边界
 
-PlotStyle 与按输出身份组织的会话显示缓存只属于 UI，不进入工作流快照或科学参数。io/exports/csv_export 负责只读数值导出；ExportController 持有 DataRef 并在工作线程写出，关闭窗口时协调取消/等待。修改图形轴标题、对数显示或曲线颜色不会修改持久化数值。详见 [开发清单](Aster_development_checklist.md)。
+PlotStyle 与按输出身份组织的会话显示缓存只属于 UI，不进入工作流快照或科学参数。io/exports/csv_export 负责只读数值导出；ExportController 持有 DataRef 并在工作线程写出，关闭窗口时协调取消/等待。修改图形轴标题、对数显示或曲线颜色不会修改持久化数值。详见 [开发清单](AstroBatch_development_checklist.md)。
 
 ## 数据传输防护
 
-完整接口接入步骤见 [开发清单](Aster_development_checklist.md)。缺少可选父端口使用 INPUT_PORT_UNAVAILABLE，类型错误附带 expected/actual_type，所有下游诊断补充 parent_id。输出检查包含在执行异常边界中；成功结果不得携带失败诊断。损坏Table回读先核对行字节量和宽度。普通任务仍用 TaskInput.data；联合任务另用 second。数据载荷版本与数据库表结构分别管理。
+完整接口接入步骤见 [开发清单](AstroBatch_development_checklist.md)。缺少可选父端口使用 INPUT_PORT_UNAVAILABLE，类型错误附带 expected/actual_type，所有下游诊断补充 parent_id。输出检查包含在执行异常边界中；成功结果不得携带失败诊断。损坏Table回读先核对行字节量和宽度。普通任务仍用 TaskInput.data；联合任务另用 second。数据载荷版本与数据库表结构分别管理。
 
 ## 数值后端
 

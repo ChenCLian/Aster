@@ -1,6 +1,6 @@
-# Aster 算法开发与功能扩展清单
+# AstroBatch 算法开发与功能扩展清单
 
-适用版本：**Aster 1.3.2-beta.7**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
+适用版本：**AstroBatch 1.3.3-beta.1**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
 
 当前验证见 [验证记录](validation_current.md)。算法说明按职责归入 `methods/`，任务入口见 [分类表](task_catalogue.md)。
 
@@ -36,7 +36,7 @@
 
 ### 1.3 平台回归清单
 
-- [ ] 打开根工程 `Aster.pro`，确认 `bin/Aster.exe` 可以启动，运行目标不是 demo 或 tests。
+- [ ] 打开根工程 `AstroBatch.pro`，确认 `bin/AstroBatch.exe` 可以启动，运行目标不是 demo 或 tests。
 - [ ] 用一份已知正确的小文件验证列选择、单位、表头和坏行策略。
 - [ ] 数据满足前提时，直接运行“读取 → LOWESS → MTM”；不强制插入整理与重采样。
 - [ ] 同一数据建立 MTM / CWT 两个分支；再用两个文件运行同一流程，核对不同记录 ID 与各自步骤。
@@ -491,7 +491,7 @@ Grid 的配色、颜色级数、线性/对数映射、固定色阶和像素插�
 - 自绘图形使用 `themeColor("role")`，响应 `ThemeManager::changed`。
 - 不在各面板中散落浅色背景和黑色字体的固定 QSS。
 - 区分随主题变化的默认科学配色与用户手动指定颜色，主题切换不覆盖后者。
-- 新图标/资源加入 `resources/aster.qrc`；不要依赖开发者电脑的绝对路径。
+- 新图标/资源加入 `resources/astrobatch.qrc`；不要依赖开发者电脑的绝对路径。
 
 ## 13. 何时才需要调整核心架构
 

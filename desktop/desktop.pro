@@ -1,14 +1,16 @@
 QT = core gui widgets sql printsupport
 TEMPLATE = app
 include(../config/version.pri)
-TARGET = Aster
+TARGET = AstroBatch
+win32:QMAKE_TARGET_PRODUCT = AstroBatch
+win32:QMAKE_TARGET_DESCRIPTION = AstroBatch
 CONFIG += c++17
 CONFIG -= debug_and_release debug_and_release_target console
 macx:CONFIG += app_bundle
 else:CONFIG -= app_bundle
-win32:RC_ICONS = $$PWD/../resources/app/aster.ico
-macx:ICON = $$PWD/../resources/app/aster.icns
-DISTFILES += ../resources/app/aster.ico ../resources/app/aster.icns
+win32:RC_ICONS = $$PWD/../resources/app/AstroBatch.ico
+macx:ICON = $$PWD/../resources/app/AstroBatch.icns
+DISTFILES += ../resources/app/AstroBatch.ico ../resources/app/AstroBatch.icns
 INCLUDEPATH += ../src
 SOURCES += main.cpp
 DESTDIR = $$OUT_PWD/../bin

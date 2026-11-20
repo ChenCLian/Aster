@@ -1,12 +1,12 @@
 # Performance checks
 
-Build the main Aster project in Release mode first, including its static libraries.
+Build the main AstroBatch project in Release mode first, including its static libraries.
 Use the same Qt kit, compiler and scientific dependencies for this separate target:
 
 ```sh
 mkdir -p build/performance-recent
 cd build/performance-recent
-qmake /path/to/Aster/tools/performance/recent_features.pro CONFIG+=release ASTER_BUILD_ROOT=/absolute/path/to/Aster-build
+qmake /path/to/AstroBatch/tools/performance/recent_features.pro CONFIG+=release ASTER_BUILD_ROOT=/absolute/path/to/AstroBatch-build
 make -j4
 ```
 

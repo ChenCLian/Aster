@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Optional standard-library tool. Aster itself never needs Python or network access."""
+"""Optional standard-library tool. AstroBatch itself never needs Python or network access."""
 import argparse
 from decimal import Decimal, InvalidOperation
 import hashlib

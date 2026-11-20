@@ -12,15 +12,15 @@ qmake="$(command -v "$2")"
 mkdir -p "$3"
 output="$(cd "$3" && pwd)"
 version="$(tr -d '\r\n' < "$root/VERSION")"
-name="Aster-$version-linux-x64"
+name="AstroBatch-$version-linux-x64"
 stage="$output/$name"
 [[ ! -e "$stage" && ! -e "$output/$name.tar.gz" ]] || { echo 'Output already exists' >&2; exit 1; }
-file "$build/bin/Aster" | grep -q 'ELF 64-bit.*x86-64' || { echo 'Expected Linux x86_64 executable' >&2; exit 1; }
-[[ "$(QT_QPA_PLATFORM=offscreen "$build/bin/Aster" --version)" == "Aster_Workspace $version" ]] || { echo 'Executable version does not match VERSION' >&2; exit 1; }
+file "$build/bin/AstroBatch" | grep -q 'ELF 64-bit.*x86-64' || { echo 'Expected Linux x86_64 executable' >&2; exit 1; }
+[[ "$(QT_QPA_PLATFORM=offscreen "$build/bin/AstroBatch" --version)" == "AstroBatch $version" ]] || { echo 'Executable version does not match VERSION' >&2; exit 1; }
 plugins="${ASTER_QT_PLUGINS:-$("$qmake" -query QT_INSTALL_PLUGINS)}"
 qt_prefix="$("$qmake" -query QT_INSTALL_PREFIX)"
 mkdir -p "$stage/usr/bin" "$stage/usr/plugins" "$stage/usr/share/applications" "$stage/usr/share/icons/hicolor/256x256/apps"
-cp "$build/bin/Aster" "$stage/usr/bin/"
+cp "$build/bin/AstroBatch" "$stage/usr/bin/"
 for group in imageformats iconengines xcbglintegrations printsupport tls; do
   [[ ! -d "$plugins/$group" ]] || cp -a "$plugins/$group" "$stage/usr/plugins/"
 done
@@ -30,17 +30,17 @@ for plugin in platforms/libqxcb.so platforms/libqoffscreen.so sqldrivers/libqsql
 done
 [[ -f "$stage/usr/plugins/tls/libqopensslbackend.so" ]] || { echo 'Qt OpenSSL TLS plugin required' >&2; exit 1; }
 printf '[Paths]\nPrefix=..\nPlugins=plugins\n' > "$stage/usr/bin/qt.conf"
-cat > "$stage/usr/share/applications/Aster.desktop" <<'EOF'
+cat > "$stage/usr/share/applications/AstroBatch.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Aster
+Name=AstroBatch
 Comment=Geoscience and astronomical time-series analysis
-Exec=Aster
-Icon=Aster
+Exec=AstroBatch
+Icon=AstroBatch
 Categories=Science;Education;
 Terminal=false
 EOF
-cp "$root/resources/app/aster-256.png" "$stage/usr/share/icons/hicolor/256x256/apps/Aster.png"
+cp "$root/resources/app/AstroBatch-256.png" "$stage/usr/share/icons/hicolor/256x256/apps/AstroBatch.png"
 # Pin the deployment tool by checksum. Supply LINUXDEPLOY for an offline copy.
 tool="${LINUXDEPLOY:-$build/release-tools/linuxdeploy-x86_64.AppImage}"
 expected=df908b19f1ed1cdafa79508d415aa12d6c56ce4d56d4149aa8c09286718706e5
@@ -60,9 +60,9 @@ plugin_args=()
 while IFS= read -r -d '' plugin; do
   plugin_args+=(--deploy-deps-only "$plugin")
 done < <(find "$stage/usr/plugins" -type f -name '*.so' -print0)
-APPIMAGE_EXTRACT_AND_RUN=1 "$tool" --appdir "$stage" --executable "$stage/usr/bin/Aster" \
-  --desktop-file "$stage/usr/share/applications/Aster.desktop" \
-  --icon-file "$stage/usr/share/icons/hicolor/256x256/apps/Aster.png" \
+APPIMAGE_EXTRACT_AND_RUN=1 "$tool" --appdir "$stage" --executable "$stage/usr/bin/AstroBatch" \
+  --desktop-file "$stage/usr/share/applications/AstroBatch.desktop" \
+  --icon-file "$stage/usr/share/icons/hicolor/256x256/apps/AstroBatch.png" \
   --custom-apprun "$script_dir/linux_app_run.sh" "${plugin_args[@]}" --library "$ssl" --library "$crypto"
 # Detect a developer Qt masking a missing private library in the bundle.
 for plugin in "$stage"/usr/plugins/*/*.so; do
@@ -87,7 +87,7 @@ material_args=(--platform linux-x64 --package-dir "$stage" --qmake "$qmake"
 python3 "$script_dir/collect_dependency_materials.py" "${material_args[@]}"
 build_system="$(. /etc/os-release; printf '%s' "$PRETTY_NAME")"
 cat > "$stage/START_HERE.txt" <<EOF
-Aster $version — Linux x64
+AstroBatch $version — Linux x64
 Build system: $build_system
 No installation is required. Extract the complete package, then run ./AppRun.
 Keep all files and subfolders together. System requirements are listed below.
@@ -100,7 +100,7 @@ X11 display (or XWayland). It does not bundle glibc, graphics drivers or a deskt
 The official build targets Ubuntu 22.04 or newer; other distributions need testing.
 Updates: Settings > Check for updates can download, verify and extract a new package.
 Older releases without download information open the public release page instead.
-Close Aster before using a new package. Keep your database and settings separately.
+Close AstroBatch before using a new package. Keep your database and settings separately.
 EOF
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --version
 env -u LD_LIBRARY_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH QT_QPA_PLATFORM=offscreen "$stage/AppRun" --numeric-backend

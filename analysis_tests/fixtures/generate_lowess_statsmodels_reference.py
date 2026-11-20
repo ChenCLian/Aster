@@ -1,7 +1,7 @@
 """Offline independent LOWESS reference; not an application dependency.
 
 Regenerate with Python 3, NumPy and statsmodels==0.14.6.
-Neither Aster nor CppLowess is imported or executed.
+Neither AstroBatch nor CppLowess is imported or executed.
 """
 import json
 from pathlib import Path

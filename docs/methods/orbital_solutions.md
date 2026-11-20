@@ -34,7 +34,7 @@ La2010 在约 50 Ma 以前、ZB 在约 66 Ma 以前的相位需谨慎。这些�
 
 保留文件名 `PT.DeX.XXXXTdY.YYYY.dat`。支持官方网格 Ed=0.995–1.005、步长 0.001；Td=0–1.2、步长 0.1。程序核验全部数值、列数、时间方向、单调性、物理范围和完整 0–100000 ka 覆盖；错误文件不回退到默认表，节点明确失败。
 
-也可用随包 Python 标准库工具下载单个版本（Python 仅用于此可选工具，运行 Aster 不需要 Python）：
+也可用随包 Python 标准库工具下载单个版本（Python 仅用于此可选工具，运行 AstroBatch 不需要 Python）：
 
 ```sh
 python tools/orbital_data/manage_data.py fetch-pt ./orbital-data --ed 1 --td 0.4

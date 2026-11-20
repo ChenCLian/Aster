@@ -84,7 +84,7 @@
 
 先检查 20% 窗口是否容纳目标周期，再检查实际窗口数量和资源消耗。500 是目标数量上限，不是所有输入都会生成 500 个窗口。预设包含计算选项和显示选项，不能把变化全部解释为“平滑”。
 
-部分选择参考 Acycle LAH，不代表所有版本默认值或边界处理一致。Aster 不在整条序列两端补零，不自动重采样，也不添加二维平滑滤波。跨软件比较先统一数值与坐标，再统一[显示设置](../concepts/spectral_parameters.md#display)；来源和既有验证范围保留在[方法对照](acycle_compatibility.md)。
+部分选择参考 Acycle LAH，不代表所有版本默认值或边界处理一致。AstroBatch 不在整条序列两端补零，不自动重采样，也不添加二维平滑滤波。跨软件比较先统一数值与坐标，再统一[显示设置](../concepts/spectral_parameters.md#display)；来源和既有验证范围保留在[方法对照](acycle_compatibility.md)。
 
 <a id="limits"></a>
 ## 参数错误与计算规模

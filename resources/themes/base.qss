@@ -91,7 +91,11 @@ QWidget#Surface { background: @surface@; }
 QLabel#Notice { background: @hover@; color: @warning@; padding: 8px 18px; }
 QLabel#StepError { background: @hover@; color: @error@; border: 1px solid @border@; border-radius: 6px; padding: 10px; }
 QLabel#StepError[globalTestSummary="true"] { color: @text@; }
-QPushButton#selectSubplot:checked { background: @selection@; border-color: @accent@; color: @selectionText@; font-weight: 600; }
+QPushButton#selectSubplot:checked { background: @selection@; border: 3px solid @selectionText@; padding: 5px 9px; color: @selectionText@; font-weight: 700; }
+QToolButton#clearOutputSelection { border: 1px solid transparent; background: transparent; padding: 1px 5px; color: @fileListMark@; }
+QToolButton#clearOutputSelection:hover { background: @fileListHover@; }
+QToolButton#clearOutputSelection:focus { border-color: @fileListMark@; }
+QToolButton#clearOutputSelection:disabled { color: @disabled@; }
 QCheckBox:disabled, QLabel:disabled { color: @disabled@; }
 QComboBox QAbstractItemView { background: @surface@; color: @text@; selection-background-color: @selection@; selection-color: @selectionText@; }
 

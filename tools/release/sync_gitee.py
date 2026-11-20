@@ -39,7 +39,7 @@ def public_download(url, path, limit, expected_hash=None, expected_size=None):
     for hop in range(6):
         if not allowed_public_url(url,hop>0): raise ValueError('Unapproved public download redirect')
         try:
-            response=opener.open(urllib.request.Request(url,headers={'User-Agent':'Aster-release-mirror','Accept-Encoding':'identity'}),timeout=60)
+            response=opener.open(urllib.request.Request(url,headers={'User-Agent':'AstroBatch-release-mirror','Accept-Encoding':'identity'}),timeout=60)
         except urllib.error.HTTPError as error:
             if error.code in (301,302,303,307,308) and error.headers.get('Location'):
                 url=urllib.parse.urljoin(url,error.headers['Location']); continue
@@ -61,12 +61,12 @@ class Gitee:
         if not token:raise ValueError('Configure the GITEE_TOKEN Actions secret')
         self.token=token;self.opener=urllib.request.build_opener(NoRedirect)
     def api(self,path='',method='GET',data=None,file=None,missing=False,anonymous=False):
-        headers={'User-Agent':'Aster-release-mirror'}
+        headers={'User-Agent':'AstroBatch-release-mirror'}
         if not anonymous:
             headers['Authorization']='Bearer '+self.token
         payload=None
         if file is not None:
-            boundary = 'Aster-' + secrets.token_hex(24)
+            boundary = 'AstroBatch-' + secrets.token_hex(24)
             opening = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; '
                        f'filename="{file.name}"\r\nContent-Type: application/octet-stream\r\n\r\n').encode()
             closing = f'\r\n--{boundary}--\r\n'.encode()
@@ -121,13 +121,13 @@ def mirror_packages(api,rid,folder,metadata,version,verify=public_download):
         if original.name not in byname:api.upload(rid,original)
         # Deterministic public URL, not an arbitrary API-supplied download link.
         url=f'https://gitee.com/{REPO}/releases/download/v{version}/{original.name}'
-        with tempfile.TemporaryDirectory(prefix='aster-verify-') as temp:
+        with tempfile.TemporaryDirectory(prefix='astrobatch-verify-') as temp:
             verify(url,Path(temp)/'package',item['bytes'],item['sha256'],item['bytes'])
         item['sources'].append(dict(name='Gitee',url=url))
     return output,plan
 
 
-UPDATE_MARKER = '<!-- aster-update-v1\n'
+UPDATE_MARKER = '<!-- astrobatch-update-v1\n'
 
 
 def with_update_record(body, metadata):
@@ -152,19 +152,19 @@ def execute(args):
     names = package_names(version)
     actual = {a['name']:a for a in release['assets']}
     split = dependency_tag(version) != args.tag
-    expected_inputs = names | ({f'Aster-{version}-source.zip'} if split else {'Aster-update.json','SHA256SUMS.txt'})
+    expected_inputs = names | ({f'AstroBatch-{version}-source.zip'} if split else {'AstroBatch-update.json','SHA256SUMS.txt'})
     if not expected_inputs <= actual.keys():
         raise ValueError('GitHub release is missing required assets: '+', '.join(sorted(expected_inputs-actual.keys())))
-    with tempfile.TemporaryDirectory(prefix='aster-gitee-') as temp:
+    with tempfile.TemporaryDirectory(prefix='astrobatch-gitee-') as temp:
         work=Path(temp);packages=work/'packages';packages.mkdir()
         # Never download dependency-materials, even for a dry check.
-        for name in sorted(names | ({'Aster-update.json'} & actual.keys())):
+        for name in sorted(names | ({'AstroBatch-update.json'} & actual.keys())):
             if actual[name]['size'] > 2 * 1024**3:
                 raise ValueError('Program exceeds the supported update package size: '+name)
-            if name=='Aster-update.json' and actual[name]['size']>1024*1024:raise ValueError('Metadata exceeds size limit')
+            if name=='AstroBatch-update.json' and actual[name]['size']>1024*1024:raise ValueError('Metadata exceeds size limit')
             print('Fetching GitHub asset: '+name,flush=True)
             gh('release','download',args.tag,'--repo',REPO,'--pattern',name,'--dir',str(packages))
-        path = packages/'Aster-update.json'
+        path = packages/'AstroBatch-update.json'
         if path.exists():
             metadata = json.loads(path.read_text(encoding='utf-8'))
         else:
@@ -190,7 +190,7 @@ def execute(args):
             # the GitHub release tag is authoritative for the program source.
             branch = api.api()['default_branch']
             notes = mirror_release_body(release['body'], args.tag)
-            remote=api.api('releases','POST',dict(tag_name=args.tag,target_commitish=branch,name='Aster '+version,body=notes,prerelease='-beta.' in version))
+            remote=api.api('releases','POST',dict(tag_name=args.tag,target_commitish=branch,name='AstroBatch '+version,body=notes,prerelease='-beta.' in version))
         if remote.get('tag_name') != args.tag:
             raise ValueError('Gitee release tag mismatch')
         rid = remote['id']
@@ -209,7 +209,7 @@ def execute(args):
         if public['id'] != rid or public.get('tag_name') != args.tag or public.get('body','').replace('\r\n','\n') != body.replace('\r\n','\n'):
             raise ValueError('Public Gitee release description verification failed')
         # Retain the original endpoint for installed clients that read GitHub metadata.
-        path=packages/'Aster-update.json'
+        path=packages/'AstroBatch-update.json'
         if not path.is_file() or metadata != result:
             path.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8')
             gh('release','upload',args.tag,str(path),'--repo',REPO,'--clobber')
@@ -219,7 +219,7 @@ def execute(args):
         if 'SHA256SUMS.txt' in actual:
             gh('release','download',args.tag,'--repo',REPO,'--pattern','SHA256SUMS.txt','--dir',str(work))
             original=sums.read_text(encoding='utf-8')
-            lines=[line for line in original.splitlines() if line.split()[-1:]!=['Aster-update.json']]
+            lines=[line for line in original.splitlines() if line.split()[-1:]!=['AstroBatch-update.json']]
         else:
             lines = []
             for name in sorted(expected_inputs):
@@ -227,7 +227,7 @@ def execute(args):
                 if not re.fullmatch('sha256:[0-9a-f]{64}', fingerprint):
                     raise ValueError('Cannot reconstruct checksums without a published SHA-256: '+name)
                 lines.append(fingerprint.removeprefix('sha256:')+'  '+name)
-        updated='\n'.join(lines+[digest(path)+'  Aster-update.json'])+'\n'
+        updated='\n'.join(lines+[digest(path)+'  AstroBatch-update.json'])+'\n'
         if updated != original:
             sums.write_text(updated, encoding='utf-8')
             gh('release','upload',args.tag,str(sums),'--repo',REPO,'--clobber')

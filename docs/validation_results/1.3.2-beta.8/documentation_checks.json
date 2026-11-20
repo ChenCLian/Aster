@@ -1,0 +1,22 @@
+{
+  "version": "1.3.2-beta.8",
+  "date": "2026-11-20",
+  "documentation": {
+    "status": "content_links_and_source_archive_checked",
+    "scope": "Compared Chinese and English upgrade instructions, stored results, and figure session behavior with the source. Checked release asset names, build selection, and documentation against desktop workflows. Validated local Markdown links, section anchors and Qt help navigation.",
+    "packaged_help_resources": 109,
+    "help_generator_tests": 8,
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "markdown_files": 97,
+    "local_markdown_link_occurrences": 1469,
+    "links_to_markdown_sections": 962,
+    "broken_local_targets": 0,
+    "missing_section_anchors": 0,
+    "embedded_qt_help_entries": 83,
+    "help_navigation_target_files": 48,
+    "matching_bilingual_parameter_anchors": 328
+  }
+}

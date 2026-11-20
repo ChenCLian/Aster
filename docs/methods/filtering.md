@@ -27,7 +27,7 @@
 
 Hilbert 定义对照 [MathWorks hilbert 算法说明](https://www.mathworks.com/help/signal/ref/hilbert.html) 和 Marple (1999), *Computing the Discrete-Time Analytic Signal via FFT*, IEEE TSP 47, 2600–2603。Taner 名称沿用参考包的命名，不把此中心对称带通形式和所有文献中的高/低通乘积形式混为同一参数化。
 
-与验证参考不同的边界行为：常量和全零序列是合法数学输入，带通去均值后输出零；独立 Hilbert 可保留 DC。Aster 允许这些输入，而参考包要求正方差。相邻间隔容差沿用 Aster 全局约定 `1e-6`，参考包为 `1e-5`；对严格等间隔数据不存在此差异。不得自动放宽容差或强制插入重采样。
+与验证参考不同的边界行为：常量和全零序列是合法数学输入，带通去均值后输出零；独立 Hilbert 可保留 DC。AstroBatch 允许这些输入，而参考包要求正方差。相邻间隔容差沿用 AstroBatch 全局约定 `1e-6`，参考包为 `1e-5`；对严格等间隔数据不存在此差异。不得自动放宽容差或强制插入重采样。
 ## 输入、输出与可解释性
 
 - 输入为有限值、严格递增、等间隔的 `Series`，滤波至少 8 点；Hilbert 至少 2 点。预处理须通过显式任务完成；滤波不改变输入坐标。

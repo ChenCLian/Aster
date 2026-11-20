@@ -38,7 +38,7 @@
       "age_unit": "ka BP",
       "depth_name": "Composite depth",
       "depth_unit": "mcd",
-      "chronology": "Astronomically tuned chronology of Tian et al. (2002). Archive values are on the C. wuellerstorfi scale: the authors subtracted 0.64 per mille from U. peregrina measurements. No additional correction in Aster.",
+      "chronology": "Astronomically tuned chronology of Tian et al. (2002). Archive values are on the C. wuellerstorfi scale: the authors subtracted 0.64 per mille from U. peregrina measurements. No additional correction in AstroBatch.",
       "sampling_note": "Irregular published sample spacing retained.",
       "id": "132801",
       "resource": ":/examples/132801.tsv",

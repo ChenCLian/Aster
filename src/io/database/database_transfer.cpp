@@ -358,7 +358,7 @@ DatabaseTransferResult mergeDatabase(const QString &destination, const QString &
         require(QFileInfo(source) != QFileInfo(destination), "Cannot merge a database into itself");
         require(QFileInfo(destination).isFile(), "Destination database does not exist");
         const auto targetPath = QFileInfo(destination).canonicalFilePath();
-        QTemporaryDir staging(QFileInfo(targetPath).absolutePath() + "/.aster-merge-XXXXXX");
+        QTemporaryDir staging(QFileInfo(targetPath).absolutePath() + "/.astrobatch-merge-XXXXXX");
         require(staging.isValid(), "Cannot create merge staging directory");
         const auto incomingPath = staging.filePath("incoming.sqlite");
         {

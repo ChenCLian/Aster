@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in Aster 1.3.2-beta.7. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in AstroBatch 1.3.3-beta.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 
@@ -2595,7 +2595,7 @@ Outputs: ` spectrum `, ` mc_background `, ` mc_family_threshold `, ` peaks `, ` 
 <a id="m-odp1143_d18o"></a>
 ## ODP 1143 · oxygen isotopes δ18O
 
-South China Sea, 0–5021 ka BP. Tian et al. (2002) astronomical chronology; the archive already includes species corrections, which Aster does not repeat.
+South China Sea, 0–5021 ka BP. Tian et al. (2002) astronomical chronology; the archive already includes species corrections, which AstroBatch does not repeat.
 Source: PANGAEA.132801 · CC BY 3.0
 https://doi.org/10.1594/PANGAEA.132801
 
@@ -3432,7 +3432,7 @@ Shown when: ` synthetic_grid ` = ` uniform `
 <a id="m-synthetic_orbital-p-synthetic_seed"></a>
 ### Random seed
 
-Same seed and all parameters reproduce the result. Aster streams differ from NumPy for the same seed.
+Same seed and all parameters reproduce the result. AstroBatch streams differ from NumPy for the same seed.
 
 [Use and output interpretation](../methods/data_sources_en.md#synthetic)
 

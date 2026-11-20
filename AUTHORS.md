@@ -1,4 +1,4 @@
-# Aster — 作者
+# AstroBatch — 作者
 
 ## 主要作者与维护者
 
@@ -10,11 +10,11 @@
 | 公开联系邮箱 | chenzj0124@gmail.com |
 | GitHub 个人主页 | https://github.com/ChenCLian |
 
-项目仓库：[ChenCLian/Aster](https://github.com/ChenCLian/Aster)
+项目仓库：[ChenCLian/AstroBatch](https://github.com/ChenCLian/AstroBatch)
 
 ## 版权与许可
 
-Aster 原创贡献：Copyright (C) 2026 ZiJie Chen。软件整体以 GPL-3.0-only 发行；第三方代码和数据保留各自权利及许可。许可正文与适用范围见 [LICENSE](LICENSE) 和 [COPYRIGHT.md](COPYRIGHT.md)。
+AstroBatch 原创贡献：Copyright (C) 2026 ZiJie Chen。软件整体以 GPL-3.0-only 发行；第三方代码和数据保留各自权利及许可。许可正文与适用范围见 [LICENSE](LICENSE) 和 [COPYRIGHT.md](COPYRIGHT.md)。
 
 ## 第三方项目与数据来源
 
@@ -27,4 +27,4 @@ Aster 原创贡献：Copyright (C) 2026 ZiJie Chen。软件整体以 GPL-3.0-onl
 
 ## 建议引用方式
 
-陈子杰. Aster，版本 `实际使用版本`. https://github.com/ChenCLian/Aster 。引用具体分析时，请同时注明所使用的算法论文与数据来源。
+陈子杰. AstroBatch，版本 `实际使用版本`. https://github.com/ChenCLian/AstroBatch 。引用具体分析时，请同时注明所使用的算法论文与数据来源。

@@ -10,7 +10,7 @@ from scipy.signal.windows import dpss
 
 
 def adaptive_mtm(segment, fs, nw, nfft):
-    """Symmetric DPSS and full-frequency Thomson iteration (no Aster calls)."""
+    """Symmetric DPSS and full-frequency Thomson iteration (no AstroBatch calls)."""
     k = 2 if nw == 1 else int(np.floor(2 * nw + 0.5)) - 1
     tapers, eigenvalues = dpss(len(segment), nw, Kmax=k, sym=True, norm=2, return_ratios=True)
     centered = segment - segment.mean()

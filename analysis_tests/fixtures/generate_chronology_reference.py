@@ -1,5 +1,5 @@
 """Independent chronology fixtures: Decimal (70 digits) and SciPy quadrature.
-Run explicitly to regenerate; not required to build Aster. No Aster calls.
+Run explicitly to regenerate; not required to build AstroBatch. No AstroBatch calls.
 """
 from decimal import Decimal, localcontext
 from pathlib import Path

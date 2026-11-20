@@ -1,6 +1,6 @@
-# Aster 数值接口与跨平台构建
+# AstroBatch 数值接口与跨平台构建
 
-适用源码：1.3.2-beta.7。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
+适用源码：1.3.3-beta.1。计算库固定为 **OpenBLAS/LAPACK + PocketFFT**。
 
 ## Windows / Qt Creator
 
@@ -12,23 +12,23 @@
 
 本工程的 vcpkg 配置分别链接 LAPACK 与 OpenBLAS；不能漏装 lapack-reference。复制 `config/local.pri.example` 为 `config/local.pri`，填写 VCPKG_ROOT 或 VCPKG_PREFIX。依赖路径和链接项以当前配置模板为准。
 
-打开根 **Aster.pro**，在新构建目录重新运行 qmake，构建全部，运行 **desktop / Aster**，输出位于 `bin/Aster.exe`。不单独构建 desktop.pro，不运行测试程序作为桌面入口。
+打开根 **AstroBatch.pro**，在新构建目录重新运行 qmake，构建全部，运行 **desktop / AstroBatch**，输出位于 `bin/AstroBatch.exe`。不单独构建 desktop.pro，不运行测试程序作为桌面入口。
 
 Debug 使用依赖的 `debug/bin`，Release 使用 `bin`；GSL 调试库名称带 d 后缀。运行时仍需 Qt/QSQLITE、GSL、OpenBLAS/LAPACK 及其运行依赖，具体 DLL 由实际依赖包决定。PocketFFT 随源码编译，无独立 DLL。Qt Creator 的运行环境需包含当前依赖目录的 PATH 配置。
 
 ## Linux
 
-从包含 `Aster.pro` 的源码根目录执行以下命令。
+从包含 `AstroBatch.pro` 的源码根目录执行以下命令。
 
 准备 Qt 6、SQLite 驱动、GSL、LP64 OpenBLAS（含 LAPACK）。默认通过系统路径/pkg-config 查找；如 LAPACK 单独提供，在 `local.pri` 设置 `ASTER_LAPACK_LIBS = -llapack`，链接顺序在 BLAS 前。
 
 ```sh
 mkdir build-release
 cd build-release
-qmake ../Aster.pro CONFIG+=release CONFIG-=debug
+qmake ../AstroBatch.pro CONFIG+=release CONFIG-=debug
 make -j4
-./bin/Aster --numeric-backend
-./bin/Aster
+./bin/AstroBatch --numeric-backend
+./bin/AstroBatch
 ```
 
 `CONFIG+=core_only` 仅核心，`CONFIG+=no_gui` 不包含桌面。需要界面时不加这两个参数。
@@ -42,7 +42,7 @@ OPENBLAS_ROOT = /your/openblas/prefix
 GSL_PREFIX = /your/gsl/prefix
 ```
 
-不要混用 x86_64 和 ARM64 依赖。macOS 构建生成 `.app`，输出 `bin/Aster.app`。各 Mac 架构须分别完成原生构建、依赖部署和桌面验收；签名及公证状态应在发布说明中注明。
+不要混用 x86_64 和 ARM64 依赖。macOS 构建生成 `.app`，输出 `bin/AstroBatch.app`。各 Mac 架构须分别完成原生构建、依赖部署和桌面验收；签名及公证状态应在发布说明中注明。
 
 ## 模块和数值契约
 
@@ -68,4 +68,4 @@ GSL 提供统计和插值功能，wavelib 提供小波计算；统一数值接�
 
 新增科学算法继续继承 Task、实现 descriptor/execute、宏注册。需要线性代数或 FFT 时调用 numeric_backend.h，不直接引入原生库类型。无需重写工作流、数据库或 UI。
 
-`Aster --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。验证范围见 [验证记录](validation_current.md)。
+`AstroBatch --numeric-backend` 可查看实际 OpenBLAS 配置与 PocketFFT 信息，仅查询，不切换。验证范围见 [验证记录](validation_current.md)。

@@ -1,6 +1,6 @@
-# Aster：添加一种任务
+# AstroBatch：添加一种任务
 
-适用版本：Aster 1.3.2-beta.7。
+适用版本：AstroBatch 1.3.3-beta.1。
 
 最短的实际样例是 `src/processing/affine_task.h/.cpp`。它展示了统一接口、独立参数、只读上游和具名输出。新增任务仍需要自己的计算实现；宏负责消除分散的注册代码。
 
@@ -85,7 +85,7 @@ return NodeResult::success(
 
 无输入的生成型任务自然属于数据源，可以独立成为根节点。需要新的外部数据绑定方式（例如按 ODP 数据库区间选取）时，另增加对应源选择面板与来源元信息。文件源、正弦生成及内置 ODP 数据源均通过任务接口提供。离线示例共用 `io/examples` 和 `ExampleSourceTask`：新增同类数据时在来源 catalog、资源清单、ODP_EXAMPLE_METHODS 与双语目录登记，保留原档案、引用/许可，并补充全量数值摘要测试。远程 ODP 查询并未实现。
 
-详见 [开发清单](Aster_development_checklist.md) 的文件分工。保持算法不引用 QWidget、QCustomPlot 或 QSettings。
+详见 [开发清单](AstroBatch_development_checklist.md) 的文件分工。保持算法不引用 QWidget、QCustomPlot 或 QSettings。
 
 ## 绘图和导出适配
 

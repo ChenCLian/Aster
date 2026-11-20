@@ -3,6 +3,7 @@
 #include "../tests/support/workspace_fixture.h"
 #include "ui/panels/source_panel.h"
 #include <QtTest>
+#include <QtMath>
 #include <QApplication>
 #include <QTemporaryDir>
 #include <QSqlDatabase>
@@ -142,6 +143,7 @@ class WorkspaceTests : public QObject
     void arrangementGeometryAndTransitions();
     void subplotDragTargetsAndCancellation();
     void subplotArrangementKeepsDataAndTargets();
+    void activeSubplotTitleBorderFollowsSelection();
     void subplotDividerDefersRefresh();
     void fourHeatmapsKeepBuffersAndSettle();
     void stepMouseSelectionIsExclusive();
@@ -770,6 +772,8 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     auto *heading = page.findChild<QLabel *>("outputListHeading");
     auto *hint = page.findChild<QLabel *>("outputSelectionHint");
     auto *review = page.findChild<QToolButton *>("inspectCheckedOutputs");
+    auto *clear = page.findChild<QToolButton *>("clearOutputSelection");
+    QVERIFY(clear && !clear->isEnabled());
     QCOMPARE(heading->text(), text("ui.available_outputs").arg(5));
     QVERIFY(hint->isVisible() && !review->isVisible());
     const auto first = outputs->model()->index(0, 0);
@@ -779,6 +783,15 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     QCOMPARE(review->text(), text("ui.review_selected_count").arg(1));
     QCOMPARE(rows(), QList<int>{0});
     QVERIFY(add->isEnabled() && overlay->isEnabled() && more->isEnabled() && replace->isEnabled());
+    click(0);
+    QVERIFY(page.checkedOutputs().isEmpty());
+    QVERIFY(!add->isEnabled() && !clear->isEnabled());
+    click(0);
+    const auto firstPoint = outputs->visualRect(first).center();
+    QTest::mouseDClick(outputs->viewport(), Qt::LeftButton, Qt::NoModifier, firstPoint);
+    QTest::mouseRelease(outputs->viewport(), Qt::LeftButton, Qt::NoModifier, firstPoint);
+    QVERIFY(page.checkedOutputs().isEmpty());
+    click(0);
     click(2, Qt::ControlModifier);
     QCOMPARE(rows(), (QList<int>{0, 2}));
     QVERIFY(overlay->isEnabled() && !replace->isEnabled());
@@ -797,25 +810,49 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     page.selectStep(1);
     QVERIFY(rows().isEmpty());
     QCOMPARE(page.checkedOutputs().size(), 3);
-    click(0);
+    QVERIFY(heading->text().contains(text("ui.outputs_selected_elsewhere").arg(3)));
+    click(0, Qt::ControlModifier);
     QCOMPARE(page.checkedOutputs().size(), 4);
     QVERIFY(!overlay->isEnabled()); // A numerical table and several series.
     page.selectStep(0);
     QCOMPARE(rows(), (QList<int>{1, 2, 3}));
-    click(4); // Replace the current step's rows, keep the other step's table.
+    click(4); // An ordinary click also replaces the hidden table.
     QCOMPARE(rows(), QList<int>{4});
-    QCOMPARE(page.checkedOutputs().size(), 2);
+    QCOMPARE(page.checkedOutputs().size(), 1);
     QCOMPARE(page.checkedOutputs().front().port, QString("aux_4"));
-    QCOMPARE(page.checkedOutputs().back().kind, QString("Table"));
     QCOMPARE(page.workspace()->currentReference().key(), target);
-    QTest::keySequence(outputs, QKeySequence::SelectAll);
-    QCOMPARE(rows().size(), 5);
-    QCOMPARE(page.checkedOutputs().size(), 6);
     page.selectStep(1);
     click(0, Qt::ControlModifier);
+    QCOMPARE(page.checkedOutputs().size(), 2);
+    click(0); // Only the hidden reference changes when the table stays selected.
+    QCOMPARE(rows(), QList<int>{0});
+    QCOMPARE(page.checkedOutputs().size(), 1);
+    QCOMPARE(page.checkedOutputs().front().kind, QString("Table"));
     page.selectStep(0);
-    click(0);
+    click(4);
+    add->click();
+    QTRY_VERIFY(!page.workspace()->loading());
+    QCOMPARE(page.workspace()->subplotCount(), 2);
+    QCOMPARE(page.workspace()->currentReference().port, QString("aux_4"));
+    QTest::keySequence(outputs, QKeySequence::SelectAll);
+    QCOMPARE(rows().size(), 5);
+    QCOMPARE(page.checkedOutputs().size(), 5);
+    page.selectStep(1);
     click(0, Qt::ControlModifier);
+    QCOMPARE(page.checkedOutputs().size(), 6);
+    QSignalSpy selectionChanges(outputs->selectionModel(), &QItemSelectionModel::selectionChanged);
+    clear->click();
+    QCOMPARE(selectionChanges.size(), 1);
+    QVERIFY(rows().isEmpty());
+    QVERIFY(page.checkedOutputs().isEmpty());
+    QCOMPARE(ports->currentIndex(), 0);
+    click(0);
+    page.selectStep(0);
+    QVERIFY(rows().isEmpty() && clear->isEnabled());
+    clear->click();
+    QVERIFY(page.checkedOutputs().isEmpty() && !add->isEnabled());
+    click(0);
+    QTest::keyClick(outputs, Qt::Key_Escape);
     QVERIFY(page.checkedOutputs().isEmpty());
     QVERIFY(hint->isVisible() && !review->isVisible());
     QVERIFY(!add->isEnabled() && !overlay->isEnabled() && !more->isEnabled() && !replace->isEnabled());
@@ -848,7 +885,8 @@ void WorkspaceTests::outputBrowserSelectionAndTargets()
     QCOMPARE(page.checkedOutputs().size(), 1);
 
     page.selectStep(1); QCOMPARE(page.checkedOutputs().size(), 1);
-    outputs->selectRow(0);
+    QTest::mouseClick(outputs->viewport(), Qt::LeftButton, Qt::ControlModifier,
+                      outputs->visualRect(outputs->model()->index(0, 0)).center());
     QCOMPARE(page.checkedOutputs().size(), 2);
     QCOMPARE(page.checkedOutputs()[0].nodeId, first.nodeId);
     QCOMPARE(page.checkedOutputs()[1].kind, QString("Table"));
@@ -2240,6 +2278,61 @@ void WorkspaceTests::subplotDragTargetsAndCancellation()
     delete panels.take(ids[1]);
     QVERIFY(host.arrange(remaining, panels, {ids[0], ids[2]}));
     QVERIFY(!sendDrop(first.get(), point(ids[0]))); // Stale removed identity.
+}
+void WorkspaceTests::activeSubplotTitleBorderFollowsSelection()
+{
+    auto &theme = ThemeManager::instance();
+    const auto previous = theme.name();
+    auto restore = qScopeGuard([&] { theme.apply(*qApp, previous); });
+    QTemporaryDir dir;
+    const auto path = dir.filePath("subplot-border.sqlite");
+    ResultRepository repo;
+    QVERIFY(repo.open(path).isEmpty());
+    const auto first = save(repo, path, run());
+    const auto second = save(repo, path, run(series(64)));
+    PlotWorkspace workspace;
+    workspace.resize(1000, 600);
+    workspace.show();
+    workspace.openBatch({first, second}, PlotWorkspace::Target::Separate);
+    QTRY_VERIFY(!workspace.loading());
+    const auto titles = subplotTitles(&workspace);
+    QCOMPARE(titles.size(), 2);
+    for (const auto &mode : {QString("light"), QString("dark")}) {
+        QVERIFY(theme.apply(*qApp, mode).isEmpty());
+        QCoreApplication::processEvents();
+        for (int active : {0, 1}) {
+            auto *chosen = titles[active];
+            auto *other = titles[1 - active];
+            auto *view = chosen->parentWidget()->findChild<PlotView *>();
+            QVERIFY(view);
+            const auto titleRect = chosen->geometry();
+            const auto plotRect = view->geometry();
+            if (active == 0)
+                QTest::mouseClick(chosen, Qt::LeftButton);
+            else
+                QTest::mouseClick(view->plotWidget(), Qt::LeftButton);
+            QCoreApplication::processEvents();
+            QVERIFY(chosen->isChecked() && !other->isChecked());
+            QCOMPARE(chosen->geometry(), titleRect);
+            QCOMPARE(view->geometry(), plotRect);
+            for (auto *title : titles) {
+                const auto button = title->grab().toImage();
+                const auto scale = button.devicePixelRatio();
+                const auto top = [&](int y) { return button.pixelColor(button.width() / 2, y); };
+                const auto ink = themeColor("selectionText");
+                const auto fill = top(qCeil(4 * scale));
+                QVERIFY(fill != ink);
+                QCOMPARE(top(qCeil(3 * scale)), fill);
+                // Fractional display scales blend the physical pixel straddling a border.
+                const int firstPixel = title == chosen ? 0 : qCeil(scale);
+                for (int y = firstPixel; y < qFloor(3 * scale); ++y)
+                    QCOMPARE(top(y), title == chosen ? ink : fill);
+                const auto panel = title->parentWidget()->grab().toImage();
+                const auto side = panel.pixelColor(qRound(panel.devicePixelRatio()), panel.height() / 2);
+                QVERIFY(side != ink && side != themeColor("accent"));
+            }
+        }
+    }
 }
 void WorkspaceTests::subplotArrangementKeepsDataAndTargets()
 {

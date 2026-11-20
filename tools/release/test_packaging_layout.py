@@ -60,7 +60,7 @@ class PackagingLayoutTests(unittest.TestCase):
             package_source.main()
             with self.assertRaisesRegex(SystemExit, 'Refusing to overwrite'):
                 package_source.main()
-        dest = out / 'Aster-source-export-1.1.1'
+        dest = out / 'AstroBatch-source-export-1.1.1'
         self.assertEqual(list(out.iterdir()), [dest])
         for name in ['config/local.pri', 'build-release', 'dist', 'results.sqlite', 'docs/.DS_Store',
                      'src/main.cpp~', 'src/main.cpp.orig', 'docs/._guide.md', '__MACOSX', 'docs/desktop.ini']:
@@ -113,7 +113,7 @@ class PackagingLayoutTests(unittest.TestCase):
         with patch.object(package_source, 'ROOT', root), patch.object(
                 sys, 'argv', ['export', '--output', str(out)]):
             package_source.main()
-        dest = out / 'Aster-source-export-1.1.1'
+        dest = out / 'AstroBatch-source-export-1.1.1'
         subprocess.run(['git', 'init', '-q', str(dest)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(dest), 'add', '--all'], check=True, capture_output=True)
         result = subprocess.run(['git', '-C', str(dest), 'ls-files', '--error-unmatch', helper],
@@ -158,7 +158,7 @@ class PackagingLayoutTests(unittest.TestCase):
                         with self.assertRaisesRegex(SystemExit, 'outside the source tree'):
                             package_source.main()
                     self.assertFalse((root / 'copy').exists())
-                    self.assertFalse((root / 'Aster-source-export-1.1.1').exists())
+                    self.assertFalse((root / 'AstroBatch-source-export-1.1.1').exists())
 
     def test_source_export_accepts_external_directory_through_project_alias(self):
         root = self.source_tree()
@@ -167,7 +167,7 @@ class PackagingLayoutTests(unittest.TestCase):
         with patch.object(package_source, 'ROOT', alias), patch.object(
                 sys, 'argv', ['export', '--output', str(output)]):
             package_source.main()
-        dest = output / 'Aster-source-export-1.1.1'
+        dest = output / 'AstroBatch-source-export-1.1.1'
         self.assertEqual((dest / 'src/main.cpp').read_bytes(), (root / 'src/main.cpp').read_bytes())
         self.assertFalse((dest / 'config/local.pri').exists())
 

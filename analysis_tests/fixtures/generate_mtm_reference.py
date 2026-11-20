@@ -13,7 +13,7 @@ y = np.sin(2*np.pi*x/16) + .4*np.cos(2*np.pi*x/39) + .001*x
 centered = y - np.mean(y)
 variance = np.mean(centered**2)
 tapers, ratios = dpss(n, nw, Kmax=k, sym=True, norm=2, return_ratios=True)
-# Aster legacy convention: zero-pad to the next 2/3/5-smooth length
+# AstroBatch legacy convention: zero-pad to the next 2/3/5-smooth length
 # at least max(4*N, 512); this is denser sampling, not better resolution.
 nfft = next_fast_len(max(4*n, 512), real=True)
 individual = np.abs(np.fft.rfft(tapers * centered, n=nfft, axis=1))**2

@@ -14,21 +14,21 @@
 #include "update/package_download.h"
 using namespace aster::updates;
 namespace {
-UpdateConfig config(){UpdateConfig c{"ChenCLian","Aster","2026-03-10"};c.packageMetadata="Aster-update.json";c.timeoutMs=80;return c;}
+UpdateConfig config(){UpdateConfig c{"ChenCLian","AstroBatch","2026-03-10"};c.packageMetadata="AstroBatch-update.json";c.timeoutMs=80;return c;}
 QString version(){return "99.0.0-beta.1";}
 QString platform(){return nativeUpdatePlatform();}
-QString root(){return "Aster-"+version()+"-"+platform();}
-QString launch(){return platform()=="windows-x64"?"Aster.exe":platform().startsWith("macos")?"Aster.app/Contents/MacOS/Aster":"AppRun";}
+QString root(){return "AstroBatch-"+version()+"-"+platform();}
+QString launch(){return platform()=="windows-x64"?"AstroBatch.exe":platform().startsWith("macos")?"AstroBatch.app/Contents/MacOS/AstroBatch":"AppRun";}
 QByteArray json(const QJsonObject &o){return QJsonDocument(o).toJson(QJsonDocument::Compact);}
 QJsonObject metadata(const QByteArray &body,bool mirror=false){
  const auto name=root()+(platform()=="linux-x64"?".tar.gz":".zip");
- QJsonArray sources{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/Aster/releases/download/v"+version()+"/"+name}}};
- if(mirror)sources.append(QJsonObject{{"name","Gitee"},{"url","https://gitee.com/ChenCLian/Aster/releases/download/v"+version()+"/"+name}});
+ QJsonArray sources{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/AstroBatch/releases/download/v"+version()+"/"+name}}};
+ if(mirror)sources.append(QJsonObject{{"name","Gitee"},{"url","https://gitee.com/ChenCLian/AstroBatch/releases/download/v"+version()+"/"+name}});
  return {{"schema",1},{"version",version()},{"packages",QJsonArray{QJsonObject{{"platform",platform()},{"file",name},{"bytes",body.size()},{"unpacked_bytes",67108864},{"sha256",QString(QCryptographicHash::hash(body,QCryptographicHash::Sha256).toHex())},{"sources",sources}}}}};
 }
 QByteArray mirrorRelease(const QByteArray &record, const QString &tag) {
     const QString notes = "Update notes" + (record.isEmpty() ? QString() :
-        "\n\n<!-- aster-update-v1\n" + QString::fromUtf8(record) + "\n-->");
+        "\n\n<!-- astrobatch-update-v1\n" + QString::fromUtf8(record) + "\n-->");
     return json({{"tag_name",tag},{"body",notes}});
 }
 struct Entry{QString name;QByteArray body;int type=AE_IFREG;QString link;int mode=0755;};
@@ -40,7 +40,7 @@ QByteArray pack(QVector<Entry> entries,bool zip=false){
   if(archive_write_header(a,item)==ARCHIVE_OK&&e.type==AE_IFREG)archive_write_data(a,e.body.constData(),size_t(e.body.size()));archive_entry_free(item);
  }archive_write_close(a);archive_write_free(a);file.seek(0);return file.readAll();
 }
-QVector<Entry> entries(){return {{root()+"/"+launch(),"executable"},{root()+"/aster-package.json",json({{"schema",1},{"version",version()},{"platform",platform()}})}};}
+QVector<Entry> entries(){return {{root()+"/"+launch(),"executable"},{root()+"/astrobatch-package.json",json({{"schema",1},{"version",version()},{"platform",platform()}})}};}
 struct Response{int status=200;QByteArray body;int delay=1;QString redirect;};
 class Reply:public QNetworkReply{
  QByteArray body;qint64 at=0;
@@ -76,7 +76,7 @@ private slots:
    QVERIFY(ready[0][0].toBool());client.start(dir.path(),"GitHub");QTRY_COMPARE(done.size(),1);QVERIFY(!done[0][0].toBool());
    QCOMPARE(manager.urls.size(),at=="verifying"||at=="extracting"?2:1);
   }
-  QVERIFY(!client.busy());QVERIFY(QDir(dir.path()).entryList({".aster-download-*"},QDir::Dirs|QDir::Hidden|QDir::NoDotAndDotDot).isEmpty());
+  QVERIFY(!client.busy());QVERIFY(QDir(dir.path()).entryList({".astrobatch-download-*"},QDir::Dirs|QDir::Hidden|QDir::NoDotAndDotDot).isEmpty());
  }
 
  void metadataFallback_data(){QTest::addColumn<QString>("mode");for(const auto *mode:{"network","timeout","missing","invalid","cancel"})QTest::newRow(mode)<<QString(mode);}
@@ -88,7 +88,7 @@ private slots:
   client.prepare("v"+version());if(mode=="cancel")client.cancel();QTRY_COMPARE(done.size(),1);
   const bool fallback=mode!="invalid"&&mode!="cancel";QCOMPARE(done[0][0].toBool(),fallback);
   QCOMPARE(manager.urls.size(),fallback?2:1);
-  if(fallback){QCOMPARE(manager.urls.last().host(),QString("gitee.com"));QCOMPARE(manager.urls.last().path(),QString("/api/v5/repos/ChenCLian/Aster/releases/tags/v")+version());}
+  if(fallback){QCOMPARE(manager.urls.last().host(),QString("gitee.com"));QCOMPARE(manager.urls.last().path(),QString("/api/v5/repos/ChenCLian/AstroBatch/releases/tags/v")+version());}
  }
  void cancelAndRestartAtNotification(){
   Manager manager;auto bytes=pack(entries(),platform()!="linux-x64");manager.replies={{200,json(metadata(bytes))},{200,bytes}};
@@ -104,12 +104,12 @@ private slots:
   QVERIFY(!ready[0][0].toBool());QCOMPARE(manager.urls.size(),1);
  }
  void mirrorNotesHideMetadata(){
-  auto notes=QStringLiteral("人工公告\r\n<!-- aster-update-v1\r\n{}\r\n-->\r\nMore");
+  auto notes=QStringLiteral("人工公告\r\n<!-- astrobatch-update-v1\r\n{}\r\n-->\r\nMore");
   QByteArray record;QVERIFY(takeGiteeUpdateRecord(notes,record));QCOMPARE(record,QByteArray("{}"));
-  QVERIFY(notes.contains("人工公告"));QVERIFY(notes.contains("More"));QVERIFY(!notes.contains("aster-update"));
+  QVERIFY(notes.contains("人工公告"));QVERIFY(notes.contains("More"));QVERIFY(!notes.contains("astrobatch-update"));
  }
  void giteeMetadataOrigin(){
-  Manager manager;const auto bytes=pack(entries());manager.replies={{200,mirrorRelease({},"v"+version())},{302,{},1,"https://gitee.com/ChenCLian/Aster/attach_files/123/download/Aster-update.json"},{302,{},1,"https://foruda.gitee.com/attach_file/123/Aster-update.json?token=public-temporary"},{200,json(metadata(bytes,true))}};
+  Manager manager;const auto bytes=pack(entries());manager.replies={{200,mirrorRelease({},"v"+version())},{302,{},1,"https://gitee.com/ChenCLian/AstroBatch/attach_files/123/download/AstroBatch-update.json"},{302,{},1,"https://foruda.gitee.com/attach_file/123/AstroBatch-update.json?token=public-temporary"},{200,json(metadata(bytes,true))}};
   PackageDownload client(config(),nullptr,&manager);QSignalSpy prepared(&client,&PackageDownload::prepared);
   client.prepare("v"+version(),"Gitee");QVERIFY(prepared.wait());QVERIFY(prepared[0][0].toBool());QCOMPARE(manager.urls.size(),4);
   QCOMPARE(manager.urls[0].host(),QString("gitee.com"));QCOMPARE(manager.urls[1].host(),QString("gitee.com"));QCOMPARE(manager.urls[3].host(),QString("foruda.gitee.com"));
@@ -167,7 +167,7 @@ private slots:
   const bool expected=mode=="success"||mode=="network-fallback"||mode=="hash-fallback"||mode=="redirect"||mode=="unicode-path";
   QCOMPARE(finished[0][0].toBool(),expected);
   if(expected)QVERIFY(QFileInfo::exists(client.completedDirectory()+"/"+launch()));else QVERIFY(client.completedDirectory().isEmpty());
-  QVERIFY(QDir(parent).entryList({".aster-download-*"},QDir::Dirs|QDir::Hidden|QDir::NoDotAndDotDot).isEmpty());
+  QVERIFY(QDir(parent).entryList({".astrobatch-download-*"},QDir::Dirs|QDir::Hidden|QDir::NoDotAndDotDot).isEmpty());
   if(mode=="network-fallback"||mode=="hash-fallback")QCOMPARE(manager.urls.last().host(),QString("gitee.com"));
   if(mode=="manual-no-fallback")QCOMPARE(manager.urls.size(),2);
  }

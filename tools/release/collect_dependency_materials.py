@@ -30,7 +30,7 @@ def dependency_index(version, platform, names, reused=()):
     urls = '\n'.join(f'- [{name}]({asset_url(version, name)})'
                      for name in sorted(names))
     urls += ''.join(f'\n- [{name}]({url}) (reused published source)' for name, url in sorted(reused))
-    return (f'# Aster {version} dependency sources ({platform})\n\n'
+    return (f'# AstroBatch {version} dependency sources ({platform})\n\n'
             f'Source archives and build records for this package:\n\n{urls}\n\n'
             'Project source: see SOURCE_CODE.md. Third-party notices: licenses/dependencies/.\n'
             'La2004/La2010 redistribution is a separate, unresolved data review.\n')
@@ -89,7 +89,7 @@ def finish(collection, package, owners, binaries, install=True):
                 collection.error(component['id'], 'No license/attribution materials were collected')
             if not component['sources'] and not component['recipes']:
                 collection.error(component['id'], 'No corresponding source or source recipe was collected')
-    report = {'schema':1, 'project':'Aster', 'version':collection.version,
+    report = {'schema':1, 'project':'AstroBatch', 'version':collection.version,
               'platform':collection.platform,
               'status':'plan-only' if collection.plan_only else ('incomplete' if collection.errors else 'collected'),
               'scope':'Dependency material collection; not a legal clearance or a reproducible-build certificate.',
@@ -97,7 +97,7 @@ def finish(collection, package, owners, binaries, install=True):
               'components':collection.components, 'binaries':collection.inventory, 'errors':collection.errors}
     write_json(collection.records / 'DEPENDENCIES.json', report)
     write_json(collection.output / 'report.json', report)
-    lines = ['# Aster dependency materials', '', f'Version: {collection.version}',
+    lines = ['# AstroBatch dependency materials', '', f'Version: {collection.version}',
              f'Platform: {collection.platform}', f'Status: {report["status"]}', '',
              'This records retrieved dependency sources and notices. It does not certify all redistribution rights.',
              'La2004/La2010 data redistribution remains outside this collection.', '',
@@ -112,7 +112,7 @@ def finish(collection, package, owners, binaries, install=True):
               'Unchanged source archives are linked from earlier releases; current build recipes and binary inventory are regenerated.',
               'Do not upload cache/ or the local build environment. Sources are not compiled into the application.',
               'Release names may normalize special characters. Restore original source filenames before rebuilding Debian .dsc sources.',
-              'See DEPENDENCY_DOWNLOADS.md and Aster-asset-filenames.json on the release for names and download links.',
+              'See DEPENDENCY_DOWNLOADS.md and AstroBatch-asset-filenames.json on the release for names and download links.',
               'The records ZIP contains licenses, source URLs/checksums, build recipes and the staged binary inventory.',
               'Use the build receipt/recipe to apply patches before rebuilding a dependency.',
               'Binary fingerprints are captured before macOS signing; source checksums remain in DEPENDENCIES.json.', '']
@@ -157,12 +157,12 @@ def finish(collection, package, owners, binaries, install=True):
         lock['components'].append({'id': component['id'], 'version': component['version'],
             'provider': component['provider'], 'processed': True, 'recipes': recipe_hashes,
             'sources': component['sources']})
-    lock_name = f'Aster-{collection.version}-{collection.platform}-dependency-lock.json'
+    lock_name = f'AstroBatch-{collection.version}-{collection.platform}-dependency-lock.json'
     write_json(collection.output / 'dependency-lock.json', lock)
     write_json(collection.assets / lock_name, lock)
     write_json(collection.records / 'DEPENDENCY_LOCK.json', lock)
     names.append(lock_name)
-    records_name = f'Aster-{collection.version}-{collection.platform}-dependency-records.zip' 
+    records_name = f'AstroBatch-{collection.version}-{collection.platform}-dependency-records.zip'
     temporary = collection.output / (records_name + '.partial')
     with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(collection.records.rglob('*')):
@@ -219,10 +219,10 @@ def main(argv=None):
     # Source caches survive retries, but generated records/assets must not retain
     # stale components after a dependency was removed or downgraded.
     output.mkdir(parents=True, exist_ok=True)
-    marker = output / '.aster-dependency-materials'
+    marker = output / '.astrobatch-dependency-materials'
     if any(output.iterdir()) and not marker.is_file():
         parser.error('Output must be empty or a previous collector output')
-    marker.write_text('Aster dependency collector output\n', encoding='utf-8')
+    marker.write_text('AstroBatch dependency collector output\n', encoding='utf-8')
     for name in ('records', 'release-assets'):
         if (output / name).exists():
             shutil.rmtree(output / name)
@@ -234,8 +234,8 @@ def main(argv=None):
                       if 'licenses' not in p.relative_to(package).parts and is_binary(p))
     if not binaries:
         parser.error('No native binaries were found in the staging folder')
-    owners = {p:'Aster-project-source' for p in binaries
-              if p.relative_to(package).as_posix() in {'Aster.exe','usr/bin/Aster','Aster.app/Contents/MacOS/Aster'}}
+    owners = {p:'AstroBatch-project-source' for p in binaries
+              if p.relative_to(package).as_posix() in {'AstroBatch.exe','usr/bin/AstroBatch','AstroBatch.app/Contents/MacOS/AstroBatch'}}
     try:
         prefix, _ = qt_sources(collection, args.qmake.absolute(), binaries)
         owners.update(qt_owners(binaries, prefix, args.platform))

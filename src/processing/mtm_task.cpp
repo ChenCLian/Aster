@@ -104,7 +104,7 @@ NodeResult MtmTask::execute(const TaskInput& input, const ExecutionContext& cont
     result.report["fdr_method"] = "Acycle bandwidth H(floor(NW)); last rejected observed p-value (not generic BY)";
     result.report["fdr_curve_semantics"] = "Inclusive observed rejection boundary; retained curves may coincide at different q levels";
     result.report["significance_dof"] = 2*tapers;
-    result.report["acycle_power_conversion"] = "Aster physical-frequency PSD = Acycle normalized-angular-frequency power * 2*pi*dt";
+    result.report["acycle_power_conversion"] = "AstroBatch physical-frequency PSD = Acycle normalized-angular-frequency power * 2*pi*dt";
     result.report["analysis_frequency_max"] = spectrum.frequency.back();
     result.report["nyquist_frequency"] = 1.0/(2*dt);
     result.report["rayleigh_frequency"] = 1.0/(source->y.size()*dt);

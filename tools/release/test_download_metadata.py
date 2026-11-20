@@ -10,9 +10,9 @@ import download_metadata as d
 
 class DownloadMetadataTests(unittest.TestCase):
     def package(self, base, platform='windows-x64'):
-        folder = base / f'Aster-1.3.0-beta.17-{platform}'
+        folder = base / f'AstroBatch-1.3.0-beta.17-{platform}'
         folder.mkdir()
-        entry = 'Aster.exe' if platform == 'windows-x64' else 'AppRun'
+        entry = 'AstroBatch.exe' if platform == 'windows-x64' else 'AppRun'
         (folder / entry).write_bytes(b'fake executable')
         d.stamp(folder, '1.3.0-beta.17', platform)
         path = base / (folder.name + ('.tar.gz' if platform == 'linux-x64' else '.zip'))
@@ -60,6 +60,25 @@ class DownloadMetadataTests(unittest.TestCase):
 
     def test_stamp_requires_launch_file(self):
         with tempfile.TemporaryDirectory() as td:
-            folder=Path(td)/'Aster-1.3.0-beta.17-windows-x64';folder.mkdir()
+            folder=Path(td)/'AstroBatch-1.3.0-beta.17-windows-x64';folder.mkdir()
             with self.assertRaises(ValueError):
                 d.stamp(folder, '1.3.0-beta.17', 'windows-x64')
+
+    def test_archives_used_by_the_desktop_updater(self):
+        fixtures = d.ROOT / 'download_tests' / 'fixtures'
+        version = '99.0.0-beta.1'
+        with tempfile.TemporaryDirectory() as folder:
+            for platform in d.PLATFORMS:
+                with self.subTest(platform=platform):
+                    root = f'AstroBatch-{version}-{platform}'
+                    suffix = '.tar.gz' if platform == 'linux-x64' else '.zip'
+                    package = Path(folder) / (root + suffix)
+                    shutil.copyfile(fixtures / (platform + suffix), package)
+                    self.assertEqual(d.inspect_package(package, version, platform)['file'], package.name)
+                    if platform == 'linux-x64':
+                        with tarfile.open(package) as archive:
+                            self.assertTrue(archive.getmember(root + '/AppRun').isfile())
+                    else:
+                        entry = 'AstroBatch.exe' if platform == 'windows-x64' else 'AstroBatch.app/Contents/MacOS/AstroBatch'
+                        with zipfile.ZipFile(package) as archive:
+                            self.assertGreater(archive.getinfo(root + '/' + entry).file_size, 0)

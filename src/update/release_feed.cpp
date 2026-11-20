@@ -14,10 +14,8 @@ UpdateConfig UpdateConfig::fromJson(const QByteArray &json) {
     return c;
 }
 bool UpdateConfig::valid() const {
-    static const QRegularExpression name("^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$");
     static const QRegularExpression date("^[0-9]{4}-[0-9]{2}-[0-9]{2}$");
-    return name.match(owner).capturedLength()==owner.size()&&!owner.isEmpty()&&
-           name.match(repository).capturedLength()==repository.size()&&!repository.isEmpty()&&
+    return owner == QStringLiteral("ChenCLian") && repository == QStringLiteral("AstroBatch") &&
            date.match(apiVersion).capturedLength()==apiVersion.size()&&!apiVersion.isEmpty()&&
            timeoutMs>0&&maximumPages>0&&maximumPages<=100&&maximumResponseBytes>0&&maximumResponseBytes<=16*1024*1024;
 }
@@ -32,7 +30,7 @@ QUrl UpdateConfig::releaseUrl(const QString &tag) const {
 }
 bool takeGiteeUpdateRecord(QString &notes, QByteArray &record) {
     notes.replace("\r\n", "\n");
-    const QString marker = QStringLiteral("<!-- aster-update-v1\n");
+    const QString marker = QStringLiteral("<!-- astrobatch-update-v1\n");
     const auto start = notes.indexOf(marker);
     record.clear();
     if (start < 0) return true; // Legacy releases use a metadata attachment.

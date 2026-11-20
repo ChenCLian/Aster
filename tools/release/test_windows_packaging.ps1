@@ -8,12 +8,12 @@ $parseErrors = $null
 $scriptPath = Join-Path $PSScriptRoot "package_windows.ps1"
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
-foreach ($name in @("Assert-AsterExecutableVersion", "Get-AsterPython", "Invoke-AsterCollector", "Invoke-AsterReuse")) {
+foreach ($name in @("Assert-AstroBatchExecutableVersion", "Get-AstroBatchPython", "Invoke-AstroBatchCollector", "Invoke-AstroBatchReuse")) {
     $definition = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name }, $true)
     if (!$definition) { throw "Missing function: $name" }
     . ([ScriptBlock]::Create($definition.Extent.Text))
 }
-$python = Get-AsterPython -Explicit $PythonExe
+$python = Get-AstroBatchPython -Explicit $PythonExe
 $script:passed = 0
 function Assert-True($Condition, [string]$Message) {
     if (!$Condition) { throw $Message }
@@ -27,7 +27,7 @@ function Pass([string]$Name) {
     $script:passed++
     Write-Host "PASS $Name"
 }
-$temporary = Join-Path ([IO.Path]::GetTempPath()) ("aster-packaging-tests-" + [guid]::NewGuid().ToString("N"))
+$temporary = Join-Path ([IO.Path]::GetTempPath()) ("astrobatch-packaging-tests-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $temporary | Out-Null
 try {
     $versionFixture = Join-Path $temporary "version fixture.py"
@@ -38,7 +38,7 @@ mode = sys.argv[1]
 if mode == 'timeout':
     time.sleep(10)
 if mode != 'empty':
-    print('Aster_Workspace ' + ('1.2.0-beta.2' if mode == 'old' else '1.2.0-beta.5'))
+    print('AstroBatch ' + ('1.2.0-beta.2' if mode == 'old' else '1.2.0-beta.5'))
 if mode == 'error':
     print('runtime load failed', file=sys.stderr)
     sys.exit(3)
@@ -46,17 +46,17 @@ if mode == 'error':
     foreach ($mode in @('ok', 'old', 'empty', 'error', 'timeout')) {
         $arguments = '"' + $versionFixture + '" ' + $mode
         $timeout = if ($mode -eq 'timeout') { 500 } else { 15000 }
-        $invoke = { Assert-AsterExecutableVersion -App $python.Path -Version '1.2.0-beta.5' -Arguments $arguments -TimeoutMilliseconds $timeout }
+        $invoke = { Assert-AstroBatchExecutableVersion -App $python.Path -Version '1.2.0-beta.5' -Arguments $arguments -TimeoutMilliseconds $timeout }
         if ($mode -eq 'ok') { & $invoke }
         elseif ($mode -eq 'timeout') { Expect-Failure $invoke 'timed out' }
         elseif ($mode -eq 'error') { Expect-Failure $invoke 'exited with 3' }
         else { Expect-Failure $invoke 'expected.*1.2.0-beta.5' }
         Pass "Executable full version: $mode"
     }
-    Expect-Failure { Assert-AsterExecutableVersion -App (Join-Path $temporary 'missing.exe') -Version '1.2.0-beta.5' } '.+'
+    Expect-Failure { Assert-AstroBatchExecutableVersion -App (Join-Path $temporary 'missing.exe') -Version '1.2.0-beta.5' } '.+'
     Pass 'Executable version launch failure'
     $versionGate = @($ast.EndBlock.Statements | Where-Object {
-        $_.Extent.Text.StartsWith('Assert-AsterExecutableVersion -App ')
+        $_.Extent.Text.StartsWith('Assert-AstroBatchExecutableVersion -App ')
     })
     Assert-True ($versionGate.Count -eq 1) 'Missing unconditional full-version gate'
     $materialOffset = $ast.Extent.Text.IndexOf('$materialRoot = if')
@@ -64,7 +64,7 @@ if mode == 'error':
     Pass 'Stage, Reuse and Collect share the executable version gate'
     Assert-True (Test-Path -LiteralPath $python.Path -PathType Leaf) "Python probe did not resolve an executable"
     Pass "Python interpreter resolution"
-    Expect-Failure { Get-AsterPython -Explicit (Join-Path $temporary "missing-python.exe") } "Python 3.10"
+    Expect-Failure { Get-AstroBatchPython -Explicit (Join-Path $temporary "missing-python.exe") } "Python 3.10"
     Pass "Missing interpreter rejected before staging"
     $fixture = Join-Path $temporary "collector fixture.py"
     @'
@@ -93,7 +93,7 @@ sys.exit(2 if mode in ('incomplete', 'late-failure') else 0)
 '@ | Set-Content -LiteralPath $fixture -Encoding UTF8
     foreach ($mode in @("success", "crash", "no-report", "invalid-json", "invalid-status", "incomplete", "late-failure")) {
         $output = Join-Path $temporary ("output " + $mode)
-        $invoke = { Invoke-AsterCollector -Python $python.Path -CollectorArguments @($fixture, $mode, $output) -MaterialRoot $output -Version "1.1.1" }
+        $invoke = { Invoke-AstroBatchCollector -Python $python.Path -CollectorArguments @($fixture, $mode, $output) -MaterialRoot $output -Version "1.1.1" }
         if ($mode -eq "success") { & $invoke } else { Expect-Failure $invoke "Dependency collector failed" }
         $report = Get-Content -LiteralPath (Join-Path $output "report.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         $log = Get-Content -LiteralPath (Join-Path $output "collector.log") -Raw -Encoding UTF8
@@ -112,21 +112,21 @@ sys.exit(2 if mode in ('incomplete', 'late-failure') else 0)
     }
     $output = Join-Path $temporary "stale-report"
     New-Item -ItemType Directory -Path $output | Out-Null
-    Set-Content -LiteralPath (Join-Path $output ".aster-dependency-materials") -Value "collector output"
+    Set-Content -LiteralPath (Join-Path $output ".astrobatch-dependency-materials") -Value "collector output"
     Set-Content -LiteralPath (Join-Path $output "report.json") -Value '{"status":"collected"}'
-    Expect-Failure { Invoke-AsterCollector -Python $python.Path -CollectorArguments @($fixture, "no-report", $output) -MaterialRoot $output -Version "1.1.1" } "Dependency collector failed"
+    Expect-Failure { Invoke-AstroBatchCollector -Python $python.Path -CollectorArguments @($fixture, "no-report", $output) -MaterialRoot $output -Version "1.1.1" } "Dependency collector failed"
     $report = Get-Content -LiteralPath (Join-Path $output "report.json") -Raw | ConvertFrom-Json
     Assert-True ($report.status -eq "incomplete") "Stale successful report accepted"
     Pass "Stale report cannot mask failure"
     $output = Join-Path $temporary "launch-failure"
-    Expect-Failure { Invoke-AsterCollector -Python (Join-Path $temporary "missing-python.exe") -CollectorArguments @() -MaterialRoot $output -Version "1.1.1" } "Dependency collector failed"
+    Expect-Failure { Invoke-AstroBatchCollector -Python (Join-Path $temporary "missing-python.exe") -CollectorArguments @() -MaterialRoot $output -Version "1.1.1" } "Dependency collector failed"
     $report = Get-Content -LiteralPath (Join-Path $output "report.json") -Raw | ConvertFrom-Json
     Assert-True ($report.phase -eq "collector-process") "Launch failure has no fallback report"
     Pass "Process launch failure"
     $output = Join-Path $temporary "unowned-directory"
     New-Item -ItemType Directory -Path $output | Out-Null
     Set-Content -LiteralPath (Join-Path $output "keep.txt") -Value "keep"
-    Expect-Failure { Invoke-AsterCollector -Python $python.Path -CollectorArguments @() -MaterialRoot $output -Version "1.1.1" } "must be empty"
+    Expect-Failure { Invoke-AstroBatchCollector -Python $python.Path -CollectorArguments @() -MaterialRoot $output -Version "1.1.1" } "must be empty"
     Assert-True ((Get-Content -LiteralPath (Join-Path $output "keep.txt") -Raw).Trim() -eq "keep") "Unowned directory changed"
     Pass "Unrelated directory preserved"
     $modeParameter = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq "DependencyMode" }
@@ -154,7 +154,7 @@ sys.exit(2 if mode in ('incomplete', 'late-failure') else 0)
             $PythonExe = "not-an-installed-python"
             $python = $null
             $calls = @{ python = 0; reuse = 0; collect = 0 }
-            function Get-AsterPython {
+            function Get-AstroBatchPython {
                 param([string]$Explicit)
                 $calls.python++
                 return [pscustomobject]@{ Path = 'test-python'; Version = '3.12.0' }
@@ -166,29 +166,29 @@ sys.exit(2 if mode in ('incomplete', 'late-failure') else 0)
             New-Item -ItemType Directory -Path $stage | Out-Null
             $pending = Join-Path $stage "DEPENDENCY_MATERIALS_PENDING.txt"
             Set-Content -LiteralPath $pending -Value "pending"
-            Set-Content -LiteralPath (Join-Path $stage "Aster.exe") -Value "deployed fixture"
+            Set-Content -LiteralPath (Join-Path $stage "AstroBatch.exe") -Value "deployed fixture"
             $outputRoot = $temporary
             $DependencyMaterials = Join-Path $temporary ("materials-mode-" + $mode)
             $qtRoot = Join-Path $temporary "Qt"
             $dependencyRoot = Join-Path $temporary "vcpkg"
             $VcpkgRoot = $DependencyCache = $DependencySupplement = ""
             $version = "1.2.0-beta.5"
-            $name = "Aster-$version-windows-x64"
+            $name = "AstroBatch-$version-windows-x64"
             $failStep = $keepPending = $false
-            function Invoke-AsterCollector {
+            function Invoke-AstroBatchCollector {
                 param($Python, $CollectorArguments, $MaterialRoot, $Version)
                 $calls.collect++
                 if ($failStep) { throw "fixture collector failed" }
                 if (!$keepPending) { Remove-Item -LiteralPath $pending }
             }
-            function Invoke-AsterReuse {
+            function Invoke-AstroBatchReuse {
                 param($Python, $ReuseArguments)
                 $calls.reuse++
                 if ($failStep) { throw "fixture reuse failed" }
                 if (!$keepPending) { Remove-Item -LiteralPath $pending }
             }
             $messages = (& $materialBlock 6>&1 | Out-String)
-            Assert-True (Test-Path -LiteralPath (Join-Path $stage "Aster.exe")) "Deployment was removed"
+            Assert-True (Test-Path -LiteralPath (Join-Path $stage "AstroBatch.exe")) "Deployment was removed"
             if ($mode -eq "Stage") {
                 Assert-True ($calls.reuse -eq 0 -and $calls.collect -eq 0) "Stage invoked material processing"
                 Assert-True (Test-Path -LiteralPath $pending) "Stage removed the pending marker"
@@ -213,11 +213,11 @@ sys.exit(2 if mode in ('incomplete', 'late-failure') else 0)
     $output = Join-Path $temporary "reuse-output"
     New-Item -ItemType Directory -Path $output | Out-Null
     foreach ($mode in @("success", "incomplete", "crash")) {
-        $invoke = { Invoke-AsterReuse -Python $python.Path -ReuseArguments @($fixture, $mode, $output) }
+        $invoke = { Invoke-AstroBatchReuse -Python $python.Path -ReuseArguments @($fixture, $mode, $output) }
         if ($mode -eq "success") { & $invoke } else { Expect-Failure $invoke "Dependency reuse failed" }
         Pass "Offline reuse process: $mode"
     }
-    Expect-Failure { Invoke-AsterReuse -Python (Join-Path $temporary "missing-python.exe") -ReuseArguments @() } "Dependency reuse failed"
+    Expect-Failure { Invoke-AstroBatchReuse -Python (Join-Path $temporary "missing-python.exe") -ReuseArguments @() } "Dependency reuse failed"
     Pass "Offline reuse launch failure"
     Write-Host "Windows packaging process tests: $script:passed passed, 0 failed"
     Write-Host "Environment: PowerShell $($PSVersionTable.PSVersion); Python $($python.Version); $([Environment]::OSVersion.Platform)"

@@ -1,4 +1,4 @@
-# Aster 1.3.2-beta.7 User Guide
+# AstroBatch 1.3.3-beta.1 User Guide
 
 [Classified contents](README_EN.md)
 
@@ -8,7 +8,7 @@ Data-processing guidance: [Smoothing and detrending](methods/smoothing_trends_en
 
 ## Download and start
 
-**No installation is required. Extract the complete package and launch Aster.** On Windows, open `Aster.exe`; on macOS, open `Aster.app`; on Linux, run `./AppRun`. Download the application package for your operating system and keep all its files together. Source archives are intended for development and compilation.
+**No installation is required. Extract the complete package and launch AstroBatch.** On Windows, open `AstroBatch.exe`; on macOS, open `AstroBatch.app`; on Linux, run `./AppRun`. Download the application package for your operating system and keep all its files together. Source archives are intended for development and compilation.
 
 If Windows reports missing `VCRUNTIME` or `MSVCP` files, install the [Microsoft Visual C++ x64 runtime](https://aka.ms/vc14/vc_redist.x64.exe). Linux requires compatible system libraries, X11/XWayland and fonts. macOS packages require macOS 15+ and the correct processor architecture; signing information is provided with the release. See the [startup FAQ (Chinese)](../FAQ.md#portable).
 
@@ -172,9 +172,9 @@ The bottom **Steps and outputs** area has two resizable columns. Choose a step o
 
 An already open primary output is selected with its style preserved. A missing default plot opens on a new figure page. Choose **Settings → Default plot destination → Current figure page** to add it to the active page instead, starting a new page after four plots. Failed steps with no output show diagnostics and retain existing figures.
 
-Available outputs lists each output name with its type. Click anywhere on a row to select it. Selected rows have blue-gray shading and a short bar at the left. Ctrl-click (Command-click on macOS) to add or remove individual rows. Shift-click to select a range. Selections persist across steps in the same record. Use Review selected next to Add plot to inspect or clear the selection. The panel heading shows the current plot destination. Changing records clears the selection. Drag the dividers to resize the lists, or collapse them for more plotting space. Reopening restores their previous height.
+Click an output to select it for plotting. An ordinary click replaces selections across all steps. Click the sole selected output again to deselect it. Ctrl-click (Command-click on macOS) to add or remove individual outputs across steps. Shift-click selects a range within the current step. Selected rows have blue-gray shading and a short bar on the left. When another step has selected outputs, the list heading shows how many. Use **Review selected** to see their names. **Clear selection** or Esc while the output list has focus clears all steps. Changing records also clears the selection. Drag the dividers to resize the lists. Reopening a collapsed panel restores its previous height.
 
-Choose the destination by clicking a page tab or subplot header/plot. **Add plots** groups related outputs from the same step: spectra with their backgrounds, thresholds and peak markers; wavelet power with its cone of influence (COI). Heatmaps for different quantities, such as raw power, scale-corrected power and significance ratios, remain separate. Other outputs remain independent.
+Click a page tab or a subplot title or plot to choose the destination. The title button above the active subplot has a thick border. The panel heading also identifies it. **Add plots** groups related outputs from the same step: spectra with their backgrounds, thresholds and peak markers; wavelet power with its cone of influence (COI). Heatmaps for different quantities, such as raw power, scale-corrected power and significance ratios, remain separate. Other outputs remain independent.
 
 There are four subplots per page and up to 32 pages. The number on **Add plots** shows how many new plots will be created; existing plots remain. For example, selecting all four wavelet heatmaps and the COI adds four plots, each with the COI. Add plots also works on an empty workspace. **More → Plot separately** provides individual-output views.
 
@@ -226,7 +226,7 @@ Click samples, peaks or grid cells to inspect coordinates. The readout displays 
 
 ## Database and selection
 
-SQLite stores results. Changing the database path does not copy or delete records in the previous database. Use the Database menu for backup and merging compatible Aster databases. Imported records receive new IDs; incompatible schemas are rejected.
+SQLite stores results. Changing the database path does not copy or delete records in the previous database. Use the Database menu for backup and merging compatible AstroBatch databases. Imported records receive new IDs; incompatible schemas are rejected.
 
 Click a file name to browse it. Use the checkboxes for batch actions. With the list focused, move to a row using the arrow keys. Enter opens that record and Space toggles its check. The footer shows selected records / all records in this database. Select all records and Deselect all records act on the whole database. Select matches and Deselect matches act on all pages of the current filter. Each button remembers its own next action across row edits, filter changes and paging. After selecting the whole database, selecting matches leaves the count unchanged. Clicking Deselect matches then removes just that group. Delete checked confirms the full selection and the count outside the current filter.
 
@@ -287,4 +287,4 @@ Missing Chinese glyphs usually require a CJK font; Linux/WSL instructions are in
 
 COCO requires a depth axis. The metre-valued composite-depth labels `mcd` and `rmcd` are accepted with depth unit `m`, preserving the source depth reference. Resampling does not convert age to depth. COCO Monte Carlo allows 19–20000 simulations, subject to a separate fixed budget of 10 billion estimated work units per task. All scan-adjusted p values being one can be a valid result. See the [COCO FAQ (Chinese)](../FAQ.md#coco-units) for interpretation and budget diagnostics.
 
-Opening Settings → Check for updates checks the selected channel once. Stable and Beta are separate; Beta builds initially select Beta. Release notes support expandable details, and diagnostic information stays collapsed until requested. When package information is available, choose a destination and select Download and extract. Aster downloads the full package over official HTTPS, verifies SHA-256 and extracts into a new folder. Automatic source selection may retry an identical package from another listed source; a manually selected source does not switch. Existing destination folders are never replaced. Temporary files are cleaned after completion. Open the folder, close the old application and start the new version yourself. Older releases without package information keep the browser download button. Alpha builds are developer-only and do not participate in online version checks. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.
+Opening Settings → Check for updates checks the selected channel once. Stable and Beta are separate; Beta builds initially select Beta. Release notes support expandable details, and diagnostic information stays collapsed until requested. When package information is available, choose a destination and select Download and extract. AstroBatch downloads the full package over official HTTPS, verifies SHA-256 and extracts into a new folder. Automatic source selection may retry an identical package from another listed source; a manually selected source does not switch. Existing destination folders are never replaced. Temporary files are cleaned after completion. Open the folder, close the old application and start the new version yourself. Older releases without package information keep the browser download button. Alpha builds are developer-only and do not participate in online version checks. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.

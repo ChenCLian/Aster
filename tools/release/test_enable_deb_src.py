@@ -61,8 +61,8 @@ class SourceRepositoryTests(unittest.TestCase):
         self.source.write_text(self.stanza)
         (self.parts / 'security.list').write_text('deb https://security.ubuntu.com/ubuntu jammy-security main\n')
         first = enable_deb_src.collect(self.apt)
-        (self.parts / 'aster-deb-src.list').write_text('\n'.join(first[0]))
-        (self.parts / 'aster-deb-src.sources').write_text('\n\n'.join(first[1]))
+        (self.parts / 'astrobatch-deb-src.list').write_text('\n'.join(first[0]))
+        (self.parts / 'astrobatch-deb-src.sources').write_text('\n\n'.join(first[1]))
         self.assertEqual(enable_deb_src.collect(self.apt), first)
         self.assertEqual(tuple(map(len, first)), (1, 1))
 
@@ -169,7 +169,7 @@ class SourceRepositoryTests(unittest.TestCase):
         legacy, modern = enable_deb_src.collect(self.apt)
         stage = self.root / 'generated'
         stage.mkdir()
-        (stage / 'aster-deb-src.list').write_text('\n'.join(legacy) + '\n')
+        (stage / 'astrobatch-deb-src.list').write_text('\n'.join(legacy) + '\n')
         lists = self.root / 'lists'
         (lists / 'partial').mkdir(parents=True)
         result = subprocess.run(['apt-get', '-o', 'Dir::Etc::sourcelist=/dev/null',
@@ -188,8 +188,8 @@ class SourceRepositoryTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.source.read_text(), self.stanza)
         self.assertEqual(sorted(p.name for p in self.parts.iterdir()), ['ubuntu.sources'])
-        self.assertEqual(sorted(p.name for p in output.iterdir()), ['aster-deb-src.list', 'aster-deb-src.sources'])
-        self.assertIn('Types: deb-src', (output / 'aster-deb-src.sources').read_text())
+        self.assertEqual(sorted(p.name for p in output.iterdir()), ['astrobatch-deb-src.list', 'astrobatch-deb-src.sources'])
+        self.assertIn('Types: deb-src', (output / 'astrobatch-deb-src.sources').read_text())
 
     @unittest.skipUnless(shutil.which('apt-get'), 'APT parser is unavailable on this host')
     def test_generated_deb822_is_accepted_by_apt_without_downloading(self):
@@ -197,7 +197,7 @@ class SourceRepositoryTests(unittest.TestCase):
         legacy, modern = enable_deb_src.collect(self.apt)
         stage = self.root / 'generated'
         stage.mkdir()
-        (stage / 'aster-deb-src.sources').write_text('\n\n'.join(modern) + '\n')
+        (stage / 'astrobatch-deb-src.sources').write_text('\n\n'.join(modern) + '\n')
         lists = self.root / 'lists'
         lists.mkdir()
         (lists / 'partial').mkdir()

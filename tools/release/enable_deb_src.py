@@ -95,7 +95,7 @@ def collect(apt_root):
     paths = [apt_root / 'sources.list']
     paths += sorted((apt_root / 'sources.list.d').glob('*.list'))
     for path in paths:
-        if not path.is_file() or path.name == 'aster-deb-src.list':
+        if not path.is_file() or path.name == 'astrobatch-deb-src.list':
             continue
         for kind, line in legacy_entries(path.read_text(encoding='utf-8-sig'), apt_root):
             found = True
@@ -104,7 +104,7 @@ def collect(apt_root):
             else:
                 legacy.append('deb-src' + line[3:])
     for path in sorted((apt_root / 'sources.list.d').glob('*.sources')):
-        if path.name == 'aster-deb-src.sources':
+        if path.name == 'astrobatch-deb-src.sources':
             continue
         for fields, types, uris in deb822_entries(path.read_text(encoding='utf-8-sig'), apt_root):
             found = True
@@ -143,7 +143,7 @@ def main():
             raise ValueError('Use a staging directory outside the APT configuration directory')
         output.mkdir(parents=True, exist_ok=True)
         for extension, entries, separator in [('list', legacy, '\n'), ('sources', modern, '\n\n')]:
-            path = output / ('aster-deb-src.' + extension)
+            path = output / ('astrobatch-deb-src.' + extension)
             path.write_text('# Generated source entries; original APT configuration is unchanged.\n' +
                             separator.join(entries) + '\n', encoding='utf-8')
             print(f'{path}: {len(entries)} source entries')

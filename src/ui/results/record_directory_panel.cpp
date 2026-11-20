@@ -567,7 +567,7 @@ void RecordDirectoryPanel::exportFileNames()
     dialog.setAcceptMode(QFileDialog::AcceptSave);
     dialog.setNameFilter("CSV (*.csv)");
     dialog.setDefaultSuffix("csv");
-    dialog.selectFile(QString("Aster_file_index_%1.csv")
+    dialog.selectFile(QString("AstroBatch_file_index_%1.csv")
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss")));
     if (dialog.exec() != QDialog::Accepted || dialog.selectedFiles().isEmpty()) return;
     if (m_path != source) return;

@@ -12,7 +12,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
             for platform in r.PLATFORMS:
                 p=root/('dependency-materials-'+platform);p.mkdir();(p/next(iter(names))).write_bytes(b'not a program')
                 (p/'qt-everywhere.tar.xz').write_bytes(b'material')
-            for n in ['Aster-update.json','Aster-source.zip','README.md','gsl.tar.gz']:(root/n).write_bytes(b'not program')
+            for n in ['AstroBatch-update.json','AstroBatch-source.zip','README.md','gsl.tar.gz']:(root/n).write_bytes(b'not program')
             plan=r.mirror_plan(root,v)
             self.assertEqual({p['file'] for p in plan['upload']},names)
             self.assertEqual(sum(p['reason']=='dependency-materials-never-mirrored' for p in plan['excluded']),8)
@@ -38,17 +38,17 @@ class ReleaseDeliveryTests(unittest.TestCase):
     def prepared(self,folder,version='1.3.0-beta.18'):
         import io,json,tarfile,zipfile
         for platform in r.PLATFORMS:
-            root=f'Aster-{version}-{platform}';name=root+('.tar.gz' if platform=='linux-x64' else '.zip')
+            root=f'AstroBatch-{version}-{platform}';name=root+('.tar.gz' if platform=='linux-x64' else '.zip')
             marker=json.dumps(dict(schema=1,version=version,platform=platform)).encode()
             if platform=='linux-x64':
                 with tarfile.open(folder/name,'w:gz') as archive:
-                    info=tarfile.TarInfo(root+'/aster-package.json');info.size=len(marker);archive.addfile(info,io.BytesIO(marker))
+                    info=tarfile.TarInfo(root+'/astrobatch-package.json');info.size=len(marker);archive.addfile(info,io.BytesIO(marker))
             else:
-                with zipfile.ZipFile(folder/name,'w') as archive:archive.writestr(root+'/aster-package.json',marker)
-        with zipfile.ZipFile(folder/f'Aster-{version}-source.zip','w') as archive:archive.writestr('VERSION',version)
-        (folder/'RELEASE_GITHUB.md').write_text('Prepared notes')
+                with zipfile.ZipFile(folder/name,'w') as archive:archive.writestr(root+'/astrobatch-package.json',marker)
+        with zipfile.ZipFile(folder/f'AstroBatch-{version}-source.zip','w') as archive:archive.writestr('VERSION',version)
+        (folder/'RELEASE_GITHUB.md').write_text('Prepared notes', encoding='utf-8')
         metadata=r.generate([folder/name for name in sorted(r.package_names(version))],version)
-        (folder/'Aster-update.json').write_text(json.dumps(metadata))
+        (folder/'AstroBatch-update.json').write_text(json.dumps(metadata), encoding='utf-8')
 
     def test_partial_or_modified_packages_do_not_reach_remote_mutation(self):
         import json
@@ -56,8 +56,8 @@ class ReleaseDeliveryTests(unittest.TestCase):
             folder=Path(td)
             with self.assertRaisesRegex(ValueError,'Incomplete'):r.prepared_files(folder,'1.3.0-beta.18')
             self.prepared(folder)
-            data=json.loads((folder/'Aster-update.json').read_text());data['packages'][0]['sha256']='0'*64
-            (folder/'Aster-update.json').write_text(json.dumps(data))
+            data=json.loads((folder/'AstroBatch-update.json').read_text(encoding='utf-8'));data['packages'][0]['sha256']='0'*64
+            (folder/'AstroBatch-update.json').write_text(json.dumps(data), encoding='utf-8')
             with self.assertRaisesRegex(ValueError,'differs'):r.prepared_files(folder,'1.3.0-beta.18')
 
 
@@ -66,7 +66,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
         import subprocess
         from urllib.parse import unquote
         version='1.3.0-beta.18';tag='v'+version
-        release={'id':42,'tag_name':tag,'name':'Aster '+version,'target_commitish':'a'*40,
+        release={'id':42,'tag_name':tag,'name':'AstroBatch '+version,'target_commitish':'a'*40,
                  'draft':True,'prerelease':False,
                  'upload_url':f'https://uploads.github.com/repos/{r.REPO}/releases/42/assets{{?name,label}}'}
         calls=[];uploads=[]
@@ -114,11 +114,11 @@ class ReleaseDeliveryTests(unittest.TestCase):
 
     def test_existing_draft_channel_fixed_notes_preserved_and_retry_sums_clean(self):
         with tempfile.TemporaryDirectory() as td:
-            folder=Path(td);self.prepared(folder);(folder/'SHA256SUMS.txt').write_text('old stale checksum')
+            folder=Path(td);self.prepared(folder);(folder/'SHA256SUMS.txt').write_text('old stale checksum', encoding='utf-8')
             calls,uploads=self.run_delivery(folder)
             edits=[p for a,p in calls if a[-2:]==['--method','PATCH']]
             self.assertEqual(edits,[{'tag_name':'v1.3.0-beta.18','prerelease':True,'target_commitish':'a'*40}])
-            self.assertNotIn('SHA256SUMS.txt',(folder/'SHA256SUMS.txt').read_text())
+            self.assertNotIn('SHA256SUMS.txt',(folder/'SHA256SUMS.txt').read_text(encoding='utf-8'))
             self.assertEqual(len(uploads),9)
 
     def test_publication_during_upload_stops_further_overwrites(self):
@@ -132,7 +132,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
             self.run_delivery(folder,wrong_digest=True)
 
     def test_untagged_draft_recovered_only_for_exact_title_and_commit(self):
-        draft={'id':42,'tag_name':'untagged-abcdef','draft':True,'name':'Aster 1.3.1-beta.1','target_commitish':'a'*40}
+        draft={'id':42,'tag_name':'untagged-abcdef','draft':True,'name':'AstroBatch 1.3.1-beta.1','target_commitish':'a'*40}
         with patch.object(r,'github_json',return_value=[draft]):
             self.assertEqual(r.find_release('v1.3.1-beta.1','a'*40),draft)
             with self.assertRaisesRegex(ValueError,'different target'):r.find_release('v1.3.1-beta.1','b'*40)
@@ -223,7 +223,7 @@ class ReleaseDeliveryTests(unittest.TestCase):
                     self.assertIn('expected',str(error.exception));self.assertIn('actual',str(error.exception))
 
     def test_names_and_collision_preflight(self):
-        for name in ['file.tar.xz','Aster-1.3.1-beta.1-windows-x64.zip','SHA256SUMS.txt']:
+        for name in ['file.tar.xz','AstroBatch-1.3.1-beta.1-windows-x64.zip','SHA256SUMS.txt']:
             self.assertEqual(r.asset_name(name),name)
         for name in ['a~b.tar.xz','a+b.orig.tar.gz','a b.zip','.hidden.','中文.tar.xz']:
             self.assertRegex(r.asset_name(name),r'^[A-Za-z0-9_-][A-Za-z0-9._-]*$')
@@ -246,13 +246,13 @@ class ReleaseDeliveryTests(unittest.TestCase):
             import subprocess
             with patch.object(r,'find_release',return_value=release),patch.object(r,'require_draft',return_value=release),patch.object(r,'github_json'),patch.object(r.subprocess,'run',return_value=subprocess.CompletedProcess([],1,'','HTTP 404')),patch.object(r,'upload_asset') as upload:
                 r.publish_draft(folder,'1.3.0-beta.18','a'*40)
-            sums=(folder/'SHA256SUMS.txt').read_text()
+            sums=(folder/'SHA256SUMS.txt').read_text(encoding='utf-8')
             self.assertIn(r.digest(source)+'  gcc_1_2.tar.xz',sums)
             self.assertNotIn('~',sums)
-            mapping=json.loads((folder/'Aster-asset-filenames.json').read_text())
+            mapping=json.loads((folder/'AstroBatch-asset-filenames.json').read_text(encoding='utf-8'))
             item=next(a for a in mapping['assets'] if a['source_name']==source.name)
             self.assertEqual(item['asset_name'],'gcc_1_2.tar.xz');self.assertEqual(item['sha256'],r.digest(source))
-            self.assertIn('/gcc_1_2.tar.xz',(folder/'DEPENDENCY_DOWNLOADS.md').read_text())
+            self.assertIn('/gcc_1_2.tar.xz',(folder/'DEPENDENCY_DOWNLOADS.md').read_text(encoding='utf-8'))
             self.assertEqual(len(r.prepared_files(folder,'1.3.0-beta.18')),7)
 
     def test_same_bytes_cannot_steal_another_expected_or_unrelated_asset(self):
@@ -273,12 +273,12 @@ class ReleaseDeliveryTests(unittest.TestCase):
             for platform in r.PLATFORMS:
                 folder = root / ('dependency-materials-' + platform)
                 for suffix in ('dependency-lock.json','dependency-records.zip'):
-                    path = folder / f'Aster-{version}-{platform}-{suffix}'
+                    path = folder / f'AstroBatch-{version}-{platform}-{suffix}'
                     folder.mkdir(exist_ok=True)
                     path.write_bytes(b'receipt')
             r.check_material_receipts(root, version)
             windows = root/'dependency-materials-windows-x64'
-            lock = windows/f'Aster-{version}-windows-x64-dependency-lock.json'
+            lock = windows/f'AstroBatch-{version}-windows-x64-dependency-lock.json'
             nested = windows/'windows-x64'/'release-assets'
             nested.mkdir(parents=True)
             (nested/lock.name).write_bytes(lock.read_bytes())
@@ -302,24 +302,25 @@ class ReleaseDeliveryTests(unittest.TestCase):
             artifacts = root/'artifacts'; ready=root/'ready'
             for platform in r.PLATFORMS:
                 program = artifacts/('program-'+platform); program.mkdir(parents=True)
-                archive = next(fixtures.glob(f'Aster-{version}-{platform}.*'))
+                archive = next(fixtures.glob(f'AstroBatch-{version}-{platform}.*'))
                 shutil.copy2(archive,program)
                 dependency = artifacts/('dependency-materials-'+platform)/platform/'release-assets'
                 dependency.mkdir(parents=True)
                 (dependency/'acl~source.dsc').write_bytes(b'shared')
                 for suffix in ('dependency-lock.json','dependency-records.zip'):
-                    (dependency/f'Aster-{version}-{platform}-{suffix}').write_bytes(b'receipt')
+                    (dependency/f'AstroBatch-{version}-{platform}-{suffix}').write_bytes(b'receipt')
             # Same CLI used by the recovery workflow: current tools, old release notes.
             import sys
             tested = root/'tested-source'
             tested.mkdir()
-            (tested/'VERSION').write_text(version+'\n')
-            (tested/'RELEASE_NOTES.md').write_text('Notes from the original build')
+            notes = '原始构建说明 · Notes from the original build'
+            (tested/'VERSION').write_text(version+'\n', encoding='utf-8')
+            (tested/'RELEASE_NOTES.md').write_text(notes, encoding='utf-8')
             subprocess.run([sys.executable,r.__file__,'prepare','--source-root',str(tested),'--version',version,
                             '--artifacts',str(artifacts),'--directory',str(ready)], check=True)
-            self.assertIn('Notes from the original build',(ready/'RELEASE_GITHUB.md').read_text())
+            self.assertIn(notes, (ready/'RELEASE_GITHUB.md').read_text(encoding='utf-8'))
             self.assertEqual((ready/'dependency-materials'/'acl~source.dsc').read_bytes(),b'shared')
-            shutil.copy2(fixtures/f'Aster-{version}-source.zip',ready)
+            shutil.copy2(fixtures/f'AstroBatch-{version}-source.zip',ready)
             releases={}; assets={}
             def api(args,payload=None,timeout=120):
                 from urllib.parse import unquote
@@ -352,9 +353,9 @@ class ReleaseDeliveryTests(unittest.TestCase):
             self.assertEqual([rel['tag_name'] for rel in releases.values()],[materials,tag])
             self.assertEqual(releases[1]['make_latest'],'false')
             self.assertEqual(releases[2]['target_commitish'],commit)
-            self.assertEqual(set(assets[2]), r.package_names(version)|{'SHA256SUMS.txt','Aster-update.json',f'Aster-{version}-source.zip'})
+            self.assertEqual(set(assets[2]), r.package_names(version)|{'SHA256SUMS.txt','AstroBatch-update.json',f'AstroBatch-{version}-source.zip'})
             for name in r.package_names(version):self.assertIn('/'+tag+'/'+name,releases[2]['body'])
             self.assertEqual(releases[2]['body'].count('/tag/'+materials),1)
             self.assertIn('acl_source.dsc',assets[1])
-            self.assertIn('/'+materials+'/acl_source.dsc',(ready/'dependency-materials'/'DEPENDENCY_DOWNLOADS.md').read_text())
-            self.assertNotIn('Aster-update.json',assets[1])
+            self.assertIn('/'+materials+'/acl_source.dsc',(ready/'dependency-materials'/'DEPENDENCY_DOWNLOADS.md').read_text(encoding='utf-8'))
+            self.assertNotIn('AstroBatch-update.json',assets[1])

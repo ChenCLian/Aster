@@ -72,7 +72,7 @@ HEADERS += ../src/ui/results/plot_layout_widget.h ../src/ui/results/plot_arrange
 SOURCES += ../src/ui/panels/axis_details_editor.cpp
 HEADERS += ../src/ui/panels/axis_details_editor.h
 
-RESOURCES += ../resources/aster.qrc ../resources/help.qrc
+RESOURCES += ../resources/astrobatch.qrc ../resources/help.qrc
 SOURCES += ../src/ui/results/plot_probe.cpp
 HEADERS += ../src/ui/results/plot_probe.h
 SOURCES += ../src/ui/settings/theme_manager.cpp \

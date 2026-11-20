@@ -1,6 +1,6 @@
 """Independent time-weighted reference; SciPy quadrature + root finding.
 
-Uses synthetic orbital elements (no Aster code or La2004 interpolation),
+Uses synthetic orbital elements (no AstroBatch code or La2004 interpolation),
 retains the separate solar-distance and Kepler-time factors, and obtains
 calendar longitude by inverting the numerical time integral, not Kepler's
 algebraic equation. Developer-only dependency: scipy; no runtime dependency.

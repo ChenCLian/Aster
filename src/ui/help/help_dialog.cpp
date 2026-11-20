@@ -201,8 +201,8 @@ QUrl onlineHelpUrl(const HelpTopic &topic, const QString &host)
     const QString path = safePath(topic.path);
     if (path.isEmpty() || (host != "github.com" && host != "gitee.com")) return {};
     QUrl url("https://" + host);
-    url.setPath((topic.path.endsWith('/') ? "/ChenCLian/Aster/tree/main/"
-                                         : "/ChenCLian/Aster/blob/main/") + path);
+    url.setPath((topic.path.endsWith('/') ? "/ChenCLian/AstroBatch/tree/main/"
+                                         : "/ChenCLian/AstroBatch/blob/main/") + path);
     url.setFragment(topic.anchor);
     return url;
 }
@@ -573,7 +573,7 @@ void HelpDialog::followLink(const QUrl &link)
     {
         // Map current-repository document links back into the embedded manual.
         // Historical versions and other repositories keep their original URL.
-        const QRegularExpression own("^/ChenCLian/Aster/(blob|tree)/(main|master|release-stable|release-beta)/(.+)$");
+        const QRegularExpression own("^/ChenCLian/AstroBatch/(blob|tree)/(main|master|release-stable|release-beta)/(.+)$");
         const auto match=own.match(resolved.path());
         if ((resolved.host()=="github.com" || resolved.host()=="gitee.com") &&
             resolved.userInfo().isEmpty() && !resolved.hasQuery() && match.hasMatch())

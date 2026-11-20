@@ -8,7 +8,7 @@
   "table_age_max_ka": 51000,
   "supported_age_max_ka": 50000,
   "epoch": "J2000",
-  "time_column": "negative time from J2000 in ka; Aster age = -time",
+  "time_column": "negative time from J2000 in ka; AstroBatch age = -time",
   "angle_units": "radians",
   "perihelion": "heliocentric longitude from moving equinox",
   "url": "https://ssp.imcce.fr/insola/earth/online/earth/La2004/INSOLN.LA2004.BTL.ASC",

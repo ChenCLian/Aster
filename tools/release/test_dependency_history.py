@@ -23,7 +23,7 @@ class HistoryTests(unittest.TestCase):
                        'expected_checksum':'a'*64,'sha256':'a'*64,'bytes':123,'status':'verified'}
         self.component = {'id':'vcpkg-gsl','version':'2.8','provider':'vcpkg',
                           'sources':[self.source], 'notices':['licenses/vcpkg-gsl'], 'recipes':[]}
-        self.report = {'schema':1,'project':'Aster','version':self.version,'platform':self.platform,
+        self.report = {'schema':1,'project':'AstroBatch','version':self.version,'platform':self.platform,
                        'status':'collected','errors':[], 'components':[self.component], 'binaries':[]}
         self.directory = self.root/'history'
         self.directory.mkdir()
@@ -59,7 +59,7 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(collector.finish(c,package,{},[]),0)
         index=(package/'SOURCE_DEPENDENCIES.md').read_text()
         self.assertIn('/v1.3.0-beta.20/gsl.tar.gz',index)
-        lock=json.loads((c.assets/'Aster-1.3.1-beta.1-windows-x64-dependency-lock.json').read_text())
+        lock=json.loads((c.assets/'AstroBatch-1.3.1-beta.1-windows-x64-dependency-lock.json').read_text())
         self.assertTrue(lock['components'][0]['processed'])
         self.assertEqual(lock['version'],'1.3.1-beta.1')
 
@@ -119,9 +119,9 @@ class HistoryTests(unittest.TestCase):
         self.assertFalse((self.root/'escape').exists())
 
     def test_sources_must_stay_on_official_release(self):
-        for url in ['https://evil.example/x','http://github.com/ChenCLian/Aster/releases/download/v1.0.0/gsl.tar.gz',
-                    'https://github.com/Other/Aster/releases/download/v1.0.0/gsl.tar.gz',
-                    'https://github.com/ChenCLian/Aster/releases/download/v1.3.1-alpha.1/gsl.tar.gz']:
+        for url in ['https://evil.example/x','http://github.com/ChenCLian/AstroBatch/releases/download/v1.0.0/gsl.tar.gz',
+                    'https://github.com/Other/AstroBatch/releases/download/v1.0.0/gsl.tar.gz',
+                    'https://github.com/ChenCLian/AstroBatch/releases/download/v1.3.1-alpha.1/gsl.tar.gz']:
             with self.assertRaises(ValueError): history.source_location(dict(self.source,published_url=url),self.version)
 
     def test_debian_requires_every_current_apt_checksum(self):
@@ -133,7 +133,7 @@ class HistoryTests(unittest.TestCase):
         self.assertEqual(current['sources'][0]['status'],'reused-published')
 
     def test_fetch_checks_asset_digests_and_ignores_drafts(self):
-        data=self.records(); name=f'Aster-{self.version}-{self.platform}-dependency-records.zip'
+        data=self.records(); name=f'AstroBatch-{self.version}-{self.platform}-dependency-records.zip'
         release={'id':1,'tag_name':'v'+self.version,'draft':False}
         assets=[{'id':2,'name':name,'size':len(data),'digest':'sha256:'+history.sha(data),'state':'uploaded'},
                 {'id':3,'name':'gsl.tar.gz','size':123,'digest':'sha256:'+'a'*64,'state':'uploaded'}]
@@ -164,7 +164,7 @@ class HistoryTests(unittest.TestCase):
                 self.assertIn(tag,(materials,old))
                 return dict(id=2 if tag==materials else 1,tag_name=tag,draft=False)
             if '/releases/2/assets?' in endpoint:
-                return [dict(id=3,name=f'Aster-{version}-{self.platform}-dependency-records.zip',
+                return [dict(id=3,name=f'AstroBatch-{version}-{self.platform}-dependency-records.zip',
                              size=len(data),digest='sha256:'+history.sha(data),state='uploaded')]
             if '/releases/1/assets?' in endpoint:
                 return [dict(id=4,name=self.source['asset'],size=123,digest='sha256:'+'a'*64,state='uploaded')]
@@ -178,7 +178,7 @@ class HistoryTests(unittest.TestCase):
         original='gcc-12_12.3.0-1ubuntu1~22.04.3.debian.tar.xz'
         published='gcc-12_12.3.0-1ubuntu1_22.04.3.debian.tar.xz'
         self.source['asset']=original
-        data=self.records();name=f'Aster-{self.version}-{self.platform}-dependency-records.zip'
+        data=self.records();name=f'AstroBatch-{self.version}-{self.platform}-dependency-records.zip'
         release={'id':1,'tag_name':'v'+self.version,'draft':False}
         assets=[dict(id=2,name=name,size=len(data),digest='sha256:'+history.sha(data),state='uploaded'),
                 dict(id=3,name=published,size=123,digest='sha256:'+'a'*64,state='uploaded')]

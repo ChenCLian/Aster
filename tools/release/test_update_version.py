@@ -24,11 +24,11 @@ class VersionUpdateTests(unittest.TestCase):
                 'current_documents':['*.md','docs/**/*.md'],
                 'exclude':['docs/history/**','docs/validation_results/**','docs/development/CHANGELOG_*.md'],
                 'required_headers':['README.md','RELEASE_NOTES.md','docs/reference.md']}),
-            'README.md': '# Aster '+self.old+'\n\nKeep this body. Qt 6.8.2.\n[A history](docs/history/old.md)\n',
-            'RELEASE_NOTES.md':'# Aster '+self.old+'\n\nOld notes. [Guide](docs/guide.md#help) [Review](REVIEW_CN.md)\n',
-            'REVIEW_CN.md':'# Aster '+self.old+'\nOld tests: 2185 passed.\n',
-            'docs/reference.md':'# Reference\nGenerated for Aster '+self.old+'.\n',
-            'docs/guide.md':'# Aster '+self.old+'\nUse Aster-'+self.old+'-linux-x64.tar.gz\n',
+            'README.md': '# AstroBatch '+self.old+'\n\nKeep this body. Qt 6.8.2.\n[A history](docs/history/old.md)\n',
+            'RELEASE_NOTES.md':'# AstroBatch '+self.old+'\n\nOld notes. [Guide](docs/guide.md#help) [Review](REVIEW_CN.md)\n',
+            'REVIEW_CN.md':'# AstroBatch '+self.old+'\nOld tests: 2185 passed.\n',
+            'docs/reference.md':'# Reference\nGenerated for AstroBatch '+self.old+'.\n',
+            'docs/guide.md':'# AstroBatch '+self.old+'\nUse AstroBatch-'+self.old+'-linux-x64.tar.gz\n',
             'docs/history/old.md':self.old+' historical\n',
             'docs/development/CHANGELOG_1.3.0.md':self.old+' prior entry\n',
             'docs/validation_results/'+self.old+'/checks.json':json.dumps({'version':self.old,'passed':2185}),
@@ -48,7 +48,7 @@ class VersionUpdateTests(unittest.TestCase):
 
     def test_bump_does_not_recreate_a_retired_review(self):
         (self.root / 'REVIEW_CN.md').unlink()
-        (self.root / 'RELEASE_NOTES.md').write_text('# Aster ' + self.old + '\n', encoding='utf-8')
+        (self.root / 'RELEASE_NOTES.md').write_text('# AstroBatch ' + self.old + '\n', encoding='utf-8')
         bump.write_changes(bump.plan(self.root, self.new, 'Update the directory.'))
         self.assertFalse((self.root / 'REVIEW_CN.md').exists())
         self.assertEqual(bump.check(self.root), [])
@@ -76,7 +76,7 @@ class VersionUpdateTests(unittest.TestCase):
         self.assertEqual(record['status'],'pending');self.assertNotIn('passed',record)
 
     def test_utf8_crlf_documents_keep_content_and_historical_bytes(self):
-        readme = '# Aster ' + self.old + '\r\n\r\n中文说明：保留正文。\r\n'
+        readme = '# AstroBatch ' + self.old + '\r\n\r\n中文说明：保留正文。\r\n'
         (self.root / 'README.md').write_bytes(readme.encode('utf-8'))
         history = self.root / 'docs/history/old.md'
         history.write_bytes(('中文历史 ' + self.old + '\r\n').encode('utf-8'))
@@ -108,7 +108,7 @@ class VersionUpdateTests(unittest.TestCase):
     def test_empty_notes_and_historical_collisions_leave_everything_untouched(self):
         before=self.snapshot()
         with self.assertRaises(ValueError):bump.plan(self.root,self.new,'  ')
-        with self.assertRaises(ValueError):bump.plan(self.root,self.new,'# Aster 1.3.0 发布说明\nbody')
+        with self.assertRaises(ValueError):bump.plan(self.root,self.new,'# AstroBatch 1.3.0 发布说明\nbody')
         self.assertEqual(self.snapshot(),before)
         path=self.root/f'docs/history/releases/{self.old}/RELEASE_NOTES.md';path.parent.mkdir(parents=True);path.write_text('saved')
         before=self.snapshot()
@@ -116,21 +116,21 @@ class VersionUpdateTests(unittest.TestCase):
         self.assertEqual(self.snapshot(),before)
 
     def test_token_boundaries_links_protection_and_stable_versions(self):
-        text=f'Aster {self.old}. Aster-{self.old}-linux-x64.tar.gz {self.old}0\n'
+        text=f'AstroBatch {self.old}. AstroBatch-{self.old}-linux-x64.tar.gz {self.old}0\n'
         text+=f'[{self.old}](docs/validation_results/{self.old}/checks.json)\n'
         text+=f'<!-- version-sync: off -->{self.old}<!-- version-sync: on -->'
         actual=bump.replace_version(text,self.old,self.new)
-        self.assertIn('Aster '+self.new+'.',actual)
-        self.assertIn('Aster-'+self.new+'-linux',actual)
+        self.assertIn('AstroBatch '+self.new+'.',actual)
+        self.assertIn('AstroBatch-'+self.new+'-linux',actual)
         self.assertIn(self.old+'0',actual)
         self.assertIn(f'[{self.old}](docs/validation_results/{self.old}/checks.json)',actual)
         self.assertIn('off -->'+self.old,actual)
-        actual=bump.replace_version('Aster 1.3.0.\nDependency 1.3.0\n适用版本：1.3.0\n','1.3.0','1.3.1')
-        self.assertIn('Aster 1.3.1.',actual);self.assertIn('Dependency 1.3.0',actual)
+        actual=bump.replace_version('AstroBatch 1.3.0.\nDependency 1.3.0\n适用版本：1.3.0\n','1.3.0','1.3.1')
+        self.assertIn('AstroBatch 1.3.1.',actual);self.assertIn('Dependency 1.3.0',actual)
         self.assertIn('适用版本：1.3.1',actual)
 
     def test_check_and_preflight_reject_stale_header_or_metadata(self):
-        (self.root/'docs/reference.md').write_text('# Aster 1.3.0-alpha.5\n')
+        (self.root/'docs/reference.md').write_text('# AstroBatch 1.3.0-alpha.5\n')
         self.assertTrue(bump.check(self.root))
         before=self.snapshot()
         with self.assertRaises(ValueError):bump.plan(self.root,self.new,'note')
@@ -138,8 +138,8 @@ class VersionUpdateTests(unittest.TestCase):
 
     def test_release_tags_sync_and_stale_tags_are_detected(self):
         guide = self.root / 'docs/guide.md'
-        guide.write_text(f'# Aster {self.old}\ngit tag v{self.old}\n'
-                         f'https://github.com/example/Aster/releases/tag/v{self.old}\n')
+        guide.write_text(f'# AstroBatch {self.old}\ngit tag v{self.old}\n'
+                         f'https://github.com/example/AstroBatch/releases/tag/v{self.old}\n')
         bump.write_changes(bump.plan(self.root, self.new, 'Update.'))
         self.assertEqual(bump.check(self.root), [])
         self.assertIn('git tag v' + self.new, guide.read_text(encoding='utf-8'))
@@ -166,18 +166,18 @@ class VersionUpdateTests(unittest.TestCase):
         self.assertEqual(changed,self.snapshot())
 
     def test_symlink_not_written(self):
-        target=self.root/'external.txt';target.write_text('Aster '+self.old)
+        target=self.root/'external.txt';target.write_text('AstroBatch '+self.old)
         path=self.root/'linked.md'
         try:path.symlink_to(target)
         except (OSError,NotImplementedError):self.skipTest('Symlinks unavailable')
         with self.assertRaises(ValueError):bump.plan(self.root,self.new,'note')
-        self.assertEqual(target.read_text(encoding='utf-8'),'Aster '+self.old)
+        self.assertEqual(target.read_text(encoding='utf-8'),'AstroBatch '+self.old)
 
     def test_stable_release_and_following_patch_bump(self):
         bump.write_changes(bump.plan(self.root,'1.3.0','正式发布。'))
         self.assertEqual(bump.check(self.root),[])
         bump.write_changes(bump.plan(self.root,'1.3.1','小修复。'))
         self.assertEqual(bump.check(self.root),[])
-        self.assertIn('Aster-1.3.1-linux', (self.root/'docs/guide.md').read_text(encoding='utf-8'))
+        self.assertIn('AstroBatch-1.3.1-linux', (self.root/'docs/guide.md').read_text(encoding='utf-8'))
 
 if __name__=='__main__':unittest.main()

@@ -1,5 +1,5 @@
 function report = compare_acycle(acycleRoot, resultsFile, reportFile)
-% Compare the uploaded Acycle source with actual Aster C++ results.
+% Compare the uploaded Acycle source with actual AstroBatch C++ results.
 % Requires MATLAB + Signal Processing Toolbox. Missing chi2inv is handled
 % by a temporary base-MATLAB gammaincinv adapter, recorded in the report.
 % No Acycle source or permanent MATLAB path is changed.
@@ -156,7 +156,7 @@ try
     row.comparisons.significance_ratio_exact_quantile=compare(c.actual_cpp.significance_ratio,row.actual_matlab.significance_ratio_exact_quantile,2e-8);
     row.diagnostics.quantile=struct('degrees_of_freedom',dof,'acycle_quantile',legacyQuantile, ...
         'exact_quantile',exactQuantile,'predicted_signed_ratio_difference',legacyQuantile/exactQuantile-1, ...
-        'note','Same threshold formula; Acycle uses rounded/finite-tolerance chisquare_inv, Aster uses GSL.');
+        'note','Same threshold formula; Acycle uses rounded/finite-tolerance chisquare_inv, AstroBatch uses GSL.');
 catch e, row.errors.significance=errorText(e); end
 end
 

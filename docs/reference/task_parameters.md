@@ -4,7 +4,7 @@
 
 [使用手册](../USER_GUIDE.md) · [方法说明](../methods/README.md) · [English](task_parameters_en.md)
 
-本参考对应 Aster 1.3.2-beta.7 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
+本参考对应 AstroBatch 1.3.3-beta.1 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。
 
 选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。
 
@@ -3432,7 +3432,7 @@ ODP 1260 使用原始的 2679 个不等间距深度位置，仅借用采样位�
 <a id="m-synthetic_orbital-p-synthetic_seed"></a>
 ### 随机种子
 
-相同种子和全部参数可复现。Aster 随机流与原 Python 的相同种子不同。
+相同种子和全部参数可复现。AstroBatch 随机流与原 Python 的相同种子不同。
 
 [操作与输出解释](../methods/data_sources.md#synthetic)
 

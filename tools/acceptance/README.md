@@ -1,11 +1,11 @@
 # 交互验收工具
 
-发布工作流使用 `CONFIG+=interaction_acceptance` 构建此 QtTest 程序，并由 `run_tests.py --include-interaction` 运行。日常开发也可以单独构建。发行程序包仅包含桌面应用。连接已经完成的同一 Qt Kit、Release 配置的 Aster 静态模块；`ASTER_BUILD_ROOT` 指向包含 `lib/` 的构建目录。科学计算依赖沿用 `config/scientific_dependencies.pri`。
+发布工作流使用 `CONFIG+=interaction_acceptance` 构建此 QtTest 程序，并由 `run_tests.py --include-interaction` 运行。日常开发也可以单独构建。发行程序包仅包含桌面应用。连接已经完成的同一 Qt Kit、Release 配置的 AstroBatch 静态模块；`ASTER_BUILD_ROOT` 指向包含 `lib/` 的构建目录。科学计算依赖沿用 `config/scientific_dependencies.pri`。
 
 在单独的构建目录运行：
 
 ```sh
-qmake /path/to/Aster/tools/acceptance/acceptance.pro ASTER_BUILD_ROOT=/path/to/Aster/build-release CONFIG+=release
+qmake /path/to/AstroBatch/tools/acceptance/acceptance.pro ASTER_BUILD_ROOT=/path/to/AstroBatch/build-release CONFIG+=release
 make
 ./aster_interaction_acceptance
 ```

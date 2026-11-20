@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：Aster 1.3.2-beta.7。[源码构建](building.md) · [文档索引](README.md)
+适用源码：AstroBatch 1.3.3-beta.1。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.2-beta.7` 对应 `v1.3.2-beta.7`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.3-beta.1` 对应 `v1.3.3-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -35,7 +35,7 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 脚本不会推断新功能、兼容性或科学含义，也不需要每次逐份重写无变化的文档。默认扫描根目录和 `docs/` 下的 Markdown；范围与必要标题由 `tools/release/version_policy.json` 控制，该文件不存第二份版本号。历史、验证记录及开发变更日志保留原版本。当前文档中需要保留的历史叙述可放在 `<!-- version-sync: off -->` 与 `<!-- version-sync: on -->` 之间；历史记录链接自动保留。
 
-第三方库、数据库结构版本及程序方法版本不会跟随应用版本批量修改。正式版本号可能与第三方版本相同，脚本仅在 Aster 名称及明确版本声明中同步这种数字。
+第三方库、数据库结构版本及程序方法版本不会跟随应用版本批量修改。正式版本号可能与第三方版本相同，脚本仅在 AstroBatch 名称及明确版本声明中同步这种数字。
 
 ### 换号后的构建与验证
 
@@ -43,7 +43,7 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 软件优先查询公开 GitHub Releases，失败时回退 Gitee 并标注查询范围。 GitHub 查询成功但同版本更新信息附件发生网络错误、超时或缺失时，也可按配置回退 Gitee；主动取消和无效内容不会触发换源。正式版与 Beta 分开选择，Alpha 不参与。有效下载信息提供完整包下载、SHA-256 校验与新目录解压；由用户关闭旧版并启动新版。旧发布缺少下载信息时仍可打开发布页。
 
-源码仓库根目录应直接包含 `Aster.pro`、`VERSION`、`src/`、`resources/`、`tools/` 和 `.github/`。本机配置 `config/local.pri`、构建目录、用户数据库和凭据不提交到仓库。
+源码仓库根目录应直接包含 `AstroBatch.pro`、`VERSION`、`src/`、`resources/`、`tools/` 和 `.github/`。本机配置 `config/local.pri`、构建目录、用户数据库和凭据不提交到仓库。正式工作流校验仓库路径 `ChenCLian/AstroBatch`。在该仓库的 Actions 页面从待发布提交启动构建。
 
 发布时核对三处：源码 `VERSION`、实际程序“设置”中的完整版本、Release 标签及包名。Windows 文件属性中的数值版本不包含预发布后缀，不能据此区分不同 beta。界面版本来自编译后的程序，不读取外部 README 或数据库。
 
@@ -56,7 +56,7 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 1. 完成版本同步、参数参考生成与文档链接检查，提交源码并推送 GitHub。
 2. 打开 **Actions → Build desktop packages → Run workflow**，选择分支。`platform` 默认 `all`，`check_only` 默认关闭，`prepare_draft` 默认开启。
 3. 四个平台分别构建、回归、收集依赖材料和打包，再从最终包解压启动，记录中英文截图。任何平台失败都会阻止草稿汇总。
-4. 成功后自动准备两个草稿。`v<VERSION>` 包含四个程序包、项目源码、`Aster-update.json` 与 `SHA256SUMS.txt`。`materials-v<VERSION>` 包含依赖材料和单独的校验表。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
+4. 成功后自动准备两个草稿。`v<VERSION>` 包含四个程序包、项目源码、`AstroBatch-update.json` 与 `SHA256SUMS.txt`。`materials-v<VERSION>` 包含依赖材料和单独的校验表。已存在草稿的人工正文保留，已公开版本拒绝覆盖。已有标签必须指向本次构建提交。
 5. 下载 `logs-*` 查看检查记录和截图，人工复核界面、公告与附件后，先发布材料草稿，再发布程序草稿。无需提前创建草稿；需要先写公告也可以提前建立同标签草稿。
 
 首次验收先取消勾选 `prepare_draft`，并保持 `ENABLE_GITEE_MIRROR` 未启用。这样会构建、测试并上传 Actions 构件，不创建发布草稿。四个平台通过后再开启草稿准备。桌面发布工作流在仓库内串行执行，防止不同分支同时更新同版本附件。
@@ -77,9 +77,9 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 | 想查的内容 | 入口 |
 | --- | --- |
-| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.2-beta.7` → 公告及四个平台链接 |
-| 包大小、SHA-256 和可用下载地址 | 同一程序发行版的 `Aster-update.json`。手工校验使用同页的 `SHA256SUMS.txt` |
-| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.2-beta.7`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
+| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.3-beta.1` → 公告及四个平台链接 |
+| 包大小、SHA-256 和可用下载地址 | 同一程序发行版的 `AstroBatch-update.json`。手工校验使用同页的 `SHA256SUMS.txt` |
+| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.3-beta.1`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
 | 源码中维护版本说明 | 升级版本时向 `tools/release/update_version.py` 提供 `--notes-file`，正文进入 `RELEASE_NOTES.md`。上一版说明归档到 `docs/history/releases/<旧版本>/RELEASE_NOTES.md` |
 | 本次运行的构建、测试或同步错误 | Actions → 对应运行的 Job 日志、`logs-<平台>` 或 `gitee-mirror-report`。长期下载使用带版本标签的 Release |
 
@@ -87,12 +87,12 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 ## 启用 Gitee 镜像
 
-1. 使用已有默认分支的公开 Gitee 仓库 `ChenCLian/Aster`，令牌需能管理该仓库的发行版和附件。
+1. 使用已有默认分支的公开 Gitee 仓库 `ChenCLian/AstroBatch`，令牌需能管理该仓库的发行版和附件。
 2. 在 GitHub 仓库 **Settings → Secrets and variables → Actions** 设置 Secret `GITEE_TOKEN` 和 Variable `ENABLE_GITEE_MIRROR=true`。
 3. 发布 GitHub 程序发行版后，**Mirror published release to Gitee** 将四个原始程序包上传到同版本的 Gitee Release，并逐个匿名回读，核对大小和 SHA-256。Gitee 标签使用镜像仓库已有分支；程序源码和文档以 GitHub 的构建标签为准。
-4. 四包全部通过后，流程在 Gitee 发行说明中写入供客户端读取的隐藏更新清单，并同步 GitHub 更新清单的镜像地址和校验表。保留发行说明中的 `aster-update-v1` 区块。若仓库配额或上传限制阻止某个程序包，任务报错；处理后以相同版本标签重试，已上传的相同程序包会重新核验。
+4. 四包全部通过后，流程在 Gitee 发行说明中写入供客户端读取的隐藏更新清单，并同步 GitHub 更新清单的镜像地址和校验表。保留发行说明中的 `astrobatch-update-v1` 区块。若仓库配额或上传限制阻止某个程序包，任务报错；处理后以相同版本标签重试，已上传的相同程序包会重新核验。
 
-已安装旧客户端仍可读取 GitHub 的 `Aster-update.json`。如果旧客户端只能访问 Gitee，首次升级到新版需要在 Gitee 发行页手动下载对应平台包。新版客户端支持读取 Gitee 发行说明，也支持旧版本的更新信息附件。
+GitHub 的更新清单位于发行附件 `AstroBatch-update.json`。程序查询 Gitee 时优先读取发行说明中的清单。
 
 ## 一份正文，多处阅读
 
@@ -111,10 +111,10 @@ python tools/release/document_links.py
 
 | 平台 | 程序包文件名格式 | 启动入口 |
 | --- | --- | --- |
-| Windows x64 | `Aster-<版本>-windows-x64/`（本地目录；发布时手动压缩为同名 ZIP） | `Aster.exe` |
-| macOS Apple Silicon | `Aster-<版本>-macos-arm64.zip` | `Aster.app` |
-| macOS Intel | `Aster-<版本>-macos-x86_64.zip` | `Aster.app` |
-| Linux x64 | `Aster-<版本>-linux-x64.tar.gz` | `./AppRun` |
+| Windows x64 | `AstroBatch-<版本>-windows-x64/`（本地目录；发布时手动压缩为同名 ZIP） | `AstroBatch.exe` |
+| macOS Apple Silicon | `AstroBatch-<版本>-macos-arm64.zip` | `AstroBatch.app` |
+| macOS Intel | `AstroBatch-<版本>-macos-x86_64.zip` | `AstroBatch.app` |
+| Linux x64 | `AstroBatch-<版本>-linux-x64.tar.gz` | `./AppRun` |
 
 macOS CI 的部署目标为 **15.0**，依赖库须与目标架构一致。降低系统要求需要重建兼容依赖并重新验收，不能只修改标签。
 
@@ -130,7 +130,7 @@ Linux 使用便携目录，不依赖 AppImage/FUSE。程序包部署 Qt、SQLite
 
 ```powershell
 $Version = (Get-Content ./VERSION -Raw).Trim()
-$ReleaseDir = "../Aster-releases/$Version"
+$ReleaseDir = "../AstroBatch-releases/$Version"
 $BuildDir = Read-Host "Release 构建目录"
 $QtBin = Read-Host "匹配的 Qt bin 目录"
 $VcpkgPrefix = Read-Host "实际使用的 installed/x64-windows 目录"
@@ -145,15 +145,15 @@ powershell -ExecutionPolicy Bypass -File tools/release/package_windows.ps1 `
 # 部署成功后，对生成的程序目录单独收集材料。
 python -u -X utf8 tools/release/collect_dependency_materials.py `
   --platform windows-x64 `
-  --package-dir "$ReleaseDir/Aster-$Version-windows-x64" `
+  --package-dir "$ReleaseDir/AstroBatch-$Version-windows-x64" `
   --qmake "$QtBin/qmake.exe" `
   --vcpkg-prefix $VcpkgPrefix `
   --vcpkg-root $VcpkgRoot `
   --output "$ReleaseDir/dependency-materials/windows-x64" `
-  --cache ../Aster-dependency-cache
+  --cache ../AstroBatch-dependency-cache
 ```
 
-Windows 脚本仅生成 `Aster-<版本>-windows-x64/` 普通目录，不生成程序 ZIP 或 `.sha256`。材料收集成功且 `DEPENDENCY_MATERIALS_PENDING.txt` 已自动移除后，测试程序并压缩整个目录为 `Aster-<版本>-windows-x64.zip`；保持许可、文档和依赖文件完整。旧的 ZIP、校验文件和目录不会自动删除。项目源码导出可独立执行。
+Windows 脚本仅生成 `AstroBatch-<版本>-windows-x64/` 普通目录，不生成程序 ZIP 或 `.sha256`。材料收集成功且 `DEPENDENCY_MATERIALS_PENDING.txt` 已自动移除后，测试程序并压缩整个目录为 `AstroBatch-<版本>-windows-x64.zip`；保持许可、文档和依赖文件完整。旧的 ZIP、校验文件和目录不会自动删除。项目源码导出可独立执行。
 
 `VcpkgPrefix` 是库安装目录，`VcpkgRoot` 是包含构建配方的 vcpkg 仓库目录。已有同名程序目录时使用新的 `OutputDir`；可用 `-DependencyMaterials` 指向同版本已经收集的平台材料目录。下载缓存用于手动收集，不参与默认离线打包。
 
@@ -186,8 +186,8 @@ macOS 默认从 Homebrew 查询 GSL/OpenBLAS，可通过 `GSL_PREFIX`、`OPENBLA
 需要正式签名时，在已配置证书与钥匙串的 macOS 构建环境设置以下变量，替换尖括号内的占位内容。
 
 ```sh
-export ASTER_SIGN_IDENTITY='Developer ID Application: <证书名称>'
-export ASTER_NOTARY_PROFILE='<钥匙串公证配置名称>'
+export ASTROBATCH_SIGN_IDENTITY='Developer ID Application: <证书名称>'
+export ASTROBATCH_NOTARY_PROFILE='<钥匙串公证配置名称>'
 bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 dist
 ```
 
@@ -195,7 +195,7 @@ bash tools/release/package_macos.sh build-release "$(command -v qmake)" arm64 di
 
 ## 随包文档
 
-程序包包含 `README.md`、`QUICK_START.md`、`FAQ.md`、`RELEASE_NOTES.md`、`AUTHORS.md`、`LICENSE`、`COPYRIGHT.md`、`SOURCE_CODE.md`、`SOURCE_DEPENDENCIES.md`、`START_HERE.txt` 和许可文件。README 的图标位于 `resources/app/aster.png`；该资源仅供随包文档显示，不改变应用内部资源。
+程序包包含 `README.md`、`QUICK_START.md`、`FAQ.md`、`RELEASE_NOTES.md`、`AUTHORS.md`、`LICENSE`、`COPYRIGHT.md`、`SOURCE_CODE.md`、`SOURCE_DEPENDENCIES.md`、`START_HERE.txt` 和许可文件。README 的图标位于 `resources/app/AstroBatch.png`；该资源仅供随包文档显示，不改变应用内部资源。
 
 Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notices.py`。`START_HERE.txt` 由各平台脚本生成，提供启动、更新和文档入口。`SOURCE_DEPENDENCIES.md` 与 `licenses/dependencies/` 由依赖收集器按实际程序包生成，Windows 默认打包则在验证运行依赖后从既有材料安装；依赖源码归档单独输出到 `release-assets/`。使用手册、参数参考和方法文档通过 Qt 资源内置于程序；维护者编辑的 Markdown 位于源码 `docs/` 中。开发与构建文档不要求离线内置。
 
@@ -213,7 +213,7 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 ### 本机候选验收顺序
 
-1. 更新源码后重新运行 qmake，启用 `CONFIG+=help_reference CONFIG+=interaction_acceptance` 并完成根工程的 Release 构建。升级旧源码或出现版本不一致时，使用新的构建目录。确认实际程序“设置”及 `Aster --version` 的完整版本与根目录 `VERSION` 相同；Windows 打包脚本自动捕获 `--version` 输出核对，避免无控制台的 GUI 程序弹出版本提示框。
+1. 更新源码后重新运行 qmake，启用 `CONFIG+=help_reference CONFIG+=interaction_acceptance` 并完成根工程的 Release 构建。升级旧源码或出现版本不一致时，使用新的构建目录。确认实际程序“设置”及 `AstroBatch --version` 的完整版本与根目录 `VERSION` 相同；Windows 打包脚本自动捕获 `--version` 输出核对，避免无控制台的 GUI 程序弹出版本提示框。
 2. 从源码根目录运行以下检查，将构建路径替换为实际目录。Windows 可使用已安装的 Python 命令或 `py -3`。
 
    ```text
@@ -245,15 +245,15 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 ## 许可与对应源码
 
-Aster 整体使用 GPL-3.0-only，原创部分版权署名为 ZiJie Chen。`LICENSE` 保留官方完整条款；`COPYRIGHT.md` 界定范围；`SOURCE_CODE.md` 说明源码获取与再分发要求。第三方原有许可、版权和数据归属不得被项目声明覆盖。
+AstroBatch 整体使用 GPL-3.0-only，原创部分版权署名为 ZiJie Chen。`LICENSE` 保留官方完整条款；`COPYRIGHT.md` 界定范围；`SOURCE_CODE.md` 说明源码获取与再分发要求。第三方原有许可、版权和数据归属不得被项目声明覆盖。
 
-每次发布程序包时，同时提供与其对应的完整项目源码，并记录源码提交和版本标签以便追踪。完整源码已提交到对应标签时，可使用 GitHub Release 自动提供的 Source code 下载，无需重复上传项目源码 ZIP。需要独立副本时，使用下列脚本生成 `Aster-source-export-<版本>/` 普通目录；不包含本机配置与构建缓存。
+桌面发布工作流从已测试的提交导出 `AstroBatch-<版本>-source.zip`，与平台程序一同上传到 `v<版本>` 发行页。GitHub 同页也提供该标签的自动源码归档。手动创建与工作流相同的源码附件时，先导出包含 `PACKAGE_MANIFEST.json` 的目录，再压缩整个目录。
 
 ```sh
 python tools/release/package_source.py --output ../release-source
 ```
 
-可将项目源码、平台程序和依赖材料统一放在源码树外的 `../Aster-releases/<版本>/`。例如在上述 PowerShell 会话中运行 `python tools/release/package_source.py --output $ReleaseDir`。`config/local.pri.example` 是构建模板，使用者复制为自己的 `config/local.pri`；不要把模板重命名为随包本机配置。
+可将项目源码、平台程序和依赖材料统一放在源码树外的 `../AstroBatch-releases/<版本>/`。例如在上述 PowerShell 会话中运行 `python tools/release/package_source.py --output $ReleaseDir`。`config/local.pri.example` 是构建模板，使用者复制为自己的 `config/local.pri`；不要把模板重命名为随包本机配置。
 
 输出目录须在源码树外。脚本保留 `config/local.pri.example`，排除个人 `config/local.pri`、构建产物和用户数据库，重新生成含逐文件摘要的 `PACKAGE_MANIFEST.json`，并校验导出内容。不生成压缩包或独立 `.sha256` 文件；如需作为 Release 附件上传，可手动压缩导出目录。GitHub Release 不接受直接上传目录。
 
@@ -265,7 +265,7 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 
 | 材料 | 必须记录的内容 |
 | --- | --- |
-| 项目源码 | 与各平台程序一致的完整源码、准确提交和版本标签；可采用标签自动源码包 |
+| 项目源码 | 程序发行页的 `AstroBatch-<版本>-source.zip`、对应构建提交和版本标签 |
 | 分发依赖 | 各平台实际组件、准确版本、源包链接及摘要、构建配置、配方或 port 修订、补丁 |
 | 许可与归属 | 原始许可、版权、修改说明；数据集的适用条款和引用 |
 | 下载入口 | 与二进制相邻的源码和依赖材料入口，可免费访问并持续维护 |
@@ -277,10 +277,10 @@ Windows 通过独立收集命令或显式 `Collect` 模式、macOS/Linux 通过�
 ## 创建 GitHub Release
 
 1. 确认待发布提交、各平台包、对应源码及第三方再分发依据已完成上述检查。
-2. 确认 `VERSION` 为正式版或 beta（alpha 仅用于开发测试，不发布更新）。打开 **Releases → Draft a new release**，创建指向已测试提交、带 `v` 前缀的对应版本标签。
+2. 确认 `VERSION` 为正式版或 beta。在 **Releases** 打开工作流生成的两个草稿。若手动创建，程序标签使用 `v<版本>`，材料标签使用 `materials-v<版本>`，两者均指向同一已测试提交。
 3. 使用 `RELEASE_NOTES.md`，注明平台要求及实际 macOS 签名状态。
-4. 使用上述 Actions 时草稿附件已自动准备；手动发布则上传程序包、生成的 `Aster-update.json` 和各平台 `release-assets/` 中的全部文件。Windows 目录由维护者压缩；Actions 程序和依赖材料构件均先解开运输 ZIP。相同文件名且摘要相同的依赖附件只上传一次；不同内容不得覆盖。
-5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。GitHub 自动生成的 Source code 须包含完整项目源码和必要资源；它不包含仓库外的依赖源码，这些仍需由依赖附件提供。正式版不勾选预发布；测试版勾选预发布。发布后确认下载、校验值及软件“检查更新”的跳转结果。
+4. Actions 自动准备草稿附件。手动发布时，程序草稿放四个平台包、项目源码 ZIP、更新清单和校验表。材料草稿放各平台 `release-assets/` 中的依赖源码与记录、下载索引和材料校验表。取用 Actions 构件时先解开外层 ZIP。
+5. 核对标签指向实际构建提交，检查程序包内 `SOURCE_CODE.md` 和 `SOURCE_DEPENDENCIES.md` 的下载入口。先公开材料页，再公开程序页。将 beta 标记为预发布，正式版清除此标记。发布后确认下载、校验值及软件“检查更新”的跳转结果。
 
 GitHub 为 Release 附件记录 SHA-256 摘要，可通过附件 API 的 `digest` 字段查看；Actions 程序构件有自己的摘要。两者都针对实际上传的文件，不是源文件或可执行文件的单独签名。依赖下载及来源核验仍使用预期摘要，不能以 GitHub 上传后的摘要代替。
 

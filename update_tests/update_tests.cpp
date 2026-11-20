@@ -74,7 +74,7 @@ LanguageEdit editLanguage(aster::ui::MainWindow &window, const QString &language
  });
  poll.start(5);window.findChild<QPushButton*>("openSettings")->click();poll.stop();return result;
 }
-UpdateConfig config(){return {"ChenCLian","Aster","2026-03-10"};}
+UpdateConfig config(){return {"ChenCLian","AstroBatch","2026-03-10"};}
 QJsonObject release(QString tag,bool pre=false,bool draft=false){return {{"tag_name",tag},{"prerelease",pre},{"draft",draft},{"name",tag},{"body","Plain release notes"}};}
 QByteArray json(QJsonArray a){return QJsonDocument(a).toJson(QJsonDocument::Compact);}
 struct ReplyData {int status=200;QByteArray body="[]";int delay=1;QByteArray rate{};};
@@ -113,7 +113,7 @@ private slots:
 
  void cancelMetadataCheckKeepsCancelledState(){
   const auto version = useApplicationVersion("1.3.0-beta.1");
-  auto cfg=config();cfg.packageMetadata="Aster-update.json";cfg.mirrorFallback=true;
+  auto cfg=config();cfg.packageMetadata="AstroBatch-update.json";cfg.mirrorFallback=true;
   FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,"{}",10000}};
   aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
   auto *downloader=dialog.findChild<PackageDownload*>();QVERIFY(downloader);QTRY_COMPARE(manager.requests.size(),2);QVERIFY(downloader->busy());
@@ -431,7 +431,7 @@ private slots:
   QVERIFY(p.errorKey.isEmpty());QCOMPARE(newestRelease(p.releases)->tag,QString("v1.0.10"));
   p=parseReleasePage(json({release("v1.0.1"),release("2.0.0-beta.2",true)}),c,true);QCOMPARE(newestRelease(p.releases)->tag,QString("2.0.0-beta.2"));
   auto o=release("v1.0.1");o["html_url"]="file:///etc/passwd";o["body"]="<script>bad</script>";
-  p=parseReleasePage(json({o}),c,false);QCOMPARE(p.releases[0].pageUrl,QUrl("https://github.com/ChenCLian/Aster/releases/tag/v1.0.1"));
+  p=parseReleasePage(json({o}),c,false);QCOMPARE(p.releases[0].pageUrl,QUrl("https://github.com/ChenCLian/AstroBatch/releases/tag/v1.0.1"));
   QVERIFY(!parseReleasePage("{}",c,false).errorKey.isEmpty());QVERIFY(!parseReleasePage("[{}]",c,false).errorKey.isEmpty());
  }
  void responses_data(){QTest::addColumn<int>("status");QTest::addColumn<QByteArray>("body");QTest::addColumn<QString>("key");
@@ -461,7 +461,7 @@ private slots:
  void destructionCancels(){FakeManager m;m.responses={{200,"[]",50}};int completions=0;auto *c=new UpdateChecker(config(),nullptr,&m);connect(c,&UpdateChecker::finished,this,[&]{++completions;});c->check("1.0.0");delete c;QTest::qWait(70);QCOMPARE(completions,0);}
  void realAsyncHttp(){QTcpServer server;QVERIFY(server.listen(QHostAddress::LocalHost));QByteArray received;const auto payload=json({release("v1.0.1")});
   connect(&server,&QTcpServer::newConnection,this,[&]{auto *s=server.nextPendingConnection();connect(s,&QTcpSocket::readyRead,s,[&,s]{received+=s->readAll();if(!received.contains("\r\n\r\n"))return;s->write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nConnection: close\r\nContent-Length: "+QByteArray::number(payload.size())+"\r\n\r\n"+payload);s->disconnectFromHost();});connect(s,&QTcpSocket::disconnected,s,&QObject::deleteLater);});
-  LoopbackManager m;m.port=server.serverPort();UpdateChecker c(config(),nullptr,&m);QSignalSpy done(&c,&UpdateChecker::finished);c.check("1.0.0");QVERIFY(done.wait());QCOMPARE(qvariant_cast<UpdateResult>(done[0][0]).state,UpdateResult::State::Available);QCOMPARE(m.requested,config().apiUrl(1));QVERIFY(received.contains("/repos/ChenCLian/Aster/releases?per_page=100&page=1"));QVERIFY(!received.toLower().contains("authorization:"));
+  LoopbackManager m;m.port=server.serverPort();UpdateChecker c(config(),nullptr,&m);QSignalSpy done(&c,&UpdateChecker::finished);c.check("1.0.0");QVERIFY(done.wait());QCOMPARE(qvariant_cast<UpdateResult>(done[0][0]).state,UpdateResult::State::Available);QCOMPARE(m.requested,config().apiUrl(1));QVERIFY(received.contains("/repos/ChenCLian/AstroBatch/releases?per_page=100&page=1"));QVERIFY(!received.toLower().contains("authorization:"));
  }
  void updateWindowStatesAndChannels(){
   const auto version = useApplicationVersion("1.3.0-beta.1");
@@ -539,9 +539,9 @@ private slots:
   QCOMPARE(dialog.width(),width);
   auto *notes=dialog.findChild<QTextBrowser*>("updateNotes");QVERIFY(notes);
   QVERIFY(!notes->toPlainText().contains("DETAIL_BODY"));
-  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("aster-note:1"))));
+  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("astrobatch-note:1"))));
   QVERIFY(notes->toPlainText().contains("DETAIL_BODY"));
-  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("aster-note:1"))));
+  QVERIFY(QMetaObject::invokeMethod(notes,"anchorClicked",Qt::DirectConnection,Q_ARG(QUrl,QUrl("astrobatch-note:1"))));
   QVERIFY(!notes->toPlainText().contains("DETAIL_BODY"));
   QVERIFY(!notes->document()->resource(QTextDocument::ImageResource,QUrl("file:///etc/passwd")).isValid());
   QVERIFY(!notes->document()->resource(QTextDocument::ImageResource,QUrl("https://example.invalid/image.png")).isValid());
@@ -575,9 +575,9 @@ private slots:
   const auto platform=aster::updates::nativeUpdatePlatform();const auto suffix=platform=="linux-x64"?".tar.gz":".zip";
   const auto fixture=QString("../download_tests/fixtures/")+platform+suffix;
   QFile file(QFINDTESTDATA(qPrintable(fixture)));QVERIFY(file.open(QIODevice::ReadOnly));const auto bytes=file.readAll();
-  const auto name=QString("Aster-99.0.0-beta.1-")+platform+suffix;
-  QJsonObject package{{"platform",platform},{"file",name},{"bytes",bytes.size()},{"unpacked_bytes",4096},{"sha256",QString(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex())},{"sources",QJsonArray{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/Aster/releases/download/v99.0.0-beta.1/"+name}}}}};
-  auto cfg=config();cfg.packageMetadata="Aster-update.json";
+  const auto name=QString("AstroBatch-99.0.0-beta.1-")+platform+suffix;
+  QJsonObject package{{"platform",platform},{"file",name},{"bytes",bytes.size()},{"unpacked_bytes",4096},{"sha256",QString(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex())},{"sources",QJsonArray{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/AstroBatch/releases/download/v99.0.0-beta.1/"+name}}}}};
+  auto cfg=config();cfg.packageMetadata="AstroBatch-update.json";
   FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,QJsonDocument(QJsonObject{{"schema",1},{"version","99.0.0-beta.1"},{"packages",QJsonArray{package}}}).toJson()},{200,bytes},{200,bytes,10000}};
   aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);if(language=="en")dialog.resize(520,580);dialog.show();auto *downloader=dialog.findChild<aster::updates::PackageDownload*>();QVERIFY(downloader);
   QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!downloader->busy());auto *button=dialog.findChild<QPushButton*>("updateOpen");
@@ -635,7 +635,14 @@ private slots:
    QVERIFY(!timedOut);QVERIFY(opened);QVERIFY(!hasToken);QVERIFY(controlsPresent);
    QVERIFY(checkMatches);QVERIFY(cancelMatches);QVERIFY(releasesEnabled);QVERIFY(stopped);
    QVERIFY(!QFile::exists(settings.databasePath));
-   QFile f(":/updates/github.json");QVERIFY(f.open(QIODevice::ReadOnly));QVERIFY(UpdateConfig::fromJson(f.readAll()).valid());
+   QFile f(":/updates/github.json");QVERIFY(f.open(QIODevice::ReadOnly));
+   auto bundled = UpdateConfig::fromJson(f.readAll());
+   QVERIFY(bundled.valid());
+   QCOMPARE(bundled.releasesUrl(), QUrl("https://github.com/ChenCLian/AstroBatch/releases"));
+   QCOMPARE(bundled.apiUrl(1, true).path(), QString("/api/v5/repos/ChenCLian/AstroBatch/releases"));
+   QCOMPARE(bundled.packageMetadata, QString("AstroBatch-update.json"));
+   bundled.repository = QStringLiteral("unrelated");
+   QVERIFY(!bundled.valid());
   }
   aster::ui::setLanguage("zh");
  }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent NumPy references from hash-verified original orbital ASCII.
 
-Requires NumPy for fixture regeneration only. Does not use Aster's parser,
+Requires NumPy for fixture regeneration only. Does not use AstroBatch's parser,
 interpolation or scientific library. Native knots use exact parsed doubles.
 """
 from pathlib import Path

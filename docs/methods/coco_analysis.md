@@ -32,7 +32,7 @@
 
 在预先指定的简单零假设下，观测与模拟统计量可交换，秩检验控制的是**该固定扫描家族的完整零假设**。它不证明混合真/假假设下的强 FWER，不覆盖反复改周期、权重、频带、速率范围、种子、多文件选择或整张滑窗图。也不是速率置信区间，更不证明天文因果关系。
 
-`(b+1)/(B+1)` 的 Monte Carlo 秩 p 处理参考 Phipson & Smyth (2010), [DOI:10.2202/1544-6115.1585](https://doi.org/10.2202/1544-6115.1585)、[作者预印本](https://gksmyth.github.io/pubs/PermPValuesPreprint.pdf)。Aster 这里生成独立零模型样本，不是置换原始数据；该计数公式不能弥补错误的零模型。
+`(b+1)/(B+1)` 的 Monte Carlo 秩 p 处理参考 Phipson & Smyth (2010), [DOI:10.2202/1544-6115.1585](https://doi.org/10.2202/1544-6115.1585)、[作者预印本](https://gksmyth.github.io/pubs/PermPValuesPreprint.pdf)。AstroBatch 这里生成独立零模型样本，不是置换原始数据；该计数公式不能弥补错误的零模型。
 
 ### 固定参数 Gaussian AR(1)：默认
 

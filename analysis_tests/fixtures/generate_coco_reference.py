@@ -1,5 +1,5 @@
 """Independent NumPy/SciPy reference; direct DFT cross-check for a small case.
-Run from anywhere. Not needed to build or run Aster.
+Run from anywhere. Not needed to build or run AstroBatch.
 Fixed harmonic target: E[periodogram(sum sqrt(w_j)*sin(w_j*t+phi_j))]
 for independent uniform phases equals sum w_j/2*(P(sin)+P(cos)).
 """

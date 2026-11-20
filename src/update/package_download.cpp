@@ -25,7 +25,7 @@ void PackageDownload::prepare(const QString &tag,const QString &source){
     if(m_busy)return;
     ++m_generation;
     m_package.reset();m_completed.clear();m_tag=tag;m_metadataSource=source;
-    if((source!="GitHub"&&source!="Gitee")||!m_config.valid()||m_config.packageMetadata!="Aster-update.json"||isAlphaVersion(QCoreApplication::applicationVersion())||isAlphaVersion(tag)) {emit prepared(false,"update.package_missing");return;}
+    if((source!="GitHub"&&source!="Gitee")||!m_config.valid()||m_config.packageMetadata!="AstroBatch-update.json"||isAlphaVersion(QCoreApplication::applicationVersion())||isAlphaVersion(tag)) {emit prepared(false,"update.package_missing");return;}
     if(!ReleaseVersion::parse(tag)){emit prepared(false,"update.package_invalid");return;}
     m_metadata=true;m_busy=true;beginMetadata(source);
 }
@@ -52,7 +52,7 @@ void PackageDownload::request(const QUrl &url){
     request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,QNetworkRequest::AlwaysNetwork);
     request.setAttribute(QNetworkRequest::CookieLoadControlAttribute,QNetworkRequest::Manual);
     request.setAttribute(QNetworkRequest::CookieSaveControlAttribute,QNetworkRequest::Manual);
-    request.setRawHeader("User-Agent","Aster-package-download");request.setRawHeader("Accept-Encoding","identity");
+    request.setRawHeader("User-Agent","AstroBatch-package-download");request.setRawHeader("Accept-Encoding","identity");
     request.setTransferTimeout(m_config.timeoutMs);
     m_reply=m_manager->get(request);m_reply->setReadBufferSize(65536);
     connect(m_reply,&QNetworkReply::readyRead,this,&PackageDownload::consume);
@@ -124,7 +124,7 @@ void PackageDownload::start(const QString &parentDirectory,const QString &source
     if(QFileInfo::exists(target)||QFileInfo(target).isSymLink()){emit finished(false,"update.directory_exists");return;}
     const QStorageInfo storage(m_parent);
     if(storage.isValid()&&storage.bytesAvailable()>=0&&storage.bytesAvailable()<m_package->bytes+m_package->unpackedBytes+32LL*1024*1024){emit finished(false,"update.disk_space");return;}
-    m_temp=std::make_unique<QTemporaryDir>(QDir(m_parent).filePath(".aster-download-XXXXXX"));
+    m_temp=std::make_unique<QTemporaryDir>(QDir(m_parent).filePath(".astrobatch-download-XXXXXX"));
     if(!m_temp->isValid()){m_temp.reset();emit finished(false,"update.disk_error");return;}
     ++m_generation;m_busy=true;m_metadata=false;m_source=0;m_cancel=std::make_shared<std::atomic_bool>(false);beginSource();
 }

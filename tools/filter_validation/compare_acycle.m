@@ -2,7 +2,7 @@ function report = compare_acycle(acycleRoot, outputFile)
 % MATLAB and Signal Processing Toolbox comparison against the corrected-bandpass-v2
 % implementation in the Acycle_3.1.1 reference archive.
 % Usage: addpath('tools/filter_validation'); compare_acycle('path/to/Acycle_3.1.1')
-% The same independent fixtures are checked against Aster C++ by filter_audit.
+% The same independent fixtures are checked against AstroBatch C++ by filter_audit.
 if nargin < 2, outputFile = ''; end
 root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 oldPath = path; cleanup = onCleanup(@() path(oldPath)); %#ok<NASGU>

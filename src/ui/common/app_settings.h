@@ -15,6 +15,8 @@ struct AppSettings
     bool defaultPlotNewPage = true;
     static QString configPath();
     static AppSettings load(const QString &path = {});
+    static AppSettings loadProfile(const QString &settingsFile, const QString &defaultDatabase,
+                                   const QString &previousSettings, const QString &previousDatabase);
     QString save(const QString &path = {}) const;
 };
 } // namespace aster::ui

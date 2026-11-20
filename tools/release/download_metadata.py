@@ -1,7 +1,7 @@
 """Generate full-package download information from final release archives.
 
 No keys, server or expiry dates. Run once after packaging; never re-compress mirrors.
-Stamp each staged folder before archiving, then generate Aster-update.json from
+Stamp each staged folder before archiving, then generate AstroBatch-update.json from
 one or more final archives. A Gitee source is added only with a byte-identical
 mirror copy supplied through --verified-mirror-dir (publication still needs an
 anonymous HTTPS check in the publishing workflow).
@@ -25,12 +25,12 @@ def valid_version(version):
 def stamp(folder, version, platform):
     if platform not in PLATFORMS or not valid_version(version):
         raise ValueError('Only stable and beta packages are eligible for update downloads')
-    if folder.name != f'Aster-{version}-{platform}' or not folder.is_dir():
+    if folder.name != f'AstroBatch-{version}-{platform}' or not folder.is_dir():
         raise ValueError('Staged folder name does not match version/platform')
-    entry = 'Aster.exe' if platform == 'windows-x64' else 'AppRun' if platform == 'linux-x64' else 'Aster.app/Contents/MacOS/Aster'
+    entry = 'AstroBatch.exe' if platform == 'windows-x64' else 'AppRun' if platform == 'linux-x64' else 'AstroBatch.app/Contents/MacOS/AstroBatch'
     if not (folder / entry).is_file():
         raise ValueError('Missing launch file')
-    (folder / 'aster-package.json').write_text(json.dumps(dict(schema=1, version=version, platform=platform), indent=2)+'\n', encoding='utf-8')
+    (folder / 'astrobatch-package.json').write_text(json.dumps(dict(schema=1, version=version, platform=platform), indent=2)+'\n', encoding='utf-8')
 
 
 def digest(path):
@@ -42,11 +42,11 @@ def digest(path):
 
 
 def inspect_package(path, version, platform):
-    name = f'Aster-{version}-{platform}'
+    name = f'AstroBatch-{version}-{platform}'
     suffix = '.tar.gz' if platform == 'linux-x64' else '.zip'
     if path.name != name + suffix:
         raise ValueError('Archive name does not match version/platform')
-    marker_path = name + '/aster-package.json'
+    marker_path = name + '/astrobatch-package.json'
     if suffix == '.zip':
         with zipfile.ZipFile(path) as archive:
             records = archive.infolist()
@@ -80,16 +80,16 @@ def generate(paths, version, mirror_dir=None):
         raise ValueError('Alpha/development versions are excluded')
     packages = []
     for path in paths:
-        candidates = [p for p in PLATFORMS if path.name == f'Aster-{version}-{p}' + ('.tar.gz' if p == 'linux-x64' else '.zip')]
+        candidates = [p for p in PLATFORMS if path.name == f'AstroBatch-{version}-{p}' + ('.tar.gz' if p == 'linux-x64' else '.zip')]
         if len(candidates) != 1 or any(p['platform'] == candidates[0] for p in packages):
             raise ValueError('Invalid or duplicate package platform')
         item = inspect_package(path, version, candidates[0])
-        item['sources'] = [dict(name='GitHub', url=f'https://github.com/ChenCLian/Aster/releases/download/v{version}/{path.name}')]
+        item['sources'] = [dict(name='GitHub', url=f'https://github.com/ChenCLian/AstroBatch/releases/download/v{version}/{path.name}')]
         if mirror_dir is not None:
             copy = mirror_dir / path.name
             if not copy.is_file() or digest(copy) != item['sha256']:
                 raise ValueError('Mirror copy is missing or differs from the original archive')
-            item['sources'].append(dict(name='Gitee', url=f'https://gitee.com/ChenCLian/Aster/releases/download/v{version}/{path.name}'))
+            item['sources'].append(dict(name='Gitee', url=f'https://gitee.com/ChenCLian/AstroBatch/releases/download/v{version}/{path.name}'))
         packages.append(item)
     if not packages:
         raise ValueError('No package supplied')

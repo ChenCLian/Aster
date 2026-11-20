@@ -5,7 +5,7 @@ CONFIG -= app_bundle debug_and_release debug_and_release_target
 TARGET = aster_ar1_global_validation
 isEmpty(ASTER_BUILD_ROOT) {
     contains(CONFIG, calibration):ASTER_BUILD_ROOT = $$clean_path($$OUT_PWD/../..)
-    else:error(Supply ASTER_BUILD_ROOT pointing to a root Aster build)
+    else:error(Supply ASTER_BUILD_ROOT pointing to a root AstroBatch build)
 }
 DESTDIR = $$ASTER_BUILD_ROOT/bin
 INCLUDEPATH += $$PWD/../../src

@@ -1,25 +1,25 @@
-# Aster 1.3.2-beta.7 快速开始
+# AstroBatch 1.3.3-beta.1 快速开始
 
 [使用手册](docs/USER_GUIDE.md) · [软件介绍](README.md) · [常见问题](FAQ.md) · [发布说明](RELEASE_NOTES.md)
 
 ## 1. 下载、解压与启动
 
-**Aster 免安装，完整解压后即可运行。**
+**AstroBatch 免安装，完整解压后即可运行。**
 
-从 [GitHub Releases](https://github.com/ChenCLian/Aster/releases) 的 **Assets（附件）** 下载与你的系统和处理器匹配的程序包，完整解压后按下表启动。源码包供开发和编译使用。请保留解压后的全部文件与子目录。
+从 [GitHub Releases](https://github.com/ChenCLian/AstroBatch/releases) 的 **Assets（附件）** 下载与你的系统和处理器匹配的程序包，完整解压后按下表启动。源码包供开发和编译使用。请保留解压后的全部文件与子目录。
 
 | 平台 | 启动方法 | 要求与常见问题 |
 | --- | --- | --- |
-| Windows x64 | 双击 `Aster.exe` | 缺少 VC++ 运行库时见 [FAQ](FAQ.md#windows-runtime) |
-| macOS Apple Silicon | 将 `Aster.app` 放入“应用程序”后打开 | 选择 `arm64` 包，要求 macOS 15+ |
-| macOS Intel | 将 `Aster.app` 放入“应用程序”后打开 | 选择 `x86_64` 包，要求 macOS 15+ |
+| Windows x64 | 双击 `AstroBatch.exe` | 缺少 VC++ 运行库时见 [FAQ](FAQ.md#windows-runtime) |
+| macOS Apple Silicon | 将 `AstroBatch.app` 放入“应用程序”后打开 | 选择 `arm64` 包，要求 macOS 15+ |
+| macOS Intel | 将 `AstroBatch.app` 放入“应用程序”后打开 | 选择 `x86_64` 包，要求 macOS 15+ |
 | Linux x64 | 在解压目录中运行 `./AppRun` | X11 或 XWayland；构建基线为 Ubuntu 22.04 |
 
 Linux 启动示例，在下载目录打开终端后执行；将版本号替换为实际下载的版本。预发布版建议使用独立数据库，并保留原数据库备份。
 
 ```bash
-tar -xzf Aster-1.3.2-beta.7-linux-x64.tar.gz
-cd Aster-1.3.2-beta.7-linux-x64
+tar -xzf AstroBatch-1.3.3-beta.1-linux-x64.tar.gz
+cd AstroBatch-1.3.3-beta.1-linux-x64
 ./AppRun
 ```
 
@@ -125,8 +125,8 @@ Age_ka,d18O
 
 单击文件名可浏览记录，红色感叹号表示流程有错误。右键选择“勾选此记录”或按空格，行首就会显示复选框。勾选后可在页脚打印文件名或删除勾选的记录。“全选全库”和“全选筛选结果”分别控制全库和当前筛选命中的记录。页脚显示已勾选数和全库总数。删除确认框另列筛选范围外的勾选数量。
 
-通过“合并数据库…”导入另一个兼容的 Aster 结果库，新导入记录分配新 ID。仅改数据库路径不会合并或搬迁记录。
+通过“合并数据库…”导入另一个兼容的 AstroBatch 结果库，新导入记录分配新 ID。仅改数据库路径不会合并或搬迁记录。
 
-“设置 → 检查更新”可查看新版本并打开下载页。关闭软件，将新程序包解压到新目录，保留原数据库和设置。验证新版能打开原数据库后，再清理旧程序目录。
+在“设置 → 检查更新”中选择“下载并解压”。完成后关闭当前程序，从新目录启动。
 
 “打印文件名”将全部已勾选记录导出为 CSV，每行包含 ID 和文件名。非文件来源保留来源名称。

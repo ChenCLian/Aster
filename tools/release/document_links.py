@@ -7,7 +7,7 @@ from urllib.parse import quote, unquote, urlsplit
 import shutil
 
 ROOT = Path(__file__).resolve().parents[2]
-REPOSITORY = 'ChenCLian/Aster'
+REPOSITORY = 'ChenCLian/AstroBatch'
 INLINE = re.compile(r'!?\[[^\]\n]*\]\(\s*(?P<url><[^>\n]+>|[^\s)]+)(?:\s+[^)]*)?\)')
 REFERENCE = re.compile(r'^\s{0,3}\[[^\]\n]+\]:\s*(?P<url><[^>\n]+>|\S+)', re.M)
 HTML_LINK = re.compile(r'(?:href|src)=["\'](?P<url>[^"\']+)["\']', re.I)
@@ -103,7 +103,7 @@ def mirror_release_body(text, tag):
     version = tag.removeprefix('v')
     if tag != 'v' + version or not valid_version(version):
         raise ValueError('Invalid version tag')
-    prefix = f'https://github.com/{REPOSITORY}/releases/download/{tag}/Aster-{version}-'
+    prefix = f'https://github.com/{REPOSITORY}/releases/download/{tag}/AstroBatch-{version}-'
     originals = {prefix + platform + ('.tar.gz' if platform == 'linux-x64' else '.zip')
                  for platform in PLATFORMS}
     def replace(url):

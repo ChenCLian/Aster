@@ -84,7 +84,7 @@ class SelectReleaseRunTests(unittest.TestCase):
 
     def test_foreign_or_wrong_workflow_and_invalid_commit_rejected(self):
         original = copy.deepcopy(self.run)
-        for field, value in [('head_repository', {'full_name': 'Other/Aster'}),
+        for field, value in [('head_repository', {'full_name': 'Other/AstroBatch'}),
                              ('path', '.github/workflows/other.yml'), ('event', 'pull_request'),
                              ('head_sha', 'main'), ('run_number', 39)]:
             with self.subTest(field=field):
@@ -108,7 +108,7 @@ class SelectReleaseRunTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'not found'):
                 s.select(s.REPO, 38)
         with patch.object(s, 'github') as api:
-            for repo, number in [('Other/Aster', 38), (s.REPO, 0), (s.REPO, -1)]:
+            for repo, number in [('Other/AstroBatch', 38), (s.REPO, 0), (s.REPO, -1)]:
                 with self.assertRaises(ValueError):
                     s.select(repo, number)
             api.assert_not_called()
@@ -157,15 +157,15 @@ class SelectReleaseRunTests(unittest.TestCase):
         self.assertIn('contents: read', source)
         self.assertNotIn('contents: write', source)
         self.assertIn('python3 tested-source/', source)
-        self.assertNotIn('secrets.ASTER_RELEASE_TOKEN', source)
+        self.assertNotIn('secrets.ASTROBATCH_RELEASE_TOKEN', source)
         self.assertIn('needs: source', draft)
         self.assertNotIn('python3 tested-source/', draft)
         self.assertIn('ASTER_TESTED_COMMIT: ${{ needs.source.outputs.commit }}', draft)
         steps = draft.split('      - ')
-        privileged = [step for step in steps if 'secrets.ASTER_RELEASE_TOKEN' in step]
+        privileged = [step for step in steps if 'secrets.ASTROBATCH_RELEASE_TOKEN' in step]
         self.assertEqual(len(privileged), 1)
         self.assertIn("github.ref == format('refs/heads/{0}', github.event.repository.default_branch)", privileged[0])
-        self.assertIn('secrets.ASTER_RELEASE_TOKEN) || github.token', privileged[0])
+        self.assertIn('secrets.ASTROBATCH_RELEASE_TOKEN) || github.token', privileged[0])
         self.assertIn('release_delivery.py draft', privileged[0])
 
 

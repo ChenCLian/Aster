@@ -15,7 +15,7 @@
 
 ```sh
 cd build-release
-qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference
+qmake ../AstroBatch.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference
 ```
 
 使用该 Qt Kit 对应的 qmake（部分 Linux 环境名为 `qmake6`）。按平台正常构建（Windows/MSVC 使用 `jom`，Linux/macOS 使用 `make`），将生成 `bin/aster_help_catalog`（Windows 带 `.exe`）。这个工具只读取任务描述，不运行算法，不读写数据库，也不需要图形窗口。
@@ -28,7 +28,7 @@ python tools/help_reference/generate.py --build build-release --check
 python -m unittest discover -s tools/help_reference -p "test_*.py"
 ```
 
-生成后重新构建 Aster，让 `resources/help.qrc` 收录最新文档，并提交两份生成文件及相应的任务定义或语言资源改动。普通用户构建不需要 Python，也不必启用 `help_reference`；源码已包含生成好的文档。
+生成后重新构建 AstroBatch，让 `resources/help.qrc` 收录最新文档，并提交两份生成文件及相应的任务定义或语言资源改动。普通用户构建不需要 Python，也不必启用 `help_reference`；源码已包含生成好的文档。
 
 工具须在能找到 Qt 和科学计算动态库的构建环境中运行。任务定义或版本变化后先重新编译工具，避免读取旧二进制的描述。`--check` 只比较内容，忽略平台换行差异，不修改文件；内容过期、版本不匹配、工具缺失或重复参数标识都会报错。GitHub Actions 在各平台构建后自动执行检查，过期文档会阻止打包。
 

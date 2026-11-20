@@ -51,7 +51,7 @@ public:
         setFrameShape(QFrame::NoFrame);
         setLineWrapMode(QTextEdit::WidgetWidth);
         connect(this,&QTextBrowser::anchorClicked,this,[this](const QUrl &url) {
-            if (url.scheme()=="aster-note") {
+            if (url.scheme()=="astrobatch-note") {
                 bool ok=false;const auto index=url.path().toInt(&ok);
                 if (ok && index>=0 && index<m_parts.size() && m_parts[index].fold) {
                     m_parts[index].open=!m_parts[index].open;
@@ -101,7 +101,7 @@ private:
         QString html;
         for(qsizetype i=0;i<m_parts.size();++i) {
             const auto &part=m_parts[i];
-            if(part.fold)html+=QString("<p><a href=\"aster-note:%1\">%2 <b>%3</b></a></p>").arg(i).arg(part.open?QStringLiteral("▾"):QStringLiteral("▸"),part.title.toHtmlEscaped());
+            if(part.fold)html+=QString("<p><a href=\"astrobatch-note:%1\">%2 <b>%3</b></a></p>").arg(i).arg(part.open?QStringLiteral("▾"):QStringLiteral("▸"),part.title.toHtmlEscaped());
             if(!part.fold || part.open)html+=markdown(part.body);
         }
         setHtml(html);
@@ -123,7 +123,7 @@ UpdateDialog::UpdateDialog(updates::UpdateConfig config,QWidget *parent,QNetwork
     resize(660,580);setMinimumSize(520,480);
     auto *layout=new QVBoxLayout(this);layout->setContentsMargins(24,22,24,20);layout->setSpacing(14);
     auto *header=new QHBoxLayout;header->setSpacing(12);
-    auto *icon=new QLabel;icon->setPixmap(QIcon(":/app/aster.png").pixmap(36,36));header->addWidget(icon);
+    auto *icon=new QLabel;icon->setPixmap(QIcon(":/app/AstroBatch.png").pixmap(36,36));header->addWidget(icon);
     auto *identity=new QVBoxLayout;identity->setSpacing(2);
     auto *title=new QLabel(text("update.window_title"));title->setObjectName("PageTitle");identity->addWidget(title);
     auto *installed=wrappedLabel("updateInstalled");installed->setText(text("update.installed")+"  "+QCoreApplication::applicationVersion());identity->addWidget(installed);
@@ -281,7 +281,11 @@ void UpdateDialog::packagePrepared(bool available,const QString &error){
     }
 }
 void UpdateDialog::download(){
-    m_download->start(m_directory,m_source->currentData().toString(),QSettings().value("updates/lastSource").toString());
+    const QString key = QStringLiteral("updates/lastSource");
+    QVariant lastSource = QSettings().value(key);
+    if (!lastSource.isValid())
+        lastSource = QSettings("Aster", "Aster_Workspace").value(key);
+    m_download->start(m_directory, m_source->currentData().toString(), lastSource.toString());
 }
 void UpdateDialog::openDirectory(){
     if(!QDesktopServices::openUrl(QUrl::fromLocalFile(m_download->completedDirectory()))){m_status->setText(text("update.directory_open_failed").arg(QDir::toNativeSeparators(m_download->completedDirectory())));m_status->show();}

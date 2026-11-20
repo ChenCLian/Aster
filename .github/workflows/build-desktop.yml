@@ -23,7 +23,7 @@ on:
         default: true
 
 concurrency:
-  group: aster-desktop-release
+  group: astrobatch-desktop-release
   cancel-in-progress: false
 
 permissions:
@@ -35,6 +35,7 @@ defaults:
 
 jobs:
   plan:
+    if: github.repository == 'ChenCLian/AstroBatch'
     name: Select platforms and verify bundled resources
     runs-on: ubuntu-22.04
     outputs:
@@ -109,14 +110,14 @@ jobs:
           for script in tools/release/package_linux.sh tools/release/package_macos.sh tools/release/linux_app_run.sh; do
             bash -n "$script"
           done
-          printf 'Aster version: %s\n' "$(tr -d '\r\n' < VERSION)" >> build-release/ci-logs/context.log
+          printf 'AstroBatch version: %s\n' "$(tr -d '\r\n' < VERSION)" >> build-release/ci-logs/context.log
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
           exec > >(tee build-release/ci-logs/install-dependencies.log) 2>&1
           python3 tools/release/enable_deb_src.py --output-dir build-release/ci-logs/apt-sources
-          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.list /etc/apt/sources.list.d/aster-deb-src.list
-          sudo install -m 644 build-release/ci-logs/apt-sources/aster-deb-src.sources /etc/apt/sources.list.d/aster-deb-src.sources
+          sudo install -m 644 build-release/ci-logs/apt-sources/astrobatch-deb-src.list /etc/apt/sources.list.d/astrobatch-deb-src.list
+          sudo install -m 644 build-release/ci-logs/apt-sources/astrobatch-deb-src.sources /etc/apt/sources.list.d/astrobatch-deb-src.sources
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgsl-dev libopenblas-dev liblapack-dev libarchive-dev \
             libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
@@ -181,9 +182,9 @@ jobs:
         run: |
           cd build-release
           if [[ "$RUNNER_OS" == macOS ]]; then
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
+            qmake ../AstroBatch.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance QMAKE_APPLE_DEVICE_ARCHS=${{ matrix.arch }} QMAKE_MACOSX_DEPLOYMENT_TARGET=15.0 2>&1 | tee ci-logs/configure.log
           else
-            qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | tee ci-logs/configure.log
+            qmake ../AstroBatch.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | tee ci-logs/configure.log
           fi
       - name: Build
         if: runner.os != 'Windows'
@@ -210,7 +211,7 @@ jobs:
             "$tool -> $resolved" | Tee-Object -FilePath build-release/ci-logs/environment.log -Append
           }
           Set-Location build-release
-          & qmake ../Aster.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | Tee-Object -FilePath ci-logs/configure.log
+          & qmake ../AstroBatch.pro CONFIG+=release CONFIG-=debug CONFIG+=help_reference CONFIG+=interaction_acceptance 2>&1 | Tee-Object -FilePath ci-logs/configure.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & (Join-Path $msvcBin 'nmake.exe') /NOLOGO 2>&1 | Tee-Object -FilePath ci-logs/build.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -240,7 +241,7 @@ jobs:
           $qtBin = (& qmake -query QT_INSTALL_BINS).Trim()
           ./tools/release/package_windows.ps1 -BuildDir build-release -QtBin $qtBin -VcpkgPrefix "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -VcpkgRoot "$env:VCPKG_INSTALLATION_ROOT" -OutputDir dist -DependencyMode Collect -DependencyCache $env:ASTER_DEPENDENCY_CACHE
           $version = (Get-Content VERSION -Raw).Trim()
-          Compress-Archive -LiteralPath "dist/Aster-$version-windows-x64" -DestinationPath "dist/Aster-$version-windows-x64.zip"
+          Compress-Archive -LiteralPath "dist/AstroBatch-$version-windows-x64" -DestinationPath "dist/AstroBatch-$version-windows-x64.zip"
       - name: Package Linux
         if: ${{ !inputs.check_only && runner.os == 'Linux' }}
         run: bash tools/release/package_linux.sh build-release "$(command -v qmake)" dist 2>&1 | tee build-release/ci-logs/package.log
@@ -260,7 +261,7 @@ jobs:
         id: package-path
         run: |
           version="$(tr -d '\r\n' < VERSION)"
-          package="dist/Aster-$version-${{ matrix.target }}.${{ matrix.archive-ext }}"
+          package="dist/AstroBatch-$version-${{ matrix.target }}.${{ matrix.archive-ext }}"
           test -f "$package"
           printf 'path=%s\n' "$package" >> "$GITHUB_OUTPUT"
       - name: Check final package
@@ -315,18 +316,18 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           pattern: program-*
-          path: ${{ runner.temp }}/aster-artifacts
+          path: ${{ runner.temp }}/astrobatch-artifacts
       - uses: actions/download-artifact@v5
         with:
           pattern: dependency-materials-*
-          path: ${{ runner.temp }}/aster-artifacts
+          path: ${{ runner.temp }}/astrobatch-artifacts
       - name: Assemble all four platforms
         run: |
-          python3 tools/release/release_delivery.py prepare --artifacts "$RUNNER_TEMP/aster-artifacts" --directory "$RUNNER_TEMP/release-ready"
+          python3 tools/release/release_delivery.py prepare --artifacts "$RUNNER_TEMP/astrobatch-artifacts" --directory "$RUNNER_TEMP/release-ready"
           python3 tools/release/package_source.py --output "$RUNNER_TEMP/source-export"
           version="$(tr -d '\r\n' < VERSION)"
           cd "$RUNNER_TEMP/source-export"
-          zip -qr "../release-ready/Aster-$version-source.zip" "Aster-source-export-$version"
+          zip -qr "../release-ready/AstroBatch-$version-source.zip" "AstroBatch-source-export-$version"
       - name: Create or update draft
         env:
           GH_TOKEN: ${{ github.token }}

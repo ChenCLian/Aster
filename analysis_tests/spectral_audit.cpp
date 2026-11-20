@@ -196,7 +196,7 @@ void SpectralAudit::longRepeatedPeaksAndCancellation()
 void SpectralAudit::distancePrefersProminence()
 {
     // A taller peak sits on a raised local base. The lower but more prominent
-    // peak wins the minimum-distance conflict by Aster's documented policy.
+    // peak wins the minimum-distance conflict by AstroBatch's documented policy.
     const double y[]={0,8,0,9,10,9,11,0};
     spectrum::PeakOptions o;o.minDistance=4;o.prominenceRadius=1;
     const auto peaks=spectrum::findSpectrumPeaks(8,y,o);

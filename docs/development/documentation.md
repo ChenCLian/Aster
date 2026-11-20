@@ -1,6 +1,6 @@
 # 文档维护
 
-适用版本：Aster 1.3.2-beta.7。
+适用版本：AstroBatch 1.3.3-beta.1。
 
 ## 面向读者组织内容
 
@@ -8,7 +8,6 @@
 - 使用手册说明当前行为、操作步骤及必要限制；FAQ 按用户看到的症状组织。
 - 方法文档说明定义、参数、输出及科学适用范围；接口、数据格式和实现约束放在开发文档。
 - 发布说明概述新功能、兼容性和平台要求。
-- 使用手册按操作组织内容。实现约定放在开发文档，数据兼容性和科学适用范围写在对应章节。
 - 验证报告明确版本、环境、执行命令、范围及未覆盖项。历史通过数量不累计为当前版本的新测试结果。
 
 运行介绍直接说明启动方式和必要条件，避免罗列无关开发工具或与其他软件作不必要比较。操作文字以用户目标、当前状态和处理方法为主；技术细节只在影响操作或结果解释时说明。
@@ -58,4 +57,4 @@ python -m unittest discover -s tools/help_reference -p "test_*.py"
 
 可运行 `aster_ui_tests helpTreeAndParameterSelection helpGlobalSearchAndCancellation helpFindAndReadingHistory helpNavigationResponsiveLayout`，并运行帮助生成器检查。正文在 Qt 资源中，修改后必须重新编译才能更新程序内帮助。
 
-全文搜索切换查询时立即清除旧结果，防止防抖等待期间点击过期章节。首次索引未就绪时的回车请求，绑定当前查询与导航序号；查询、语言或页面导航发生变化后取消旧请求。测试入口为 helpSearchDiscardsStaleResults 与 helpColdSearchEnterOpensResult。
+全文搜索在匹配页面高亮当前查询词。修改或清空查询时立即清除旧结果和高亮，切换页面后按新正文重新标记。对应回归为 `helpSearchHighlightsFollowTheArticle`。首次索引未就绪时的回车请求，绑定当前查询与导航序号；查询、语言或页面导航发生变化后取消旧请求。测试入口为 helpSearchDiscardsStaleResults 与 helpColdSearchEnterOpensResult。

@@ -1,5 +1,5 @@
 """Independent direct-DFT reference: TC98 wavelet bases, local chi-square test.
-No Aster/wavelib calls. NumPy dense DFT (not the production FFT); SciPy quantiles.
+No AstroBatch/wavelib calls. NumPy dense DFT (not the production FFT); SciPy quantiles.
 Nyquist frequency is positive, as in the authors' Fourier convention.
 """
 import json, math

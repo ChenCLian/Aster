@@ -8,14 +8,14 @@
 
 ## 算法对应与差异
 
-| Aster 任务/部分 | 参照 Acycle 中的对应部分 | 当前约定 |
+| AstroBatch 任务/部分 | 参照 Acycle 中的对应部分 | 当前约定 |
 | --- | --- | --- |
 | `preprocess` | `datapreproc.m`、`acycleInterpolateSeries.m` | 默认使用重复 X 求均值、中位采样间隔、线性插值；整数索引网格和 ULP 级端点判断对齐。仍须用户明确添加节点 |
 | `detrend_lowess` | `detrending.m` 的 LOWESS / rLOWESS | span 默认同为 0.35；普通 LOWESS 默认 0 次稳健迭代。5 次可选对应 rLOWESS 家族；保留成熟 NETLIB/CppLowess 实现 |
 | `linear_detrend` | `detrending.m` 中一阶 `polyfit`、`polyval` | 均为有截距 OLS、返回趋势和残差；稳定中心化是数值实现差异，保留 |
 | `affine` | 基本数值运算 | `factor*y+offset`；X 保持不变 |
 | `series_summary` | 常规描述统计 | `population_variance` 的分母为 N；MATLAB 默认样本方差的分母为 N−1，两者须区分 |
-| `sine_source` | `linegenerator.m` 的正弦项 | 同样使用 `A*sin(2*pi*x/T)`；Aster 的线性斜率叠加是明确的测试信号扩展，非天文理论曲线；保留 |
+| `sine_source` | `linegenerator.m` 的正弦项 | 同样使用 `A*sin(2*pi*x/T)`；AstroBatch 的线性斜率叠加是明确的测试信号扩展，非天文理论曲线；保留 |
 | `mtm` 主谱 | `spectrum.m`、`acycleMtmTaperCount.m`、MATLAB `pmtm` | NW 默认 2，支持小数；NW=1 保留 2 窗，否则 round(2NW)-1；NFFT 默认 N，另可明确指定补零长度 |
 | MTM AR1 | `redconfML.m`、`moveMedian.m` | 默认线性功率拟合、0.2 中位窗口；偶数窗口左少右多、端点截短；按完整单边谱拟合，固定 2K 近似自由度 |
 | MTM SWA | `spectralswafdr.m` 调用的 `specswa.m` | 使用单边谱的 log10 功率；搜索/尾部/平滑规则与参照源码对应。少于 33 个频点时返回不适用状态，不输出替代的常数 SWA |
@@ -29,7 +29,7 @@
 
 - 先去均值，采用对称单位能量 DPSS、自适应 Thomson 加权和单边 PSD。
 - `nfft=0` 表示输入长度 N；正整数表示明确 FFT 长度。支持 `NW=1` 或 `NW>=1.25` 且 `<N/2`。不支持 NFFT<N 的折叠输入选项，避免把它当作普通补零。
-- Acycle GUI 在未传 Fs 的 `pmtm` 后只换算频率轴。Aster 保留具有正确物理频率单位的 PSD：**Aster PSD = Acycle 功率 × 2πdt**。背景和阈值同时乘这个常数，因此谱比与显著性判断不因这一单位换算而改变。
+- Acycle GUI 在未传 Fs 的 `pmtm` 后只换算频率轴。AstroBatch 保留具有正确物理频率单位的 PSD：**AstroBatch PSD = Acycle 功率 × 2πdt**。背景和阈值同时乘这个常数，因此谱比与显著性判断不因这一单位换算而改变。
 - `frequency_max` 是以输入横轴单位倒数表示的输出频率上限，0 为自动、超出奈奎斯特频率时截到奈奎斯特频率。兼容字段 `fmax_ratio` 在没有指定正的绝对上限时仍按旧比例生效。两者仅裁剪发布的频谱/阈值和峰表；AR1/SWA/FDR 始终使用完整单边频谱。改变输出上限不会重新拟合背景。Acycle 本身将 fmax 用于显示；本程序将其作为输出裁剪，两者在统计拟合域上一致。
 - AR1 和 SWA 阈值使用固定 2K 自由度，对 DC/Nyquist 沿用 Acycle 的近似。这是端点近似，不能解释为每个频点的精确分布。数值层提供的有效自由度供兼容实验读取，不用于正式 MTM 阈值。
 - 直接使用 GSL 的上尾概率/逆上尾，代替 Acycle 的有限查表网格；这是数值精度差异，不更换检验定义。各 q 水平若得到相同曲线，保留其各自的输出键。精确的观测 p 值边界是**包含等号**的，避免临界峰因浮点取整消失。

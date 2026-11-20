@@ -46,8 +46,8 @@ Bundled records support learning and reproducible examples without a network dow
 | Entries | Data and chronology |
 | --- | --- |
 | ODP 846 oxygen and carbon isotopes | PANGAEA.60254, Mix et al. (1995); the archive itself contains author-interpolated values, not unprocessed original measurements |
-| ODP 1143 oxygen isotopes | PANGAEA.132801, Tian et al. (2002); published astronomical tuning and values on the C. wuellerstorfi scale, with no additional species correction by Aster |
-| ODP 926B carbon isotopes and lightness L* | PANGAEA.743431, Pälike et al. (2006); uses the optional age column readjusted to La2004, not the older La1993 column; Aster applies no extra epoch conversion |
+| ODP 1143 oxygen isotopes | PANGAEA.132801, Tian et al. (2002); published astronomical tuning and values on the C. wuellerstorfi scale, with no additional species correction by AstroBatch |
+| ODP 926B carbon isotopes and lightness L* | PANGAEA.743431, Pälike et al. (2006); uses the optional age column readjusted to La2004, not the older La1993 column; AstroBatch applies no extra epoch conversion |
 
 Different proxies at one site may retain different rows because of missing selected X/Y values. Omitted pairs are counted in provenance. Do not assume row-by-row pairing or regular spacing; inspect actual coordinates before FFT, MTM or cross-spectrum analysis.
 
@@ -91,4 +91,4 @@ Do not verify the outputs with series = clean_signal + scaled_noise: the sum is 
 
 Regular depth does not guarantee regular age, and the irregular template is not directly suitable for FFT. Align axes, sampling and preprocessing when comparing algorithms, and retain true ages and periods as references. Behaviour under parameter changes describes this synthetic model; it does not establish that a real record follows it.
 
-See the source [NOTICE](../../resources/synthetic/NOTICE.md) for model-port attribution and licensing; the template comes from PANGAEA.817206. Running Aster does not require Python.
+See the source [NOTICE](../../resources/synthetic/NOTICE.md) for model-port attribution and licensing; the template comes from PANGAEA.817206. Running AstroBatch does not require Python.

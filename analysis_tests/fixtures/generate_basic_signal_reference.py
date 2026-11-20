@@ -1,4 +1,4 @@
-"""Independent NumPy/SciPy fixtures, not needed to build/run Aster."""
+"""Independent NumPy/SciPy fixtures, not needed to build/run AstroBatch."""
 from pathlib import Path
 import json
 import numpy as np

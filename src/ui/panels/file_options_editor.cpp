@@ -261,7 +261,7 @@ void FileOptionsEditor::startProbe()
                 {
                     if (generation != m_generation)
                         return;
-                    qInfo() << "[Aster import] preview_read_ms=" << readMs
+                    qInfo() << "[AstroBatch import] preview_read_ms=" << readMs
                             << "gui_delivery_wait_ms=" << timer.elapsed() - readMs
                             << "columns=" << probe.columns.size() << "ok=" << probe.ok();
                     QElapsedTimer uiTimer;
@@ -289,7 +289,7 @@ void FileOptionsEditor::startProbe()
                     if (!valid)
                         m_info->setText(text("ui.configured_column_is_missing_select_x_y"));
                     refreshPreview();
-                    qInfo() << "[Aster import] column_controls_ms=" << uiTimer.elapsed();
+                    qInfo() << "[AstroBatch import] column_controls_ms=" << uiTimer.elapsed();
                     emit readinessChanged(ready());
                     notifyPreviewInput();
                 },

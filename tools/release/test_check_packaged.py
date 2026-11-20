@@ -11,11 +11,11 @@ import check_packaged as c
 class PackagedChecksTests(unittest.TestCase):
     def package(self, base, extra=None):
         version='1.3.1-beta.1';platform='windows-x64'
-        name=f'Aster-{version}-{platform}'
+        name=f'AstroBatch-{version}-{platform}'
         archive=base/(name+'.zip')
         with zipfile.ZipFile(archive,'w') as z:
-            z.writestr(name+'/aster-package.json',json.dumps(dict(schema=1,version=version,platform=platform)))
-            z.writestr(name+'/Aster.exe',b'fixture, not executable')
+            z.writestr(name+'/astrobatch-package.json',json.dumps(dict(schema=1,version=version,platform=platform)))
+            z.writestr(name+'/AstroBatch.exe',b'fixture, not executable')
             for key,value in (extra or {}).items():z.writestr(key,value)
         return archive,version,platform
 
@@ -29,13 +29,13 @@ class PackagedChecksTests(unittest.TestCase):
             archive,version,platform=self.package(base)
             calls=[]
             def startup(command,folder,env,log):
-                self.assertEqual(folder,actual/f'Aster-{version}-{platform}')
+                self.assertEqual(folder,actual/f'AstroBatch-{version}-{platform}')
                 self.assertTrue(Path(command[0]).is_file())
                 calls.append(command)
                 if '--release-smoke-output' in command:
                     Path(command[-1]).write_bytes(b'screenshot fixture')
                 log.write_text('fixture startup')
-                return subprocess.CompletedProcess(command,0,'Aster_Workspace '+version if '--version' in command else '')
+                return subprocess.CompletedProcess(command,0,'AstroBatch '+version if '--version' in command else '')
             with patch.object(c.tempfile,'TemporaryDirectory',return_value=nullcontext(str(alias))),patch.object(c,'probe',side_effect=startup):
                 c.run(archive,version,platform,base/'report')
             self.assertEqual(len(calls),4)

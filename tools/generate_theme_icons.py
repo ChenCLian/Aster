@@ -1,5 +1,5 @@
 """Regenerate embedded UI indicators after changing theme palettes.
-Development-only dependency: Pillow. Building/running Aster needs no Qt SVG module.
+Development-only dependency: Pillow. Building/running AstroBatch needs no Qt SVG module.
 """
 from pathlib import Path
 import json

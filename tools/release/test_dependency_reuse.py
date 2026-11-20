@@ -42,13 +42,13 @@ class DependencyReuseTests(unittest.TestCase):
                                        common.digest(source), name + '.tar.gz')
             self.collection.save_record(component, 'build.txt', b'build recipe', 'recipes')
         owners = {}
-        for name, owner in [('Aster.exe', 'Aster-project-source'), ('Qt6Core.dll', 'qt'), ('gsl.dll', 'vcpkg-gsl')]:
+        for name, owner in [('AstroBatch.exe', 'AstroBatch-project-source'), ('Qt6Core.dll', 'qt'), ('gsl.dll', 'vcpkg-gsl')]:
             binary = self.package / name
             binary.write_bytes(b'MZ' + name.encode())
             owners[binary] = owner
         self.owners = owners
         self.assertEqual(collector.finish(self.collection, self.package, owners, list(owners)), 0)
-        self.zip = self.materials / 'release-assets/Aster-1.1.1-windows-x64-dependency-records.zip'
+        self.zip = self.materials / 'release-assets/AstroBatch-1.1.1-windows-x64-dependency-records.zip'
         self.before = self.snapshot()
         self.addCleanup(patch.stopall)
         patch.object(common, 'open_url', side_effect=AssertionError('offline reuse attempted network')).start()
@@ -84,7 +84,7 @@ class DependencyReuseTests(unittest.TestCase):
                 archive.writestr(name, content)
 
     def test_legacy_materials_reused_offline_after_application_rebuild(self):
-        (self.package / 'Aster.exe').write_bytes(b'MZchanged application source and UI')
+        (self.package / 'AstroBatch.exe').write_bytes(b'MZchanged application source and UI')
         # A local unpacked records directory is unnecessary: use the published ZIP.
         import shutil
         shutil.rmtree(self.materials / 'records')
@@ -93,8 +93,8 @@ class DependencyReuseTests(unittest.TestCase):
         self.assertEqual(self.snapshot(), before)
         self.assertFalse((self.package / reuse.PENDING).exists())
         installed = json.loads((self.package / 'licenses/dependencies/DEPENDENCIES.json').read_text())
-        binary = next(x for x in installed['binaries'] if x['path'] == 'Aster.exe')
-        self.assertEqual(binary['sha256_before_signing'], common.digest(self.package / 'Aster.exe'))
+        binary = next(x for x in installed['binaries'] if x['path'] == 'AstroBatch.exe')
+        self.assertEqual(binary['sha256_before_signing'], common.digest(self.package / 'AstroBatch.exe'))
         self.assertEqual(installed['reuse']['mode'], 'offline-verified')
         self.assertEqual((self.package / 'licenses/dependencies/qt/src/LICENSE').read_bytes(), b'original terms\r\n')
         self.assertIn('/v1.1.1/qt.tar.gz', (self.package / 'SOURCE_DEPENDENCIES.md').read_text())
@@ -109,7 +109,7 @@ class DependencyReuseTests(unittest.TestCase):
         def published(report):
             source = report['components'][0]['sources'][0]
             source.update(status='reused-published', published_url=
-                          'https://github.com/ChenCLian/Aster/releases/download/v1.0.0/qt.tar.gz')
+                          'https://github.com/ChenCLian/AstroBatch/releases/download/v1.0.0/qt.tar.gz')
         self.edit_report(published)
         report = (self.materials / 'report.json').read_bytes()
         self.edit_zip(lambda files: files.update({'DEPENDENCIES.json': report}))
@@ -151,7 +151,7 @@ class DependencyReuseTests(unittest.TestCase):
 
     def test_different_release_version_is_rejected(self):
         self.edit_report(lambda r: r.update(version='1.1.2'))
-        self.reject('this Aster version')
+        self.reject('this AstroBatch version')
 
     def test_different_platform_is_rejected(self):
         self.edit_report(lambda r: r.update(platform='macos-arm64'))
@@ -178,7 +178,7 @@ class DependencyReuseTests(unittest.TestCase):
         self.reject('Unknown dependency source owner')
 
     def test_project_exception_cannot_be_assigned_to_a_dll(self):
-        self.edit_report(lambda r: r['binaries'][1].update(component='Aster-project-source'))
+        self.edit_report(lambda r: r['binaries'][1].update(component='AstroBatch-project-source'))
         self.reject('Unknown dependency source owner')
 
     def test_unsafe_zip_entry_is_rejected(self):

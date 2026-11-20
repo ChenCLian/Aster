@@ -1,6 +1,6 @@
 # 第三方代码、依赖与数据
 
-Aster 整体采用 GPL-3.0-only；原创部分版权为 Copyright (C) 2026 ZiJie Chen。第三方原始许可与版权继续有效，详见 [COPYRIGHT.md](../COPYRIGHT.md)。随包许可声明不替代二进制发行时的[对应源码提供要求](../SOURCE_CODE.md)。
+AstroBatch 整体采用 GPL-3.0-only；原创部分版权为 Copyright (C) 2026 ZiJie Chen。第三方原始许可与版权继续有效，详见 [COPYRIGHT.md](../COPYRIGHT.md)。随包许可声明不替代二进制发行时的[对应源码提供要求](../SOURCE_CODE.md)。
 
 ## 随源码分发
 
@@ -26,7 +26,7 @@ MTM 数值对照使用随包独立 Python 生成器及固定 JSON 参照，CWT �
 - GNU Scientific Library：https://www.gnu.org/software/gsl/ 。GPL；应保留实际使用版本的版权与完整许可，并提供对应源码。
 - Qt：https://www.qt.io/ 。按实际模块与发行版本保留 Qt 及其内含第三方组件的许可，不以项目 GPL 声明替换 Qt 原有许可。
 
-实际发行包的组件、版本、源码与配方由[依赖材料收集器（在线说明）](dependency_materials_zh.md)记录；程序包内的 `SOURCE_DEPENDENCIES.md` 提供该平台的实际下载入口。Qt、GSL 及其他库继续适用各自条款；OpenBLAS/LAPACK 的 BSD 类许可要求保留原版权、条件与免责声明，Aster 的对应源码范围另按 GPL 确定。
+实际发行包的组件、版本、源码与配方由[依赖材料收集器（在线说明）](dependency_materials_zh.md)记录；程序包内的 `SOURCE_DEPENDENCIES.md` 提供该平台的实际下载入口。Qt、GSL 及其他库继续适用各自条款；OpenBLAS/LAPACK 的 BSD 类许可要求保留原版权、条件与免责声明，AstroBatch 的对应源码范围另按 GPL 确定。
 
 开发和分发时分别遵守所用依赖版本的许可。科学测试 JSON 由随包脚本使用 NumPy/SciPy 及 statsmodels 0.14.6 生成，Python 库本身未随包分发。
 
@@ -54,7 +54,7 @@ La2004 与 La2010 的随附 README 记录了作者、版权和使用方法，但
 
 发布包含这些表的源码包或程序包前，维护者须确认适用于具体文件的再分发条款或取得权利人许可，并记录授权范围、来源和日期。截至 2026-11-06，本工程未收录能确认该再分发范围的授权材料。此项是尚待核实的授权依据，不是对数据违法使用的认定。
 
-核验范围包括 `resources/astronomy/la2004/` 中的 La2004 原表及 `resources/astronomy/solutions/` 中的 La2010 压缩表。压缩存储不改变其归属和适用条件。其他轨道表和数据依各自来源条款核对；不能套用 Aster 的 GPL 声明替代。
+核验范围包括 `resources/astronomy/la2004/` 中的 La2004 原表及 `resources/astronomy/solutions/` 中的 La2010 压缩表。压缩存储不改变其归属和适用条件。其他轨道表和数据依各自来源条款核对；不能套用 AstroBatch 的 GPL 声明替代。
 
 ## 合成轨道代理信号
 

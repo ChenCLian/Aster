@@ -1,6 +1,6 @@
 """Independent SciPy implementation of COCO Monte Carlo and sliding COCO.
-No Aster code imported. MT19937-64 is implemented from its published recurrence;
-fixed Box-Muller ordering is the portable Aster generator contract, not a fit.
+No AstroBatch code imported. MT19937-64 is implemented from its published recurrence;
+fixed Box-Muller ordering is the portable AstroBatch generator contract, not a fit.
 Run: python3 generate_coco_analysis_reference.py
 """
 from pathlib import Path

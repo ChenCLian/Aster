@@ -14,10 +14,10 @@ arch="$3"
 mkdir -p "$4"
 output="$(cd "$4" && pwd)"
 version="$(tr -d '\r\n' < "$root/VERSION")"
-name="Aster-$version-macos-$arch"
+name="AstroBatch-$version-macos-$arch"
 stage="$output/$name"
 [[ ! -e "$stage" && ! -e "$output/$name.zip" ]] || { echo 'Output already exists' >&2; exit 1; }
-[[ "$(QT_QPA_PLATFORM=offscreen "$build/bin/Aster.app/Contents/MacOS/Aster" --version)" == "Aster_Workspace $version" ]] || { echo 'Executable version does not match VERSION' >&2; exit 1; }
+[[ "$(QT_QPA_PLATFORM=offscreen "$build/bin/AstroBatch.app/Contents/MacOS/AstroBatch" --version)" == "AstroBatch $version" ]] || { echo 'Executable version does not match VERSION' >&2; exit 1; }
 qt_prefix="$("$qmake" -query QT_INSTALL_PREFIX)"
 plugins="$("$qmake" -query QT_INSTALL_PLUGINS)"
 qt_bin="$("$qmake" -query QT_INSTALL_BINS)"
@@ -25,8 +25,8 @@ gsl_prefix="${GSL_PREFIX:-$(brew --prefix gsl)}"
 blas_prefix="${OPENBLAS_ROOT:-$(brew --prefix openblas)}"
 archive_prefix="${ARCHIVE_PREFIX:-$(brew --prefix libarchive)}"
 mkdir -p "$stage"
-ditto "$build/bin/Aster.app" "$stage/Aster.app"
-app="$stage/Aster.app"
+ditto "$build/bin/AstroBatch.app" "$stage/AstroBatch.app"
+app="$stage/AstroBatch.app"
 plugin_dest="$app/Contents/PlugIns"
 mkdir -p "$plugin_dest/platforms" "$plugin_dest/sqldrivers"
 for group in imageformats iconengines printsupport styles tls; do
@@ -80,10 +80,10 @@ done
 cp -R "$stage/licenses" "$app/Contents/Resources/licenses"
 # Ad-hoc signing permits local acceptance testing. Public trusted distribution
 # uses a Developer ID identity and optional preconfigured notarization profile.
-identity="${ASTER_SIGN_IDENTITY:--}"
+identity="${ASTROBATCH_SIGN_IDENTITY:--}"
 sign_args=(--force --sign "$identity")
 if [[ "$identity" != '-' ]]; then sign_args+=(--options runtime --timestamp); fi
-# Signing Contents/MacOS/Aster can sign the enclosing application. Leave its
+# Signing Contents/MacOS/AstroBatch can sign the enclosing application. Leave its
 # executable and each framework's main binary to the respective bundle pass.
 frameworks="$app/Contents/Frameworks"
 sign_item() {
@@ -97,26 +97,26 @@ done < <(find "$frameworks" "$plugin_dest" -type f -name '*.dylib' -print0)
 while IFS= read -r -d '' framework; do
   sign_item "$framework"
 done < <(find "$frameworks" -depth -type d -name '*.framework' -print0)
-echo "Signing Aster.app"
+echo "Signing AstroBatch.app"
 codesign "${sign_args[@]}" "$app"
 codesign --verify --deep --strict --verbose=2 "$app"
 # Smoke-test the deployed bundle without the build machine's Qt/library paths.
 for probe in --version --numeric-backend; do
   env -u DYLD_LIBRARY_PATH -u DYLD_FRAMEWORK_PATH -u DYLD_FALLBACK_LIBRARY_PATH \
     -u DYLD_FALLBACK_FRAMEWORK_PATH -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH \
-    QT_QPA_PLATFORM=offscreen "$app/Contents/MacOS/Aster" "$probe"
+    QT_QPA_PLATFORM=offscreen "$app/Contents/MacOS/AstroBatch" "$probe"
 done
-if [[ -n "${ASTER_NOTARY_PROFILE:-}" ]]; then
+if [[ -n "${ASTROBATCH_NOTARY_PROFILE:-}" ]]; then
   [[ "$identity" != '-' ]] || { echo 'Notarization requires a Developer ID identity' >&2; exit 1; }
   ditto -c -k --keepParent "$app" "$stage/notarize.zip"
-  xcrun notarytool submit "$stage/notarize.zip" --keychain-profile "$ASTER_NOTARY_PROFILE" --wait
+  xcrun notarytool submit "$stage/notarize.zip" --keychain-profile "$ASTROBATCH_NOTARY_PROFILE" --wait
   xcrun stapler staple "$app"
   rm "$stage/notarize.zip"
 fi
 cat > "$stage/START_HERE.txt" <<EOF
-Aster $version — macOS $arch
-No installation is required. Extract the package and open Aster.app.
-You can move Aster.app to Applications for convenient access.
+AstroBatch $version — macOS $arch
+No installation is required. Extract the package and open AstroBatch.app.
+You can move AstroBatch.app to Applications for convenient access.
 The provided CI build targets macOS 15 or newer. Choose the package for your Mac.
 The default build is ad-hoc signed, without Developer ID signing or notarization.
 Check the release notes for this package's signing status.
@@ -125,7 +125,7 @@ Source and redistribution information: SOURCE_CODE.md.
 Getting started: QUICK_START.md. Gatekeeper and startup help: FAQ.md.
 Updates: Settings > Check for updates can download, verify and extract a new package.
 Older releases without download information open the public release page instead.
-Close Aster before replacing the app. Keep your database and settings separately.
+Close AstroBatch before replacing the app. Keep your database and settings separately.
 EOF
 python3 "$script_dir/download_metadata.py" stamp "$stage" --platform "macos-$arch"
 ditto -c -k --sequesterRsrc --keepParent "$stage" "$output/$name.zip"

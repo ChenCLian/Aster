@@ -67,4 +67,4 @@ DISTFILES += tools/release/package_windows.ps1 $$files($$PWD/tools/release/*.sh)
 DISTFILES += $$files($$PWD/.github/workflows/*.yml) resources/manual_files.json
 DISTFILES += tools/acceptance/acceptance.pro tools/acceptance/interaction_acceptance.cpp
 DISTFILES += $$files($$PWD/tools/performance/*.pro) $$files($$PWD/tools/performance/*.cpp)
-DISTFILES += resources/app/aster-256.png
+DISTFILES += resources/app/AstroBatch-256.png

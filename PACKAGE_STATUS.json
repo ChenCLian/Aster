@@ -1,6 +1,6 @@
 {
-  "project": "Aster",
-  "version": "1.3.2-beta.7",
+  "project": "AstroBatch",
+  "version": "1.3.3-beta.1",
   "update_mode": "official_https_sha256_full_package_extract_new_directory",
   "automatic_installation": false,
   "private_repository_authentication": false,
@@ -90,12 +90,14 @@
   ],
   "release_checks_scope": "Required checks, not completed or pending status declarations.",
   "validation": {
-    "status": "linux_release_tests_verified",
-    "record": "docs/validation_results/1.3.2-beta.7/checks.json",
+    "status": "release_tooling_verified_native_builds_pending",
+    "record": "docs/validation_results/1.3.3-beta.1/checks.json",
     "summary": "docs/validation_current.md",
-    "logs": "docs/validation_results/1.3.2-beta.7",
+    "logs": "docs/validation_results/1.3.3-beta.1",
     "source_manifest": "PACKAGE_MANIFEST.json",
-    "scope": "Qt Release on Linux. Directory filters, figure backgrounds and manual X limits, MTM peak-table export, output row selection and existing plotting actions."
+    "scope": "Local release tests, version synchronization, four-platform update metadata, and bundled resource hashes verified. Native builds pending.",
+    "previous_version_record": "docs/validation_results/1.3.2-beta.8/checks.json",
+    "previous_version_summary": "docs/validation_results/1.3.2-beta.8/checks.json"
   },
   "help": {
     "local": "compiled Qt resources",
@@ -136,12 +138,13 @@
     "masked_tables": 2
   },
   "documentation_review": {
-    "date": "2026-11-19",
-    "version": "1.3.2-beta.7",
-    "status": "reviewed",
-    "record": "docs/validation_results/1.3.2-beta.7/documentation_checks.json",
-    "embedded_help_rebuild_required": false,
-    "scope": "Chinese and English help, parameter references, local documentation links and packaged help resources."
+    "date": "2026-11-20",
+    "version": "1.3.3-beta.1",
+    "status": "content_version_and_links_checked",
+    "record": "docs/validation_results/1.3.3-beta.1/documentation_checks.json",
+    "embedded_help_rebuild_required": true,
+    "scope": "Verified current version labels, ordinary download and update instructions in both languages, and the targets of manual links and help navigation.",
+    "previous_record": "docs/validation_results/1.3.2-beta.8/documentation_checks.json"
   },
   "manual_update_policy": {
     "package_download": "in_app_when_metadata_available_otherwise_browser",

@@ -20,9 +20,9 @@ def main():
     for name in ['README.md', 'AUTHORS.md', 'QUICK_START.md', 'FAQ.md',
                  'LICENSE', 'COPYRIGHT.md', 'SOURCE_CODE.md']:
         shutil.copy2(ROOT / name, dest / name)
-    icon = dest / 'resources/app/aster.png'
+    icon = dest / 'resources/app/AstroBatch.png'
     icon.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / 'resources/app/aster.png', icon)
+    shutil.copy2(ROOT / 'resources/app/AstroBatch.png', icon)
     # Release notes may be maintained on GitHub rather than in the checkout.
     # Keep author and third-party notices required; only release notes are optional.
     release_notes = ROOT / 'RELEASE_NOTES.md'

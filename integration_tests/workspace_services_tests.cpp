@@ -3,7 +3,11 @@
 #include "integration_suites.h"
 #include <QtTest>
 #include <QApplication>
+#include <QDir>
 #include <QTemporaryDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
 #include <QSettings>
 #include <QJsonDocument>
 #include <QImageReader>
@@ -63,6 +67,8 @@ class WorkspaceServicesTests : public QObject
         setLanguage("en");
     }
     void settingsRoundTripAndValidation();
+    void firstLaunchUsesExistingProfile();
+    void previousProfileMatchesPlatformLocations();
     void catalogsAndThemes();
     void viewportReaderPreservesSpikesAndRefines();
     void gridWindowHasExactValues();
@@ -112,6 +118,67 @@ void WorkspaceServicesTests::settingsRoundTripAndValidation()
     }
     QVERIFY(AppSettings::load(path).defaultPlotNewPage);
     QVERIFY(!s.save(dir.path()).isEmpty());
+}
+void WorkspaceServicesTests::firstLaunchUsesExistingProfile()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    const QString oldConfig = dir.filePath("old/settings.ini");
+    const QString oldDb = dir.filePath("results.sqlite");
+    const QString newConfig = dir.filePath("new/settings.ini");
+    const QString newDb = dir.filePath("new/results.sqlite");
+    auto load = [&] { return AppSettings::loadProfile(newConfig, newDb, oldConfig, oldDb); };
+    QCOMPARE(load().databasePath, newDb);
+    QVERIFY(!QFileInfo::exists(newConfig));
+
+    QFile database(oldDb);
+    QVERIFY(database.open(QIODevice::WriteOnly));
+    QCOMPARE(database.write("existing data"), qint64(13));
+    database.close();
+    QCOMPARE(load().databasePath, oldDb);
+    QCOMPARE(AppSettings::load(newConfig).databasePath, oldDb);
+    QVERIFY(!QFileInfo::exists(newDb));
+    QVERIFY(!QFileInfo::exists(oldConfig));
+
+    QVERIFY(QFile::remove(newConfig));
+    const auto custom = dir.filePath("自选/results.sqlite");
+    QSettings original(oldConfig, QSettings::IniFormat);
+    original.setValue("storage/database", custom);
+    original.setValue("appearance/theme", "dark");
+    original.setValue("window/geometry", QByteArray("geom\0etry", 9));
+    original.sync();
+    const auto migrated = load();
+    QCOMPARE(migrated.databasePath, custom);
+    QCOMPARE(migrated.theme, QString("dark"));
+    QCOMPARE(QSettings(newConfig, QSettings::IniFormat).value("window/geometry"),
+             original.value("window/geometry"));
+    original.setValue("storage/database", oldDb);
+    original.sync();
+    QCOMPARE(load().databasePath, custom);
+
+    QVERIFY(QFile::remove(newConfig));
+    original.remove("storage/database");
+    original.sync();
+    QFile current(newDb);
+    QVERIFY(current.open(QIODevice::WriteOnly));
+    current.close();
+    QCOMPARE(load().databasePath, newDb);
+    QVERIFY(database.open(QIODevice::ReadOnly));
+    QCOMPARE(database.readAll(), QByteArray("existing data"));
+}
+void WorkspaceServicesTests::previousProfileMatchesPlatformLocations()
+{
+    const auto organization = QCoreApplication::organizationName();
+    const auto application = QCoreApplication::applicationName();
+    QCoreApplication::setOrganizationName(QStringLiteral("Aster"));
+    QCoreApplication::setApplicationName(QStringLiteral("Aster_Workspace"));
+    const auto config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    const auto data = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    QCoreApplication::setApplicationName(application);
+    QCoreApplication::setOrganizationName(organization);
+    const QString oldProfile = QStringLiteral("Aster/Aster_Workspace");
+    QCOMPARE(config, QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).filePath(oldProfile));
+    QCOMPARE(data, QDir(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)).filePath(oldProfile));
 }
 void WorkspaceServicesTests::catalogsAndThemes()
 {

@@ -78,7 +78,7 @@ def main():
     frameworks = app / 'Contents/Frameworks'
     frameworks.mkdir(exist_ok=True)
     executable_dir = app / 'Contents/MacOS'
-    main_exe = executable_dir / 'Aster'
+    main_exe = executable_dir / 'AstroBatch'
     if not macho(main_exe):
         raise SystemExit(f'Missing Mach-O executable: {main_exe}')
     bundle_rpath = '@executable_path/../Frameworks'

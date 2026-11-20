@@ -57,7 +57,7 @@
     <file alias="resources/icons/dark/check.png">../resources/icons/dark/check.png</file>
     <file alias="resources/icons/dark/down.png">../resources/icons/dark/down.png</file>
     <file alias="resources/icons/dark/up.png">../resources/icons/dark/up.png</file>
-    <file alias="resources/app/aster.png">../resources/app/aster.png</file>
+    <file alias="resources/app/AstroBatch.png">../resources/app/AstroBatch.png</file>
     <file alias="resources/synthetic/NOTICE.md">../resources/synthetic/NOTICE.md</file>
     <file alias="docs/concepts/data_processing.md">../docs/concepts/data_processing.md</file>
     <file alias="docs/concepts/data_processing_en.md">../docs/concepts/data_processing_en.md</file>

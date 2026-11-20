@@ -1,4 +1,4 @@
-# Aster 统一任务诊断
+# AstroBatch 统一任务诊断
 
 诊断协议记录缺失输出端口和运行时类型信息，与当前数据库格式一致。
 
@@ -104,7 +104,7 @@ return NodeResult::failure(ErrorInfo{
 
 构建与回归批次见 [当前版本验证](validation_current.md)。各发行平台须完成对应编译器构建和桌面验收。文件预览、参数即时提示和独立导出服务仍使用原有提示接口；结构化诊断覆盖正式来源读取、节点计算及工作流结果。
 
-Qt Creator 打开根目录 `Aster.pro`，重新运行 qmake 并构建整个工程，运行目标选择 Aster。设置与数据库管理见 [快速开始](../QUICK_START.md)。
+Qt Creator 打开根目录 `AstroBatch.pro`，重新运行 qmake 并构建整个工程，运行目标选择 AstroBatch。设置与数据库管理见 [快速开始](../QUICK_START.md)。
 
 ## 数据传输诊断
 

@@ -1,0 +1,26 @@
+{
+  "version": "1.3.3-beta.1",
+  "date": "2026-11-20",
+  "status": "release_tooling_verified_native_builds_pending",
+  "previous_record": "docs/validation_results/1.3.2-beta.8/checks.json",
+  "checks": {
+    "release_tooling": {
+      "tests_run": 232,
+      "failures": 0,
+      "skip_reports": 2,
+      "skipped_components": [
+        "Homebrew Ruby fixture",
+        "Qt 6 qmake rebuild"
+      ]
+    },
+    "orbital_data_tool_tests": 4,
+    "bundled_resource_sha256": 15,
+    "offline_release_metadata": [
+      "windows-x64",
+      "linux-x64",
+      "macos-arm64",
+      "macos-x86_64"
+    ]
+  },
+  "native_builds": "pending"
+}

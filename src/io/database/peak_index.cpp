@@ -78,7 +78,7 @@ QString ensureSchema(QSqlDatabase &db)
     if (!tables.isEmpty())
     {
         if (!tables.contains("aster_meta"))
-            return "This is not an Aster new-core database; choose a new path";
+            return "This is not an AstroBatch new-core database; choose a new path";
         if (!q.exec("SELECT schema_version FROM aster_meta") || !q.next())
             return "Invalid schema metadata";
         const int version = q.value(0).toInt();

@@ -10,7 +10,7 @@
 // Explicit initialization is necessary because desktop_ui is a static library.
 static void initializeResources()
 {
-    Q_INIT_RESOURCE(aster);
+    Q_INIT_RESOURCE(astrobatch);
     Q_INIT_RESOURCE(help);
 }
 namespace aster::ui

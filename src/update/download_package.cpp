@@ -19,9 +19,9 @@
 namespace aster::updates {
 namespace {
 QString entryFor(const QString &platform) {
-    if(platform=="windows-x64")return "Aster.exe";
+    if(platform=="windows-x64")return "AstroBatch.exe";
     if(platform=="linux-x64")return "AppRun";
-    if(platform=="macos-arm64"||platform=="macos-x86_64")return "Aster.app/Contents/MacOS/Aster";
+    if(platform=="macos-arm64"||platform=="macos-x86_64")return "AstroBatch.app/Contents/MacOS/AstroBatch";
     return {};
 }
 bool safePath(const QString &path) {
@@ -74,7 +74,7 @@ std::optional<DownloadPackage> parseDownloadPackage(const QByteArray &data,const
     for(const auto &value:o["packages"].toArray()) {
         const auto item=value.toObject();if(item["platform"].toString()!=platform)continue;
         if(found)return fail("update.package_invalid");
-        DownloadPackage p;p.version=v;p.platform=platform;p.root="Aster-"+v+"-"+platform;p.entry=entryFor(platform);
+        DownloadPackage p;p.version=v;p.platform=platform;p.root="AstroBatch-"+v+"-"+platform;p.entry=entryFor(platform);
         p.file=item["file"].toString();const auto suffix=platform=="linux-x64"?".tar.gz":".zip";
         p.bytes=integer(item["bytes"],2LL*1024*1024*1024);p.unpackedBytes=integer(item["unpacked_bytes"],4LL*1024*1024*1024);
         const auto hash=item["sha256"].toString();
@@ -174,7 +174,7 @@ ExtractionResult extractDownload(const QString &archivePath,const QString &stagi
     }
     for(const auto &link:links){const QFileInfo info(QDir(staging).filePath(link.name));const auto path=info.canonicalFilePath();if(!info.exists()||!path.startsWith(packageRoot+'/'))return failure("update.archive_unsafe");}
 #endif
-    QFile marker(QDir(packageRoot).filePath("aster-package.json"));
+    QFile marker(QDir(packageRoot).filePath("astrobatch-package.json"));
     if(!marker.open(QIODevice::ReadOnly)||marker.size()>4096)return failure("update.package_mismatch");
     const auto info=QJsonDocument::fromJson(marker.readAll()).object();
     const QFileInfo executable(QDir(packageRoot).filePath(p.entry));

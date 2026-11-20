@@ -3,6 +3,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include <QTextBlock>
+#include <QTextDocument>
 #include <QTextFragment>
 #include "ui/help/help_dialog.h"
 #include "ui/help/help_catalog.h"
@@ -93,6 +94,13 @@ using namespace aster;
 using namespace aster::ui;
 namespace
 {
+QString unwrappedFileToolTip(const QListWidgetItem *item)
+{
+    QTextDocument document;
+    document.setHtml(item->toolTip());
+    return document.toPlainText().remove('\n');
+}
+
 QColor viewColorAt(QWidget *view, QPoint point)
 {
     const auto shot = view->grab();
@@ -494,9 +502,9 @@ void UiTests::helpSearchHighlightsFollowTheArticle()
     QVERIFY(marks().isEmpty());
     QTRY_COMPARE(dialog->findChild<QLabel *>("helpSearchStatus")->text(), text("help.no_results"));
     QVERIFY(marks().isEmpty());
-    global->setText("aStEr");
+    global->setText("aStRoBaTcH");
     QTest::keyClick(global, Qt::Key_Return);
-    QTRY_VERIFY(marks().contains("Aster", Qt::CaseInsensitive));
+    QTRY_VERIFY(marks().contains("AstroBatch", Qt::CaseInsensitive));
     setLanguage("en");
     QVERIFY(dialog->navigate(userGuideTopic()));
     QVERIFY(global->text().isEmpty());
@@ -703,10 +711,10 @@ void UiTests::helpLinksAndFallback()
     QCOMPARE(dialog->currentTopic().path, QString("FAQ.md"));
     QCOMPARE(dialog->currentTopic().anchor, QString("linux-fonts"));
     QVERIFY(QMetaObject::invokeMethod(browser,"anchorClicked",Qt::DirectConnection,
-        Q_ARG(QUrl,QUrl("https://gitee.com/ChenCLian/Aster/blob/main/docs/USER_GUIDE.md#database"))));
+        Q_ARG(QUrl,QUrl("https://gitee.com/ChenCLian/AstroBatch/blob/main/docs/USER_GUIDE.md#database"))));
     QCOMPARE(dialog->currentTopic().path,QString("docs/USER_GUIDE.md"));
     QCOMPARE(dialog->currentTopic().anchor,QString("database"));
-    QCOMPARE(onlineHelpUrl({"FAQ.md","linux-fonts"},"gitee.com").toString(),QString("https://gitee.com/ChenCLian/Aster/blob/main/FAQ.md#linux-fonts"));
+    QCOMPARE(onlineHelpUrl({"FAQ.md","linux-fonts"},"gitee.com").toString(),QString("https://gitee.com/ChenCLian/AstroBatch/blob/main/FAQ.md#linux-fonts"));
     QVERIFY(onlineHelpUrl({"FAQ.md",{}},"evil.invalid").isEmpty());
     QVERIFY(dialog->navigate(userGuideTopic()));
     QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection,
@@ -740,7 +748,7 @@ void UiTests::helpLinksAndFallback()
     const HelpTopic missing{"docs/missing-manual.md", "missing-section"};
     QVERIFY(!dialog->navigate(missing));
     QCOMPARE(capturedHelpUrls.size(), 1);
-    QCOMPARE(capturedHelpUrls.last().toString(), QString("https://github.com/ChenCLian/Aster/blob/main/docs/missing-manual.md#missing-section"));
+    QCOMPARE(capturedHelpUrls.last().toString(), QString("https://github.com/ChenCLian/AstroBatch/blob/main/docs/missing-manual.md#missing-section"));
     QVERIFY(!dialog->navigate({"docs/USER_GUIDE.md", "missing-section"}));
     QCOMPARE(capturedHelpUrls.size(), 2);
     QVERIFY(!localHelpAvailable({"../FAQ.md", {}}));
@@ -1269,7 +1277,7 @@ void UiTests::helpDirectoryLinks()
     QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection,
                                      Q_ARG(QUrl, QUrl("licenses/"))));
     QCOMPARE(capturedHelpUrls.size(), 1);
-    QCOMPARE(capturedHelpUrls.last().toString(), QString("https://github.com/ChenCLian/Aster/tree/main/licenses"));
+    QCOMPARE(capturedHelpUrls.last().toString(), QString("https://github.com/ChenCLian/AstroBatch/tree/main/licenses"));
     QCOMPARE(dialog.currentTopic().path, QString("AUTHORS.md"));
     QVERIFY(localHelpAvailable({"docs/methods/", {}}));
     QVERIFY(dialog.navigate({"docs/README.md", {}}));
@@ -1278,7 +1286,7 @@ void UiTests::helpDirectoryLinks()
     QCOMPARE(dialog.currentTopic().path, QString("docs/methods/README.md"));
     QVERIFY(dialog.navigate(userGuideTopic()));
     QVERIFY(QMetaObject::invokeMethod(browser, "anchorClicked", Qt::DirectConnection,
-        Q_ARG(QUrl, QUrl("https://github.com/ChenCLian/Aster/tree/main/docs/methods"))));
+        Q_ARG(QUrl, QUrl("https://github.com/ChenCLian/AstroBatch/tree/main/docs/methods"))));
     QCOMPARE(dialog.currentTopic().path, QString("docs/methods/README.md"));
     QCOMPARE(capturedHelpUrls.size(), 1);
     QVERIFY(!dialog.navigate({"../licenses/", {}}));
@@ -1833,7 +1841,7 @@ void UiTests::exportNamesUseRecordMetadata()
     QVERIFY(longName.endsWith(" + Signal 0.5 ka (+1)_1_series.csv"));
     auto stale = a;
     stale.runId = QUuid::createUuid();
-    QCOMPARE(suggestedExportFileName({stale}, {}, "png"), QString("Aster.png"));
+    QCOMPARE(suggestedExportFileName({stale}, {}, "png"), QString("AstroBatch.png"));
 }
 
 void UiTests::exportDialogsFollowTheirOwnTargets()
@@ -4289,7 +4297,8 @@ void UiTests::compactInputStatesAndFrequencyEditor()
 {
     WorkflowDocument doc(makeScientificRegistry());
     const auto root = doc.addRoot("file_source").nodeId;
-    const QString path = QDir::temp().absoluteFilePath("Cau-GR-sue-rsp0.02-28.732-LOWESS.csv");
+    const QString path = QDir::temp().absoluteFilePath("Geological series & reference/Section 04/Source data/"
+                                                       "Cau-GR-sue-rsp0.02-28.732-LOWESS.csv");
     doc.setFiles(root, {path, "ODP-1143.csv", "series.csv"});
     SourcePanel panel(&doc); panel.resize(290, 650); panel.show(); panel.selectRoot(root);
     auto *list = panel.findChild<QListWidget *>("sourceFiles");
@@ -4300,8 +4309,9 @@ void UiTests::compactInputStatesAndFrequencyEditor()
     {
         panel.setFileState(root, path, state);
         QCOMPARE(item->data(Qt::UserRole + 2).toInt(), int(state));
-        QVERIFY(item->toolTip().contains(path));
-        QVERIFY(item->toolTip().contains(item->data(Qt::UserRole + 1).toString()));
+        const auto tooltip = unwrappedFileToolTip(item);
+        QVERIFY2(tooltip.contains(path), qPrintable(tooltip));
+        QVERIFY2(tooltip.contains(item->data(Qt::UserRole + 1).toString()), qPrintable(tooltip));
         QVERIFY(item->data(Qt::AccessibleDescriptionRole).toString().contains(path));
         QCOMPARE(item->text(), QFileInfo(path).fileName());
     }
@@ -6313,7 +6323,11 @@ void UiTests::liveDirectoryDuringLargeFileBatch()
     QVERIFY(!sources->findChild<FileOptionsEditor *>()->isEnabled());
     QSignalSpy probes(sources,&SourcePanel::previewInputChanged);
     inputsList->setCurrentRow(1);
-    QVERIFY(inputsList->currentItem()->toolTip().contains(paths.at(1)));
+    const auto *current = inputsList->currentItem();
+    QVERIFY(current);
+    QCOMPARE(current->data(Qt::UserRole).toString(), paths.at(1));
+    const auto tooltip = unwrappedFileToolTip(current);
+    QVERIFY2(tooltip.contains(paths.at(1)), qPrintable(tooltip));
     QCOMPARE(probes.size(),0);
     QTRY_VERIFY_WITH_TIMEOUT(saved.size() > 10 && progress->value() > 0, 30000);
     window.results()->refresh();

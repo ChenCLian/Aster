@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
 from release_asset_names import asset_name, dependency_tag
 
-REPO = 'ChenCLian/Aster'
+REPO = 'ChenCLian/AstroBatch'
 MAX_RECORDS = 64 * 1024**2
 MAX_EXPANDED = 256 * 1024**2
 VERSION = re.compile(r'\d+\.\d+\.\d+(?:-beta\.\d+)?')
@@ -69,7 +69,7 @@ def read_records(data, platform):
                 (info.external_attr >> 16) & 0o170000 == 0o120000):
                 raise ValueError('Unsafe dependency record path')
         report = json.loads(archive.read('DEPENDENCIES.json'))
-        if (report.get('schema') != 1 or report.get('project') != 'Aster' or
+        if (report.get('schema') != 1 or report.get('project') != 'AstroBatch' or
             report.get('platform') != platform or report.get('status') != 'collected' or
             report.get('errors') or not VERSION.fullmatch(report.get('version', ''))):
             raise ValueError('Incomplete or mismatched published dependency records')
@@ -105,7 +105,7 @@ def fetch(directory, platform, releases_limit=3):
         version = item['tag_name'][1:]
         try:
             assets = release(version)
-            name = f'Aster-{version}-{platform}-dependency-records.zip'
+            name = f'AstroBatch-{version}-{platform}-dependency-records.zip'
             asset = assets.get(name)
             if not asset: continue
             expected = asset.get('digest', '')

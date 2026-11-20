@@ -1,0 +1,22 @@
+{
+  "version": "1.3.3-beta.1",
+  "date": "2026-11-20",
+  "documentation": {
+    "status": "content_version_and_links_checked",
+    "scope": "Verified current version labels, ordinary download and update instructions in both languages, and the targets of manual links and help navigation.",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "markdown_files": 98,
+    "local_markdown_link_occurrences": 1469,
+    "links_to_markdown_sections": 962,
+    "broken_local_targets": 0,
+    "missing_section_anchors": 0,
+    "packaged_help_resources": 109,
+    "embedded_qt_help_entries": 83,
+    "help_navigation_target_files": 48,
+    "matching_bilingual_parameter_anchors": 328,
+    "help_generator_tests": 8
+  }
+}

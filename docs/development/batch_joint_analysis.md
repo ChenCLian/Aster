@@ -1,6 +1,6 @@
 # 联合分析：数据身份与执行约定
 
-适用版本：Aster 1.3.2-beta.7。
+适用版本：AstroBatch 1.3.3-beta.1。
 
 `WorkflowDocument` 管理数据身份和配对。`RunPlan.batches` 将含联合节点的流程交给批次执行器，普通流程由单输入运行器调度。
 
@@ -75,7 +75,7 @@ Welch 交叉谱的方法、参数与边界约定见[交叉谱方法约定](cross
 
 ## 验证记录
 
-`aster_batch_tests` 随 `Aster.pro` 构建，由 `tools/release/run_tests.py` 调用。
+`aster_batch_tests` 随 `AstroBatch.pro` 构建，由 `tools/release/run_tests.py` 调用。
 
 测试覆盖同名数据、列表重排、输入顺序、共享参考、不同输出端口、未分配数据、输入失败、缺失可选输出、任务异常、取消、缓存预算、引用释放、并行上限，以及新执行器与原单输入执行器的结果一致性。使用测试任务的框架验证不替代交叉谱数值验证，也不替代 Windows/macOS 原生验收。
 

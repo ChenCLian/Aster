@@ -38,7 +38,7 @@ class MirrorTests(unittest.TestCase):
             folder=Path(tmp);m=self.fixtures(folder);api=API()
             def reject(*args):raise ValueError('Mirror SHA-256 mismatch')
             with self.assertRaises(ValueError):mirror_packages(api,1,folder,m,'1.3.0-beta.18',reject)
-            self.assertNotIn('Aster-update.json',api.uploaded)
+            self.assertNotIn('AstroBatch-update.json',api.uploaded)
     def test_existing_programs_are_verified_not_overwritten(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp);m=self.fixtures(folder);api=API([{'name':p['file']} for p in m['packages']])
@@ -46,7 +46,7 @@ class MirrorTests(unittest.TestCase):
             self.assertEqual(api.uploaded,[])
     def test_extra_remote_asset_is_reported_without_deletion(self):
         with tempfile.TemporaryDirectory() as tmp:
-            folder=Path(tmp); metadata=self.fixtures(folder); api=API([{'name':'Aster-update.json'}])
+            folder=Path(tmp); metadata=self.fixtures(folder); api=API([{'name':'AstroBatch-update.json'}])
             with self.assertRaisesRegex(ValueError,'Unexpected existing'):
                 mirror_packages(api,1,folder,metadata,'1.3.0-beta.18')
             self.assertFalse(api.uploaded)
@@ -58,14 +58,14 @@ class MirrorTests(unittest.TestCase):
         self.assertTrue(expected.startswith('Manual notes\n'))
         self.assertEqual(with_update_record(expected,{'version':'new'}),expected)
         with self.assertRaisesRegex(ValueError,'Malformed'):
-            with_update_record('<!-- aster-update-v1\n{}',{})
+            with_update_record('<!-- astrobatch-update-v1\n{}',{})
     def test_unapproved_redirect_never_requested(self):
         with tempfile.TemporaryDirectory() as tmp:
             for url in ('http://gitee.com/a','https://evil.test/asset','https://token@gitee.com/attachments/download/a','https://gitee.com/other/asset'):
                 with self.assertRaises(ValueError):public_download(url,Path(tmp)/'x',100)
     def test_official_attachment_redirects_only(self):
-        self.assertTrue(allowed_public_url('https://gitee.com/ChenCLian/Aster/releases/download/v1.3.0/Aster-update.json'))
-        self.assertTrue(allowed_public_url('https://gitee.com/ChenCLian/Aster/attach_files/123/download/Aster-update.json',True))
+        self.assertTrue(allowed_public_url('https://gitee.com/ChenCLian/AstroBatch/releases/download/v1.3.0/AstroBatch-update.json'))
+        self.assertTrue(allowed_public_url('https://gitee.com/ChenCLian/AstroBatch/attach_files/123/download/AstroBatch-update.json',True))
         self.assertTrue(allowed_public_url('https://foruda.gitee.com/attach_file/123/archive.zip?token=temporary',True))
         self.assertFalse(allowed_public_url('https://foruda.gitee.com/attach_file/123/archive.zip'))
         for url in ('https://foruda.gitee.com.evil.test/attach_file/123/a','http://foruda.gitee.com/attach_file/123/a','https://gitee.com/other/repo/attach_files/123/download','https://foruda.gitee.com/images/123/a'):
@@ -77,7 +77,7 @@ class MirrorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp)
             ReleaseDeliveryTests().prepared(folder,version)
-            (folder/'SHA256SUMS.txt').write_text('old  Aster-update.json\n')
+            (folder/'SHA256SUMS.txt').write_text('old  AstroBatch-update.json\n')
             gh_files={p.name:p.read_bytes() for p in folder.iterdir()}
             remote={}; attachments={}; methods=[]; uploads=[]; verified=[]
             def gh(args,**kwargs):
@@ -89,10 +89,10 @@ class MirrorTests(unittest.TestCase):
                     return subprocess.CompletedProcess(args,0,json.dumps(data))
                 if op=='download':
                     name=args[args.index('--pattern')+1]
-                    self.assertIn(name,known|{'Aster-update.json','SHA256SUMS.txt'})
+                    self.assertIn(name,known|{'AstroBatch-update.json','SHA256SUMS.txt'})
                     (Path(args[args.index('--dir')+1])/name).write_bytes(gh_files[name])
                 elif op=='upload':
-                    p=Path(args[4]);self.assertIn(p.name,{'Aster-update.json','SHA256SUMS.txt'})
+                    p=Path(args[4]);self.assertIn(p.name,{'AstroBatch-update.json','SHA256SUMS.txt'})
                     gh_files[p.name]=p.read_bytes()
                 else:self.fail(op)
                 return subprocess.CompletedProcess(args,0,'')
@@ -119,9 +119,9 @@ class MirrorTests(unittest.TestCase):
                 execute(opts); report=json.loads(opts.report.read_text())
                 first=dict(gh_files);execute(opts)
                 self.assertEqual(gh_files,first)
-                del gh_files['Aster-update.json'],gh_files['SHA256SUMS.txt']
+                del gh_files['AstroBatch-update.json'],gh_files['SHA256SUMS.txt']
                 execute(opts)
-                self.assertEqual(json.loads(gh_files['Aster-update.json']),json.loads(first['Aster-update.json']))
+                self.assertEqual(json.loads(gh_files['AstroBatch-update.json']),json.loads(first['AstroBatch-update.json']))
                 for line in gh_files['SHA256SUMS.txt'].decode().splitlines():
                     sha,name=line.split('  ')
                     self.assertEqual(sha,hashlib.sha256(gh_files[name]).hexdigest())
@@ -129,9 +129,9 @@ class MirrorTests(unittest.TestCase):
             self.assertEqual(len(verified),12)
             self.assertEqual(report['status'],'verified')
             self.assertIn(('releases/tags/'+tag,'GET',True),methods)
-            self.assertEqual(remote['body'].count('aster-update-v1'),1)
-            record=json.loads(remote['body'].split('<!-- aster-update-v1\n')[1].split('\n-->')[0])
-            self.assertEqual(record,json.loads(gh_files['Aster-update.json']))
+            self.assertEqual(remote['body'].count('astrobatch-update-v1'),1)
+            record=json.loads(remote['body'].split('<!-- astrobatch-update-v1\n')[1].split('\n-->')[0])
+            self.assertEqual(record,json.loads(gh_files['AstroBatch-update.json']))
             self.assertTrue(all(row['sources'][-1]['name']=='Gitee' for row in record['packages']))
 
 if __name__=='__main__': unittest.main()

@@ -1,4 +1,4 @@
-# Independent NumPy/SciPy references for Aster foundation task audits.
+# Independent NumPy/SciPy references for AstroBatch foundation task audits.
 # Run with Python 3, NumPy and SciPy; never calls the production C++ algorithms.
 from pathlib import Path
 import json

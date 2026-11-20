@@ -189,7 +189,7 @@ QString renderFigure(const QVector<FigureCell> &cells, const QVector<NodeResult>
     else
     {
         QPdfWriter writer(&output);
-        writer.setCreator("Aster");
+        writer.setCreator("AstroBatch");
         writer.setResolution(o.dpi);
         writer.setPageSize(
             QPageSize(QSizeF(o.pixels.width() * 25.4 / o.dpi, o.pixels.height() * 25.4 / o.dpi),

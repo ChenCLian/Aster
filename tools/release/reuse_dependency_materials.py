@@ -1,6 +1,6 @@
 """Install verified, previously collected Windows dependency notices offline.
 
-The dependency material directory is read-only. Only Aster.exe may change;
+The dependency material directory is read-only. Only AstroBatch.exe may change;
 all other native binaries must match the collected inventory byte for byte.
 Copyright (C) 2026 ZiJie Chen
 SPDX-License-Identifier: GPL-3.0-only
@@ -51,10 +51,10 @@ def reuse(package, materials, version, qmake):
         encoding='utf-8')
     report_path = checked_file(materials, 'report.json')
     report = json.loads(report_path.read_text(encoding='utf-8-sig'))
-    if (report.get('schema') != 1 or report.get('project') != 'Aster'
+    if (report.get('schema') != 1 or report.get('project') != 'AstroBatch'
             or report.get('platform') != 'windows-x64' or report.get('version') != version
             or report.get('status') != 'collected' or report.get('errors')):
-        raise MaterialError('Materials must be successfully collected for this Aster version and windows-x64')
+        raise MaterialError('Materials must be successfully collected for this AstroBatch version and windows-x64')
     components = {c['id']: c for c in report['components']}
     if not components or len(components) != len(report['components']):
         raise MaterialError('Missing or duplicate dependency components')
@@ -67,14 +67,14 @@ def reuse(package, materials, version, qmake):
         key = name.casefold()
         if key in recorded or not re.fullmatch(r'[0-9a-f]{64}', item['sha256_before_signing']):
             raise MaterialError('Invalid or duplicate native binary inventory')
-        if name == 'Aster.exe':
-            if item['component'] != 'Aster-project-source':
-                raise MaterialError('Aster.exe has an invalid source owner')
+        if name == 'AstroBatch.exe':
+            if item['component'] != 'AstroBatch-project-source':
+                raise MaterialError('AstroBatch.exe has an invalid source owner')
         elif item['component'] not in components:
             raise MaterialError(f'Unknown dependency source owner: {name}')
         recorded[key] = item
-    if 'aster.exe' not in recorded:
-        raise MaterialError('Materials do not contain the Aster.exe inventory')
+    if 'astrobatch.exe' not in recorded:
+        raise MaterialError('Materials do not contain the AstroBatch.exe inventory')
 
     actual = {}
     for path in sorted(package.rglob('*')):
@@ -96,7 +96,7 @@ def reuse(package, materials, version, qmake):
     for key, path in actual.items():
         item = copy.deepcopy(recorded[key])
         current = digest(path)
-        if key != 'aster.exe' and current != item['sha256_before_signing']:
+        if key != 'astrobatch.exe' and current != item['sha256_before_signing']:
             raise MaterialError(f'Dependency binary changed: {item["path"]}; collect materials again')
         item.update(path=path.relative_to(package).as_posix(), sha256_before_signing=current)
         inventory.append(item)
@@ -126,7 +126,7 @@ def reuse(package, materials, version, qmake):
                 raise MaterialError(f'Source asset checksum mismatch: {name}')
             source_names.add(name)
 
-    records_name = f'Aster-{version}-windows-x64-dependency-records.zip'
+    records_name = f'AstroBatch-{version}-windows-x64-dependency-records.zip'
     records_zip = checked_file(assets, records_name)
     # Read the small records ZIP, never unpack or reprocess dependency source
     # archives. Old collector output is accepted without an extra migration.
@@ -154,7 +154,7 @@ def reuse(package, materials, version, qmake):
             raise MaterialError(f'Damaged dependency record: {bad}')
         # Verify everything before changing the installed notices. Temporary
         # extraction also protects existing notices from malformed ZIP entries.
-        with tempfile.TemporaryDirectory(prefix='aster-reuse-') as directory:
+        with tempfile.TemporaryDirectory(prefix='astrobatch-reuse-') as directory:
             notices = Path(directory) / 'dependencies'
             notices.mkdir()
             for name, info in members.items():
@@ -168,7 +168,7 @@ def reuse(package, materials, version, qmake):
             refreshed['reuse'] = {
                 'mode': 'offline-verified', 'material_report_sha256': digest(report_path),
                 'records_asset': records_name, 'records_sha256': digest(records_zip),
-                'note': 'Dependency materials are unchanged; this package records the current Aster executable.'}
+                'note': 'Dependency materials are unchanged; this package records the current AstroBatch executable.'}
             write_json(notices / 'DEPENDENCIES.json', refreshed)
             if 'DEPENDENCY_LOCK.json' in members:
                 (notices / 'DEPENDENCY_LOCK.json').write_bytes(archive.read('DEPENDENCY_LOCK.json'))

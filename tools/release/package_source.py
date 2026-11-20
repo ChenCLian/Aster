@@ -40,7 +40,7 @@ def main():
     if output == source_root or source_root in output.parents:
         raise SystemExit('Use an output directory outside the source tree.')
     output.mkdir(parents=True, exist_ok=True)
-    destination = output / f'Aster-source-export-{version}'
+    destination = output / f'AstroBatch-source-export-{version}'
     if destination.exists():
         raise SystemExit(f'Refusing to overwrite {destination}')
     template = ROOT / 'config/local.pri.example'
@@ -54,7 +54,7 @@ def main():
     status = json.loads(payload['PACKAGE_STATUS.json'])
     if status['version'] != version:
         raise SystemExit('PACKAGE_STATUS version differs from VERSION; update release metadata before packaging.')
-    manifest = {'project': 'Aster', 'version': version, 'files': [
+    manifest = {'project': 'AstroBatch', 'version': version, 'files': [
         {'path': name, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
         for name, data in payload.items()]}
     destination.mkdir()

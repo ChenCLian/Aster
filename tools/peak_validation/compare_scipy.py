@@ -24,5 +24,5 @@ for trial in range(300):
   np.testing.assert_allclose(prom[:size],props['prominences'],rtol=2e-13,atol=0)
   np.testing.assert_allclose(width[:size],props['widths'],rtol=2e-12,atol=2e-12)
   count+=1
-out={'reference':'scipy.signal.find_peaks / peak_prominences / peak_widths','scipy':scipy.__version__,'cases':count,'all_passed':True,'seed':3403,'coverage':'random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (Aster suppression order intentionally differs)','prominence_rtol':2e-13,'width_rtol':2e-12}
+out={'reference':'scipy.signal.find_peaks / peak_prominences / peak_widths','scipy':scipy.__version__,'cases':count,'all_passed':True,'seed':3403,'coverage':'random, decay tails, plateaus, units 1e-150..1e149, absolute and relative prominence, local/full radius; distance=1 (AstroBatch suppression order intentionally differs)','prominence_rtol':2e-13,'width_rtol':2e-12}
 args.output.write_text(json.dumps(out,indent=2)+'\n');print(out)

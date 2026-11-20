@@ -1,6 +1,6 @@
 # Peak reference comparison
 
-Optional development check; Python/SciPy is not a runtime dependency of Aster.
+Optional development check; Python/SciPy is not a runtime dependency of AstroBatch.
 The application uses the C++ code in `src/math/spectrum/spectrum_peaks.cpp`.
 
 From the project root, on Linux with GCC/Clang:
@@ -20,6 +20,6 @@ python tools/peak_validation/compare_scipy.py aster_peak_reference.dll --output 
 
 Install NumPy and SciPy in a separate Python environment if needed. The recorded independent comparison used NumPy 2.3.5 / SciPy 1.17.0 on Linux; that archived run does not establish a Windows comparison result.
 
-Seed 3403 generates 900 cases covering plateaus, random samples, decaying tails, wide amplitude scales, absolute/relative prominence and local/full search windows. It checks peak indices, prominence and half-prominence width against `scipy.signal.find_peaks`. Minimum distance is 1 in this comparison: Aster deliberately resolves competing peaks by prominence, then height, then leftmost index, whereas SciPy uses height priority. That policy is covered by the C++ regression tests. This is an amplitude/local-maximum check, not a statistical significance calibration.
+Seed 3403 generates 900 cases covering plateaus, random samples, decaying tails, wide amplitude scales, absolute/relative prominence and local/full search windows. It checks peak indices, prominence and half-prominence width against `scipy.signal.find_peaks`. Minimum distance is 1 in this comparison: AstroBatch deliberately resolves competing peaks by prominence, then height, then leftmost index, whereas SciPy uses height priority. That policy is covered by the C++ regression tests. This is an amplitude/local-maximum check, not a statistical significance calibration.
 
 Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html

@@ -16,7 +16,7 @@ QString recordStem(OutputReference ref)
     QSet<QString> visited;
     QString fallback;
     // Saved-output sources may themselves refer to a saved output. Follow only
-    // Aster's generated label, leaving user-supplied names intact.
+    // AstroBatch's generated label, leaving user-supplied names intact.
     while (ref.valid() && visited.size() < 16 && !visited.contains(ref.key()))
     {
         visited.insert(ref.key());
@@ -111,9 +111,9 @@ QString suggestedExportFileName(const QVector<OutputReference> &references, cons
     for (qsizetype i = 0; i < records.size() && i < 2; ++i)
     {
         const auto part = fileNamePart(recordStem(records[i]), records.size() > 1 ? 84 : 176);
-        parts << (part.isEmpty() ? QStringLiteral("Aster") : part);
+        parts << (part.isEmpty() ? QStringLiteral("AstroBatch") : part);
     }
-    auto stem = parts.isEmpty() ? QStringLiteral("Aster") : parts.join(" + ");
+    auto stem = parts.isEmpty() ? QStringLiteral("AstroBatch") : parts.join(" + ");
     if (records.size() > 2) stem += QString(" (+%1)").arg(records.size() - 2);
     const auto output = fileNamePart(detail, 64);
     if (!output.isEmpty()) stem += '_' + output;

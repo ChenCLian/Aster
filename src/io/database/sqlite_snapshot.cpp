@@ -112,14 +112,14 @@ void validateDatabase(QSqlDatabase &db, bool integrity)
 {
     QSqlQuery q(db);
     require(q.exec("SELECT schema_version FROM aster_meta"),
-            "Not an Aster database: missing metadata");
-    require(q.next(), "Missing Aster schema version");
+            "Not an AstroBatch database: missing metadata");
+    require(q.next(), "Missing AstroBatch schema version");
     require(q.value(0).metaType().id() == QMetaType::LongLong ||
                 q.value(0).metaType().id() == QMetaType::Int,
-            "Invalid Aster schema version type");
+            "Invalid AstroBatch schema version type");
     require(q.value(0).toInt() == 3,
-            "Unsupported database schema; merge requires Aster schema 3. Source is not upgraded.");
-    require(!q.next(), "Ambiguous Aster schema metadata");
+            "Unsupported database schema; merge requires AstroBatch schema 3. Source is not upgraded.");
+    require(!q.next(), "Ambiguous AstroBatch schema metadata");
     q.finish();
     // Build the expected schema from the actual migration implementation, rather than a second DDL
     // copy.
@@ -132,7 +132,7 @@ void validateDatabase(QSqlDatabase &db, bool integrity)
             db,
             "SELECT name,type FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND type!='index'");
     };
-    require(objects(db) == objects(reference.db), "Incompatible Aster tables, views or triggers");
+    require(objects(db) == objects(reference.db), "Incompatible AstroBatch tables, views or triggers");
     for (const auto &table : {"aster_meta", "aster_runs", "aster_nodes", "aster_outputs",
                               "aster_peaks", "aster_dependencies"})
     {
@@ -160,7 +160,7 @@ void snapshotDatabase(QSqlDatabase &db, const QString &newFile)
     const QFileInfo file(newFile);
     require(!QFileInfo::exists(newFile), "Backup already exists; choose a new filename");
     require(QDir().mkpath(file.absolutePath()), "Cannot create backup directory");
-    QTemporaryDir staging(file.absolutePath() + "/.aster-snapshot-XXXXXX");
+    QTemporaryDir staging(file.absolutePath() + "/.astrobatch-snapshot-XXXXXX");
     require(staging.isValid(), "Cannot create snapshot staging directory");
     const auto staged = staging.filePath("snapshot.sqlite");
     {

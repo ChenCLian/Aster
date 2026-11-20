@@ -15,7 +15,7 @@ WORDS = {
         "title": "任务与参数参考", "contents": "目录", "default": "默认值",
         "values": "可选值", "range": "范围", "outputs": "输出", "empty": "空字符串",
         "condition": "显示条件", "none": "无",
-        "intro": "本参考对应 Aster {version} 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。",
+        "intro": "本参考对应 AstroBatch {version} 的任务定义。已有工作流保留其保存值；参数仍须通过任务的数据与约束校验。默认值不代表对研究数据的推荐设置。",
         "fallback": "选项名称与界面一致，括号内保留用于保存设置的参数标识；输出标识保留程序中的原始名称。缺少中文的条目使用英文。",
         "links": "[使用手册](../USER_GUIDE.md) · [方法说明](../methods/README.md) · [English](task_parameters_en.md)",
         "file": "文件读取配置在输入面板中编辑；界面列号从 1 开始，内部参数列号从 0 开始。",
@@ -24,7 +24,7 @@ WORDS = {
         "title": "Task and parameter reference", "contents": "Contents", "default": "Default",
         "values": "Values", "range": "Range", "outputs": "Outputs", "empty": "empty string",
         "condition": "Shown when", "none": "None",
-        "intro": "This reference describes task definitions in Aster {version}. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.",
+        "intro": "This reference describes task definitions in AstroBatch {version}. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.",
         "fallback": "Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.",
         "links": "[User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)",
         "file": "Edit file-reading settings in the input panel. Displayed column numbers start at 1; internal column parameters start at 0.",
@@ -166,7 +166,7 @@ def synchronize(root, documents, check):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", required=True, type=Path,
-                        help="Aster build directory configured with CONFIG+=help_reference")
+                        help="AstroBatch build directory configured with CONFIG+=help_reference")
     parser.add_argument("--check", action="store_true", help="Fail on stale documents without writing")
     args = parser.parse_args()
     candidates = [args.build / "bin" / name for name in ("aster_help_catalog", "aster_help_catalog.exe")]

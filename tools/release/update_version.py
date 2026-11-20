@@ -79,7 +79,7 @@ def replace_version(text, old, new):
             if re.search(r'`VERSION`|适用版本|适用源码|当前版本|源码版本|Source version|--tag|git (?:tag|checkout)', line):
                 line = substitute(line)
             else:
-                line = re.sub(r'(\bAster[ -])' + re.escape(old) + r'(?![0-9]|\.[0-9]|-(?!windows|macos|linux)[A-Za-z])',
+                line = re.sub(r'(\bAstroBatch[ -])' + re.escape(old) + r'(?![0-9]|\.[0-9]|-(?!windows|macos|linux)[A-Za-z])',
                               lambda m: m[1] + new, line)
             lines.append(line)
         return ''.join(lines)
@@ -156,7 +156,7 @@ def plan(root, new, notes):
         raise ValueError('New version must be greater than ' + old + '; use --check for an unchanged version')
     if not notes.strip():
         raise ValueError('Supply a short release note or a notes file; old notes are never reused')
-    if re.match(r'\s*#\s+Aster\s+\d+\.', notes):
+    if re.match(r'\s*#\s+AstroBatch\s+\d+\.', notes):
         raise ValueError('--notes-file takes the body only; the version heading is generated')
     errors = check(root)
     if errors:
@@ -198,13 +198,13 @@ def plan(root, new, notes):
         'previous_record': previous_docs}
     add('VERSION', new + '\n')
     add('PACKAGE_STATUS.json', json_bytes(status))
-    add('RELEASE_NOTES.md', '# Aster ' + new + ' 发布说明\n\n' + notes.strip() + '\n')
+    add('RELEASE_NOTES.md', '# AstroBatch ' + new + ' 发布说明\n\n' + notes.strip() + '\n')
     add(prefix + '/checks.json', json_bytes({'version': new, 'status': 'pending',
         'previous_record': previous, 'scope': 'No build or application test is performed by update_version.py.'}), True)
     add(prefix + '/documentation_checks.json', json_bytes({'version': new, 'documentation': {
         'status': 'version_sync_only', 'content_rewritten': False,
         'scope': 'Document versions synchronized. Content review pending.'}}), True)
-    add('docs/validation_current.md', f'''# Aster {new} 验证范围
+    add('docs/validation_current.md', f'''# AstroBatch {new} 验证范围
 
 [本版记录](validation_results/{new}/checks.json) · [文档记录](validation_results/{new}/documentation_checks.json)
 
@@ -213,7 +213,7 @@ def plan(root, new, notes):
 上一个版本的记录见[历史验证]({posixpath.relpath(previous, 'docs')})。
 ''')
     if (root / 'REVIEW_CN.md').is_file():
-        add('REVIEW_CN.md', f'''# Aster {new} 更新说明
+        add('REVIEW_CN.md', f'''# AstroBatch {new} 更新说明
 
 更新内容见[发布说明](RELEASE_NOTES.md)。
 

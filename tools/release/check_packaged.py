@@ -41,7 +41,7 @@ def run(archive,version,platform,output):
 
 def _run_checks(archive, version, platform, output):
     inspect_package(archive, version, platform)
-    with tempfile.TemporaryDirectory(prefix='aster-package-check-') as td:
+    with tempfile.TemporaryDirectory(prefix='astrobatch-package-check-') as td:
         # Compare canonical paths on both sides. Windows TEMP can use an 8.3
         # short name while resolve() expands each extracted file to a long name.
         temp=Path(td).resolve()
@@ -55,8 +55,8 @@ def _run_checks(archive, version, platform, output):
                     target=(temp/item.filename).resolve()
                     if not target.is_relative_to(temp):raise ValueError('Archive path escapes staging')
                 a.extractall(temp)
-        folder=temp/f'Aster-{version}-{platform}'
-        exe=folder/('Aster.exe' if platform=='windows-x64' else 'AppRun' if platform=='linux-x64' else 'Aster.app/Contents/MacOS/Aster')
+        folder=temp/f'AstroBatch-{version}-{platform}'
+        exe=folder/('AstroBatch.exe' if platform=='windows-x64' else 'AppRun' if platform=='linux-x64' else 'AstroBatch.app/Contents/MacOS/AstroBatch')
         env=dict(os.environ)
         for name in ('LD_LIBRARY_PATH','DYLD_LIBRARY_PATH','DYLD_FRAMEWORK_PATH','DYLD_FALLBACK_LIBRARY_PATH','DYLD_FALLBACK_FRAMEWORK_PATH','QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH'):
             env.pop(name,None)
@@ -68,7 +68,7 @@ def _run_checks(archive, version, platform, output):
         for name,args in [('version',['--version']),('backend',['--numeric-backend'])]:
             result=probe([str(exe),*args],folder,env,output/(name+'.log'))
             if result.returncode:raise ValueError(name+' probe failed')
-            if name=='version' and result.stdout.strip()!='Aster_Workspace '+version:raise ValueError('Packaged version differs')
+            if name=='version' and result.stdout.strip()!='AstroBatch '+version:raise ValueError('Packaged version differs')
         for language in ('zh','en'):
             screenshot=(output/('packaged-'+language+'.png')).resolve()
             result=probe([str(exe),'--database',str(temp/(language+'.sqlite')),'--language',language,'--release-smoke-output',str(screenshot)],folder,env,output/('ui-'+language+'.log'))

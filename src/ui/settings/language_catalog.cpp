@@ -60,7 +60,7 @@ QString LanguageCatalog::optionalLabel(const QString &key, const QString &fallba
 QString LanguageCatalog::translate(const char *context, const char *source, const char *, int) const
 {
     const auto key = QString::fromUtf8(source);
-    if (qstrcmp(context, "Aster") == 0)
+    if (qstrcmp(context, "AstroBatch") == 0)
         return label(key);
     // Qt's common standard buttons. Native OS file dialogs remain OS-localized.
     if (qstrcmp(context, "QPlatformTheme") == 0 || qstrcmp(context, "QDialogButtonBox") == 0)

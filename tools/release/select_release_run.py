@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 import subprocess
 
-REPO = 'ChenCLian/Aster'
+REPO = 'ChenCLian/AstroBatch'
 WORKFLOW = '.github/workflows/build-desktop.yml'
 PLATFORMS = ('windows-x64', 'linux-x64', 'macos-arm64', 'macos-x86_64')
 

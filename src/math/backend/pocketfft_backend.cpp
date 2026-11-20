@@ -1,7 +1,7 @@
 // Copyright (C) 2026 ZiJie Chen
 // SPDX-License-Identifier: GPL-3.0-only
 #include "math/backend/backend_detail.h"
-// No shared mutable FFT plans or internal thread pool. Aster parallelizes data
+// No shared mutable FFT plans or internal thread pool. AstroBatch parallelizes data
 // records, and each call owns its buffers and transform plan.
 #define POCKETFFT_NO_MULTITHREADING
 #define POCKETFFT_CACHE_SIZE 0

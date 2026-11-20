@@ -98,11 +98,13 @@ class ResultsPage : public QWidget
     QHash<NodeId, QString> m_primaryPorts;
     QHash<NodeId, QString> m_nodeMethods;
     void rebuildOutputs();
+    void clearOutputSelection();
     void inspectChecked();
     QTableView *m_outputs;
     QStandardItemModel *m_outputModel;
     QMap<QString, OutputReference> m_checked;
     QToolButton *m_checkedButton;
+    QAction *m_clearOutputs;
     QPushButton *m_plotChecked, *m_overlayChecked;
     QAction *m_replaceAction, *m_pageAction;
     QLabel *m_destination;

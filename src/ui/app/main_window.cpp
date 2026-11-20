@@ -53,8 +53,8 @@ namespace aster::ui
 MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     : QMainWindow(p), m_settings(std::move(settings)), m_persistSettings(persist)
 {
-    setObjectName("AsterMainWindow");
-    setWindowTitle("Aster");
+    setObjectName("AstroBatchMainWindow");
+    setWindowTitle("AstroBatch");
     m_document = new WorkflowDocument(makeScientificRegistry(), this);
     m_runner = new RunController(this);
     auto *central = new QWidget;
@@ -67,7 +67,7 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     auto *hl = new QHBoxLayout(header);
     hl->setContentsMargins(18, 9, 18, 9);
     hl->setSpacing(10);
-    auto *brand = new QLabel("Aster");
+    auto *brand = new QLabel("AstroBatch");
     brand->setObjectName("Brand");
     hl->addWidget(brand);
     m_taskTab = new QPushButton(text("ui.workflow"));
@@ -839,10 +839,10 @@ void MainWindow::importFiles()
 {
     if (m_runner->busy() || !flushParameters())
         return;
-    qInfo() << "[Aster import] opening file chooser";
+    qInfo() << "[AstroBatch import] opening file chooser";
     auto paths = QFileDialog::getOpenFileNames(this, text("ui.choose_input_files"), {},
                                                "Data (*.csv *.txt *.dat *.tsv);;All files (*)");
-    qInfo() << "[Aster import] chooser returned; selected files=" << paths.size();
+    qInfo() << "[AstroBatch import] chooser returned; selected files=" << paths.size();
     if (paths.isEmpty())
         return;
     QElapsedTimer timer;
@@ -850,7 +850,7 @@ void MainWindow::importFiles()
     m_sources->addFiles(paths);
     selectNode(m_sources->root());
     m_canvas->fitWorkflow();
-    qInfo() << "[Aster import] bind/layout_ms=" << timer.elapsed();
+    qInfo() << "[AstroBatch import] bind/layout_ms=" << timer.elapsed();
 }
 void MainWindow::startRun()
 {

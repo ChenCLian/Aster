@@ -94,5 +94,5 @@ class ReleaseTransportTests(unittest.TestCase):
                 sha,name=line.split('  ',1)
                 self.assertEqual(remote[name]['digest'],'sha256:'+sha)
             self.assertEqual((folder/original).read_bytes(),raw)
-            for entry in json.loads((folder/'Aster-asset-filenames.json').read_text())['assets']:
+            for entry in json.loads((folder/'AstroBatch-asset-filenames.json').read_text())['assets']:
                 self.assertEqual(remote[entry['asset_name']]['digest'],'sha256:'+entry['sha256'])

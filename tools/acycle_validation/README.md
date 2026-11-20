@@ -1,6 +1,6 @@
 # Acycle 直接对照工具
 
-该工具用于开发验证，不参与桌面运行。输入为待测 Aster 构建导出的数值 JSON，参照为独立安装的 Acycle 与 MATLAB。
+该工具用于开发验证，不参与桌面运行。输入为待测 AstroBatch 构建导出的数值 JSON，参照为独立安装的 Acycle 与 MATLAB。
 
 ## 1. 导出 C++ 结果
 

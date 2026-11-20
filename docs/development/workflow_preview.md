@@ -1,6 +1,6 @@
 # 预览执行与桌面接口
 
-适用版本：Aster 1.3.2-beta.7。用户操作见[即时预览](../ui/live_preview.md)。
+适用版本：AstroBatch 1.3.3-beta.1。用户操作见[即时预览](../ui/live_preview.md)。
 
 ## 执行与并发
 
