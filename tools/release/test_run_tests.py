@@ -102,6 +102,20 @@ class RunnerTests(unittest.TestCase):
         row = self.summary()[0]
         self.assertEqual((row['passed'], row['suites'], row['status']), (7, 2, 'passed'))
 
+    def test_windows_offscreen_fonts_reach_test_process(self):
+        self.executable('gui', '.exe')
+        system = self.build / 'Windows'
+        configured = self.build / 'test fonts'
+        for override, expected in [('', system / 'Fonts'), (str(configured), configured)]:
+            with self.subTest(override=override), patch.object(sys, 'platform', 'win32'), \
+                    patch.dict(runner.os.environ, {'SystemRoot': str(system), 'QT_QPA_FONTDIR': override}):
+                code, calls = self.invoke(['gui'], lambda *a, **k:
+                    self.emit('Totals: 1 passed, 0 failed, 0 skipped\n', k))
+                self.assertEqual(code, 0)
+                env = calls.call_args.kwargs['env']
+                self.assertEqual(env['QT_QPA_PLATFORM'], 'offscreen')
+                self.assertEqual(env['QT_QPA_FONTDIR'], str(expected))
+
     def test_requested_interaction_suite_is_required_and_included_in_summary(self):
         self.executable('regular')
         emit = lambda *args, **kwargs: self.emit('Totals: 3 passed, 0 failed, 0 skipped', kwargs)

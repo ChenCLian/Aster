@@ -135,6 +135,21 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+      - name: Prepare fonts for Windows offscreen UI checks
+        if: runner.os == 'Windows'
+        run: |
+          font_dir="$(cygpath -u "$RUNNER_TEMP")/astrobatch-qt-fonts"
+          mkdir -p "$font_dir"
+          cd "$font_dir"
+          base='https://raw.githubusercontent.com/notofonts/noto-cjk/523d033d6cb47f4a80c58a35753646f5c3608a78/Sans/OTF/SimplifiedChinese'
+          for font in NotoSansCJKsc-Regular.otf NotoSansCJKsc-Bold.otf; do
+            curl --fail --silent --show-error --location --retry 3 --output "$font" "$base/$font"
+          done
+          sha256sum --check <<'FONT_HASHES'
+          2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b  NotoSansCJKsc-Regular.otf
+          b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a  NotoSansCJKsc-Bold.otf
+          FONT_HASHES
+          printf 'QT_QPA_FONTDIR=%s\n' "$(cygpath -am .)" >> "$GITHUB_ENV"
       - name: Install Windows dependencies
         if: runner.os == 'Windows'
         shell: pwsh

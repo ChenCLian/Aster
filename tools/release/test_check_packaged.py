@@ -19,6 +19,26 @@ class PackagedChecksTests(unittest.TestCase):
             for key,value in (extra or {}).items():z.writestr(key,value)
         return archive,version,platform
 
+    def test_windows_smoke_probes_use_configured_or_system_fonts(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            archive, version, platform = self.package(base)
+            system = base / 'Windows'
+            custom = base / 'test fonts'
+            for override, expected in [('', system / 'Fonts'), (str(custom), custom)]:
+                def startup(command, folder, env, log):
+                    self.assertEqual(env['QT_QPA_PLATFORM'], 'offscreen')
+                    self.assertEqual(env['QT_QPA_FONTDIR'], str(expected))
+                    if '--release-smoke-output' in command:
+                        Path(command[-1]).touch()
+                    return subprocess.CompletedProcess(command, 0, 'AstroBatch ' + version)
+
+                with self.subTest(override=override), patch.dict(c.os.environ, {
+                    'SystemRoot': str(system), 'QT_QPA_FONTDIR': override
+                }), patch.object(c, 'probe', side_effect=startup) as probes:
+                    c.run(archive, version, platform, base / 'report')
+                    self.assertEqual(probes.call_count, 4)
+
     def test_alias_staging_root_keeps_package_inside_and_probes_all_modes(self):
         with tempfile.TemporaryDirectory() as td:
             base=Path(td).resolve();actual=base/'actual';actual.mkdir()

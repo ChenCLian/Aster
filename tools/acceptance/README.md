@@ -12,6 +12,8 @@ make
 
 Windows/MSVC 使用对应 Kit 的 qmake 和 jom；不得混用编译器、Qt 版本或 Debug/Release 模块。可用 QtTest 的 `-functions` 列出用例，或在命令后指定函数名。设置 `ASTER_UI_CAPTURE_DIR` 可保留屏幕矩阵截图。Linux 无窗口服务器时可设置 `QT_QPA_PLATFORM=offscreen`；这不能代替原生拖放和显示缩放验收。
 
+Windows Actions 的离屏回归和安装包截图使用 Noto Sans CJK SC 常规与粗体。本地运行 `run_tests.py` 或 `check_packaged.py` 时默认读取 Windows 系统字体目录，也可通过 `QT_QPA_FONTDIR` 指定含中英文字形的 OTF 或 TTF 字体目录。
+
 - 16 组主窗口/结果界面：中英文、深浅主题、1280×800 / 1920×1080，并检查缩小窗口后的布局。
 - 注册表中全部通用参数页面（当前 57 个）：中英文、200 / 320 像素宽度，核对参数往返和横向裁切；文件导入由主窗口矩阵覆盖。
 - 三个固定随机种子，各 60 次混合绘图操作，验证页/子图身份、叠加、替换、删除、排布、样式、缩放、异步稳定和对象释放。
