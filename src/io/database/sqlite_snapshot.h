@@ -9,11 +9,11 @@
 
 namespace aster::database_detail
 {
-// Maintenance-only connection; opening a source never creates or upgrades it.
+// Opening a read-only source never creates or upgrades it.
 class SqliteFile final
 {
   public:
-    SqliteFile(const QString &path, bool readOnly = true);
+    SqliteFile(const QString &path, bool readOnly = true, int busyTimeoutMs = 5000);
     ~SqliteFile();
     SqliteFile(const SqliteFile &) = delete;
     SqliteFile &operator=(const SqliteFile &) = delete;

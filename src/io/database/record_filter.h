@@ -4,6 +4,7 @@
 #define ASTER_RECORD_FILTER_H
 #include "model/workflow_types.h"
 #include <QDateTime>
+#include <optional>
 namespace aster
 {
 struct RecordFilter
@@ -17,6 +18,7 @@ struct RecordFilter
     {
         return minFrequency >= 0 || maxFrequency >= 0;
     }
+    std::optional<qint64> exactRecordId() const;
     QString validate() const;
 };
 struct PeakMatch

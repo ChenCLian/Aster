@@ -12,14 +12,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 EXCLUDED_DIRS = {'.git', '.qtcreator', '__pycache__', 'dist', '.pytest_cache',
-                 'dependency-materials', 'dependency-cache', 'release-assets'}
-EXCLUDED_SUFFIXES = {'.exe', '.dll', '.lib', '.a', '.o', '.obj', '.pdb', '.ilk', '.pyc', '.sqlite', '.db'}
+                 'dependency-materials', 'dependency-cache', 'release-assets', '__MACOSX'}
+EXCLUDED_SUFFIXES = {'.exe', '.dll', '.lib', '.a', '.o', '.obj', '.pdb', '.ilk', '.pyc', '.sqlite', '.db',
+                     '.bak', '.orig', '.rej', '.swp', '.swo'}
 
 def included(path):
     rel = path.relative_to(ROOT)
     if any(p in EXCLUDED_DIRS or p.startswith('build') or p.endswith('.backups') for p in rel.parts[:-1]):
         return False
     if path.is_symlink() or path.suffix.lower() in EXCLUDED_SUFFIXES:
+        return False
+    if path.name in {'.DS_Store', 'desktop.ini'} or path.name.startswith('._') or path.name.endswith('~'):
         return False
     return not (str(rel).replace('\\', '/') == 'config/local.pri' or path.name in {'PACKAGE_MANIFEST.json', '.qmake.stash', 'settings.ini'}
                 or path.name.startswith(('Makefile', '.env', 'moc_', 'qrc_')) or '.pro.user' in path.name

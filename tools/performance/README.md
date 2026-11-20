@@ -1,4 +1,4 @@
-# Recent-feature performance checks
+# Performance checks
 
 Build the main Aster project in Release mode first, including its static libraries.
 Use the same Qt kit, compiler and scientific dependencies for this separate target:
@@ -36,3 +36,7 @@ Set `QT_QPA_PLATFORM=offscreen` for headless Linux. Remove it when checking a na
 Times are wall-clock milliseconds. Import timer lateness includes initial import work and is not native input latency. Numeric and plot timing summarize repeated executions; file-operation and cancellation results are single trials. Repeat fresh processes for statistical comparisons and avoid concurrent workloads. `rss_kib` uses Linux `/proc`; `peak_rss_kib` uses supported Unix process accounting. Unsupported metrics return -1. Stable RSS over this workload is not proof of no leaks.
 
 Each benchmark prints its measured environment and results as JSON. The UI suite also checks selection capture, concurrent edits, same-path reimport, undo/redo, and narrow translated layouts.
+
+## Paired workflows
+
+Build `tools/performance/benchmark.pro` in a separate directory with the same `ASTER_BUILD_ROOT`. Run `aster_joint_benchmark linked 4` to exercise dependencies across source trees with four datasets. The `dialog`, `batch`, `gui`, `numeric`, `plot` and `cancel` modes exercise pairing, scheduling, desktop interaction or the Welch cross-spectrum calculation.

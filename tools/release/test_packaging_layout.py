@@ -41,6 +41,10 @@ class PackagingLayoutTests(unittest.TestCase):
             'config/local.pri.example': b'template', 'config/local.pri': b'private path',
             'build-release/main.o': b'binary', 'dist/old.zip': b'archive',
             'src/main.cpp': b'int main(){}\n', '.github/workflows/build.yml': b'name: build\n',
+            'src/main.cpp~': b'backup', 'src/main.cpp.orig': b'pre-merge copy',
+            'docs/.DS_Store': b'finder', 'docs/._guide.md': b'resource fork',
+            '__MACOSX/docs/junk': b'archive metadata', 'docs/desktop.ini': b'host settings',
+            'tests/fixtures/archive.zip': b'test data',
             'tools/run.sh': b'#!/bin/sh\n', 'results.sqlite': b'user database',
         }.items():
             p = root / name
@@ -58,9 +62,11 @@ class PackagingLayoutTests(unittest.TestCase):
                 package_source.main()
         dest = out / 'Aster-source-export-1.1.1'
         self.assertEqual(list(out.iterdir()), [dest])
-        for name in ['config/local.pri', 'build-release', 'dist', 'results.sqlite']:
+        for name in ['config/local.pri', 'build-release', 'dist', 'results.sqlite', 'docs/.DS_Store',
+                     'src/main.cpp~', 'src/main.cpp.orig', 'docs/._guide.md', '__MACOSX', 'docs/desktop.ini']:
             self.assertFalse((dest / name).exists())
         self.assertTrue((dest / '.github/workflows/build.yml').is_file())
+        self.assertEqual((dest / 'tests/fixtures/archive.zip').read_bytes(), b'test data')
         self.assertEqual(stat.S_IMODE((dest / 'tools/run.sh').stat().st_mode),
                          stat.S_IMODE((root / 'tools/run.sh').stat().st_mode))
         if os.name != 'nt':  # Windows chmod does not implement POSIX execute bits.
@@ -71,7 +77,7 @@ class PackagingLayoutTests(unittest.TestCase):
             self.assertEqual(item['sha256'], hashlib.sha256(data).hexdigest())
             self.assertEqual(data, (root / item['path']).read_bytes())
         self.assertFalse(list(out.rglob('*.sha256')))
-        self.assertFalse(list(out.rglob('*.zip')))
+        self.assertEqual(list(out.rglob('*.zip')), [dest / 'tests/fixtures/archive.zip'])
 
     def test_source_export_rejects_inside_project(self):
         root = self.source_tree()

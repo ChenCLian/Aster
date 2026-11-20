@@ -46,6 +46,8 @@
 #include "ui/services/workflow_preview_controller.h"
 #include "ui/results/preview_data.h"
 #include "io/database/data_codec.h"
+#include "io/exports/export_path.h"
+#include "ui/exports/figure_export_dialog.h"
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -246,6 +248,7 @@ class UiTests : public QObject
     void peakFilterLeavesFigureIndependent_data();
     void peakFilterLeavesFigureIndependent();
     void compactDirectoryAndPeakPeriods();
+    void exactIdSearchLocatesAndOpensConfirmedMatch();
     void closeWaitsForDatabaseEdits();
     void fileOptionsRemainPerInput();
     void directoryServiceQueriesAndMutations();
@@ -313,6 +316,8 @@ class UiTests : public QObject
     void typedPlotAndRepeatedClear();
     void contextMenuAfterClear();
     void exportPreservesRawValues();
+    void exportNamesUseRecordMetadata();
+    void exportDialogsFollowTheirOwnTargets();
     void gridCoordinatesAndInvalidInput();
     void fullWindowRunUsesEditedParameters();
     void smallDesktopLayout();
@@ -1794,6 +1799,136 @@ void UiTests::contextMenuAfterClear()
     view.reset();
     QCoreApplication::processEvents();
 }
+void UiTests::exportNamesUseRecordMetadata()
+{
+    QTemporaryDir dir;
+    const auto db = dir.filePath("names.sqlite");
+    ResultRepository repo;
+    QVERIFY(repo.open(db).isEmpty());
+    const auto save = [&](RunResult run) {
+        return OutputReference{db, repo.save(run).recordId, run.runId, run.root, "series", "Series"};
+    };
+    auto original = storedRun("old source");
+    original.provenance["path"] = R"(C:\data\冰芯.A.csv)";
+    const auto a = save(original);
+    const auto b = save(storedRun("Signal 0.5 ka"));
+    const auto c = save(storedRun("A / B"));
+    QVERIFY(a.valid() && b.valid() && c.valid());
+    QCOMPARE(suggestedExportFileName({a}, "1_series", "csv"), QString("冰芯.A_1_series.csv"));
+    QCOMPARE(suggestedExportFileName({b}, {}, "png"), QString("Signal 0.5 ka.png"));
+    QCOMPARE(suggestedExportFileName({a, a, b, c}, {}, "pdf"),
+             QString("冰芯.A + Signal 0.5 ka (+1).pdf"));
+    QCOMPARE(suggestedExportFileName({c}, {}, "pdf"), QString("A _ B.pdf"));
+    auto reused = storedRun(QString("ID %1 · series").arg(a.recordId));
+    reused.provenance["database_source"] = a.toJson();
+    const auto derived = save(reused);
+    QVERIFY(derived.valid());
+    QCOMPARE(suggestedExportFileName({derived}, {}, "png"), QString("冰芯.A.png"));
+    QVERIFY(repo.updateMetadata(a.recordId, "CON", {}).isEmpty());
+    QCOMPARE(suggestedExportFileName({derived}, {}, "png"), QString("_CON.png"));
+    QVERIFY(repo.updateMetadata(a.recordId, QString("冰芯🌍").repeated(120), {}).isEmpty());
+    const auto longName = suggestedExportFileName({a, b, c}, "1_series", "csv");
+    QVERIFY(longName.toUtf8().size() <= 255);
+    QVERIFY(!longName.contains(QChar::ReplacementCharacter));
+    QVERIFY(longName.endsWith(" + Signal 0.5 ka (+1)_1_series.csv"));
+    auto stale = a;
+    stale.runId = QUuid::createUuid();
+    QCOMPARE(suggestedExportFileName({stale}, {}, "png"), QString("Aster.png"));
+}
+
+void UiTests::exportDialogsFollowTheirOwnTargets()
+{
+    QTemporaryDir dir;
+    const auto db = dir.filePath("dialogs.sqlite");
+    ResultRepository repo;
+    QVERIFY(repo.open(db).isEmpty());
+    auto run = storedRun("file");
+    run.provenance["path"] = "/samples/80001.csv";
+    const auto a = repo.save(run).recordId;
+    const auto b = repo.save(storedRun("Site B")).recordId;
+    QVERIFY(a > 0 && b > 0);
+    const bool oldSetting = QApplication::testAttribute(Qt::AA_DontUseNativeDialogs);
+    QApplication::setAttribute(Qt::AA_DontUseNativeDialogs, true);
+    const auto restore = qScopeGuard([oldSetting] {
+        QApplication::setAttribute(Qt::AA_DontUseNativeDialogs, oldSetting);
+    });
+    ResultsPage page(makeScientificRegistry());
+    page.setDatabase(db);
+    page.show();
+    auto *workspace = page.workspace();
+    page.openRecord(a);
+    QTRY_COMPARE(page.recordId(), a);
+    QTRY_VERIFY(!workspace->loading() && page.plotView() && page.plotView()->hasPlot());
+    const auto first = workspace->currentReference();
+    page.openRecord(b);
+    QTRY_COMPARE(page.recordId(), b);
+    QTRY_VERIFY(!workspace->loading() && page.plotView() && page.plotView()->hasPlot());
+    const auto second = workspace->currentReference();
+    workspace->openDefault(first);
+    QTRY_COMPARE(workspace->currentReference().recordId, a);
+    QTRY_VERIFY(!workspace->loading() && page.plotView()->hasPlot());
+    page.selectStep(0, false);
+    QCOMPARE(page.recordId(), b);
+
+    auto *csv = page.findChild<QPushButton *>("exportCsv");
+    auto *figure = page.findChild<QPushButton *>("exportPng");
+    QVERIFY(csv && csv->isEnabled() && figure && figure->isEnabled());
+    bool sawOverwrite = false;
+    const auto choose = [&](QPushButton *button, const QString &format, bool whole,
+                            const QString &manualPath = {}) {
+        QString suggestion;
+        bool submitted = false;
+        QTimer timer;
+        connect(&timer, &QTimer::timeout, &page, [&] {
+            auto *modal = QApplication::activeModalWidget();
+            if (auto *options = dynamic_cast<FigureExportDialog *>(modal)) {
+                for (auto *box : options->findChildren<QComboBox *>()) {
+                    const int i = box->findText(format);
+                    if (i >= 0) box->setCurrentIndex(i);
+                    else if (whole) box->setCurrentIndex(box->findText(text("ui.whole_current_page")));
+                }
+                options->accept();
+            } else if (auto *dialog = qobject_cast<QFileDialog *>(modal)) {
+                if (!submitted) suggestion = QFileInfo(dialog->selectedFiles().value(0)).fileName();
+                if (manualPath.isEmpty() || submitted) dialog->reject();
+                else if (auto *edit = dialog->findChild<QLineEdit *>("fileNameEdit")) {
+                    edit->setText(manualPath);
+                    submitted = true;
+                    QMetaObject::invokeMethod(dialog, "accept", Qt::QueuedConnection);
+                }
+            } else if (auto *box = qobject_cast<QMessageBox *>(modal)) {
+                sawOverwrite = box->standardButtons().testFlag(QMessageBox::No);
+                box->reject();
+            } else if (auto *other = qobject_cast<QDialog *>(modal)) other->reject();
+        });
+        timer.start(20);
+        button->click();
+        return suggestion;
+    };
+    QSignalSpy finished(page.exporter(), &ExportController::finished);
+    const auto manual = dir.filePath("chosen");
+    QCOMPARE(choose(csv, {}, false, manual), QString("Site B_1_series.csv"));
+    QTRY_COMPARE(finished.size(), 1);
+    QCOMPARE(finished.front()[0].toString(), manual + ".csv");
+    QVERIFY2(finished.front()[1].toString().isEmpty(), qPrintable(finished.front()[1].toString()));
+    QVERIFY(QFileInfo::exists(manual + ".csv"));
+    QCOMPARE(choose(csv, {}, false, manual), QString("Site B_1_series.csv"));
+    QVERIFY(sawOverwrite);
+    QCOMPARE(finished.size(), 1);
+    QSignalSpy imageSaved(page.figureExporter(), &FigureExportController::finished);
+    const auto imagePath = dir.filePath("自选图名");
+    QCOMPARE(choose(figure, "PNG", false, imagePath), QString("80001.png"));
+    QTRY_COMPARE(imageSaved.size(), 1);
+    QVERIFY2(imageSaved.front()[1].toString().isEmpty(), qPrintable(imageSaved.front()[1].toString()));
+    QVERIFY(!QImage(imagePath + ".png").isNull());
+    QVERIFY(repo.updateMetadata(a, "Site A", {}).isEmpty());
+    QCOMPARE(choose(figure, "PDF", false), QString("Site A.pdf"));
+    workspace->open(second, PlotWorkspace::Target::Subplot);
+    QTRY_VERIFY(!workspace->loading() && workspace->figureCells(true).size() == 2);
+    QCOMPARE(choose(figure, "PNG", true), QString("Site A + Site B.png"));
+    QCOMPARE(choose(figure, "PDF", false), QString("Site B.pdf"));
+}
+
 void UiTests::exportPreservesRawValues()
 {
     QTemporaryDir dir;
@@ -2225,6 +2360,79 @@ void UiTests::closeWaitsForDatabaseEdits()
     QVERIFY(repo.open(settings.databasePath).isEmpty());
     QCOMPARE(repo.load(id).displayName, QString("edited before closing"));
 }
+void UiTests::exactIdSearchLocatesAndOpensConfirmedMatch()
+{
+    QTemporaryDir dir;
+    const auto path = dir.filePath("search.sqlite");
+    ResultRepository repo;
+    QVERIFY(repo.open(path).isEmpty());
+    auto run = storedRun("oldest.csv");
+    for (int i = 1; i <= 106; ++i) {
+        run.runId = QUuid::createUuid();
+        if (i == 2) run.sourceLabel = "80001.csv";
+        if (i > 2) run.sourceLabel = QString("sample-%1.csv").arg(i);
+        QVERIFY(repo.save(run).saved());
+    }
+    ResultsPage page(makeScientificRegistry());
+    page.resize(1280, 800);
+    page.show();
+    page.setDatabase(path);
+    auto *directory = page.findChild<RecordDirectoryPanel *>();
+    auto *records = page.findChild<QListWidget *>("resultRecords");
+    auto *search = page.findChild<QLineEdit *>("recordSearch");
+    auto *low = page.findChild<QLineEdit *>("minimumFrequency");
+    auto *missing = page.findChild<QLabel *>("recordLookupEmpty");
+    auto *matches = page.findChild<QPushButton *>("checkMatchingRecords");
+    auto *outputs = page.findChild<QTableView *>("resultOutputs");
+    QTRY_COMPARE(records->count(), 100);
+    page.openRecord(106);
+    QTRY_COMPARE(page.recordId(), 106);
+    QTRY_VERIFY(!page.workspace()->loading());
+    outputs->selectRow(0);
+    const auto checked = page.checkedOutputs();
+    QVERIFY(!checked.isEmpty());
+    const auto figure = page.workspace()->currentReference().key();
+    QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
+    search->setText("80001");
+    QTRY_COMPARE(records->count(), 1);
+    QCOMPARE(records->item(0)->data(RecordRole::Id).toLongLong(), 2);
+    low->setText("9");
+    QTRY_COMPARE(records->count(), 0);
+    search->setText("#1");
+    QTRY_COMPARE(records->count(), 1);
+    QCOMPARE(records->currentIndex().data(RecordRole::Id).toLongLong(), 1);
+    QCOMPARE(page.recordId(), 106);
+    QTRY_VERIFY(matches->isEnabled());
+    QTest::mouseClick(matches, Qt::LeftButton);
+    QTRY_COMPARE(directory->checkedRecords().size(), 1);
+    QVERIFY(directory->checkedRecords().contains(1));
+
+    // Changing the query before delivery cancels the pending open.
+    QTest::keyClick(search, Qt::Key_Return);
+    search->setText("#9000");
+    QTest::keyClick(search, Qt::Key_Return);
+    QTRY_VERIFY(missing->isVisible());
+    QCOMPARE(records->count(), 0);
+    QCOMPARE(loaded.count(), 0);
+    QCOMPARE(page.recordId(), 106);
+    QCOMPARE(page.checkedOutputs().first().key(), checked.first().key());
+    QCOMPARE(page.workspace()->currentReference().key(), figure);
+
+    search->setText("#1");
+    QTest::keyClick(search, Qt::Key_Return);
+    QTRY_COMPARE(page.recordId(), 1);
+    QCOMPARE(loaded.count(), 1);
+    QVERIFY(!missing->isVisible());
+    QVERIFY(page.checkedOutputs().isEmpty());
+    search->clear();
+    QTRY_COMPARE(records->count(), 0);
+    QCOMPARE(low->text(), QString("9"));
+    QCOMPARE(page.recordId(), 1);
+    low->clear();
+    QTRY_COMPARE(records->count(), 100);
+    QVERIFY(directory->checkedRecords().contains(1));
+}
+
 void UiTests::compactDirectoryAndPeakPeriods()
 {
     QTemporaryDir dir; const auto path = dir.filePath("period.sqlite");
@@ -2253,6 +2461,9 @@ void UiTests::compactDirectoryAndPeakPeriods()
     auto *axis = panel.findChild<QComboBox *>("recordPeakAxis");
     auto *unit = panel.findChild<QComboBox *>("frequencyUnit");
     auto *low = panel.findChild<QLineEdit *>("minimumFrequency"), *high = panel.findChild<QLineEdit *>("maximumFrequency");
+    QCOMPARE(unit->count(), 3);
+    QVERIFY(unit->isVisible());
+    QVERIFY(panel.findChild<QLabel *>("peakRangeUnit")->isHidden());
     QCOMPARE(axis->currentIndex(),1); low->setText("9"); high->setText("11");
     QTRY_COMPARE(panel.recordCount(),1);
     QVERIFY(filters->filter().frequencyUnit.isEmpty()); QCOMPARE(list->item(0)->data(RecordRole::Id).toLongLong(),1LL);
@@ -2275,6 +2486,28 @@ void UiTests::compactDirectoryAndPeakPeriods()
             QVERIFY(!filters->filter().hasFrequency() && filters->filter().frequencyUnit.isEmpty());
         }
     popup->reject(); QVERIFY(!popup->isVisible()); QVERIFY(list->height() > panel.height()/2);
+
+    // An active range must be requeried when the next database has a single different unit.
+    const auto other = dir.filePath("single.sqlite");
+    ResultRepository single;
+    QVERIFY(single.open(other).isEmpty());
+    auto run = WorkflowExecutor().run({model.freeze().snapshot, root, {"single.csv", {}, {}}});
+    run.nodes[mtm] = spectrumResult(); // 1/ka, one indexed peak at 0.1
+    QVERIFY(single.save(run).saved());
+    unit->setCurrentIndex(unit->findData("1/m"));
+    low->setText("9"); high->setText("11");
+    panel.setDatabase(other);
+    QTRY_COMPARE(filters->filter().frequencyUnit, QString("1/ka"));
+    QTRY_COMPARE(list->count(), 1);
+    QCOMPARE(list->item(0)->data(RecordRole::FileName).toString(), QString("single.csv"));
+    QVERIFY(unit->isHidden());
+    auto *suffix = panel.findChild<QLabel *>("peakRangeUnit");
+    QVERIFY(!suffix->isHidden());
+    QCOMPARE(suffix->text(), QString("ka"));
+    axis->setCurrentIndex(0);
+    QCOMPARE(suffix->text(), QString("1/ka"));
+    QCOMPARE(filters->filter().minFrequency, 1./11);
+    QCOMPARE(filters->filter().maxFrequency, 1./9);
 }
 void UiTests::peakFilterLeavesFigureIndependent_data()
 {
@@ -2322,6 +2555,9 @@ void UiTests::peakFilterLeavesFigureIndependent()
     QTRY_COMPARE(page.recordCount(), 2);
     auto *unit = page.findChild<QComboBox *>("frequencyUnit");
     QTRY_VERIFY(unit->findData(frequencyUnit) >= 0);
+    QVERIFY(unit->isHidden());
+    auto *suffix = page.findChild<QLabel *>("peakRangeUnit");
+    QCOMPARE(suffix->isHidden(), frequencyUnit.isEmpty());
     unit->setCurrentIndex(unit->findData(frequencyUnit));
     auto *high = page.findChild<QLineEdit *>("maximumFrequency");
     QCOMPARE(page.findChild<QComboBox *>("recordPeakAxis")->currentIndex(), 1);
@@ -2330,6 +2566,19 @@ void UiTests::peakFilterLeavesFigureIndependent()
     page.openRecord(saved.recordId);
     QTRY_COMPARE(page.recordId(), saved.recordId);
     QTRY_VERIFY(page.plotView()->hasPlot() && !page.workspace()->loading());
+    auto *outputs = page.findChild<QTableView *>("resultOutputs");
+    auto *outputViewport = outputs->viewport();
+    const QRect first = outputs->visualRect(outputs->model()->index(0, 0));
+    const QRect second = outputs->visualRect(outputs->model()->index(1, 0));
+    const auto fill = [outputViewport](const QRect &rect) {
+        return viewColorAt(outputViewport, QPoint(rect.right() - 15, rect.center().y()));
+    };
+    QTest::mouseMove(outputViewport, first.center());
+    QTest::mouseClick(outputViewport, Qt::LeftButton, Qt::NoModifier, first.center());
+    QTest::mouseMove(outputViewport, second.center());
+    QTRY_COMPARE(fill(second), themeColor("fileListHover"));
+    QCOMPARE(fill(first), themeColor("fileListSelection"));
+    QCOMPARE(viewColorAt(outputViewport, {first.left() + 6, first.center().y()}), themeColor("fileListMark"));
     auto *detail = page.findChild<QTableWidget *>("resultSteps")->item(1, 2);
     QCOMPARE(detail->text(), QString("2"));
     QCOMPARE(detail->toolTip(), text("ui.from_step_1_2").arg(1).arg(portLabel("series")));

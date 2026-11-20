@@ -1,1 +1,0 @@
-{"applied":100,"count":100,"edit_through_commit_ms":14.854363,"event_loop_lateness":{"max_ms":5.214321999999999,"median_ms":0,"p95_ms":0.8704099999999997,"samples":100},"import_call_ms":2.950503,"mode":"import","peak_rss_kib":41496,"platform":"offscreen","qt":"6.8.2","rss_kib":40924,"select_all_event_ms":0.107229,"skipped":0,"type_unit_events_ms":2.292163}

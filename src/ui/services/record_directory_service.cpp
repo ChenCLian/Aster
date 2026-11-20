@@ -149,7 +149,8 @@ void RecordDirectoryService::start()
                         list->totalRecords = repo.recordCount(list->error);
                     } else {
                         *list = repo.directoryPage(request.filter, 100, request.beforeId);
-                        if (list->error.isEmpty()) *units = repo.frequencyUnits(&list->error);
+                        if (list->error.isEmpty() && !request.beforeId && !request.filter.exactRecordId())
+                            *units = repo.frequencyUnits(&list->error);
                     }
                     if (list->error.isEmpty())
                     {

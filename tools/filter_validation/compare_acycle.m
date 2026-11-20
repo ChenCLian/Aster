@@ -1,6 +1,6 @@
 function report = compare_acycle(acycleRoot, outputFile)
-% Optional MATLAB + Signal Processing Toolbox check against the USER-SUPPLIED
-% corrected-bandpass-v2 reference. It is not an assertion about official Acycle.
+% MATLAB and Signal Processing Toolbox comparison against the corrected-bandpass-v2
+% implementation in the Acycle_3.1.1 reference archive.
 % Usage: addpath('tools/filter_validation'); compare_acycle('path/to/Acycle_3.1.1')
 % The same independent fixtures are checked against Aster C++ by filter_audit.
 if nargin < 2, outputFile = ''; end
@@ -25,7 +25,7 @@ for i = 1:numel(fixture.cases)
     results(i) = struct('method',c.method,'n',c.n,'q',c.q, ...
         'filteredError',errors(1),'envelopeError',errors(2),'quadratureError',errors(3)); %#ok<AGROW>
 end
-report = struct('reference','user supplied corrected-bandpass-v2','matlab',version, ...
+report = struct('reference','Acycle_3.1.1 corrected-bandpass-v2','matlab',version, ...
                 'cases',results,'passed',true);
 if ~isempty(outputFile)
     assert(~isfile(outputFile), 'Refusing to overwrite existing output');

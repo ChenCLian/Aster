@@ -56,6 +56,18 @@ namespace aster::ui
 {
 namespace
 {
+QString chooseExportPath(QWidget *parent, const QString &title, const QVector<OutputReference> &sources,
+                         const QString &detail, const QString &extension)
+{
+    QFileDialog dialog(parent, title);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(QString("%1 (*.%2)").arg(extension.toUpper(), extension));
+    // Apply the extension before the dialog checks whether the target already exists.
+    dialog.setDefaultSuffix(extension);
+    dialog.selectFile(suggestedExportFileName(sources, detail, extension));
+    return dialog.exec() == QDialog::Accepted ? dialog.selectedFiles().value(0) : QString();
+}
+
 // Qt normally replaces the selected cell's foreground with HighlightedText.
 // Keep the same row background while drawing the status in its semantic color.
 class StepStatusDelegate final : public QStyledItemDelegate
@@ -85,6 +97,62 @@ class StepStatusDelegate final : public QStyledItemDelegate
         painter->setPen(index.data(Qt::ForegroundRole).value<QBrush>().color());
         painter->drawText(bounds, QStyle::visualAlignment(opt.direction, opt.displayAlignment), label);
         painter->restore();
+    }
+};
+
+// One native selection model handles mouse and keyboard across the whole row.
+class OutputRowDelegate final : public QStyledItemDelegate
+{
+  public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+    void paint(QPainter *p, const QStyleOptionViewItem &opt, const QModelIndex &index) const override
+    {
+        const QRect row = opt.rect.adjusted(2, 0, -2, 0);
+        if (row.isEmpty()) return;
+        const bool selected = opt.state.testFlag(QStyle::State_Selected);
+        const bool first = index.row() == 0;
+        const bool last = index.row() + 1 == index.model()->rowCount();
+        const char *fill = selected ? "fileListSelection" :
+            opt.state.testFlag(QStyle::State_MouseOver) ? "fileListHover" : "surface";
+        p->save();
+        p->setClipRect(row, Qt::IntersectClip);
+        p->setRenderHint(QPainter::Antialiasing);
+        p->setBrush(themeColor(fill));
+        p->setPen(themeColor("border"));
+        p->drawRoundedRect(QRectF(row).adjusted(0.5, first ? 0.5 : -5, -0.5, last ? -0.5 : 5), 4, 4);
+        if (!last) {
+            p->setPen(themeColor("divider"));
+            p->drawLine(row.bottomLeft() + QPoint(1, 0), row.bottomRight() - QPoint(1, 0));
+        }
+        if (selected) {
+            p->setPen(Qt::NoPen);
+            p->setBrush(themeColor("fileListMark"));
+            p->drawRoundedRect(QRectF(row.left() + 3, row.center().y() - 8, 3, 16), 1.5, 1.5);
+        }
+        const auto name = index.data().toString();
+        const auto kind = index.siblingAtColumn(1).data().toString();
+        const QRect content = row.adjusted(12, 0, -10, 0);
+        const int gap = opt.fontMetrics.horizontalAdvance(QLatin1Char(' ')) * 2 + 3;
+        const int nameWidth = opt.fontMetrics.horizontalAdvance(name);
+        const int kindWidth = opt.fontMetrics.horizontalAdvance(kind);
+        const bool bothFit = nameWidth + gap + kindWidth <= content.width();
+        const int kindSpace = qMin(kindWidth, qMax(0, content.width() / 3));
+        const auto visibleName = bothFit ? name : opt.fontMetrics.elidedText(
+            name, Qt::ElideRight, qMax(0, content.width() - gap - kindSpace));
+        const auto visibleKind = bothFit ? kind : opt.fontMetrics.elidedText(kind, Qt::ElideRight, kindSpace);
+        p->setFont(opt.font);
+        p->setPen(themeColor("text"));
+        p->drawText(content, Qt::AlignLeft | Qt::AlignVCenter, visibleName);
+        const auto typeRect = content.adjusted(opt.fontMetrics.horizontalAdvance(visibleName) + gap, 0, 0, 0);
+        p->setPen(themeColor("muted"));
+        p->drawText(typeRect, Qt::AlignLeft | Qt::AlignVCenter, visibleKind);
+        if (opt.state.testFlag(QStyle::State_HasFocus) && opt.widget &&
+            opt.widget->window()->testAttribute(Qt::WA_KeyboardFocusChange)) {
+            p->setPen(QPen(themeColor("fileListMark"), 1, Qt::DotLine));
+            p->setBrush(Qt::NoBrush);
+            p->drawRoundedRect(QRectF(row).adjusted(1.5, 1.5, -1.5, -1.5), 3, 3);
+        }
+        p->restore();
     }
 };
 
@@ -186,10 +254,6 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     cl->setContentsMargins(10, 6, 10, 6);
     cl->setSpacing(6);
     auto *chartBar = new QHBoxLayout;
-    m_subtitle = new QLabel(text("ui.plots_and_numerical_output"));
-    m_subtitle->setObjectName("SectionTitle");
-    m_subtitle->setMinimumWidth(0);
-    m_subtitle->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     auto *figureTitle = new QLabel(text("ui.plot_pages"));
     figureTitle->setObjectName("SectionTitle");
     chartBar->addWidget(figureTitle, 1);
@@ -246,11 +310,13 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     auto *stepsTitle = new QLabel(text("ui.steps_in_this_execution"));
     stepsTitle->setObjectName("SectionTitle");
     browserHeader->addWidget(stepsTitle);
-    browserHeader->addStretch();
-    m_checkedButton = new QToolButton;
-    m_checkedButton->setObjectName("inspectCheckedOutputs");
-    m_checkedButton->setToolTip(text("ui.review_checked_help"));
-    browserHeader->addWidget(m_checkedButton);
+    browserHeader->addSpacing(6);
+    m_destination = new QLabel;
+    m_destination->setObjectName("plotDestination");
+    m_destination->setTextFormat(Qt::PlainText);
+    m_destination->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    m_destination->setMinimumWidth(0);
+    browserHeader->addWidget(m_destination, 1);
     auto *collapse = new QToolButton;
     collapse->setObjectName("toggleResultOutputs");
     collapse->setCheckable(true);
@@ -285,33 +351,43 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     auto *outputsLayout = new QVBoxLayout(outputsPanel);
     outputsLayout->setSpacing(3);
     outputsLayout->setContentsMargins(0, 0, 0, 0);
-    outputsLayout->addWidget(m_subtitle);
+    m_outputsHeading = new QLabel(text("ui.available_outputs").arg(0));
+    m_outputsHeading->setObjectName("outputListHeading");
+    outputsLayout->addWidget(m_outputsHeading);
     m_outputs = new QTableView;
     m_outputs->setObjectName("resultOutputs");
     m_outputModel = new QStandardItemModel(this);
     m_outputModel->setHorizontalHeaderLabels({text("ui.output"), text("ui.output_kind")});
     m_outputs->setModel(m_outputModel);
+    m_outputs->setItemDelegate(new OutputRowDelegate(m_outputs));
+    m_outputs->setMouseTracking(true);
+    m_outputs->setAccessibleName(text("ui.outputs_input"));
+    m_outputs->setAccessibleDescription(text("ui.review_checked_help"));
     m_outputs->verticalHeader()->hide();
-    m_outputs->verticalHeader()->setDefaultSectionSize(30);
+    m_outputs->verticalHeader()->setDefaultSectionSize(qMax(30, m_outputs->fontMetrics().height() + 10));
     m_outputs->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_outputs->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_outputs->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_outputs->setShowGrid(false);
     m_outputs->setWordWrap(false);
     m_outputs->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_outputs->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    m_outputs->hideColumn(1);
+    m_outputs->horizontalHeader()->hide();
     outputsLayout->addWidget(m_outputs, 1);
     browser->addWidget(outputsPanel);
     browser->setSizes({340, 440});
     bodyLayout->addWidget(browser, 1);
     auto *actions = new QHBoxLayout;
-    m_destination = new QLabel;
-    m_destination->setObjectName("plotDestination");
-    m_destination->setTextFormat(Qt::PlainText);
-    m_destination->setWordWrap(true);
-    m_destination->setMinimumWidth(0);
-    m_destination->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    actions->addWidget(m_destination, 1);
+    actions->addStretch();
+    m_selectionHint = new QLabel(text("ui.output_selection_hint"));
+    m_selectionHint->setObjectName("outputSelectionHint");
+    m_selectionHint->setToolTip(text("ui.review_checked_help"));
+    m_selectionHint->setMinimumWidth(0);
+    m_selectionHint->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    actions->addWidget(m_selectionHint);
+    m_checkedButton = new QToolButton;
+    m_checkedButton->setObjectName("inspectCheckedOutputs");
+    actions->addWidget(m_checkedButton);
     m_plotChecked = new QPushButton(text("ui.add_selected_subplots"));
     m_plotChecked->setObjectName("plotCheckedOutputs");
     actions->addWidget(m_plotChecked);
@@ -378,8 +454,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
         const int rows = 5 * std::max(m_steps->verticalHeader()->defaultSectionSize(),
                                       m_outputs->verticalHeader()->defaultSectionSize());
         const int tables = std::max(m_steps->horizontalHeader()->sizeHint().height(),
-            m_subtitle->sizeHint().height() + outputsLayout->spacing() +
-            m_outputs->horizontalHeader()->sizeHint().height());
+            m_outputsHeading->sizeHint().height() + outputsLayout->spacing());
         return sl->contentsMargins().top() + sl->contentsMargins().bottom() + sl->spacing() +
             browserHeader->sizeHint().height() + bodyLayout->spacing() + actions->sizeHint().height() +
             tables + rows + 2 * m_outputs->frameWidth() + 4;
@@ -480,13 +555,9 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
                 // Freeze the selected step output, never a previously opened plot.
                 const auto ref = selectedOutput();
                 if (!ref.valid() || exportBusy()) return;
-                const auto name = QString("ID_%1_%2_%3.csv")
-                    .arg(ref.recordId)
-                    .arg(ref.nodeId.toString(QUuid::WithoutBraces).left(8), ref.port);
-                auto path = QFileDialog::getSaveFileName(this, text("ui.export_numerical_output"),
-                                                         name, "CSV (*.csv)");
+                const auto detail = QString::number(m_steps->currentRow() + 1) + '_' + ref.port;
+                const auto path = chooseExportPath(this, text("ui.export_numerical_output"), {ref}, detail, "csv");
                 if (path.isEmpty()) return;
-                if (QFileInfo(path).suffix().isEmpty()) path += ".csv";
                 if (conflictsWithDatabase(path, {m_path, ref.databasePath}))
                 {
                     emit message(text("ui.choose_an_export_file_other_than_the_database"));
@@ -502,20 +573,16 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
                 if (dialog.exec() != QDialog::Accepted) return;
                 auto options = dialog.options();
                 const auto cells = m_workspace->figureCells(dialog.wholePage());
-                const auto ref = m_workspace->currentReference();
                 if (cells.isEmpty())
                 {
                     emit message(text("ui.wait_for_plots_to_load_use_csv_for_tables"));
                     return;
                 }
                 const bool pdf = options.format == FigureOptions::Format::Pdf;
-                options.path = QFileDialog::getSaveFileName(
-                    this, text("ui.export_figure"),
-                    QString("ID_%1.%2").arg(ref.recordId).arg(pdf ? "pdf" : "png"),
-                    pdf ? "PDF (*.pdf)" : "PNG (*.png)");
+                QVector<OutputReference> sources;
+                for (const auto &cell : cells) sources += cell.references;
+                options.path = chooseExportPath(this, text("ui.export_figure"), sources, {}, pdf ? "pdf" : "png");
                 if (options.path.isEmpty()) return;
-                if (QFileInfo(options.path).suffix().isEmpty())
-                    options.path += pdf ? ".pdf" : ".png";
                 m_figureExporter->start(cells, options);
             });
     connect(m_exportPanel, &ResultExportPanel::reuseRequested, this,
@@ -587,6 +654,7 @@ void ResultsPage::setDatabase(const QString &p)
     m_outputModel->removeRows(0, m_outputModel->rowCount());
     m_path = p;
     m_record.reset();
+    m_stepName.clear();
     m_recordId = 0;
     m_requestedRecordId = 0;
     m_defaultPlotOnLoad = false;
@@ -649,6 +717,7 @@ void ResultsPage::openRecord(qint64 id)
     m_primaryPorts.clear();
     m_selectedNode = {};
     m_record.reset();
+    m_stepName.clear();
     m_recordId = 0;
     m_title->setText(text("ui.results_workspace"));
     m_directory->setOpenedRecord(0);
@@ -774,8 +843,7 @@ void ResultsPage::selectStep(int row, bool display)
         m_stepNotice->style()->unpolish(m_stepNotice);
         m_stepNotice->style()->polish(m_stepNotice);
     }
-    m_subtitle->setText(registration ? methodLabel(registration->descriptor) : selected.method);
-    m_subtitle->setToolTip(m_subtitle->text());
+    m_stepName = registration ? methodLabel(registration->descriptor) : selected.method;
     QSignalBlocker portBlock(m_ports);
     m_ports->clear();
     for (const auto &output : orderedOutputs(m_selectedNode))
@@ -883,7 +951,7 @@ QString ResultsPage::selectedErrorDetails() const
     if (!m_record || !m_record->run.nodes.contains(m_selectedNode)) return {};
     const auto &run = m_record->run;
     const auto node = run.nodes.value(m_selectedNode);
-    const auto heading = QString("ID %1 · %2\n").arg(m_recordId).arg(m_subtitle->text()) +
+    const auto heading = QString("ID %1 · %2\n").arg(m_recordId).arg(m_stepName) +
                          text("diagnostic.source") + ": " + run.sourceLabel + "\n";
     QString details = heading + presentError(node).details;
     if (node.state != NodeState::Blocked) return details;
@@ -979,7 +1047,7 @@ void ResultsPage::updateOutputActions()
     const bool hasFigure = m_plot && m_plot->hasPlot() && plotted.valid();
     const bool emptyDestination = m_workspace->currentIsEmpty();
     const auto selectedLabel = m_record
-        ? QString("ID %1 · %2").arg(m_recordId).arg(m_subtitle->text())
+        ? QString("ID %1 · %2").arg(m_recordId).arg(m_stepName)
         : text("ui.select_step_for_export");
     const auto plotLabel = hasFigure
         ? text("ui.active_figure_target").arg(plotted.recordId).arg(portLabel(plotted.port))
@@ -994,8 +1062,16 @@ void ResultsPage::updateOutputActions()
     const auto checked = checkedOutputs();
     QSet<NodeId> nodes;
     for (const auto &ref : checked) nodes.insert(ref.nodeId);
-    m_checkedButton->setText(text("ui.checked_output_count").arg(checked.size()).arg(nodes.size()));
     const bool any = !checked.isEmpty();
+    const int available = m_outputModel->rowCount();
+    m_outputsHeading->setText(text("ui.available_outputs").arg(available));
+    m_selectionHint->setVisible(!any && available > 0);
+    if (any) {
+        m_checkedButton->setText(text("ui.review_selected_count").arg(checked.size()));
+        m_checkedButton->setToolTip(text("ui.checked_output_count").arg(checked.size()).arg(nodes.size()) +
+                                    "\n" + text("ui.review_checked_help"));
+    }
+    m_checkedButton->setVisible(any);
     m_addPlot->setEnabled(any);
     m_plotChecked->setEnabled(any);
     m_pageAction->setEnabled(any);
@@ -1008,6 +1084,7 @@ void ResultsPage::updateOutputActions()
     m_plotChecked->setText(any ? text("ui.add_plot_count").arg(groupCount) : text("ui.add_selected_subplots"));
     m_plotChecked->setToolTip(text("ui.plot_group_count").arg(groupCount));
     m_destination->setText(m_workspace->destinationLabel());
+    m_destination->setToolTip(m_destination->text());
 }
 QVector<OutputInfo> ResultsPage::orderedOutputs(NodeId node) const
 {
@@ -1027,12 +1104,10 @@ void ResultsPage::rebuildOutputs()
     {
         const auto ref = reference(m_selectedNode, outputs[i]);
         auto *name = new QStandardItem(m_ports->itemText(i));
-        auto outputFont = name->font();
-        outputFont.setBold(ref.port == m_primaryPorts.value(m_selectedNode));
-        name->setFont(outputFont);
         name->setData(QVariant::fromValue(ref), Qt::UserRole);
         name->setToolTip(m_ports->itemText(i) + "\n" + ref.port);
         auto *kind = new QStandardItem(text((QString("kind.") + ref.kind).toUtf8().constData()));
+        name->setAccessibleText(name->text() + " · " + kind->text());
         m_outputModel->appendRow({name, kind});
         if (m_checked.contains(ref.key()))
             restored.select(name->index(), kind->index());

@@ -44,7 +44,8 @@ QTextBrowser#helpBrowser { selection-background-color: @fileListMark@; selection
 QTableView { gridline-color: @divider@; }
 QTableView#resultSteps::item:hover:!selected { background: transparent; }
 QTableView#resultSteps::item:selected { background: @selection@; color: @selectionText@; }
-QTableView#resultOutputs::item:selected { background: @fileListSelection@; color: @text@; }
+QLabel#outputListHeading { color: @text@; font-weight: 600; padding: 3px 2px; }
+QLabel#outputSelectionHint, QLabel#plotDestination, QLabel#recordLookupEmpty { color: @muted@; }
 QHeaderView::section { background: @surface@; border: 0; border-bottom: 1px solid @divider@; padding: 7px; color: @text@; font-weight: 600; }
 QTabWidget::pane { border: 0; background: transparent; }
 QTabBar::tab { border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 7px 9px; margin-right: 2px; color: @muted@; }

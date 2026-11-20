@@ -16,18 +16,20 @@ class RecordFilterPanel : public QWidget
   public:
     explicit RecordFilterPanel(QWidget *parent = nullptr);
     RecordFilter filter() const;
-    void setUnits(const QStringList &units);
+    // True when the active peak range needs to be queried with a different unit.
+    bool setUnits(const QStringList &units);
   signals:
     void changed();
     void editing();
-    void openRecord(qint64 id);
+    void idSubmitted(qint64 id);
   private:
     void updateSummary();
+    void updateUnitLabels();
     QLineEdit *m_text, *m_min, *m_max;
     QComboBox *m_date, *m_axis, *m_unit;
-    QToolButton *m_dateChip, *m_peakChip;
+    QToolButton *m_dateChip, *m_peakChip, *m_filterButton;
     QWidget *m_chips;
-    QLabel *m_error;
+    QLabel *m_error, *m_unitText;
     bool m_period = true;
 };
 } // namespace aster::ui

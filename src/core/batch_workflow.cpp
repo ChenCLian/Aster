@@ -264,7 +264,7 @@ BatchPlanResult prepareBatch(std::shared_ptr<const RunSnapshot> workflow, NodeId
             continue;
         }
         if (pairedAncestor.value(parent)) {
-            reject(idText(id), "Grouping outputs of a prior pair is not supported in this batch version"); return out;
+            reject(idText(id), "Grouping outputs of a prior pair is not supported"); return out;
         }
         if (grouping.value(id).isEmpty()) { reject(idText(id), "Configure at least one complete input pair"); return out; }
         QMap<QUuid, qsizetype> upstream;

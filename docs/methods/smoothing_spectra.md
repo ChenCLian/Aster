@@ -2,7 +2,7 @@
 
 平滑任务的选择、端点与输出见[平滑与去趋势](smoothing_trends.md)。
 
-本文保留相关任务的计算约定。使用步骤、参数选择和常见问题见[FFT、Welch 与演化功率谱](power_spectra.md)，共用定义见[窗口、FFT 与频谱显示](../concepts/spectral_parameters.md)。当前版本检查范围见[当前验证](../validation_current.md)；[历史验证](../validation.md)不代表所有新任务都已在该批次测试。
+本文保留相关任务的计算约定。使用步骤、参数选择和常见问题见[FFT、Welch 与演化功率谱](power_spectra.md)，共用定义见[窗口、FFT 与频谱显示](../concepts/spectral_parameters.md)。当前版本检查范围见[当前验证](../validation_current.md)。
 
 ## 四项任务与默认值
 

@@ -37,15 +37,15 @@ void execute(QSqlDatabase &db, const QString &sql)
     QSqlQuery q(db);
     queryExec(q, sql);
 }
-SqliteFile::SqliteFile(const QString &path, bool readOnly)
+SqliteFile::SqliteFile(const QString &path, bool readOnly, int busyTimeoutMs)
     : m_name("aster_transfer_" + QUuid::createUuid().toString(QUuid::WithoutBraces))
 {
     require(path == ":memory:" || QFileInfo(path).isFile(),
             "Database file does not exist: " + path);
     db = QSqlDatabase::addDatabase("QSQLITE", m_name);
     db.setDatabaseName(path);
-    db.setConnectOptions(readOnly ? "QSQLITE_OPEN_READONLY;QSQLITE_BUSY_TIMEOUT=5000"
-                                  : "QSQLITE_BUSY_TIMEOUT=5000");
+    const auto timeout = QStringLiteral("QSQLITE_BUSY_TIMEOUT=%1").arg(busyTimeoutMs);
+    db.setConnectOptions(readOnly ? QStringLiteral("QSQLITE_OPEN_READONLY;") + timeout : timeout);
     // A throwing constructor must release its named connection explicitly.
     try
     {

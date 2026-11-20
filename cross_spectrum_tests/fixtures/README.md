@@ -2,7 +2,7 @@
 
 The application does not require Python, NumPy or SciPy. These files support independent numerical regression checks.
 
-- `generate_reference.py` / `scipy_reference.json`: synthetic cases (existing alpha.2 evidence).
+- `generate_reference.py` / `scipy_reference.json`: synthetic Welch cross-spectrum cases.
 - `generate_real_reference.py` / `real_reference.json`: eight configurations using the attributed ODP tables in `resources/examples/`. Source SHA256 values, citations, DOI, licenses and chronology descriptions are included in the fixture. Reproduction used NumPy 2.3.5 and SciPy 1.17.0.
 
 Run a generator from a Python environment containing those validation dependencies. It writes the corresponding JSON beside itself. The real-data generator verifies source hashes before reading the tables.
@@ -26,4 +26,4 @@ The four parameter sets per pair cover periodic Hann and rectangular windows, no
 
 SciPy's raw reference rows are retained without rewriting. Rectangular-window detrending removes the segment mean (linear detrending includes an intercept), so DC should be exactly zero in real arithmetic. Tiny floating-point residuals can produce arbitrary coherence and phase at this bin. Aster method version 2 sets only this structurally zero DC bin to zero and marks coherence/phase undefined. Tests compare its near-zero density values with spectral tolerances and verify undefined masks instead of comparing ratios of SciPy's roundoff. Separate tests cover both detrending modes and padded/unpadded FFTs; Hann and undetrended rectangular DC remain unmodified.
 
-This validation does not establish statistical significance, causal lead/lag, or astronomical forcing. Published tuned age models are not independent astronomical evidence. See the versioned validation records under `docs/validation_results/` for tolerances, environments and limits.
+This validation does not establish statistical significance, causal lead/lag, or astronomical forcing. Published tuned age models are not independent astronomical evidence. Numerical tolerances are defined in `cross_spectrum_tests/cross_spectrum_tests.cpp`. The [validation summary](../../docs/validation_current.md) records the test environment.

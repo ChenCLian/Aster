@@ -203,21 +203,21 @@ def plan(root, new, notes):
         'previous_record': previous, 'scope': 'No build or application test is performed by update_version.py.'}), True)
     add(prefix + '/documentation_checks.json', json_bytes({'version': new, 'documentation': {
         'status': 'version_sync_only', 'content_rewritten': False,
-        'scope': 'Mechanical version synchronization only; release notes supplied by maintainer.'}}), True)
+        'scope': 'Document versions synchronized. Content review pending.'}}), True)
     add('docs/validation_current.md', f'''# Aster {new} 验证范围
 
 [本版记录](validation_results/{new}/checks.json) · [文档记录](validation_results/{new}/documentation_checks.json)
 
-本版已同步版本号，尚未完成构建与应用回归。版本更新脚本不执行测试，也不将旧版本的通过结果视为本版证据。
+构建与应用回归状态待验证。
 
-上一个版本的记录见[历史验证]({posixpath.relpath(previous, 'docs')})。完成相应检查后，在本版记录中填写实际范围、结果和未覆盖项。
+上一个版本的记录见[历史验证]({posixpath.relpath(previous, 'docs')})。
 ''')
     if (root / 'REVIEW_CN.md').is_file():
         add('REVIEW_CN.md', f'''# Aster {new} 更新说明
 
-本次发布内容见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。常规文档仅同步版本号，正文沿用。
+更新内容见[发布说明](RELEASE_NOTES.md)。
 
-构建与验证状态见[本版验证范围](docs/validation_current.md)。版本脚本不代替编译、测试或人工文档补充。
+构建与测试结果见[本版验证范围](docs/validation_current.md)。
 ''')
     return list(changes.values())
 

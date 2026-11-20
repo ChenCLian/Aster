@@ -95,7 +95,7 @@ RunId 是运行标识，与数据库自增 ID 分开管理。SaveReceipt 关联 
 
 ## 桌面适配
 
-WorkflowDocument 持有 WorkflowEditor，并在完整提交后通知界面；WorkflowCanvas 只处理绘制和命中。目录与参数面板读取注册描述；RunController 将普通请求交给 BatchRunner、联合批次交给 runJointBatch，并排队发送事件；ResultsPage 按 ID 读取步骤，PlotView 适配 typed 数据。工作流格式仍为 1、数据库结构仍为 3；新增掩码表采用载荷 v2，旧版 1.1.1 无法读取这种载荷，不能据此声明双向兼容。
+WorkflowDocument 持有 WorkflowEditor，并在完整提交后通知界面；WorkflowCanvas 只处理绘制和命中。目录与参数面板读取注册描述；RunController 将普通请求交给 BatchRunner、联合批次交给 runJointBatch，并排队发送事件；ResultsPage 按 ID 读取步骤，PlotView 适配 typed 数据。工作流快照的版本由节点绑定和参数差异决定，数据库结构为 3；新增掩码表采用载荷 v2，旧版 1.1.1 无法读取这种载荷，不能据此声明双向兼容。
 
 具体文件所有权、传输、布局及后续扩展边界见 [开发清单](Aster_development_checklist.md)。新的编辑行为仍须先成为核心的原子命令，不能只在图形项里改连接。
 
@@ -119,7 +119,7 @@ ODP 示例由 `io/examples/example_catalog` 校验并按需读取嵌入的原始
 
 ## 联合输入的显式来源
 
-普通节点保留单父节点树结构。联合节点通过独立的 `BatchGrouping` 引用两份实际输出；`BatchSeriesRef` 的可选节点 UUID 与数据 UUID、端口共同定位来源。无显式节点的配置保持格式 1，含显式节点时为格式 2；工作流定义 JSON 仍为格式 1。
+普通节点保留单父节点树结构。联合节点通过独立的 `BatchGrouping` 引用两份实际输出；`BatchSeriesRef` 的可选节点 UUID 与数据 UUID、端口共同定位来源。无显式节点的配置保持格式 1，含显式节点时为格式 2。分组格式与工作流快照格式独立。
 
 “管理配对”支持同工作区内普通支路、不同源根节点的关联。来源选择器按节点、数据和输出两步选择；画布只显示当前预览配对的 A/B 引用线，原树连接保留为布局关系。只允许不含联合节点祖先的普通路径作为来源，选择不由画布的上下左右位置决定，排除联合节点及其后继，防止循环和再次配对。关联根任务合并为冻结计划，生产者只执行一次；双输入预览和保存均读取计划中的真实依赖。详情见[联合分析执行约定](development/batch_joint_analysis.md)。
 

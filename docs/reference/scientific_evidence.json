@@ -1,5 +1,5 @@
 {
-  "scope": "Archived scientific evidence. Each section retains its original tested version, references and scope. Current development validation is selected by PACKAGE_STATUS.json. docs/validation.json retains the 1.1.1 build and regression archive.",
+  "scope": "Scientific reference results with the original method versions, inputs, comparison metrics and environments. PACKAGE_STATUS.json identifies the current application regression record.",
   "acycle_sources": {
     "reference_archive": "Acycle_3.1.1.zip",
     "sha256": "7c34258597734fdee61e6c183177ce8573f0a3312809c7203cb382939a63e6fd",
@@ -69,15 +69,14 @@
     "original_cwt_approximate_quantile_comparisons_passed": false,
     "unexplained_discrepancies": 0,
     "scope": "Direct MTM/AR1/SWA and CWT comparisons for the 19 specified fixtures; does not directly test Acycle FDR lookup tables, all algorithms, all inputs, or empirical false-positive calibration.",
-    "source_report": "docs/matlab_followup/received_report_beta12.json",
+    "source_report": "received_report_beta12.json",
     "source_report_status": "Historical source report is not bundled; this section retains its summary and SHA-256.",
     "source_report_sha256": "694f2ed6f65d38b8badb66ee5b51e25cda0608ac44c29d9ad92ce19c4d1f612d",
     "original_tolerance_comparisons_passed": 121,
     "documented_approximate_quantile_comparisons": 12,
     "tolerances_relaxed": false,
     "error_metric": "max(abs(actual-reference))/max(abs(reference)); not maximum pointwise relative error",
-    "source_audit_matlab_execution": false,
-    "production_code_changed_for_receipt": false
+    "source_audit_matlab_execution": false
   },
   "nominal_mtm_statistical_summary": {
     "scope": "Actual Aster beta.12 MTM v4 with full-spectrum convergence; not MATLAB statistical simulation results",
@@ -960,13 +959,13 @@
     }
   },
   "filter_reference": {
-    "origin": "User-supplied Acycle_3.1.1.zip; corrected-bandpass-v2, not assumed unmodified upstream Acycle",
+    "origin": "Acycle_3.1.1.zip, corrected-bandpass-v2 variant. The comparison refers to this specific implementation.",
     "files": {
       "acycleBandpassFilter.m": "0fd4683086d4f884685d3bb5a9c18336cb276c43d187c75aa8990485c209b292",
       "gaussfilter.m": "2288d52696fcc2327f6dfd3e66408af51165d6f8846ad88dd0ebab2fbadfae99",
       "tanerhilbertML.m": "f24b2db5dfd0b4af7cdabf23ad8f6b5783f7c6dfbd465043ca7e20c60cc5638b"
     },
-    "matlab_run_this_recovery": false,
+    "matlab_comparison_performed": false,
     "review": "Actual reference formula/normalization/endpoints inspected; 12 independent DFT fixture cases and analytical properties tested in C++"
   },
   "coco_calibration_debug": {

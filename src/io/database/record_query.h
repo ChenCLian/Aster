@@ -24,6 +24,11 @@ inline QString peakConditions(const RecordFilter &f, QVariantList &values)
 }
 inline QString recordConditions(const RecordFilter &filter, QVariantList &values)
 {
+    if (const auto id = filter.exactRecordId()) {
+        if (*id == 0) return " AND 0";
+        values << *id;
+        return " AND r.id=?";
+    }
     QString sql;
     if (!filter.text.isEmpty())
     {

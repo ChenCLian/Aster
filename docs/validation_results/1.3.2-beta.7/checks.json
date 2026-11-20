@@ -28,7 +28,6 @@
       "synthetic_spectrum_samples": 10001,
       "peak_table_rows": 5000,
       "filter": "Peak period <= 1, compared in the selected unit",
-      "previous_tooltip_lines": 4903,
       "older_database": "Repeated the plot-range and complete CSV export checks on the database written by beta.6 without rerunning the workflow.",
       "checks": [
         "Peak lookup still filters the directory",
@@ -58,7 +57,8 @@
     "python_tests_skipped": 1,
     "skip_reason": "Homebrew Ruby unavailable on Linux",
     "help_tests_run": 8,
-    "bundled_resource_hashes": 15
+    "bundled_resource_hashes": 15,
+    "orbital_data_tool_tests": 4
   },
   "not_run": [
     "Native Windows and macOS builds and desktop tests",

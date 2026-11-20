@@ -1,6 +1,6 @@
 """Independent numeric fixtures: mpmath 80-digit equations + SciPy peak locations.
 Waltham 2015, doi:10.2110/jsr.2015.66; calculator conventions checked against
-user-supplied Acycle MilankovitchCal.m. No MATLAB runtime is used here.
+Acycle MilankovitchCal.m. The reference values are computed in Python.
 This file is a validation tool, not a production dependency.
 """
 from pathlib import Path

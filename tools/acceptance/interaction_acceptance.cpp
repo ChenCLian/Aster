@@ -115,11 +115,26 @@ void Acceptance::resultScreenMatrix(){
  auto* host=page.workspace()->findChild<PlotLayoutWidget*>();QVERIFY(host);QCOMPARE(host->snapshot().order().size(),3);
  QVERIFY(host->snapshot().regions().value(host->snapshot().order().last()).width()>.99);
  auto* step=page.findChild<QTableWidget*>("resultSteps");QVERIFY(step);
- QTest::mouseClick(step->viewport(),Qt::LeftButton,Qt::NoModifier,step->visualItemRect(step->item(1,1)).center());QVERIFY(waitPlots(*page.workspace()));
  auto* outputs=page.findChild<QTableView*>("resultOutputs");QVERIFY(outputs);
  auto* model=qobject_cast<QStandardItemModel*>(outputs->model());QVERIFY(model);
+ page.selectStep(0,false);
+ auto* hint=page.findChild<QLabel*>("outputSelectionHint");QVERIFY(hint);
+ QTRY_VERIFY(hint->isVisible());QCOMPARE(model->rowCount(),1);
+ const QString variant=QString("%1-%2-%3").arg(language,theme).arg(size.width());
+ capture(page,"results-one-output-"+variant);
+ const QRect row=outputs->visualRect(model->index(0,0));
+ QTest::mouseClick(outputs->viewport(),Qt::LeftButton,Qt::NoModifier,{row.right()-8,row.center().y()});
+ QCOMPARE(page.checkedOutputs().size(),1);QVERIFY(!hint->isVisible());
+ auto* review=page.findChild<QToolButton*>("inspectCheckedOutputs");QVERIFY(review);
+ auto* add=page.findChild<QPushButton*>("plotCheckedOutputs");QVERIFY(add);
+ QTRY_VERIFY(review->isVisible()&&review->width()>=review->sizeHint().width());
+ QTRY_VERIFY(add->width()>=add->sizeHint().width());
+ capture(page,"results-one-selected-"+variant);
+ QTest::mouseClick(outputs->viewport(),Qt::LeftButton,Qt::ControlModifier,row.center());
+ QVERIFY(page.checkedOutputs().isEmpty());
+ QTest::mouseClick(step->viewport(),Qt::LeftButton,Qt::NoModifier,step->visualItemRect(step->item(1,1)).center());QVERIFY(waitPlots(*page.workspace()));
  outputs->selectAll();QCOMPARE(page.checkedOutputs().size(),model->rowCount());
- auto* add=page.findChild<QPushButton*>("plotCheckedOutputs");auto* overlay=page.findChild<QPushButton*>("overlayCheckedOutputs");QVERIFY(add);QVERIFY(overlay);
+ auto* overlay=page.findChild<QPushButton*>("overlayCheckedOutputs");QVERIFY(overlay);
  auto* destination=page.findChild<QLabel*>("plotDestination");QVERIFY(destination);
  QTest::qWait(80); // Text changes post a Qt layout request; inspect after event delivery.
  capture(page,QString("results-precheck-%1-%2-%3").arg(language,theme).arg(size.width()));
@@ -130,7 +145,10 @@ void Acceptance::resultScreenMatrix(){
  inspector->setCurrentIndex(0);QTest::qWait(80);
  capture(page,QString("results-%1-%2-%3").arg(language,theme).arg(size.width()));
  auto* toggle=page.findChild<QToolButton*>("toggleResultOutputs");QVERIFY(toggle);QTest::mouseClick(toggle,Qt::LeftButton);QTest::qWait(60);QTest::mouseClick(toggle,Qt::LeftButton);QTest::qWait(60);QVERIFY(add->isVisible());
- page.resize(1024,700);QTest::qWait(80);QVERIFY(waitPlots(*page.workspace()));capture(page,QString("results-narrow-%1-%2-%3").arg(language,theme).arg(size.width()));
+ page.resize(1024,700);QTest::qWait(80);QVERIFY(waitPlots(*page.workspace()));
+ QVERIFY(outputs->viewport()->height()>=3*outputs->rowHeight(0));
+ QVERIFY(review->width()>=review->sizeHint().width());
+ capture(page,QString("results-narrow-%1-%2-%3").arg(language,theme).arg(size.width()));
  for(auto*view:page.workspace()->findChildren<PlotView*>())if(view->isVisible()&&view->hasPlot()){
   auto*plot=view->plotWidget();if(!plot->legend->visible()||!plot->legend->itemCount())continue;
   QVERIFY2(plot->axisRect()->rect().contains(plot->legend->outerRect()),qPrintable(QString("axes=%1,%2 %3x%4 legend=%5,%6 %7x%8 minimum=%9x%10").arg(plot->axisRect()->rect().x()).arg(plot->axisRect()->rect().y()).arg(plot->axisRect()->rect().width()).arg(plot->axisRect()->rect().height()).arg(plot->legend->outerRect().x()).arg(plot->legend->outerRect().y()).arg(plot->legend->outerRect().width()).arg(plot->legend->outerRect().height()).arg(view->minimumWidth()).arg(view->minimumHeight())));

@@ -66,7 +66,7 @@ Read a common explanation here; task guides describe differences specific to eac
 
 - [Input, preview, analysis and startup problems](USER_GUIDE_EN.md#troubleshooting).
 - [System-specific FAQ (Chinese)](../FAQ.md).
-- [Current validation scope (Chinese)](validation_current.md). Historical test results are not new test runs for the current version.
+- [Current validation scope (Chinese)](validation_current.md).
 
 <a id="about"></a>
 ## 5. About and attribution
@@ -75,6 +75,6 @@ Read a common explanation here; task guides describe differences specific to eac
 - [License terms](../LICENSE), [third-party sources (Chinese)](third_party.md).
 - [Release notes (Chinese)](../RELEASE_NOTES.md).
 - [Technical method definitions and sources (Chinese index)](methods/README.md).
-- [Build, maintenance and historical documents (Chinese index)](README.md#开发与维护).
+- [Build and maintenance (Chinese index)](README.md#开发与维护).
 
-The revised task guides and shared concepts are bilingual. Some technical definitions, development pages and platform troubleshooting remain in Chinese and are labelled accordingly; they are not silently presented as English translations.
+The task guides and shared concepts are bilingual. Some technical definitions, development pages and platform troubleshooting remain in Chinese and are labelled accordingly; they are not silently presented as English translations.

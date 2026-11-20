@@ -18,7 +18,7 @@ The output is the depth–age curve `age_model`. A zero rate cannot encode a hia
 <a id="apply"></a>
 ## Apply age model
 
-The main input is a depth–proxy series. Select the age-control table in the file parameter; it is not connected through a second paired input port.
+For an existing model node, use [connected controls](#linked-controls). To date a depth-domain proxy from an external control-point table, use the file-based task below.
 
 1. Select the control file and check delimiter, header and depth/age columns; defaults are columns 1 and 2.
 2. Declare input depth units, control depth units, control age units and age reference. Units are not inferred from column headings.

@@ -66,4 +66,4 @@ La2004 与 La2010 的随附 README 记录了作者、版权和使用方法，但
 
 ## 更新下载解压依赖
 
-完整包解压使用系统或包管理器提供的 [libarchive](https://www.libarchive.org/)，不复制第三方源码进应用目录。各发行包须随实际 libarchive 及其压缩依赖收集版权、许可和对应来源；Windows 使用 vcpkg，macOS 使用 Homebrew，Linux 使用发行版依赖记录。已同步构建配置、部署依赖路径和通知收集入口，原生打包验收仍需执行。
+完整包解压使用系统或包管理器提供的 [libarchive](https://www.libarchive.org/)，不复制第三方源码进应用目录。各发行包须随实际 libarchive 及其压缩依赖收集版权、许可和对应来源；Windows 使用 vcpkg，macOS 使用 Homebrew，Linux 使用发行版依赖记录。

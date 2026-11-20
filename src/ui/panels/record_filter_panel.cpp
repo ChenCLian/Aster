@@ -32,7 +32,7 @@ double limitValue(const QLineEdit *edit)
 }
 QString unitLabel(const QString &unit, bool period)
 {
-    if (unit.isEmpty()) return text("ui.unknown_unit_only");
+    if (unit.isEmpty()) return text("ui.undeclared_peak_unit");
     if (!period) return unit;
     const auto derived = periodUnitForFrequency(unit);
     return derived.isEmpty() ? "1/(" + unit + ")" : derived;
@@ -47,12 +47,15 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
     m_text = new QLineEdit;
     m_text->setObjectName("recordSearch");
     m_text->setPlaceholderText(text("ui.name_path_notes"));
+    m_text->setAccessibleName(text("ui.name_path_notes"));
+    m_text->setAccessibleDescription(text("ui.record_search_help"));
+    m_text->setToolTip(text("ui.record_search_help"));
     m_text->setClearButtonEnabled(true);
     searchRow->addWidget(m_text, 1);
-    auto *toggle = new QToolButton;
-    toggle->setObjectName("recordFilterButton");
-    toggle->setText(text("ui.record_filters"));
-    searchRow->addWidget(toggle);
+    m_filterButton = new QToolButton;
+    m_filterButton->setObjectName("recordFilterButton");
+    m_filterButton->setText(text("ui.record_filters"));
+    searchRow->addWidget(m_filterButton);
     layout->addLayout(searchRow);
     m_chips = new QWidget;
     auto *chips = new QHBoxLayout(m_chips);
@@ -107,18 +110,25 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
         combo->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
         combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     }
+    m_unit->setAccessibleName(text("ui.peak_bounds_unit"));
+    m_unit->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    m_unit->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    m_unit->setMaximumWidth(120);
+    m_unitText = new QLabel;
+    m_unitText->setTextFormat(Qt::PlainText);
+    m_unitText->setObjectName("peakRangeUnit");
+    m_unitText->setMaximumWidth(120);
+    m_unitText->hide();
+    m_unit->hide();
+    range->addWidget(m_unitText);
+    range->addWidget(m_unit);
     form->addRow(text("ui.date"), m_date);
     form->addRow(text("ui.peak_bounds_axis"), m_axis);
     form->addRow(text("ui.peak_bounds_range"), range);
-    form->addRow(text("ui.peak_bounds_unit"), m_unit);
     m_error = new QLabel;
     m_error->setObjectName("filterValidation");
     m_error->setWordWrap(true);
     form->addRow(m_error);
-    auto *lookup = new QLineEdit;
-    lookup->setObjectName("recordIdLookup");
-    lookup->setPlaceholderText(text("ui.record_id_then_enter"));
-    form->addRow(text("ui.open_record_id"), lookup);
     auto *scroll = new QScrollArea;
     scroll->setFrameShape(QFrame::NoFrame);
     scroll->setWidgetResizable(true);
@@ -133,23 +143,23 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
     actions->addWidget(done);
     popupLayout->addLayout(actions);
     connect(done, &QPushButton::clicked, panel, &QDialog::accept);
-    connect(toggle, &QToolButton::clicked, this, [this, panel, toggle, body] {
+    connect(m_filterButton, &QToolButton::clicked, this, [this, panel, body] {
         panel->ensurePolished();
-        const QRect anchor(toggle->mapToGlobal(QPoint()), toggle->size());
+        const QRect anchor(m_filterButton->mapToGlobal(QPoint()), m_filterButton->size());
         const auto size = QSize(370, body->sizeHint().height() + 76);
         panel->setGeometry(popupGeometry(size, anchor, popupBounds(this, anchor)));
         panel->show();
         m_axis->setFocus();
     });
-    connect(lookup, &QLineEdit::returnPressed, this, [this, lookup, panel] {
-        bool ok = false;
-        const auto id = lookup->text().trimmed().toLongLong(&ok);
-        if (ok && id > 0) { panel->accept(); emit openRecord(id); }
-        else { m_error->setText(text("ui.enter_a_valid_record_id")); m_error->show(); }
-    });
     auto *timer = new QTimer(this);
     timer->setSingleShot(true);
     timer->setInterval(250);
+    connect(m_text, &QLineEdit::returnPressed, this, [this, timer] {
+        if (const auto id = filter().exactRecordId()) {
+            timer->stop();
+            emit idSubmitted(*id);
+        }
+    });
     const auto edit = [this, timer] { updateSummary(); emit editing(); timer->start(); };
     for (auto *field : {m_text, m_min, m_max}) connect(field, &QLineEdit::textChanged, this, edit);
     for (auto *combo : {m_date, m_unit}) connect(combo, &QComboBox::currentIndexChanged, this, edit);
@@ -170,25 +180,23 @@ RecordFilterPanel::RecordFilterPanel(QWidget *parent) : QWidget(parent)
         m_period = index == 1;
         { QSignalBlocker a(m_min), b(m_max);
           m_min->setText(convert(upper)); m_max->setText(convert(lower)); }
-        { QSignalBlocker block(m_unit);
-          for (int i = 0; i < m_unit->count(); ++i)
-              m_unit->setItemText(i, unitLabel(m_unit->itemData(i).toString(), m_period)); }
+        updateUnitLabels();
         edit();
     });
     connect(timer, &QTimer::timeout, this, &RecordFilterPanel::changed);
     connect(m_dateChip, &QToolButton::clicked, this, [this] { m_date->setCurrentIndex(0); });
     connect(m_peakChip, &QToolButton::clicked, this, [this] { m_min->clear(); m_max->clear(); });
-    connect(reset, &QPushButton::clicked, this, [this, lookup] {
+    connect(reset, &QPushButton::clicked, this, [this] {
         m_text->clear(); m_min->clear(); m_max->clear(); m_date->setCurrentIndex(0);
-        m_unit->setCurrentIndex(0); m_axis->setCurrentIndex(1); lookup->clear(); updateSummary();
+        m_unit->setCurrentIndex(0); m_axis->setCurrentIndex(1); updateSummary();
     });
-    setUnits({});
     updateSummary();
 }
 RecordFilter RecordFilterPanel::filter() const
 {
     RecordFilter f;
     f.text = m_text->text().trimmed();
+    if (f.exactRecordId()) return f;
     if (m_date->currentIndex() == 1) f.since = QDate::currentDate().startOfDay();
     if (m_date->currentIndex() == 2) f.since = QDateTime::currentDateTime().addDays(-7);
     const double low = limitValue(m_min), high = limitValue(m_max);
@@ -200,8 +208,11 @@ RecordFilter RecordFilterPanel::filter() const
 void RecordFilterPanel::updateSummary()
 {
     const auto f = filter();
-    const bool date = m_date->currentIndex() != 0;
-    const bool peak = !m_min->text().trimmed().isEmpty() || !m_max->text().trimmed().isEmpty();
+    const bool byId = f.exactRecordId().has_value();
+    m_unit->setToolTip(m_unit->currentText());
+    m_filterButton->setEnabled(!byId);
+    const bool date = !byId && m_date->currentIndex() != 0;
+    const bool peak = !byId && (!m_min->text().trimmed().isEmpty() || !m_max->text().trimmed().isEmpty());
     const bool invalid = !f.validate().isEmpty();
     m_error->setText(text(m_period ? "ui.invalid_period_range" : "ui.invalid_frequency_range"));
     m_error->setVisible(invalid);
@@ -222,16 +233,35 @@ void RecordFilterPanel::updateSummary()
     chip(m_peakChip, m_axis->currentText() + " " + range);
     m_dateChip->setVisible(date); m_peakChip->setVisible(peak); m_chips->setVisible(date || peak);
 }
-void RecordFilterPanel::setUnits(const QStringList &units)
+void RecordFilterPanel::updateUnitLabels()
 {
     const QSignalBlocker block(m_unit);
+    for (int i = 0; i < m_unit->count(); ++i)
+        m_unit->setItemText(i, unitLabel(m_unit->itemData(i).toString(), m_period));
+    m_unit->setVisible(m_unit->count() > 1);
+    const bool single = m_unit->count() == 1 && !m_unit->currentData().toString().isEmpty();
+    const auto label = m_unit->currentText();
+    m_unitText->setText(m_unitText->fontMetrics().elidedText(label, Qt::ElideMiddle, m_unitText->maximumWidth()));
+    m_unitText->setToolTip(label);
+    m_unitText->setVisible(single);
+}
+
+bool RecordFilterPanel::setUnits(const QStringList &units)
+{
+    QStringList previous;
+    for (int i = 0; i < m_unit->count(); ++i)
+        previous.append(m_unit->itemData(i).toString());
+    if (previous == units) return false;
+
     const auto selected = m_unit->currentData().toString();
+    const QSignalBlocker block(m_unit);
     m_unit->clear();
-    m_unit->addItem(unitLabel({}, m_period), QString(""));
     for (const auto &unit : units)
-        if (!unit.isEmpty()) m_unit->addItem(unitLabel(unit, m_period), unit);
-    if (!selected.isEmpty() && m_unit->findData(selected) < 0)
-        m_unit->addItem(unitLabel(selected, m_period), selected);
-    m_unit->setCurrentIndex(qMax(0, m_unit->findData(selected)));
+        m_unit->addItem(unitLabel(unit, m_period), unit);
+    const int index = units.indexOf(selected);
+    if (index >= 0) m_unit->setCurrentIndex(index);
+    updateUnitLabels();
+    updateSummary();
+    return selected != m_unit->currentData().toString() && filter().hasFrequency();
 }
 } // namespace aster::ui

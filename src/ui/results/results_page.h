@@ -131,7 +131,8 @@ class ResultsPage : public QWidget
     QTableWidget *m_steps;
     PlotView *m_plot;
     QLabel *m_title;
-    QLabel *m_subtitle;
+    QString m_stepName;
+    QLabel *m_outputsHeading, *m_selectionHint;
     QLabel *m_stepNotice;
     QPushButton *m_errorDetailsButton;
     QLabel *m_plotTarget;

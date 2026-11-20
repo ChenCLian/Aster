@@ -9,6 +9,18 @@
 #include <cmath>
 namespace aster
 {
+std::optional<qint64> RecordFilter::exactRecordId() const
+{
+    const QStringView query = QStringView(text).trimmed();
+    if (query.size() < 2 || !query.startsWith(u'#')) return std::nullopt;
+    const auto digits = query.sliced(1);
+    for (const auto c : digits)
+        if (c < u'0' || c > u'9') return std::nullopt;
+    bool ok = false;
+    const qint64 id = digits.toLongLong(&ok);
+    return ok ? id : 0;
+}
+
 QString RecordFilter::validate() const
 {
     for (double v : {minFrequency, maxFrequency})

@@ -14,7 +14,7 @@ Python 3.10+ 即可运行，无需额外依赖。在源码根目录执行：
 python tools/release/update_version.py <新版本号> --notes "修复少量情况下的界面刷新问题。"
 ```
 
-只输入一次完整版本号（不带 `v`）。脚本将更新 `VERSION`、当前文档中的版本标识、打包示例和 `PACKAGE_STATUS.json`；README、FAQ、使用手册的正文沿用。`RELEASE_NOTES.md` 重新生成标题并使用你提供的一句说明，小修复无需写成长篇。上一版发布说明及其中引用的更新审查归档到 `docs/history/releases/<旧版本>/`。
+版本号不带 `v`。脚本同步 `VERSION`、文档版本标识、打包示例和 `PACKAGE_STATUS.json`。`--notes` 指定 `RELEASE_NOTES.md` 的正文。上一版发布说明归档到 `docs/history/releases/<旧版本>/`。
 
 先看修改范围、再执行也可以：
 
@@ -98,7 +98,7 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 Markdown 本身不能执行“判断当前域名”的脚本。仓库文档统一使用相对路径，如 `[快速开始](../QUICK_START.md)`，本地、GitHub 和 Gitee 会按当前文件位置解析。内置手册也读取同一组 Markdown，并在软件内跳转。
 
-Gitee 首次创建公告时沿用 GitHub 已发布的正文，保留你在草稿中的手动修改。程序下载地址指向各平台的发行页，源码和文档链接统一指向 GitHub 构建标签。外部参考、其他仓库及历史固定标签链接保留原地址。
+Gitee 首次创建公告时沿用 GitHub 已发布的正文，保留草稿中手动编辑的内容。程序下载地址指向各平台的发行页，源码和文档链接统一指向 GitHub 构建标签。外部参考、其他仓库及历史固定标签链接保留原地址。
 
 ```bash
 python tools/release/document_links.py --write-manifest
@@ -241,7 +241,7 @@ Windows 文档由 `package_windows.ps1` 收集；macOS/Linux 使用 `stage_notic
 
 测试环境应尽量独立于开发机的 Qt、vcpkg 或 Homebrew 搜索路径。无窗口 CLI 检查和 WSL 图形测试不能替代目标原生桌面的全部验收。
 
-[当前验证入口](validation_current.md) 汇总当前功能、数值与文档检查，`PACKAGE_STATUS.json` 引用对应记录。`validation.md`、`validation.json` 和 `validation_results/release/` 保留 1.1.1 历史证据，不能作为当前版本的完整验收声明。更新源码后按影响范围重新验证并同步记录。未受影响的既有验证可保留，但须单独标明来源、环境和范围，不能计入本次新运行数量；被修改的功能不能沿用旧的通过声明。科学参照的适用范围见 [验证证据](reference/scientific_evidence.json)。
+[当前验证入口](validation_current.md)列出构建环境、检查范围和结果，`PACKAGE_STATUS.json` 指向对应记录。科学方法的对照版本、数值误差和适用范围见[科学验证与来源](reference/scientific_evidence.json)。
 
 ## 许可与对应源码
 
@@ -329,6 +329,5 @@ GitHub 为 Release 附件记录 SHA-256 摘要，可通过附件 API 的 `digest
 - [Qt macOS 部署](https://doc.qt.io/qt-6/macos-deployment.html)
 - [Apple 应用公证](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
 - [GitHub Release 管理](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
-
 
 依赖材料跨版本复用由已发布记录和源码校验值自动决定，详见[自动清单](dependency_materials_zh.md#跨版本复用与自动清单)。新增依赖后同时核对构建配置、Actions 安装命令、第三方说明和生成的清单。Actions 的 `check_only` 允许测试 alpha；打包、草稿和更新渠道只接受正式版或 beta。回归运行器每 15 秒输出当前程序的等待时间及最近日志，超时上限按单个测试可执行文件计算。

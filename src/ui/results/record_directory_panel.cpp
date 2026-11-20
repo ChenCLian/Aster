@@ -66,8 +66,17 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     heading->addWidget(m_database);
     layout->addLayout(heading);
     m_filters = new RecordFilterPanel;
-    connect(m_filters, &RecordFilterPanel::openRecord, this, &RecordDirectoryPanel::recordActivated);
+    connect(m_filters, &RecordFilterPanel::idSubmitted, this, [this](qint64 id) {
+        m_openAfterSearch = id;
+        refresh();
+    });
     layout->addWidget(m_filters);
+    m_noMatch = new QLabel;
+    m_noMatch->setObjectName("recordLookupEmpty");
+    m_noMatch->setTextFormat(Qt::PlainText);
+    m_noMatch->setWordWrap(true);
+    m_noMatch->hide();
+    layout->addWidget(m_noMatch);
     m_list = new QListWidget;
     m_list->setObjectName("resultRecords");
     m_list->setUniformItemSizes(true);
@@ -187,6 +196,8 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
     connect(m_filters, &RecordFilterPanel::editing, this,
             [this]
             {
+                m_openAfterSearch = -1;
+                m_noMatch->hide();
                 m_filterPending = true;
                 m_service->invalidate();
                 m_hasMore = false;
@@ -308,8 +319,10 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                     --m_matching;
                 updateActions();
             });
-    connect(m_list, &QListWidget::itemClicked, this, [this](QListWidgetItem *item)
-            { emit recordActivated(item->data(RecordRole::Id).toLongLong()); });
+    connect(m_list, &QListWidget::itemClicked, this, [this](QListWidgetItem *item) {
+        if (!m_filterPending && !m_pagePending && m_filterValid)
+            emit recordActivated(item->data(RecordRole::Id).toLongLong());
+    });
     connect(m_list->verticalScrollBar(), &QScrollBar::valueChanged, this,
             &RecordDirectoryPanel::fetchIfNeeded);
     connect(m_list, &QListWidget::customContextMenuRequested, this,
@@ -368,6 +381,8 @@ bool RecordDirectoryPanel::refreshIfIdle()
 void RecordDirectoryPanel::setDatabase(const QString &path)
 {
     m_service->resetContext();
+    m_openAfterSearch = -1;
+    m_noMatch->hide();
     m_path = path;
     m_checked.clear();
     m_matching = 0;
@@ -430,6 +445,8 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
     if (!beforeId && !selectionOnly) m_pagePending = false;
     if (!list.error.isEmpty())
     {
+        m_openAfterSearch = -1;
+        m_noMatch->hide();
         m_hasMore = false;
         m_databaseTotal = -1;
         m_filterValid = false;
@@ -443,10 +460,15 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
         updateActions();
         return;
     }
+    const auto exactId = filter().exactRecordId();
+    if (!beforeId && !exactId && m_filters->setUnits(units)) {
+        // A unit group changed while a range was active. Discard the stale page.
+        refresh();
+        return;
+    }
     const QSignalBlocker block(m_list);
     const bool updates = m_list->updatesEnabled();
     m_list->setUpdatesEnabled(false);
-    m_filters->setUnits(units);
     const qint64 focusId = m_list->currentItem()
         ? m_list->currentItem()->data(RecordRole::Id).toLongLong() : m_delegate->openedRecord();
     if (!beforeId)
@@ -476,7 +498,7 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
             item->setData(Qt::AccessibleDescriptionRole, text("ui.record_workflow_error"));
         item->setData(Qt::AccessibleTextRole, label + " · " + details + " · " + text(status.label));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        if (r.id == focusId)
+        if (r.id == focusId || exactId == r.id)
             m_list->setCurrentItem(item);
         m_cursor = r.id;
     }
@@ -489,7 +511,14 @@ void RecordDirectoryPanel::receive(RecordList list, QStringList units, qint64 be
     }
     syncChecks();
     m_list->setUpdatesEnabled(updates);
+    const bool missing = exactId && list.records.isEmpty();
+    if (missing) m_noMatch->setText(text("ui.record_id_no_match"));
+    m_noMatch->setVisible(missing);
+    const bool open = exactId && !missing && *exactId == m_openAfterSearch &&
+                      *exactId != m_delegate->openedRecord();
+    m_openAfterSearch = -1;
     updateActions();
+    if (open) emit recordActivated(*exactId);
 }
 void RecordDirectoryPanel::syncChecks()
 {

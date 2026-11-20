@@ -317,7 +317,7 @@ void WorkspaceTests::outputPanelUsesRowsAndFontMetrics()
     toggle->click(); QTest::qWait(20);
     QVERIFY(!outputs->isVisible());
     QVERIFY(toggle->height() >= toggle->sizeHint().height());
-    QVERIFY(checked->height() >= checked->sizeHint().height());
+    QVERIFY(!checked->isVisible());
     QVERIFY(split->widget(1)->height() >= toggle->sizeHint().height() + 12);
     QVERIFY(split->sizes()[0] > expanded[0]);
     QCOMPARE(split->sizes()[0] + split->sizes()[1] + split->handleWidth(), split->height());
@@ -748,10 +748,12 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
         if (action->text() == text("ui.replace_selected_subplot")) replace = action;
     QVERIFY(replace);
     const auto target = page.workspace()->currentReference().key();
-    const auto click = [outputs](int row, Qt::KeyboardModifiers keys = Qt::NoModifier, int column = 0) {
-        const auto index = outputs->model()->index(row, column);
+    const auto click = [outputs](int row, Qt::KeyboardModifiers keys = Qt::NoModifier, bool trailing = false) {
+        const auto index = outputs->model()->index(row, 0);
         outputs->scrollTo(index);
-        QTest::mouseClick(outputs->viewport(), Qt::LeftButton, keys, outputs->visualRect(index).center());
+        const auto rect = outputs->visualRect(index);
+        const auto point = trailing ? QPoint(rect.right() - 8, rect.center().y()) : rect.center();
+        QTest::mouseClick(outputs->viewport(), Qt::LeftButton, keys, point);
     };
     const auto rows = [outputs] {
         QList<int> result;
@@ -765,7 +767,16 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     QVERIFY(!outputs->model()->index(0, 0).flags().testFlag(Qt::ItemIsUserCheckable));
     QVERIFY(!add->isEnabled() && !overlay->isEnabled() && !more->isEnabled() && !replace->isEnabled());
 
-    click(0, Qt::NoModifier, 1); // The type cell selects the whole row too.
+    auto *heading = page.findChild<QLabel *>("outputListHeading");
+    auto *hint = page.findChild<QLabel *>("outputSelectionHint");
+    auto *review = page.findChild<QToolButton *>("inspectCheckedOutputs");
+    QCOMPARE(heading->text(), text("ui.available_outputs").arg(5));
+    QVERIFY(hint->isVisible() && !review->isVisible());
+    const auto first = outputs->model()->index(0, 0);
+    QVERIFY(first.data(Qt::AccessibleTextRole).toString().contains(first.siblingAtColumn(1).data().toString()));
+    click(0, Qt::NoModifier, true); // The trailing whitespace belongs to the row.
+    QVERIFY(!hint->isVisible() && review->isVisible());
+    QCOMPARE(review->text(), text("ui.review_selected_count").arg(1));
     QCOMPARE(rows(), QList<int>{0});
     QVERIFY(add->isEnabled() && overlay->isEnabled() && more->isEnabled() && replace->isEnabled());
     click(2, Qt::ControlModifier);
@@ -806,6 +817,7 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     click(0);
     click(0, Qt::ControlModifier);
     QVERIFY(page.checkedOutputs().isEmpty());
+    QVERIFY(hint->isVisible() && !review->isVisible());
     QVERIFY(!add->isEnabled() && !overlay->isEnabled() && !more->isEnabled() && !replace->isEnabled());
 }
 

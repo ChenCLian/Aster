@@ -90,5 +90,3 @@ Inference concerns one input over its predefined frequency set, not per-peak pro
 ## Archived experimental MTM AR1 test
 
 `mtm_ar1_simulation` is hidden from the task catalogue but retains its identity for historical records. Its estimated-rho approximate bootstrap is not the current AR1 global test. Independently specified rho mode cannot treat an estimate from this record as prior known information. Similar parameter names do not make the interpretations interchangeable. Read historical results with their original method version and settings. [Archived scope](statistical_limits.md#已隐藏的旧实验任务).
-
-This batch changes documentation and links, not algorithms. See [current validation](../validation_current.md).

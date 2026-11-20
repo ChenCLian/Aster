@@ -65,13 +65,13 @@ class RecordDirectoryPanel final : public QWidget
     RecordFilterPanel *m_filters;
     QListWidget *m_list;
     RecordItemDelegate *m_delegate;
-    QLabel *m_selection;
+    QLabel *m_selection, *m_noMatch;
     QToolButton *m_database;
     QProgressDialog *m_transferProgress = nullptr;
     QPushButton *m_delete, *m_selectAll, *m_selectFiltered, *m_exportNames;
     QString m_path;
     RecordIdentities m_checked;
-    qint64 m_cursor = 0, m_matching = 0, m_databaseTotal = -1, m_pressedCheck = 0;
+    qint64 m_cursor = 0, m_matching = 0, m_databaseTotal = -1, m_pressedCheck = 0, m_openAfterSearch = -1;
     bool m_busy = false, m_hasMore = false, m_filterValid = true, m_mutationsEnabled = true,
          m_filterPending = false, m_pagePending = false;
 };

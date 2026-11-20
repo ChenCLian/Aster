@@ -184,7 +184,7 @@ ValidationResult WorkflowEditor::validateBindings(const WorkflowEditState& candi
         const auto& d = registry.find(n.method)->descriptor;
         if (!n.input && !d.requiresSourceBinding) datasetIds[n.id].insert(n.id);
         if (d.pairedInput && index.pairedAbove.value(n.id)) {
-            result.add("grouping", "Grouping outputs of a prior pair is not supported in this batch version");
+            result.add("grouping", "Grouping outputs of a prior pair is not supported");
             return result;
         }
     }

@@ -4,7 +4,7 @@
 
 Butterworth 操作与输出解释见[滤波与振幅包络](filter_usage.md#butterworth)。
 
-本文说明输入、输出、数学约定与适用范围。验证批次、环境和范围见 [验证记录](../validation.md)。
+本文说明输入、输出、数学约定与适用范围。构建环境与回归范围见[当前版本验证](../validation_current.md)。
 
 ## Lomb–Scargle
 
@@ -58,6 +58,6 @@ Butterworth 操作与输出解释见[滤波与振幅包络](filter_usage.md#butt
 
 Acycle 验证快照中的 `evoplomb.m` 和 `plomb_robustar1.m` 提供两种路径：前者存在用采样间隔构造调用/频率轴的路径，后者使用实际时间轴并附加背景/阈值。本版保留原始不规则 X，采用上述独立可验证定义；不复制与归一化不同的功率数值，也不把针对其他谱尺度的 AR1/卡方阈值直接贴到 0–1 的 LS 上。该模块没有运行 MATLAB，也不宣称与 Acycle 所有调用模式逐点相同。
 
-已有 MTM 峰检测、频率索引、名义 FDR 和 CWT 行为不变。该模块未给 LS 增加数据库峰索引或显著性线；既有 MTM 频率匹配仍可用。
+结果目录使用 MTM 峰表中的频率建立索引。Lomb–Scargle 输出归一化功率谱，不生成峰索引或显著性线。
 
-实际构建、24 组独立参照、解析性质、失败恢复、预览/正式运行/数据库/导出结果见 [验证记录](../validation.md)。这些验证覆盖声明的实现与输入域，不是对任何真实信号的结论保证。
+独立数值参照见 `analysis_tests/fixtures/spectral_extension_reference.json`，同目录的 `generate_spectral_extension_reference.py` 可重新生成参照。

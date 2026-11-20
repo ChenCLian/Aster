@@ -80,7 +80,7 @@
 - [发布说明](../RELEASE_NOTES.md)。
 - [方法公式、来源和参考实现](methods/README.md)。
 
-上述修订的任务指南和公共概念提供中英文；部分方法技术定义、开发及平台排错页仍以中文提供，英文索引明确标注。内置帮助可离线阅读；外部资料和缺失章节通过在线链接访问。
+任务指南和公共概念提供中英文；部分方法技术定义、开发及平台排错页仍以中文提供，英文索引明确标注。内置帮助可离线阅读；外部资料和缺失章节通过在线链接访问。
 
 ## 开发与维护
 
@@ -94,19 +94,9 @@
 | 模块、工作流与数据传输 | [架构](architecture.md)、[预览接口](development/workflow_preview.md)、[绘图接口](development/plotting.md) |
 | 添加任务与组织分类 | [功能扩展清单](Aster_development_checklist.md)、[任务接入](add_task.md)、[任务分类](task_catalogue.md) |
 | 数值后端与错误诊断 | [数值后端](numeric_backends.md)、[错误诊断](error_diagnostics.md) |
-| 当前版本验证 | [当前验证入口](validation_current.md)：完整回归、数值参照、性能、界面及文档检查的范围与记录 |
+| 当前版本验证 | [当前验证入口](validation_current.md)：构建环境、回归范围和文档检查结果 |
 | 科学验证与来源摘要 | [科学证据](reference/scientific_evidence.json) |
 
 当前版本的验证入口由根目录 `PACKAGE_STATUS.json` 的 `validation` 字段指定。程序包的原生构建、依赖检查和发布状态按平台记录，详见[验证范围](validation_current.md)。
-
-## 历史记录
-
-历史报告和日志保留原版本、环境及测试范围，不作为当前版本新运行的测试结果。
-
-- [1.2.0-alpha.20 交互与压力验收](history/acceptance_1.2.0_alpha20.md)
-- [1.2.0-alpha.10 发布前检查](history/release_audit_1.2.0_alpha10.md)
-- [开发变更记录](development/CHANGELOG_1.2.0.md)
-- [当前文档引用的验证材料](validation_results/)
-- [1.1.1 验证说明](validation.md)及[结构化记录](validation.json)
 
 文档编写、版本同步及归档要求见[文档维护](development/documentation.md)。
