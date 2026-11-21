@@ -1,6 +1,6 @@
 # AstroBatch 常见问题
 
-适用于 AstroBatch 1.3.3-beta.1。[快速开始](QUICK_START.md) · [软件介绍](README.md)
+适用于 AstroBatch 1.3.3-beta.2。[快速开始](QUICK_START.md) · [软件介绍](README.md)
 
 ## 下载与启动
 

@@ -146,6 +146,39 @@ class OutputSelectionModel final : public QItemSelectionModel
     }
 };
 
+constexpr int outputIconSize = 16;
+
+void paintOutputIcon(QPainter &painter, QPoint origin, const QString &kind, const QColor &ink)
+{
+    painter.save();
+    painter.translate(origin);
+    painter.setPen(QPen(ink, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.setBrush(Qt::NoBrush);
+    if (kind == QStringLiteral("Series")) {
+        const QPointF points[] = {{1.5, 10.5}, {4.5, 6}, {7.5, 10}, {11, 3.5}, {14.5, 7.5}};
+        painter.drawPolyline(points, 5);
+    } else if (kind == QStringLiteral("Spectrum")) {
+        const QLineF lines[] = {{1.5, 13.5, 14.5, 13.5}, {3, 13, 3, 9},
+                                {6.5, 13, 6.5, 2.5}, {10, 13, 10, 6}, {13, 13, 13, 10}};
+        painter.drawLines(lines, 5);
+    } else if (kind == QStringLiteral("Grid")) {
+        constexpr int opacity[3][3] = {{128, 184, 240}, {175, 255, 195}, {246, 169, 128}};
+        QColor tile(ink);
+        for (int row = 0; row < 3; ++row) {
+            for (int col = 0; col < 3; ++col) {
+                tile.setAlpha(opacity[row][col]);
+                painter.fillRect(QRectF(1 + 5 * col, 1 + 5 * row, 4, 4), tile);
+            }
+        }
+    } else if (kind == QStringLiteral("Table")) {
+        painter.drawRoundedRect(QRectF(1.5, 2.5, 13, 11), 1, 1);
+        painter.drawLine(QLineF(2, 6, 14, 6));
+        painter.drawLine(QLineF(2, 9.8, 14, 9.8));
+        painter.drawLine(QLineF(7, 6, 7, 13));
+    }
+    painter.restore();
+}
+
 class OutputRowDelegate final : public QStyledItemDelegate
 {
   public:
@@ -175,22 +208,15 @@ class OutputRowDelegate final : public QStyledItemDelegate
             p->drawRoundedRect(QRectF(row.left() + 3, row.center().y() - 8, 3, 16), 1.5, 1.5);
         }
         const auto name = index.data().toString();
-        const auto kind = index.siblingAtColumn(1).data().toString();
         const QRect content = row.adjusted(12, 0, -10, 0);
-        const int gap = opt.fontMetrics.horizontalAdvance(QLatin1Char(' ')) * 2 + 3;
-        const int nameWidth = opt.fontMetrics.horizontalAdvance(name);
-        const int kindWidth = opt.fontMetrics.horizontalAdvance(kind);
-        const bool bothFit = nameWidth + gap + kindWidth <= content.width();
-        const int kindSpace = qMin(kindWidth, qMax(0, content.width() / 3));
-        const auto visibleName = bothFit ? name : opt.fontMetrics.elidedText(
-            name, Qt::ElideRight, qMax(0, content.width() - gap - kindSpace));
-        const auto visibleKind = bothFit ? kind : opt.fontMetrics.elidedText(kind, Qt::ElideRight, kindSpace);
+        const QPoint iconOrigin(content.left(), content.top() + (content.height() - outputIconSize) / 2);
+        paintOutputIcon(*p, iconOrigin, index.data(Qt::UserRole).value<OutputReference>().kind,
+                        themeColor(selected ? "text" : "muted"));
+        const QRect nameRect = content.adjusted(outputIconSize + 8, 0, 0, 0);
+        const auto visibleName = opt.fontMetrics.elidedText(name, Qt::ElideRight, qMax(0, nameRect.width()));
         p->setFont(opt.font);
         p->setPen(themeColor("text"));
-        p->drawText(content, Qt::AlignLeft | Qt::AlignVCenter, visibleName);
-        const auto typeRect = content.adjusted(opt.fontMetrics.horizontalAdvance(visibleName) + gap, 0, 0, 0);
-        p->setPen(themeColor("muted"));
-        p->drawText(typeRect, Qt::AlignLeft | Qt::AlignVCenter, visibleKind);
+        p->drawText(nameRect, Qt::AlignLeft | Qt::AlignVCenter, visibleName);
         if (opt.state.testFlag(QStyle::State_HasFocus) && opt.widget &&
             opt.widget->window()->testAttribute(Qt::WA_KeyboardFocusChange)) {
             p->setPen(QPen(themeColor("fileListMark"), 1, Qt::DotLine));
@@ -410,7 +436,7 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_outputs = outputTable;
     m_outputs->setObjectName("resultOutputs");
     m_outputModel = new QStandardItemModel(this);
-    m_outputModel->setHorizontalHeaderLabels({text("ui.output"), text("ui.output_kind")});
+    m_outputModel->setHorizontalHeaderLabels({text("ui.output")});
     m_outputs->setModel(m_outputModel);
     auto *defaultSelection = m_outputs->selectionModel();
     auto *selection = new OutputSelectionModel(m_outputModel, m_outputs);
@@ -435,7 +461,6 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     m_outputs->setShowGrid(false);
     m_outputs->setWordWrap(false);
     m_outputs->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_outputs->hideColumn(1);
     m_outputs->horizontalHeader()->hide();
     outputsLayout->addWidget(m_outputs, 1);
     browser->addWidget(outputsPanel);
@@ -1181,12 +1206,13 @@ void ResultsPage::rebuildOutputs()
         const auto ref = reference(m_selectedNode, outputs[i]);
         auto *name = new QStandardItem(m_ports->itemText(i));
         name->setData(QVariant::fromValue(ref), Qt::UserRole);
-        name->setToolTip(m_ports->itemText(i) + "\n" + ref.port);
-        auto *kind = new QStandardItem(text((QString("kind.") + ref.kind).toUtf8().constData()));
-        name->setAccessibleText(name->text() + " · " + kind->text());
-        m_outputModel->appendRow({name, kind});
+        const auto kind = translatedLabel(QStringLiteral("kind.") + ref.kind, ref.kind);
+        const auto description = name->text() + QStringLiteral(" · ") + kind;
+        name->setAccessibleText(description);
+        name->setToolTip(description + QLatin1Char('\n') + ref.port);
+        m_outputModel->appendRow(name);
         if (m_checked.contains(ref.key()))
-            restored.select(name->index(), kind->index());
+            restored.select(name->index(), name->index());
     }
     auto *selection = m_outputs->selectionModel();
     selection->select(restored, QItemSelectionModel::ClearAndSelect);

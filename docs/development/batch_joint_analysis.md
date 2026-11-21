@@ -1,6 +1,6 @@
 # 联合分析：数据身份与执行约定
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 `WorkflowDocument` 管理数据身份和配对。`RunPlan.batches` 将含联合节点的流程交给批次执行器，普通流程由单输入运行器调度。
 

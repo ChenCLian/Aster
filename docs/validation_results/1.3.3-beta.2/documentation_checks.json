@@ -1,0 +1,16 @@
+{
+  "version": "1.3.3-beta.2",
+  "date": "2026-11-21",
+  "documentation": {
+    "status": "content_version_and_links_checked",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "scope": "Output icon shapes and row tooltips described in the user guides and the plotting topic.",
+    "packaged_help_resources": 109,
+    "generated_task_references": 58,
+    "generated_parameter_references": 270,
+    "help_generator_tests": 8
+  }
+}

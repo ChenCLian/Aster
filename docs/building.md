@@ -1,6 +1,6 @@
 # 源码构建与开发
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 

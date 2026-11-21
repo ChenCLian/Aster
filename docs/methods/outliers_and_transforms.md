@@ -1,6 +1,6 @@
 # 异常值与数值变换
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 [公共概念](../concepts/data_processing.md) · [English](outliers_and_transforms_en.md)
 

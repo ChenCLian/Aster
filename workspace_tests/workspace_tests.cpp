@@ -777,13 +777,19 @@ void WorkspaceTests::outputRowsUseExtendedSelection()
     QCOMPARE(heading->text(), text("ui.available_outputs").arg(5));
     QVERIFY(hint->isVisible() && !review->isVisible());
     const auto first = outputs->model()->index(0, 0);
-    QVERIFY(first.data(Qt::AccessibleTextRole).toString().contains(first.siblingAtColumn(1).data().toString()));
+    QCOMPARE(outputs->model()->columnCount(), 1);
+    const auto firstLabel = first.data().toString() + QStringLiteral(" · ") + text("kind.Series");
+    QCOMPARE(first.data(Qt::AccessibleTextRole).toString(), firstLabel);
+    QCOMPARE(first.data(Qt::ToolTipRole).toString(),
+             firstLabel + QLatin1Char('\n') + first.data(Qt::UserRole).value<OutputReference>().port);
     click(0, Qt::NoModifier, true); // The trailing whitespace belongs to the row.
     QVERIFY(!hint->isVisible() && review->isVisible());
     QCOMPARE(review->text(), text("ui.review_selected_count").arg(1));
     QCOMPARE(rows(), QList<int>{0});
     QVERIFY(add->isEnabled() && overlay->isEnabled() && more->isEnabled() && replace->isEnabled());
-    click(0);
+    const auto firstRect = outputs->visualRect(first);
+    QTest::mouseClick(outputs->viewport(), Qt::LeftButton, Qt::NoModifier,
+                      QPoint(firstRect.left() + 22, firstRect.center().y()));
     QVERIFY(page.checkedOutputs().isEmpty());
     QVERIFY(!add->isEnabled() && !clear->isEnabled());
     click(0);

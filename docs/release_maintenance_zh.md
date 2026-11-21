@@ -1,10 +1,10 @@
 # 构建、打包与发布维护
 
-适用源码：AstroBatch 1.3.3-beta.1。[源码构建](building.md) · [文档索引](README.md)
+适用源码：AstroBatch 1.3.3-beta.2。[源码构建](building.md) · [文档索引](README.md)
 
 ## 版本与发布方式
 
-根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.3-beta.1` 对应 `v1.3.3-beta.1`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
+根目录 `VERSION` 是程序版本入口；GitHub 标签使用对应的 `v` 前缀，例如 `1.3.3-beta.2` 对应 `v1.3.3-beta.2`。当前为 beta 测试版；在 GitHub Release 中勾选“Set as a pre-release”。改为正式版前完成各平台验收，并同步版本和生成文档。
 
 ### 小更新：一条命令同步
 
@@ -77,9 +77,9 @@ python tools/release/update_version.py <新版本号> --notes-file ../release-bo
 
 | 想查的内容 | 入口 |
 | --- | --- |
-| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.3-beta.1` → 公告及四个平台链接 |
+| 更新了什么、下载哪个平台 | GitHub → Releases → `v1.3.3-beta.2` → 公告及四个平台链接 |
 | 包大小、SHA-256 和可用下载地址 | 同一程序发行版的 `AstroBatch-update.json`。手工校验使用同页的 `SHA256SUMS.txt` |
-| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.3-beta.1`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
+| 历史依赖源码和许可 | 程序公告 → **依赖源码、许可证与构建记录** → `materials-v1.3.3-beta.2`。文件下载索引是 `DEPENDENCY_DOWNLOADS.md`，各平台的 `dependency-records.zip` 内有许可文件、配方和清单 |
 | 源码中维护版本说明 | 升级版本时向 `tools/release/update_version.py` 提供 `--notes-file`，正文进入 `RELEASE_NOTES.md`。上一版说明归档到 `docs/history/releases/<旧版本>/RELEASE_NOTES.md` |
 | 本次运行的构建、测试或同步错误 | Actions → 对应运行的 Job 日志、`logs-<平台>` 或 `gitee-mirror-report`。长期下载使用带版本标签的 Release |
 

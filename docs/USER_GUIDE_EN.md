@@ -1,4 +1,4 @@
-# AstroBatch 1.3.3-beta.1 User Guide
+# AstroBatch 1.3.3-beta.2 User Guide
 
 [Classified contents](README_EN.md)
 
@@ -171,6 +171,8 @@ Run workflow saves the outputs actually produced by tasks, with parameters, meth
 The bottom **Steps and outputs** area has two resizable columns. Choose a step on the left and click output rows on the right. Opening a record shows the default output of its last successful graphical step, or the last successful table if no graphical output exists. Clicking a step shows its default output.
 
 An already open primary output is selected with its style preserved. A missing default plot opens on a new figure page. Choose **Settings → Default plot destination → Current figure page** to add it to the active page instead, starting a new page after four plots. Failed steps with no output show diagnostics and retain existing figures.
+
+Each row under **Available outputs** has a type icon beside its name. A line represents a series, narrow peaks a spectrum, shaded tiles a heatmap, and a grid with a header a table. Hover over a row to read the full name and type.
 
 Click an output to select it for plotting. An ordinary click replaces selections across all steps. Click the sole selected output again to deselect it. Ctrl-click (Command-click on macOS) to add or remove individual outputs across steps. Shift-click selects a range within the current step. Selected rows have blue-gray shading and a short bar on the left. When another step has selected outputs, the list heading shows how many. Use **Review selected** to see their names. **Clear selection** or Esc while the output list has focus clears all steps. Changing records also clears the selection. Drag the dividers to resize the lists. Reopening a collapsed panel restores its previous height.
 

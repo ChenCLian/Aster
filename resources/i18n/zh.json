@@ -1830,7 +1830,6 @@
   "ui.joint_pairs_ready_short": "已配置 %1 组配对。",
   "ui.plot_pages": "图页",
   "ui.output": "输出",
-  "ui.output_kind": "类型",
   "kind.Series": "曲线",
   "kind.Spectrum": "频谱",
   "kind.Grid": "热图",

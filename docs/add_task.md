@@ -1,6 +1,6 @@
 # AstroBatch：添加一种任务
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 最短的实际样例是 `src/processing/affine_task.h/.cpp`。它展示了统一接口、独立参数、只读上游和具名输出。新增任务仍需要自己的计算实现；宏负责消除分散的注册代码。
 

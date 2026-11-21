@@ -1830,7 +1830,6 @@
   "ui.joint_pairs_ready_short": "Configured pairs: %1.",
   "ui.plot_pages": "Figures",
   "ui.output": "Output",
-  "ui.output_kind": "Type",
   "kind.Series": "Series",
   "kind.Spectrum": "Spectrum",
   "kind.Grid": "Heatmap",

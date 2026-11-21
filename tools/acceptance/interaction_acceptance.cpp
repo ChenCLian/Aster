@@ -12,6 +12,7 @@
 #include "ui/common/error_presenter.h"
 #include "processing/cross_spectrum_task.h"
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QScrollBar>
@@ -76,6 +77,8 @@ private slots:
  void initTestCase();
  void resultScreenMatrix_data();
  void resultScreenMatrix();
+ void outputTypeIcons_data();
+ void outputTypeIcons();
  void workflowScreenMatrix_data();
  void workflowScreenMatrix();
  void mixedPlotOperations_data();
@@ -153,6 +156,63 @@ void Acceptance::resultScreenMatrix(){
   auto*plot=view->plotWidget();if(!plot->legend->visible()||!plot->legend->itemCount())continue;
   QVERIFY2(plot->axisRect()->rect().contains(plot->legend->outerRect()),qPrintable(QString("axes=%1,%2 %3x%4 legend=%5,%6 %7x%8 minimum=%9x%10").arg(plot->axisRect()->rect().x()).arg(plot->axisRect()->rect().y()).arg(plot->axisRect()->rect().width()).arg(plot->axisRect()->rect().height()).arg(plot->legend->outerRect().x()).arg(plot->legend->outerRect().y()).arg(plot->legend->outerRect().width()).arg(plot->legend->outerRect().height()).arg(view->minimumWidth()).arg(view->minimumHeight())));
  }
+}
+void Acceptance::outputTypeIcons_data()
+{
+    QTest::addColumn<QString>("language");
+    QTest::addColumn<QString>("theme");
+    for (auto language : {"zh", "en"})
+        for (auto theme : {"light", "dark"})
+            QTest::newRow(qPrintable(QString("%1-%2").arg(language, theme))) << QString(language) << QString(theme);
+}
+void Acceptance::outputTypeIcons()
+{
+    QFETCH(QString, language);
+    QFETCH(QString, theme);
+    setLanguage(language);
+    QVERIFY(ThemeManager::instance().apply(*qApp, theme).isEmpty());
+    ResultsPage page(makeScientificRegistry());
+    page.resize(1450, 920);
+    page.setDatabase(path);
+    page.show();
+    page.openRecord(scientificId);
+    QTRY_COMPARE(page.recordId(), scientificId);
+    auto *outputs = page.findChild<QTableView *>("resultOutputs");
+    QVERIFY(outputs);
+    QMap<QString, QImage> icons;
+    for (int step = 0; step < science.nodes.size(); ++step) {
+        page.selectStep(step, false);
+        for (int row = 0; row < outputs->model()->rowCount(); ++row) {
+            const auto index = outputs->model()->index(row, 0);
+            const auto ref = index.data(Qt::UserRole).value<OutputReference>();
+            const auto label = index.data().toString() + QStringLiteral(" · ") + text(("kind." + ref.kind).toUtf8());
+            QCOMPARE(index.data(Qt::AccessibleTextRole).toString(), label);
+            QCOMPARE(index.data(Qt::ToolTipRole).toString(), label + QLatin1Char('\n') + ref.port);
+            QStyleOptionViewItem opt;
+            opt.initFrom(outputs);
+            opt.state = QStyle::State_Enabled;
+            opt.rect = QRect(0, 0, 160, 32);
+            QImage image(opt.rect.size(), QImage::Format_RGB32);
+            image.fill(themeColor("surface"));
+            QPainter painter(&image);
+            outputs->itemDelegateForIndex(index)->paint(&painter, opt, index);
+            painter.end();
+            // Inspect only the leading glyph, away from borders, selection mark and text.
+            const auto icon = image.copy(9, 5, 24, 22);
+            QImage blank(icon.size(), icon.format());
+            blank.fill(themeColor("surface"));
+            QVERIFY2(icon != blank, qPrintable(ref.kind));
+            if (icons.contains(ref.kind))
+                QCOMPARE(icon, icons.value(ref.kind));
+            else {
+                QVERIFY2(!icons.values().contains(icon), qPrintable(ref.kind));
+                icons.insert(ref.kind, icon);
+            }
+            if (row == 0 && ref.nodeId == cwt)
+                capture(*outputs, "output-types-cwt-" + language + "-" + theme);
+        }
+    }
+    QCOMPARE(icons.keys(), (QStringList{"Grid", "Series", "Spectrum", "Table"}));
 }
 void Acceptance::workflowScreenMatrix_data(){resultScreenMatrix_data();}
 void Acceptance::workflowScreenMatrix(){

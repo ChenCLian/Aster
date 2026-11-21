@@ -4,7 +4,7 @@
 
 [User guide](../USER_GUIDE_EN.md) · [Methods (Chinese)](../methods/README.md) · [Chinese](task_parameters.md)
 
-This reference describes task definitions in AstroBatch 1.3.3-beta.1. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
+This reference describes task definitions in AstroBatch 1.3.3-beta.2. Existing workflows retain saved values; data-specific checks and parameter constraints still apply. Defaults are not recommendations for a particular dataset.
 
 Choice labels match the interface; identifiers used in saved settings are retained in parentheses. Output identifiers retain their original program names.
 

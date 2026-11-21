@@ -1,6 +1,6 @@
 # 绘图数据、样式与刷新接口
 
-适用版本：AstroBatch 1.3.3-beta.1。用户操作见[绘图说明](../ui/plotting.md)。
+适用版本：AstroBatch 1.3.3-beta.2。用户操作见[绘图说明](../ui/plotting.md)。
 
 ## 界面层级
 

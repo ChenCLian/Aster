@@ -1,6 +1,6 @@
 # AstroBatch 任务分类
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 任务目录由注册描述生成。下表说明分类原则；实际可用任务与可见性以当前注册表为准。
 

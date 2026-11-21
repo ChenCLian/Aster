@@ -1,0 +1,73 @@
+{
+  "version": "1.3.3-beta.2",
+  "date": "2026-11-21",
+  "status": "linux_desktop_regression_passed",
+  "previous_record": "docs/validation_results/1.3.3-beta.1/checks.json",
+  "desktop": {
+    "platform": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "build": "release",
+    "startup": "passed",
+    "tests": {
+      "passed": 2458,
+      "failed": 0,
+      "skipped": 0
+    },
+    "passed_by_executable": {
+      "aster_core_tests": 67,
+      "aster_batch_tests": 69,
+      "aster_analysis_tests": 724,
+      "aster_cross_spectrum_tests": 81,
+      "aster_ui_tests": 959,
+      "aster_joint_ui_tests": 39,
+      "aster_rewrite_tests": 32,
+      "aster_linked_input_tests": 53,
+      "aster_style_export_tests": 70,
+      "aster_workspace_tests": 86,
+      "aster_integration_tests": 94,
+      "aster_update_tests": 76,
+      "aster_download_tests": 75,
+      "aster_interaction_acceptance": 33
+    }
+  },
+  "output_list": {
+    "types": [
+      "Series",
+      "Spectrum",
+      "Grid",
+      "Table"
+    ],
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "display_scale": [
+      1,
+      2
+    ],
+    "metadata": [
+      "tooltip",
+      "accessible name"
+    ],
+    "selection": [
+      "row click",
+      "deselect",
+      "multiple steps",
+      "range",
+      "clear"
+    ]
+  },
+  "release_tooling": {
+    "tests_run": 237,
+    "failures": 0,
+    "skipped": 1,
+    "skipped_test": "Installed Homebrew GSL recipe (macOS)"
+  },
+  "orbital_data_tool_tests": 4,
+  "bundled_resource_sha256": 15,
+  "distribution": "Platform release archives and public mirror downloads are verified by the release workflows."
+}

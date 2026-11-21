@@ -2,7 +2,7 @@
 
 操作与输出解释：[中文](spectral_inference.md#wavelet) · [English](spectral_inference_en.md#wavelet)。公共概念见[统计解释](../concepts/statistical_interpretation.md)。
 
-适用版本：AstroBatch 1.3.3-beta.1。
+适用版本：AstroBatch 1.3.3-beta.2。
 
 [使用手册](../USER_GUIDE.md) · [参数参考](../reference/task_parameters.md#m-cwt) · [统计限制](statistical_limits.md#cwt)
 
