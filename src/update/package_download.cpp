@@ -24,7 +24,7 @@ PackageDownload::~PackageDownload(){
 void PackageDownload::prepare(const QString &tag,const QString &source){
     if(m_busy)return;
     ++m_generation;
-    m_package.reset();m_completed.clear();m_tag=tag;m_metadataSource=source;
+    m_metadataErrors.clear();m_package.reset();m_completed.clear();m_tag=tag;m_metadataSource=source;
     if((source!="GitHub"&&source!="Gitee")||!m_config.valid()||m_config.packageMetadata!="AstroBatch-update.json"||isAlphaVersion(QCoreApplication::applicationVersion())||isAlphaVersion(tag)) {emit prepared(false,"update.package_missing");return;}
     if(!ReleaseVersion::parse(tag)){emit prepared(false,"update.package_invalid");return;}
     m_metadata=true;m_busy=true;beginMetadata(source);
@@ -112,12 +112,25 @@ void PackageDownload::responseFinished(){
     if(m_hash.result()!=m_package->sha256){fail("update.package_checksum",true);return;}
     extract();
 }
+QString PackageDownload::automaticSource(const QString &lastSuccess) const{
+    if(!m_package || m_package->sources.isEmpty())return {};
+    const auto preferred=m_metadataSource=="Gitee"?m_metadataSource:lastSuccess;
+    for(const auto &source:m_package->sources){
+        if(source.name==preferred)return source.name;
+    }
+    return m_package->sources.first().name;
+}
 void PackageDownload::start(const QString &parentDirectory,const QString &source,const QString &preferred){
     if(m_busy)return;
     if(!m_package){emit finished(false,"update.package_missing");return;}
     m_sources.clear();for(const auto &s:m_package->sources)if(source=="auto"||source==s.name)m_sources.append(s);
     if(m_sources.isEmpty()){emit finished(false,"update.package_missing");return;}
-    if(source=="auto"&&!preferred.isEmpty())for(qsizetype i=0;i<m_sources.size();++i)if(m_sources[i].name==preferred){m_sources.move(i,0);break;}
+    if(source=="auto"){
+        const QString first=automaticSource(preferred);
+        for(qsizetype i=0;i<m_sources.size();++i){
+            if(m_sources[i].name==first){m_sources.move(i,0);break;}
+        }
+    }
     QFileInfo parent(parentDirectory);m_parent=parent.canonicalFilePath();m_completed.clear();
     if(m_parent.isEmpty()||!parent.isDir()||!parent.isWritable()){emit finished(false,"update.disk_error");return;}
     const auto target=QDir(m_parent).filePath(m_package->root);
@@ -143,6 +156,10 @@ void PackageDownload::beginSource(){
 }
 void PackageDownload::fail(const QString &error,bool mayFallback){
     m_idle.stop();m_deadline.stop();m_file.close();
+    if(m_metadata && error!="update.cancelled"){
+        const auto attempt=qMakePair(m_metadataSource,error);
+        if(m_metadataErrors.isEmpty() || m_metadataErrors.last()!=attempt)m_metadataErrors.append(attempt);
+    }
     // Release discovery can succeed while GitHub's attachment host is blocked.
     // Retry only transport/missing-asset failures for the same selected version.
     if(m_metadata && m_giteeReleaseRecord &&

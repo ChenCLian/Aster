@@ -112,6 +112,7 @@ private slots:
   Manager manager;const auto bytes=pack(entries());manager.replies={{200,mirrorRelease({},"v"+version())},{302,{},1,"https://gitee.com/ChenCLian/AstroBatch/attach_files/123/download/AstroBatch-update.json"},{302,{},1,"https://foruda.gitee.com/attach_file/123/AstroBatch-update.json?token=public-temporary"},{200,json(metadata(bytes,true))}};
   PackageDownload client(config(),nullptr,&manager);QSignalSpy prepared(&client,&PackageDownload::prepared);
   client.prepare("v"+version(),"Gitee");QVERIFY(prepared.wait());QVERIFY(prepared[0][0].toBool());QCOMPARE(manager.urls.size(),4);
+  QCOMPARE(client.automaticSource("GitHub"),QString("Gitee"));
   QCOMPARE(manager.urls[0].host(),QString("gitee.com"));QCOMPARE(manager.urls[1].host(),QString("gitee.com"));QCOMPARE(manager.urls[3].host(),QString("foruda.gitee.com"));
   for(const auto *url:{"https://other.test/attach_file/123","https://foruda.gitee.com.evil.test/attach_file/123","https://gitee.com/other/repo/attach_files/123/download","http://foruda.gitee.com/attach_file/123"})QVERIFY(!allowedPackageUrl(QUrl(url),config(),"Gitee",true));
   QVERIFY(!allowedPackageUrl(QUrl("https://foruda.gitee.com/attach_file/123"),config(),"Gitee",false));

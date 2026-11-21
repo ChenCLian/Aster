@@ -6,15 +6,27 @@
 #include <QPointer>
 #include <QKeySequence>
 class QAbstractButton;
+class QVBoxLayout;
 namespace aster::ui
 {
-// Horizontal splitter pane with a persistent click/drag edge grip.
+class PanelControlRail : public QWidget
+{
+  public:
+    explicit PanelControlRail(QWidget *parent = nullptr);
+    void addButton(QAbstractButton *button);
+  private:
+    QVBoxLayout *m_layout;
+};
+
+// A task pane and its persistent click/drag control.
 class CollapsiblePanel : public QWidget
 {
     Q_OBJECT
   public:
-    CollapsiblePanel(const QString &title, QWidget *content, int preferredWidth = 270,
-                     QWidget *parent = nullptr);
+    enum class Kind { Preview, Settings, Catalog };
+    CollapsiblePanel(Kind kind, const QString &title, QWidget *content, int preferredWidth,
+                     PanelControlRail &controls);
+    QAbstractButton *toggleButton() const { return m_grip; }
     bool isCollapsed() const { return m_collapsed; }
     void setCollapsed(bool collapsed);
     void setToggleShortcut(const QKeySequence &shortcut);
@@ -26,21 +38,19 @@ class CollapsiblePanel : public QWidget
     }
     QSize sizeHint() const override;
     void setExpandedWidthRange(int minimum, int maximum);
-    void setGripOnRight(bool right);
   signals:
     void collapsedChanged(bool collapsed);
-  protected:
-    void resizeEvent(QResizeEvent *event) override;
   private:
     void dragEdge(int delta);
-    QWidget *m_body;
+    void updateGrip();
+    Kind m_kind;
     QAbstractButton *m_grip;
     QPointer<QWidget> m_resizeTarget, m_resizeFallback;
     QString m_title;
     int m_openWidth;
     int m_openMinimum = OpenMinimumWidth, m_openMaximum = QWIDGETSIZE_MAX;
-    bool m_collapsed = false, m_gripOnRight = false;
-    static constexpr int GripWidth = 28;
+    bool m_collapsed = false;
+    static constexpr int GripSize = 36;
     static constexpr int OpenMinimumWidth = 220;
 };
 } // namespace aster::ui

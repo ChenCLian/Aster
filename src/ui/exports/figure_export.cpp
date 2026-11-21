@@ -136,7 +136,15 @@ QString renderFigure(const QVector<FigureCell> &cells, const QVector<NodeResult>
             const auto &cell = cells[i];
             auto style = cell.style;
             if (style.title.isEmpty())
-                style.title = defaultPlotTitle(cell.references[0].recordId, cell.references[0].port);
+            {
+                auto ref = cell.references.front();
+                if (ref.sourceName.isNull()) ref.sourceName = data[i].report.value("plot_source_name").toString();
+                if (ref.method.isEmpty()) ref.method = data[i].report.value("plot_method").toString();
+                QFont font(view.font().family(), 12, QFont::DemiBold);
+                font.setPointSizeF(style.titleFontSize);
+                style.title = fittedPlotTitle(plotSourceLabel(ref), plotOutputLabel(ref),
+                                             QFontMetrics(layoutFont(font)), logicalWidth - 16);
+            }
             // Freeze the captured appearance. Export does not mutate the on-screen view.
             style.followTheme = false;
             if (o.whitePaper)

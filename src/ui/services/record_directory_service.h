@@ -31,6 +31,7 @@ class RecordDirectoryService : public QObject
     void resetContext();
   signals:
     void listed(aster::RecordList records, QStringList units, qint64 beforeId, bool selectionOnly);
+    void recordNameChanged(QString path, QUuid runId, QString name);
     void edited(QString path, qint64 id, bool removed, QString error);
     void selectionInspected(aster::RecordSelectionState state);
     void selectionReady(QString path, aster::RecordSelectionState state, bool checked,

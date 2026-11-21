@@ -26,6 +26,7 @@
 #include "ui/panels/file_preview_panel.h"
 #include "ui/panels/workflow_preview_panel.h"
 #include <QSplitter>
+#include <QDir>
 #include "ui/services/file_preview_loader.h"
 #include "ui/app/main_window.h"
 #include "ui/workflow/workflow_canvas.h"
@@ -128,6 +129,7 @@ class InteractionSafetyTests : public QObject
     void whitespaceReadersRemainIndependent();
     void interruptedFileReadStops();
     void compactToolbarAndIndependentSidePanels();
+    void panelButtonFillTracksVisibility();
     void detrendOutputMenuKeepsExplicitPortBinding();
     void invalidFileIsReportedAndCorrectColumnsRecover();
     void failedStepCannotExportOrReuseAnOlderPlot();
@@ -632,6 +634,28 @@ void InteractionSafetyTests::whitespaceReadersRemainIndependent()
     cancel.cancel();
     QVERIFY(!readSeriesFile(path, options, cancel).ok());
 }
+void InteractionSafetyTests::panelButtonFillTracksVisibility()
+{
+    QWidget host;
+    PanelControlRail controls(&host);
+    CollapsiblePanel preview(CollapsiblePanel::Kind::Preview, text("ui.preview_column"), new QWidget, 320, controls);
+    preview.setParent(&host);
+    auto *button = preview.toggleButton();
+    for (const auto &theme : {QString("dark"), QString("light")})
+    {
+        QVERIFY(ThemeManager::instance().apply(*qApp, theme).isEmpty());
+        for (const bool open : {false, true})
+        {
+            preview.setCollapsed(!open);
+            QCOMPARE(button->isChecked(), open);
+            const auto image = button->grab().toImage().scaled(button->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+            const auto fill = themeColor(open ? "muted" : "surface");
+            QCOMPARE(image.pixelColor(6, 18), fill);
+            QCOMPARE(image.pixelColor(18, 30), fill);
+        }
+    }
+}
+
 void InteractionSafetyTests::compactToolbarAndIndependentSidePanels()
 {
     QTemporaryDir dir;
@@ -643,15 +667,69 @@ void InteractionSafetyTests::compactToolbarAndIndependentSidePanels()
     QTest::qWait(50);
     auto *parameters = window.findChild<CollapsiblePanel *>("parameterSidePanel");
     auto *catalog = window.findChild<CollapsiblePanel *>("catalogSidePanel");
-    QVERIFY(parameters && catalog);
+    auto *preview = window.findChild<CollapsiblePanel *>("previewSidePanel");
+    QVERIFY(parameters && catalog && preview);
     catalog->setCollapsed(false);
     QVERIFY(!parameters->isCollapsed() && !catalog->isCollapsed());
     QVERIFY(parameters->mapTo(&window, QPoint()).x() < catalog->mapTo(&window, QPoint()).x());
-    auto *grip = parameters->findChild<QAbstractButton *>("sidePanelGrip");
+    auto *grip = parameters->toggleButton();
+    auto *libraryGrip = catalog->toggleButton();
+    auto *previewGrip = preview->toggleButton();
+    auto *rail = window.findChild<QWidget *>("taskPanelControls");
+    auto *splitter = qobject_cast<QSplitter *>(parameters->parentWidget());
+    QVERIFY(splitter && rail && grip && libraryGrip && previewGrip);
+    QCOMPARE(grip->size(), QSize(36, 36));
+    QCOMPARE(libraryGrip->size(), grip->size());
+    QCOMPARE(grip->parentWidget(), rail);
+    QCOMPARE(libraryGrip->parentWidget(), rail);
+    QCOMPARE(previewGrip->parentWidget(), rail);
+    const QPoint previewPosition = previewGrip->mapTo(&window, QPoint());
+    const QPoint settingsPosition = grip->mapTo(&window, QPoint());
+    const QPoint libraryPosition = libraryGrip->mapTo(&window, QPoint());
+    QCOMPARE(previewPosition.y(), splitter->mapTo(&window, QPoint()).y());
+    QCOMPARE(previewPosition.x(), settingsPosition.x());
+    QVERIFY(previewPosition.y() + previewGrip->height() < settingsPosition.y());
+    QCOMPARE(settingsPosition.x(), libraryPosition.x());
+    QVERIFY(settingsPosition.y() + grip->height() < libraryPosition.y());
+    const auto stableControls = [&]() {
+        QCoreApplication::processEvents();
+        return previewGrip->isVisible() && grip->isVisible() && libraryGrip->isVisible() && rail->width() == grip->width()
+            && previewPosition == previewGrip->mapTo(&window, QPoint())
+            && settingsPosition == grip->mapTo(&window, QPoint())
+            && libraryPosition == libraryGrip->mapTo(&window, QPoint());
+    };
     QTest::mouseClick(grip, Qt::LeftButton);
     QVERIFY(parameters->isCollapsed());
     QVERIFY(!catalog->isCollapsed());
-    QTRY_VERIFY(parameters->width() <= 30);
+    QTRY_COMPARE(splitter->sizes().at(splitter->indexOf(parameters)), 0);
+    QVERIFY(stableControls());
+    QTest::mouseClick(libraryGrip, Qt::LeftButton);
+    QTRY_COMPARE(splitter->sizes().at(splitter->indexOf(catalog)), 0);
+    QVERIFY(stableControls());
+    QTest::mouseClick(previewGrip, Qt::LeftButton);
+    QTRY_COMPARE(splitter->sizes().at(splitter->indexOf(preview)), 0);
+    QVERIFY(stableControls());
+    QVERIFY(previewGrip->toolTip().contains(text("ui.panel_preview_purpose")));
+    QVERIFY(grip->toolTip().contains(text("ui.panel_settings_purpose")));
+    QVERIFY(libraryGrip->toolTip().contains(text("ui.panel_library_purpose")));
+    QTest::keyClick(previewGrip, Qt::Key_Space);
+    QVERIFY(previewGrip->isChecked() && !preview->isCollapsed());
+    QCOMPARE(previewGrip->accessibleName(), text("ui.collapse_panel").arg(text("ui.preview_column")));
+    QVERIFY(stableControls());
+    const auto captures = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if (!captures.isEmpty()) {
+        QDir output(captures); QVERIFY(output.mkpath("."));
+        QVERIFY(window.grab().save(output.filePath("task-controls-closed.png")));
+    }
+    QVERIFY(!grip->isChecked() && !libraryGrip->isChecked());
+    QVERIFY(grip->accessibleName().contains(text("ui.expand_panel").arg(text("ui.step_settings"))));
+    QTest::mouseClick(grip, Qt::LeftButton);
+    QVERIFY(!parameters->isCollapsed() && catalog->isCollapsed());
+    QVERIFY(stableControls());
+    QTest::mouseClick(libraryGrip, Qt::LeftButton);
+    QVERIFY(grip->isChecked() && libraryGrip->isChecked());
+    QVERIFY(stableControls());
+    QTest::mouseClick(grip, Qt::LeftButton);
     QTest::mouseClick(grip, Qt::LeftButton);
     QVERIFY(!parameters->isCollapsed());
     QTRY_VERIFY(parameters->width() >= 220);
@@ -1147,8 +1225,9 @@ void InteractionSafetyTests::filePreviewVisibleOnFirstShow()
     auto *preview = window.findChild<WorkflowPreviewPanel *>();
     QVERIFY(column && panel && preview); QVERIFY(!column->isCollapsed());
     QVERIFY(panel->isVisible()); QVERIFY(panel->width() > 250);
-    auto *grip = column->findChild<QAbstractButton *>("sidePanelGrip");
+    auto *grip = column->toggleButton();
     QVERIFY(grip && grip->isVisible());
+    QCOMPARE(grip->size(), QSize(36, 36));
     QCOMPARE(loader->state(), FilePreviewLoader::State::Empty);
     QCOMPARE(preview->controller()->state(), WorkflowPreviewController::State::Idle);
     QSignalSpy reads(loader, &FilePreviewLoader::readStarted);
@@ -1222,7 +1301,8 @@ void InteractionSafetyTests::filePreviewPanelResizesAndReleasesHiddenData()
     QCOMPARE(curve->pen().color(), themeColor("curve"));
     ThemeManager::instance().apply(*qApp, "light");
     column->setCollapsed(true); QVERIFY(!loader->result()); QVERIFY(curve->data()->isEmpty());
-    QVERIFY(column->width() <= 28);
+    QCOMPARE(split->sizes().at(split->indexOf(column)), 0);
+    QVERIFY(column->toggleButton()->isVisible());
     column->setCollapsed(false); QTRY_COMPARE(loader->state(), FilePreviewLoader::State::Ready);
     window.setPage(1); QCOMPARE(loader->state(), FilePreviewLoader::State::Inactive);
     window.setPage(0); QTRY_COMPARE(loader->state(), FilePreviewLoader::State::Ready);

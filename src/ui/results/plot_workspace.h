@@ -39,6 +39,7 @@ class PlotWorkspace : public QWidget
     // before changing pages. Overlay/replacement commit only after successful I/O.
     void openBatch(const QVector<OutputReference> &references, Target target);
     QString destinationLabel() const;
+    void updateRecordName(const QString &database, QUuid runId, const QString &name);
     void closePage(int index);
     void closeSubplot();
     void reset();

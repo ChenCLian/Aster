@@ -1,6 +1,6 @@
 # 文档维护
 
-适用版本：AstroBatch 1.3.3-beta.2。
+适用版本：AstroBatch 1.3.3-beta.3。
 
 ## 面向读者组织内容
 

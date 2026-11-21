@@ -294,6 +294,11 @@ ResultsPage::ResultsPage(TaskRegistry registry, QWidget *p)
     connect(m_directory, &RecordDirectoryPanel::mutationBusyChanged, this, [this](bool busy) {
         m_directoryMutating = busy; emit databaseMutationBusyChanged(busy);
     });
+    connect(m_directory, &RecordDirectoryPanel::recordNameChanged, this,
+            [this](const QString &path, QUuid runId, const QString &name) {
+                m_workspace->updateRecordName(QFileInfo(path).absoluteFilePath(), runId, name);
+                updateOutputActions();
+            });
     connect(m_directory, &RecordDirectoryPanel::metadataEdited, this, [this](qint64 id) {
         if (id == m_recordId) openRecord(id);
     });
@@ -834,11 +839,10 @@ void ResultsPage::showRecord(qint64 id, std::shared_ptr<const LoadResult> result
     m_directory->setOpenedRecord(id);
     const auto &run = m_record->run;
     auto definition = workflowFromJson(run.workflowSnapshot).definition;
+    m_workspace->updateRecordName(QFileInfo(m_path).absoluteFilePath(), run.runId, m_record->sourceName);
     m_title->setText(QString("%2  ·  ID %1")
                          .arg(id)
-                         .arg(m_record->displayName.isEmpty()
-                                  ? QFileInfo(run.sourceLabel).fileName()
-                                  : m_record->displayName));
+                         .arg(m_record->sourceName.isEmpty() ? text("ui.unnamed_dataset") : m_record->sourceName));
     QSignalBlocker stepBlock(m_steps->selectionModel());
     m_steps->setRowCount(definition.nodes.size());
     m_nodeIds.clear();
@@ -1128,7 +1132,7 @@ OutputReference ResultsPage::reference(NodeId node, const OutputInfo &output) co
 {
     if (!m_record) return {};
     return {QFileInfo(m_path).absoluteFilePath(), m_recordId, m_record->run.runId,
-            node, output.port, output.kind, m_nodeMethods.value(node)};
+            node, output.port, output.kind, m_nodeMethods.value(node), m_record->sourceName};
 }
 OutputReference ResultsPage::selectedOutput() const
 {
@@ -1144,10 +1148,10 @@ void ResultsPage::updateOutputActions()
         ? QString("ID %1 · %2").arg(m_recordId).arg(m_stepName)
         : text("ui.select_step_for_export");
     const auto plotLabel = hasFigure
-        ? text("ui.active_figure_target").arg(plotted.recordId).arg(portLabel(plotted.port))
+        ? text("ui.active_figure_target").arg(defaultPlotTitle(plotted))
         : text("ui.no_active_figure");
     m_plotTarget->setText(hasFigure
-        ? QString("ID %1 · %2").arg(plotted.recordId).arg(portLabel(plotted.port))
+        ? defaultPlotTitle(plotted)
         : text(emptyDestination ? "ui.empty_subplot" : "ui.no_active_figure"));
     m_styleEditor->setVisible(hasFigure);
     m_exportPanel->setTargets(selectedLabel + (selected.valid() ? QString() :

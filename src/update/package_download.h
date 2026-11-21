@@ -18,6 +18,9 @@ public:
     ~PackageDownload() override;
     bool busy() const {return m_busy;}
     std::optional<DownloadPackage> package() const {return m_package;}
+    QString metadataSource() const {return m_metadataSource;}
+    QString automaticSource(const QString &lastSuccess) const;
+    const QList<QPair<QString,QString>> &metadataErrors() const {return m_metadataErrors;}
     QString completedDirectory() const {return m_completed;}
     void prepare(const QString &tag,const QString &source=QStringLiteral("GitHub"));
     void start(const QString &parentDirectory,const QString &source="auto",const QString &preferred={});
@@ -44,6 +47,7 @@ private:
     QByteArray m_body;
     QString m_tag,m_failure,m_parent,m_completed,m_metadataSource=QStringLiteral("GitHub");
     std::optional<DownloadPackage> m_package;
+    QList<QPair<QString,QString>> m_metadataErrors;
     QVector<PackageSource> m_sources;
     int m_source=0,m_redirects=0;
     bool m_busy=false,m_metadata=false,m_giteeReleaseRecord=false;

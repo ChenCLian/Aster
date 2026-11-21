@@ -1,12 +1,13 @@
 import json
 import hashlib
+import io
 from types import SimpleNamespace
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from sync_gitee import mirror_packages, public_download, with_update_record, execute, allowed_public_url
+from sync_gitee import Gitee, http_failure, mirror_packages, public_download, with_update_record, execute, allowed_public_url
 from release_delivery import package_names
 from download_metadata import digest
 
@@ -44,6 +45,73 @@ class MirrorTests(unittest.TestCase):
             folder=Path(tmp);m=self.fixtures(folder);api=API([{'name':p['file']} for p in m['packages']])
             mirror_packages(api,1,folder,m,'1.3.0-beta.18',lambda *args:None)
             self.assertEqual(api.uploaded,[])
+    def test_streamed_upload_matches_declared_length_and_original_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            file = Path(tmp) / 'program.zip'
+            payload = bytes(range(256)) * 8223
+            file.write_bytes(payload)
+            api = Gitee('fixture')
+            def receive(request, timeout):
+                self.assertEqual(timeout, 300)
+                self.assertEqual(request.method, 'POST')
+                chunks = list(request.data)
+                self.assertGreater(len(chunks), 3)
+                self.assertEqual(int(request.get_header('Content-length')), sum(map(len, chunks)))
+                self.assertIn(b'filename="program.zip"', chunks[0])
+                self.assertEqual(b''.join(chunks[1:-1]), payload)
+                return io.BytesIO(b'{"id":1}')
+            with patch.object(api.opener, 'open', side_effect=receive):
+                self.assertEqual(api.upload(1, file), {'id':1})
+
+    @patch('sync_gitee.time.sleep')
+    def test_uncertain_upload_rechecks_server_before_retry(self, sleep):
+        for accepted in (True, False):
+            with self.subTest(accepted=accepted), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                meta = self.fixtures(folder)
+                api = API()
+                first = meta['packages'][0]['file']
+                attempts = []
+                def upload(rid, path):
+                    attempts.append(path.name)
+                    if len(attempts) == 1:
+                        if accepted:
+                            api.existing.append({'name': path.name})
+                        raise TimeoutError('socket timed out')
+                api.upload = upload
+                verified = []
+                mirror_packages(api, 1, folder, meta, meta['version'], lambda *args: verified.append(args[0]))
+                self.assertEqual(attempts.count(first), 1 if accepted else 2)
+                self.assertEqual(len(verified), 4)
+
+    @patch('sync_gitee.time.sleep')
+    def test_transient_public_read_retries_without_reupload(self, sleep):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            meta = self.fixtures(folder)
+            api = API()
+            calls = []
+            def read(url, *args):
+                calls.append(url)
+                if len(calls) == 1:
+                    raise http_failure('Read', 503)
+            mirror_packages(api, 1, folder, meta, meta['version'], read)
+            self.assertEqual(len(api.uploaded), 4)
+            self.assertEqual(len(calls), 5)
+            self.assertEqual(calls[0], calls[1])
+
+    @patch('sync_gitee.time.sleep')
+    def test_upload_retries_are_bounded_and_permissions_fail_immediately(self, sleep):
+        for error, limit in [(TimeoutError(), 3), (http_failure('Upload', 403), 1)]:
+            with self.subTest(error=error), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                meta = self.fixtures(folder)
+                api = API()
+                with patch.object(api, 'upload', side_effect=error) as upload:
+                    with self.assertRaises(type(error)):
+                        mirror_packages(api, 1, folder, meta, meta['version'])
+                    self.assertEqual(upload.call_count, limit)
+
     def test_extra_remote_asset_is_reported_without_deletion(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp); metadata=self.fixtures(folder); api=API([{'name':'AstroBatch-update.json'}])

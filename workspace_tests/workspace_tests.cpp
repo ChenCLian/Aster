@@ -46,6 +46,7 @@
 #include "processing/scientific_registry.h"
 #include "ui/workflow/workflow_document.h"
 #include "ui/results/plot_workspace.h"
+#include "ui/services/record_directory_service.h"
 #include "ui/results/plot_preset.h"
 #include "ui/results/plot_recipe.h"
 #include "ui/results/preview_data.h"
@@ -136,6 +137,7 @@ class WorkspaceTests : public QObject
     void outputPanelUsesRowsAndFontMetrics_data();
     void outputPanelUsesRowsAndFontMetrics();
     void sourceDetailsUseDisplayLabels();
+    void subplotTitlesFollowTheirOwnDataset();
     void clearedSubplotCanBeFilled();
     void clearedSubplotValidatesAndCancels();
     void clearedSubplotScientificRecipes_data();
@@ -354,7 +356,87 @@ void WorkspaceTests::sourceDetailsUseDisplayLabels()
     QTRY_VERIFY(!messages.isEmpty());
     QTRY_VERIFY(messages.last().front().toString().contains("未找到该记录"));
     QVERIFY(page.workspace()->pageCount() > 0);
-    QCOMPARE(defaultPlotTitle(41, "trend"), QString("ID 41 · 拟合趋势曲线"));
+    OutputReference ref{path, receipt.recordId, execution.runId, cwt, "trend", "Series", {}, "small"};
+    QCOMPARE(defaultPlotTitle(ref), QString("small · 拟合趋势曲线"));
+    ref.method = "database_series"; ref.port = "data";
+    QCOMPARE(plotOutputLabel(ref), QString("数据库输出"));
+}
+void WorkspaceTests::subplotTitlesFollowTheirOwnDataset()
+{
+    QVERIFY(ThemeManager::instance().apply(*qApp, "light").isEmpty());
+    QTemporaryDir dir;
+    const auto path = dir.filePath("titles.sqlite");
+    ResultRepository repo; QVERIFY(repo.open(path).isEmpty());
+    const auto filename = QStringLiteral("ODP_1265_") + QStringLiteral("高分辨率碳同位素").repeated(8) + ".csv";
+    auto fileRun = run();
+    fileRun.sourceLabel = QStringLiteral("C:\\records\\") + filename;
+    fileRun.provenance["path"] = fileRun.sourceLabel;
+    const auto file = save(repo, path, fileRun);
+    auto builtIn = run();
+    builtIn.sourceLabel = "PT-ZB18a obliquity & precession / J2000";
+    const auto named = save(repo, path, builtIn);
+
+    auto reused = run();
+    reused.sourceLabel = QString("ID %1 · %2").arg(file.recordId).arg(file.port);
+    reused.provenance["database_source"] = file.toJson();
+    const auto derived = save(repo, path, reused);
+    QCOMPARE(repo.load(derived.recordId, true).sourceName, filename);
+    QCOMPARE(repo.loadPlotMetadata(OutputReference::fromJson(derived.toJson())).report["plot_source_name"].toString(), filename);
+
+    ResultsPage page(makeScientificRegistry()); page.resize(1100, 670); page.show();
+    auto *workspace = page.workspace();
+    workspace->setDefaultPlotNewPage(false);
+    page.setDatabase(path);
+    QSignalSpy loaded(&page, &ResultsPage::recordLoaded);
+    page.openRecord(file.recordId);
+    QTRY_COMPARE(loaded.count(), 1);
+    QTRY_VERIFY(!workspace->loading() && page.plotView()->hasPlot());
+    auto *first = workspace->currentView()->parentWidget()->findChild<QPushButton *>("selectSubplot");
+    QVERIFY(first);
+    const auto port = plotOutputLabel(workspace->currentReference());
+    QCOMPARE(first->text(), filename + " · " + port);
+    QVERIFY(first->toolTip().remove(QLatin1Char('\n')).contains(first->text()));
+    QCOMPARE(first->accessibleName(), first->text());
+
+    page.openRecord(named.recordId);
+    QTRY_COMPARE(loaded.count(), 2);
+    QTRY_VERIFY(!workspace->loading() && workspace->subplotCount() == 2);
+    auto *second = workspace->currentView()->parentWidget()->findChild<QPushButton *>("selectSubplot");
+    QVERIFY(second && second != first);
+    QCOMPARE(second->text(), builtIn.sourceLabel + " · " + port);
+    QVERIFY(second->shortcut().isEmpty());
+    QTest::mouseClick(first, Qt::LeftButton);
+    QCOMPARE(workspace->currentReference().runId, file.runId);
+    QCOMPARE(page.findChild<QLabel *>("activeStyleTarget")->text(), first->text());
+    QVERIFY(page.findChild<QLabel *>("exportFigureTarget")->text().contains(first->text()));
+    QVERIFY(workspace->destinationLabel().contains(first->text()));
+    const auto metrics = first->fontMetrics();
+    const int width = std::max(165, metrics.horizontalAdvance(port) + metrics.horizontalAdvance("ODP_…csv · ") + 4);
+    const auto fitted = fittedPlotTitle(filename, port, metrics, width);
+    QVERIFY(fitted.startsWith("ODP") && fitted.contains(QChar(0x2026)));
+    QVERIFY(fitted.endsWith(".csv · " + port));
+    QVERIFY(metrics.horizontalAdvance(fitted) <= width);
+    const auto longPort = QStringLiteral("小波功率（按所选计算约定）").repeated(4);
+    const auto both = fittedPlotTitle(filename, longPort, metrics, width);
+    QVERIFY(both.contains(QStringLiteral(".csv · 小")));
+    QVERIFY(both.endsWith(QChar(0x2026)));
+    QVERIFY(metrics.horizontalAdvance(both) <= width);
+    QCOMPARE(fittedPlotTitle("甲.csv", "曲线", metrics, 500), QStringLiteral("甲.csv · 曲线"));
+    QVERIFY(metrics.horizontalAdvance(fittedPlotTitle(filename, port, metrics, 14)) <= 14);
+
+    const auto captureDir = qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if (!captureDir.isEmpty()) {
+        QDir output(captureDir); QVERIFY(output.mkpath("."));
+        QVERIFY(first->grab().save(output.filePath("subplot-title-long.png")));
+    }
+    auto *directory = page.findChild<RecordDirectoryService *>();
+    QVERIFY(directory);
+    directory->edit(path, file.recordId, "Site 1265", "");
+    QTRY_COMPARE(first->text(), "Site 1265 · " + port);
+    QCOMPARE(loaded.count(), 2); // Browsing the other record survives the rename.
+    QCOMPARE(page.findChild<QLabel *>("activeStyleTarget")->text(), first->text());
+    QVERIFY(!first->toolTip().contains(filename));
+    QCOMPARE(second->text(), builtIn.sourceLabel + " · " + port);
 }
 void WorkspaceTests::clearedSubplotCanBeFilled()
 {
@@ -1592,7 +1674,7 @@ void WorkspaceTests::cwtSamplingAndViewportRefinement()
     const auto *grid = dataAs<GridData>(view->currentData()); QVERIFY(grid);
     QVERIFY(grid->columns > 384); QCOMPARE(grid->rows, dataAs<GridData>(original.outputs["power"])->rows);
     QCOMPARE(workspace.findChild<QPushButton *>("selectSubplot")->text(),
-             QString("ID %1 · %2").arg(receipt.recordId).arg(portLabel("power")));
+             QString("CWT · ") + plotOutputLabel(ref));
     auto *status = workspace.findChild<QLabel *>("plotResolution"); QVERIFY(status);
     QVERIFY(status->text().contains(QString::number(grid->columns)));
     const double colorUpper = view->styleWithViewport().colorUpper;
@@ -2229,7 +2311,7 @@ void WorkspaceTests::subplotDragTargetsAndCancellation()
         auto *panel = new QWidget;
         panel->setMinimumSize(160, 140);
         auto *layout = new QVBoxLayout(panel);
-        layout->addWidget(host.createTitle(ids[i], QString("Plot %1").arg(i + 1)));
+        layout->addWidget(host.createTitle(ids[i], {}));
         layout->addWidget(new QLabel(QString("Data %1").arg(i + 1)), 1);
         panels[ids[i]] = panel;
     }

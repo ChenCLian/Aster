@@ -145,7 +145,10 @@ UpdateDialog::UpdateDialog(updates::UpdateConfig config,QWidget *parent,QNetwork
     layout->addWidget(m_summary);
 
     auto *notesHeader=new QHBoxLayout;auto *notesTitle=new QLabel(text("update.notes"));notesTitle->setObjectName("SectionTitle");notesHeader->addWidget(notesTitle);notesHeader->addStretch();
-    auto *source=new QLabel(text("update.source_github"));source->setObjectName("updateSourceLabel");notesHeader->addWidget(source);layout->addLayout(notesHeader);
+    m_announcementSource=new QLabel;
+    m_announcementSource->setObjectName("updateSourceLabel");
+    notesHeader->addWidget(m_announcementSource);m_announcementSource->hide();
+    layout->addLayout(notesHeader);
     m_notes=new ReleaseNotes(this);m_notes->setObjectName("updateNotes");m_notes->setAccessibleName(text("update.notes"));m_notes->setMinimumHeight(90);layout->addWidget(m_notes,1);
     m_details=new QToolButton;m_details->setObjectName("updateDetails");m_details->setText(text("update.details"));m_details->setCheckable(true);m_details->setArrowType(Qt::RightArrow);m_details->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     layout->addWidget(m_details,0,Qt::AlignLeft);
@@ -153,7 +156,10 @@ UpdateDialog::UpdateDialog(updates::UpdateConfig config,QWidget *parent,QNetwork
     connect(m_details,&QToolButton::toggled,this,[this](bool open){m_diagnostics->setVisible(open);m_details->setArrowType(open?Qt::DownArrow:Qt::RightArrow);});
     m_downloadOptions=new QWidget;auto *options=new QVBoxLayout(m_downloadOptions);options->setContentsMargins(0,0,0,0);options->setSpacing(6);
     auto *sourceRow=new QHBoxLayout;sourceRow->addWidget(new QLabel(text("update.download_source")));
-    m_source=new QComboBox;m_source->setObjectName("updateDownloadSource");sourceRow->addWidget(m_source,1);options->addLayout(sourceRow);
+    m_source=new QComboBox;m_source->setObjectName("updateDownloadSource");sourceRow->addWidget(m_source,1);
+    m_source->setAccessibleName(text("update.download_source"));
+    m_onlySource=new QLabel;m_onlySource->setObjectName("updateOnlySource");
+    sourceRow->addWidget(m_onlySource,1);options->addLayout(sourceRow);
     auto *directoryRow=new QHBoxLayout;m_destination=wrappedLabel("updateDestination");directoryRow->addWidget(m_destination,1);
     auto *choose=new QPushButton(text("update.choose_directory"));choose->setAutoDefault(false);choose->setObjectName("updateChooseDirectory");directoryRow->addWidget(choose);options->addLayout(directoryRow);
     m_directory=QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);if(!QDir(m_directory).exists())m_directory=QDir::homePath();
@@ -177,7 +183,7 @@ UpdateDialog::UpdateDialog(updates::UpdateConfig config,QWidget *parent,QNetwork
     connect(m_open,&QPushButton::clicked,this,[this]{if(m_downloadDone)openDirectory();else if(m_packageReady)download();else if(m_retry)check();else browse(m_releaseUrl);});
     connect(releases,&QPushButton::clicked,this,[this]{browse(m_config.releasesUrl());});
     connect(m_download,&updates::PackageDownload::prepared,this,&UpdateDialog::packagePrepared);
-    connect(m_download,&updates::PackageDownload::sourceChanged,this,[this](const QString &source){m_usedSource=source;if(auto *label=findChild<QLabel*>("updateSourceLabel"))label->setText(text("update.source_actual").arg(source));});
+    connect(m_download,&updates::PackageDownload::sourceChanged,this,[this](const QString &source){m_usedSource=source;});
     connect(m_download,&updates::PackageDownload::phaseChanged,this,[this](const QString &key){
         if(m_closed)return;
         setState("checking",text(qPrintable(key)),text("update.download_hint"));m_progress->setRange(0,0);m_downloadOptions->setEnabled(false);
@@ -190,10 +196,13 @@ UpdateDialog::UpdateDialog(updates::UpdateConfig config,QWidget *parent,QNetwork
     connect(m_download,&updates::PackageDownload::finished,this,[this](bool success,const QString &error){
         if(m_closed)return;
         m_downloadOptions->setEnabled(true);m_downloadDone=success;
-        setState(success?"available":"error",text(success?"update.download_complete":"update.download_failed"),text(success?"update.open_directory_hint":qPrintable(error)));
+        const bool cancelled=error=="update.cancelled";
+        setState(success?"available":cancelled?"cancelled":"error",
+                 text(success?"update.download_complete":cancelled?"update.cancelled_heading":"update.download_failed"),
+                 text(success?"update.open_directory_hint":qPrintable(error)));
         m_open->setEnabled(true);m_open->setText(text(success?"update.open_directory":"update.retry_download"));
         if(success){m_downloadOptions->hide();m_hint->setText(text("update.download_finished_hint"));QSettings().setValue("updates/lastSource",m_usedSource);if(!error.isEmpty()){m_details->show();m_diagnostics->setText(text(qPrintable(error)));}}
-        else {m_details->show();m_diagnostics->setText(text("update.diagnostic_text").arg(m_config.releasesUrl().toString(),error));}
+        else if(!cancelled){m_details->show();m_diagnostics->setText(text(qPrintable(error)));}
     });
     setState("idle",text("update.ready_heading"),text("update.ready_hint"));
     static_cast<ReleaseNotes*>(m_notes)->setNotes(text("update.notes_waiting"));
@@ -211,7 +220,8 @@ void UpdateDialog::setState(const char *state,const QString &heading,const QStri
     const bool busy=qstrcmp(state,"checking")==0;
     m_summary->setProperty("state",QString::fromLatin1(state));m_summary->style()->unpolish(m_summary);m_summary->style()->polish(m_summary);
     m_heading->setText(heading);m_status->setText(detail);m_status->setVisible(!detail.isEmpty());
-    m_releaseMeta->clear();m_releaseMeta->hide();m_progress->setVisible(busy);
+    m_releaseMeta->setText(m_usedSource.isEmpty()?QString{}:text("update.transfer_source").arg(m_usedSource));
+    m_releaseMeta->setVisible(!m_usedSource.isEmpty());m_progress->setVisible(busy);
     m_check->setEnabled(m_onlineAllowed&&!busy);m_channels->setEnabled(m_onlineAllowed&&!busy);
     m_cancel->setEnabled(busy);m_cancel->setVisible(busy);
     m_open->setEnabled(false);m_open->setVisible(!busy);m_open->setText(text("update.open_release"));
@@ -221,7 +231,7 @@ void UpdateDialog::setState(const char *state,const QString &heading,const QStri
 void UpdateDialog::check(){
     if(m_closed || !m_onlineAllowed || m_checker->busy() || m_download->busy())return;
     m_packageReady=false;m_downloadDone=false;m_selectedRelease.reset();m_downloadOptions->hide();m_hint->setText(text("update.manual_hint"));
-    if(auto *source=findChild<QLabel*>("updateSourceLabel"))source->setText(text("update.source_github"));
+    m_usedSource.clear();m_announcementSource->hide();m_announcementSource->setToolTip({});
     setState("checking",text("update.checking_heading"),text("update.checking_hint"));
     static_cast<ReleaseNotes*>(m_notes)->setNotes(text("update.notes_waiting"));
     m_checker->checkChannel(QCoreApplication::applicationVersion(),m_channels->currentIndex()==1);
@@ -241,10 +251,10 @@ void UpdateDialog::showResult(const updates::UpdateResult &result){
         heading=text("update.mirror_no_new");detail=text("update.source_partial_hint");
     }
     setState(state,heading,detail);
-    if(auto *source=findChild<QLabel*>("updateSourceLabel")){
-        const auto name=result.release?result.release->source:result.partial?QString("Gitee"):QString("GitHub");
-        source->setText(text("update.source_actual").arg(name)+(result.partial?text("update.source_partial"):QString{}));
-        source->setToolTip(result.partial?text("update.source_partial_hint"):QString{});
+    m_announcementSource->setVisible(result.release.has_value());
+    if(result.release){
+        m_announcementSource->setText(text("update.announcement_source").arg(result.release->source));
+        m_announcementSource->setToolTip(result.partial?text("update.source_partial_hint"):QString{});
     }
     if(result.release){
         const auto &release=*result.release;QStringList meta;
@@ -271,21 +281,34 @@ void UpdateDialog::packagePrepared(bool available,const QString &error){
     setState("available",text("update.available_heading"),text("update.version_line").arg(m_selectedRelease->tag));
     m_releaseUrl=m_selectedRelease->pageUrl;m_open->setEnabled(true);
     if(available){
-        const auto p=*m_download->package();m_source->clear();m_source->addItem(text("update.source_auto"),"auto");
+        const auto p=*m_download->package();m_source->clear();
+        const bool multiple=p.sources.size()>1;
+        const QString key=QStringLiteral("updates/lastSource");
+        auto lastSource=QSettings().value(key);
+        if(!lastSource.isValid())lastSource=QSettings("Aster","Aster_Workspace").value(key);
+        m_autoSource=m_download->automaticSource(lastSource.toString());
+        if(multiple){
+            m_source->addItem(text("update.source_auto").arg(m_autoSource),"auto");
+            m_source->setToolTip(text("update.source_choice_hint").arg(m_download->metadataSource()));
+        }
         for(const auto &source:p.sources)m_source->addItem(source.name,source.name);
+        m_source->setVisible(multiple);
+        m_onlySource->setText(multiple?QString{}:p.sources.first().name);m_onlySource->setVisible(!multiple);
         m_releaseMeta->setText(text("update.package_size_label").arg(double(p.bytes)/1048576,0,'f',1));m_releaseMeta->show();
         m_open->setText(text("update.download_extract"));m_downloadOptions->setEnabled(true);m_downloadOptions->show();m_hint->setText(text("update.download_hint"));
     }else {
         m_hint->setText(text("update.manual_fallback"));
-        if(error!="update.package_missing"){m_details->show();m_diagnostics->setText(text(qPrintable(error)));}
+        QStringList reasons;
+        for(const auto &attempt:m_download->metadataErrors())
+            reasons.append(attempt.first+" · "+text(qPrintable(attempt.second)));
+        if(reasons.isEmpty() || m_download->metadataErrors().last().second!=error)
+            reasons.append(text(qPrintable(error)));
+        m_details->show();m_diagnostics->setText(reasons.join('\n'));
     }
 }
 void UpdateDialog::download(){
-    const QString key = QStringLiteral("updates/lastSource");
-    QVariant lastSource = QSettings().value(key);
-    if (!lastSource.isValid())
-        lastSource = QSettings("Aster", "Aster_Workspace").value(key);
-    m_download->start(m_directory, m_source->currentData().toString(), lastSource.toString());
+    m_usedSource.clear();
+    m_download->start(m_directory, m_source->currentData().toString(), m_autoSource);
 }
 void UpdateDialog::openDirectory(){
     if(!QDesktopServices::openUrl(QUrl::fromLocalFile(m_download->completedDirectory()))){m_status->setText(text("update.directory_open_failed").arg(QDir::toNativeSeparators(m_download->completedDirectory())));m_status->show();}

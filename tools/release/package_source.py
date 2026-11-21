@@ -22,7 +22,7 @@ def included(path):
         return False
     if path.is_symlink() or path.suffix.lower() in EXCLUDED_SUFFIXES:
         return False
-    if path.name in {'.DS_Store', 'desktop.ini'} or path.name.startswith('._') or path.name.endswith('~'):
+    if path.name in {'.git', '.DS_Store', 'desktop.ini'} or path.name.startswith('._') or path.name.endswith('~'):
         return False
     return not (str(rel).replace('\\', '/') == 'config/local.pri' or path.name in {'PACKAGE_MANIFEST.json', '.qmake.stash', 'settings.ini'}
                 or path.name.startswith(('Makefile', '.env', 'moc_', 'qrc_')) or '.pro.user' in path.name

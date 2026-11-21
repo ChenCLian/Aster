@@ -19,7 +19,8 @@ HEADERS += ../src/io/exports/export_path.h
 SOURCES += ../src/io/database/peak_index.cpp
 HEADERS += ../src/io/database/record_filter.h ../src/io/database/peak_index.h
 
-HEADERS += ../src/io/database/output_reference.h
+SOURCES += ../src/io/database/record_name.cpp
+HEADERS += ../src/io/database/output_reference.h ../src/io/database/record_name.h
 
 SOURCES += ../src/io/database/plot_reader.cpp
 HEADERS += ../src/io/database/plot_reader.h ../src/io/database/plot_request.h

@@ -11,6 +11,12 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QPainter>
+#include <QStylePainter>
+#include <QStyleOptionButton>
+#include <QTextDocument>
+#include <QTextLayout>
+#include <QToolTip>
+#include <QScreen>
 #include <QMenu>
 #include <QTimer>
 namespace aster::ui
@@ -95,22 +101,64 @@ class DropIndicator final : public QWidget
         painter.drawText(rect().adjusted(8, 8, -8, -8), Qt::AlignCenter | Qt::TextWordWrap, label);
     }
 };
+QString wrappedTitleTip(const QString &title, int width)
+{
+    QTextLayout layout(title, QToolTip::font());
+    QTextOption option;
+    option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    layout.setTextOption(option);
+    layout.beginLayout();
+    QStringList lines;
+    for (auto line = layout.createLine(); line.isValid(); line = layout.createLine())
+    {
+        line.setLineWidth(width);
+        lines << title.mid(line.textStart(), line.textLength());
+    }
+    layout.endLayout();
+    return lines.join(QLatin1Char('\n'));
+}
 class PlotTitle final : public QPushButton
 {
   public:
-    PlotTitle(PlotLayoutWidget *owner, QUuid cell, const QString &label)
-        : QPushButton(label), m_owner(owner), m_cell(cell)
+    PlotTitle(PlotLayoutWidget *owner, QUuid cell, const OutputReference &ref)
+        : m_owner(owner), m_cell(cell)
     {
         setObjectName("selectSubplot");
         setCheckable(true);
         setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-        setToolTip(aster::ui::text("ui.plot_title_drag_help"));
+        setOutput(ref, {});
         setContextMenuPolicy(Qt::CustomContextMenu);
         connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
             if (m_owner) m_owner->titleMenu(m_cell, mapToGlobal(pos));
         });
     }
+    void setOutput(const OutputReference &ref, const QString &resolution)
+    {
+        m_source = plotSourceLabel(ref);
+        m_output = plotOutputLabel(ref);
+        const auto full = defaultPlotTitle(ref);
+        if (text() != full)
+        {
+            setText(full);
+            setShortcut(QKeySequence()); // An ampersand in a filename is literal.
+            setAccessibleName(full);
+        }
+        const int tipWidth = screen() ? qBound(80, screen()->availableGeometry().width() - 40, 540) : 540;
+        QString tip = wrappedTitleTip(full, tipWidth) + QLatin1Char('\n') + aster::ui::text("ui.plot_title_drag_help");
+        if (!resolution.isEmpty()) tip += QLatin1Char('\n') + resolution;
+        setToolTip(Qt::mightBeRichText(tip) ? Qt::convertFromPlainText(tip) : tip);
+    }
   protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QStylePainter painter(this);
+        QStyleOptionButton option;
+        initStyleOption(&option);
+        const int width = style()->subElementRect(QStyle::SE_PushButtonContents, &option, this).width();
+        option.text = fittedPlotTitle(m_source, m_output, option.fontMetrics, width);
+        option.text.replace('&', "&&");
+        painter.drawControl(QStyle::CE_PushButton, option);
+    }
     void mousePressEvent(QMouseEvent *event) override
     {
         m_press = event->position().toPoint();
@@ -147,6 +195,7 @@ class PlotTitle final : public QPushButton
     }
   private:
     QPointer<PlotLayoutWidget> m_owner;
+    QString m_source, m_output;
     QUuid m_cell;
     QPoint m_press;
     bool m_armed = false;
@@ -176,13 +225,18 @@ PlotLayoutWidget::PlotLayoutWidget(QWidget *parent) : QScrollArea(parent)
     setWidget(m_canvas);
     m_indicator = new DropIndicator(viewport());
 }
-QPushButton *PlotLayoutWidget::createTitle(QUuid id, const QString &label)
+QPushButton *PlotLayoutWidget::createTitle(QUuid id, const OutputReference &ref)
 {
-    auto *button = new PlotTitle(this, id, label);
+    auto *button = new PlotTitle(this, id, ref);
     // Reassert exclusive selection after the button toggles on release.
     // A drag selects at its threshold instead, avoiding two updates per click.
     connect(button, &QPushButton::clicked, this, [this, id] { emit selectionRequested(id); });
     return button;
+}
+void PlotLayoutWidget::updateTitle(QWidget *panel, const OutputReference &ref, const QString &resolution)
+{
+    if (auto *title = dynamic_cast<PlotTitle *>(panel->findChild<QPushButton *>("selectSubplot")))
+        title->setOutput(ref, resolution);
 }
 QMap<QUuid, QWidget *> PlotLayoutWidget::livePanels() const
 {

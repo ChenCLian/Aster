@@ -276,6 +276,7 @@ RecordDirectoryPanel::RecordDirectoryPanel(QWidget *parent) : QWidget(parent)
                 refresh();
                 emit message(text("ui.records_deleted").arg(result.removed.size()));
             });
+    connect(m_service, &RecordDirectoryService::recordNameChanged, this, &RecordDirectoryPanel::recordNameChanged);
     connect(m_service, &RecordDirectoryService::edited, this,
             [this](QString path, qint64 id, bool removed, QString error)
             {

@@ -1,6 +1,6 @@
 # 文档索引
 
-适用版本：AstroBatch 1.3.3-beta.2。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
+适用版本：AstroBatch 1.3.3-beta.3。[English](README_EN.md) · [使用手册](USER_GUIDE.md) · [参数参考](reference/task_parameters.md)
 
 按使用目的浏览下列主题。内置帮助左侧提供相同分类的可折叠目录与全文搜索，正文区另有独立的页内查找。
 

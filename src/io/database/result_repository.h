@@ -57,7 +57,7 @@ struct LoadResult
 {
     RunResult run;
     QString error;
-    QString displayName, notes;
+    QString displayName, notes, sourceName;
     QMap<NodeId, QVector<OutputInfo>> outputs;
     bool ok() const
     {

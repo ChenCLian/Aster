@@ -34,7 +34,10 @@ NodeResult loadCrossSpectrumOutput(const OutputReference &ref)
     if (!metadata.ok()) return NodeResult::failure(metadata.error);
     auto output = repo.loadPlot(ref, 128 * 1024 * 1024);
     if (output.state != NodeState::Succeeded) return output;
+    const auto plotMethod = output.report.value("plot_method");
     output.report = metadata.run.nodes.value(ref.nodeId).report;
+    output.report["plot_method"] = plotMethod;
+    output.report["plot_source_name"] = metadata.sourceName;
     return output;
 }
 NodeResult loadPlotData(const QVector<OutputReference> &refs, const PlotRequest &request,

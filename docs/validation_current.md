@@ -1,9 +1,9 @@
-# AstroBatch 1.3.3-beta.2 验证范围
+# AstroBatch 1.3.3-beta.3 验证范围
 
-[本版记录](validation_results/1.3.3-beta.2/checks.json) · [文档记录](validation_results/1.3.3-beta.2/documentation_checks.json)
+[本版记录](validation_results/1.3.3-beta.3/checks.json) · [文档记录](validation_results/1.3.3-beta.3/documentation_checks.json)
 
-Debian 13 x86_64（Qt 6.8.2）已完成桌面构建和启动检查。14 个测试程序共通过 2458 项。可选输出覆盖四种图标、中英文、明暗主题，以及 100% 和 200% 显示缩放。
+Debian 13 x86_64（Qt 6.8.2）已通过桌面构建和启动检查。14 个测试程序共通过 2465 项。绘图二级标签覆盖中英文、明暗主题、100% 和 200% 缩放、鼠标点击与键盘切换。任务页右上沿的三个按钮在明暗主题及 100%、200% 缩放下通过八种开合组合检查，覆盖实心展开态、轮廓收起态、面板收起后的空间释放，以及悬停和键盘焦点提示。已验证三键位置固定、快捷键切换和拖动调宽。子图标题覆盖长文件名、内置数据名、复用数据、跨记录选择与改名。更新窗口覆盖单一下载站、多个站点、清单回退、下载换源以及重新检查时清除旧来源。
 
-发布工具运行 237 项测试，其中 1 项需要 macOS Homebrew。中英文参数参考、109 项手册资源和 15 项内置科学资源均已核对。各平台的发布包和 Gitee 下载由发布工作流单独验证。
+发布工具通过 240 项测试，已安装 Homebrew GSL 配方的检查留给 macOS。Linux 更新器已从 Gitee 下载、校验并解压公开的上一版程序包。
 
-上一个版本的记录见[历史验证](validation_results/1.3.3-beta.1/checks.json)。
+上一个版本的记录见[历史验证](validation_results/1.3.3-beta.2/checks.json)。

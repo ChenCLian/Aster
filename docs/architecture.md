@@ -1,6 +1,6 @@
 # AstroBatch 工作流契约
 
-适用版本：AstroBatch 1.3.3-beta.2。
+适用版本：AstroBatch 1.3.3-beta.3。
 
 ## 范围与依赖
 

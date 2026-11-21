@@ -122,6 +122,20 @@ private slots:
   QCOMPARE(dialog.findChild<QPushButton*>("updateOpen")->text(),aster::ui::text("update.retry"));QCOMPARE(manager.requests.size(),2);
   dialog.reject();
  }
+ void unavailableManifestShowsBothSites(){
+  const auto version=useApplicationVersion("1.3.0-beta.1");
+  auto cfg=config();cfg.packageMetadata="AstroBatch-update.json";cfg.mirrorFallback=true;
+  FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{503,{}},{404,{}},{404,{}}};
+  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);dialog.show();
+  QTRY_COMPARE(manager.requests.size(),4);QTRY_VERIFY(!dialog.findChild<PackageDownload*>()->busy());
+  auto *notesSite=dialog.findChild<QLabel*>("updateSourceLabel");
+  QCOMPARE(notesSite->text(),aster::ui::text("update.announcement_source").arg("GitHub"));
+  QVERIFY(!dialog.findChild<QComboBox*>("updateDownloadSource")->isVisible());
+  QCOMPARE(dialog.findChild<QPushButton*>("updateOpen")->text(),aster::ui::text("update.open_release"));
+  dialog.findChild<QToolButton*>("updateDetails")->click();
+  auto *why=dialog.findChild<QLabel*>("updateDiagnostics");
+  QVERIFY(why->isVisible());QVERIFY(why->text().contains("GitHub"));QVERIFY(why->text().contains("Gitee"));
+ }
  void giteePartialResultNeverClaimsLatest(){
   const auto version = useApplicationVersion("1.3.0-beta.1");
   auto cfg=config();cfg.mirrorFallback=true;FakeManager manager;manager.responses={{503,"[]"},{200,"[]"}};
@@ -564,11 +578,18 @@ private slots:
   dialog.reject();
  }
  void packageDownloadWindow_data(){
-  QTest::addColumn<QString>("language");QTest::newRow("zh")<<QString("zh");QTest::newRow("en")<<QString("en");
+  QTest::addColumn<QString>("language");
+  QTest::addColumn<bool>("mirrored");
+  QTest::addColumn<bool>("transferFallback");
+  for(const QString &language:QStringList{"zh","en"}){
+   QTest::newRow(qPrintable(language+"-single"))<<language<<false<<false;
+   QTest::newRow(qPrintable(language+"-mirror"))<<language<<true<<false;
+   QTest::newRow(qPrintable(language+"-archive-fallback"))<<language<<true<<true;
+  }
  }
  void packageDownloadWindow(){
   const auto version = useApplicationVersion("1.3.0-beta.1");
-  QFETCH(QString,language);aster::ui::setLanguage(language);
+  QFETCH(bool,mirrored);QFETCH(bool,transferFallback);QFETCH(QString,language);aster::ui::setLanguage(language);
   const auto theme=language=="zh"?"light":"dark";aster::ui::ThemeManager::instance().apply(*qApp,theme);
   const bool previous=QCoreApplication::testAttribute(Qt::AA_DontUseNativeDialogs);QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,true);
   auto restore=qScopeGuard([&]{QCoreApplication::setAttribute(Qt::AA_DontUseNativeDialogs,previous);aster::ui::setLanguage("zh");aster::ui::ThemeManager::instance().apply(*qApp,"light");});
@@ -577,11 +598,38 @@ private slots:
   QFile file(QFINDTESTDATA(qPrintable(fixture)));QVERIFY(file.open(QIODevice::ReadOnly));const auto bytes=file.readAll();
   const auto name=QString("AstroBatch-99.0.0-beta.1-")+platform+suffix;
   QJsonObject package{{"platform",platform},{"file",name},{"bytes",bytes.size()},{"unpacked_bytes",4096},{"sha256",QString(QCryptographicHash::hash(bytes,QCryptographicHash::Sha256).toHex())},{"sources",QJsonArray{QJsonObject{{"name","GitHub"},{"url","https://github.com/ChenCLian/AstroBatch/releases/download/v99.0.0-beta.1/"+name}}}}};
-  auto cfg=config();cfg.packageMetadata="AstroBatch-update.json";
-  FakeManager manager;manager.responses={{200,json({release("v99.0.0-beta.1",true)})},{200,QJsonDocument(QJsonObject{{"schema",1},{"version","99.0.0-beta.1"},{"packages",QJsonArray{package}}}).toJson()},{200,bytes},{200,bytes,10000}};
-  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);if(language=="en")dialog.resize(520,580);dialog.show();auto *downloader=dialog.findChild<aster::updates::PackageDownload*>();QVERIFY(downloader);
-  QTRY_COMPARE(manager.requests.size(),2);QTRY_VERIFY(!downloader->busy());auto *button=dialog.findChild<QPushButton*>("updateOpen");
-  QCOMPARE(button->text(),aster::ui::text("update.download_extract"));QVERIFY(dialog.findChild<QComboBox*>("updateDownloadSource")->isVisible());
+  auto sources=package["sources"].toArray();
+  if(mirrored)sources.append(QJsonObject{{"name","Gitee"},{"url","https://gitee.com/ChenCLian/AstroBatch/releases/download/v99.0.0-beta.1/"+name}});
+  package["sources"]=sources;
+  const auto manifest=QJsonDocument(QJsonObject{{"schema",1},{"version","99.0.0-beta.1"},{"packages",QJsonArray{package}}}).toJson();
+  auto cfg=config();cfg.packageMetadata="AstroBatch-update.json";cfg.mirrorFallback=mirrored;
+  FakeManager manager;
+  if(transferFallback)manager.responses.append(ReplyData{503,{}});
+  manager.responses.append(ReplyData{200,json({release("v99.0.0-beta.1",true)})});
+  if(mirrored){
+   if(!transferFallback)manager.responses.append(ReplyData{503,{}});
+   const QString notes="Release notes\n\n<!-- astrobatch-update-v1\n"+QString::fromUtf8(manifest)+"\n-->";
+   manager.responses.append(ReplyData{200,QJsonDocument(QJsonObject{{"tag_name","v99.0.0-beta.1"},{"body",notes}}).toJson()});
+  }else manager.responses.append(ReplyData{200,manifest});
+  if(transferFallback)manager.responses.append(ReplyData{503,{}});
+  manager.responses.append(ReplyData{200,bytes});
+  const QString notesSite=transferFallback?"Gitee":"GitHub";
+  aster::ui::UpdateDialog dialog(cfg,nullptr,&manager);if(language=="en")dialog.resize(520,580);dialog.show();
+  auto *downloader=dialog.findChild<aster::updates::PackageDownload*>();QVERIFY(downloader);
+  QTRY_COMPARE(manager.requests.size(),mirrored?3:2);QTRY_VERIFY(!downloader->busy());
+  auto *button=dialog.findChild<QPushButton*>("updateOpen");
+  auto *pickerSource=dialog.findChild<QComboBox*>("updateDownloadSource");
+  auto *onlySource=dialog.findChild<QLabel*>("updateOnlySource");
+  auto *announcement=dialog.findChild<QLabel*>("updateSourceLabel");
+  QCOMPARE(button->text(),aster::ui::text("update.download_extract"));
+  QCOMPARE(announcement->text(),aster::ui::text("update.announcement_source").arg(notesSite));
+  QCOMPARE(pickerSource->isVisible(),mirrored);QCOMPARE(onlySource->isVisible(),!mirrored);
+  if(mirrored){
+   QCOMPARE(pickerSource->count(),3);QCOMPARE(pickerSource->currentData().toString(),QString("auto"));
+   QCOMPARE(pickerSource->currentText(),aster::ui::text("update.source_auto").arg("Gitee"));
+   QVERIFY(pickerSource->toolTip().contains("Gitee"));
+  }
+  else QCOMPARE(onlySource->text(),QString("GitHub"));
   QTemporaryDir folder;QElapsedTimer timer;timer.start();QTimer picker;bool selected=false,timeout=false;
   connect(&picker,&QTimer::timeout,&dialog,[&]{
    if(auto *chooser=dialog.findChild<QFileDialog*>();chooser&&chooser->isVisible()){chooser->setDirectory(folder.path());QMetaObject::invokeMethod(chooser,"accept",Qt::DirectConnection);selected=true;picker.stop();}
@@ -590,10 +638,25 @@ private slots:
   picker.start(10);QTest::mouseClick(dialog.findChild<QPushButton*>("updateChooseDirectory"),Qt::LeftButton);picker.stop();QVERIFY(selected);QVERIFY(!timeout);
   QVERIFY(dialog.findChild<QLabel*>("updateDestination")->text().contains(QDir::toNativeSeparators(folder.path())));
   const auto screenshots=qEnvironmentVariable("ASTER_UPDATE_SCREENSHOT_DIR");
-  if(!screenshots.isEmpty()){QDir().mkpath(screenshots);QVERIFY(dialog.grab().save(screenshots+"/download-"+language+"-ready.png"));}
+  const QString variant=transferFallback?"-archive-fallback":mirrored?"-mirror":"";
+  const QString stem=screenshots+"/download-"+language+variant;
+  if(!screenshots.isEmpty()){QDir().mkpath(screenshots);QVERIFY(dialog.grab().save(stem+"-ready.png"));}
   QSignalSpy done(downloader,&aster::updates::PackageDownload::finished);QTest::mouseClick(button,Qt::LeftButton);
   QTRY_COMPARE(done.size(),1);QVERIFY(done[0][0].toBool());QVERIFY(!downloader->completedDirectory().isEmpty());QCOMPARE(button->text(),aster::ui::text("update.open_directory"));
-  if(!screenshots.isEmpty())QVERIFY(dialog.grab().save(screenshots+"/download-"+language+"-complete.png"));
+  const QString actual=mirrored&&!transferFallback?"Gitee":"GitHub";
+  QCOMPARE(manager.requests.last().url().host(),actual=="Gitee"?QString("gitee.com"):QString("github.com"));
+  if(transferFallback){
+   QCOMPARE(manager.requests.size(),5);
+   QCOMPARE(manager.requests[3].url().host(),QString("gitee.com"));
+  }
+  QCOMPARE(announcement->text(),aster::ui::text("update.announcement_source").arg(notesSite));
+  QVERIFY(announcement->isVisible());
+  QCOMPARE(dialog.findChild<QLabel*>("updateReleaseMeta")->text(),aster::ui::text("update.transfer_source").arg(actual));
+  if(!screenshots.isEmpty())QVERIFY(dialog.grab().save(stem+"-complete.png"));
+  manager.responses.append(ReplyData{200,"[]"});
+  QTest::mouseClick(dialog.findChild<QPushButton*>("updateCheck"),Qt::LeftButton);
+  QVERIFY(!announcement->isVisible());QVERIFY(!dialog.findChild<QLabel*>("updateReleaseMeta")->isVisible());
+  QTRY_VERIFY(!dialog.findChild<UpdateChecker*>()->busy());QVERIFY(!announcement->isVisible());
   QTest::keyClick(&dialog,Qt::Key_Escape);QVERIFY(!dialog.isVisible());
  }
  void settingsContactOpensLocalAuthorPage(){

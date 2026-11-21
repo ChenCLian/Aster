@@ -160,7 +160,15 @@ void RecordDirectoryService::start()
                     }
                 }
                 else if (request.kind == Kind::Edit)
+                {
                     list->error = repo.updateMetadata(request.id, request.name, request.notes);
+                    if (list->error.isEmpty())
+                    {
+                        const auto record = repo.load(request.id, true);
+                        if (record.ok())
+                            emit recordNameChanged(request.path, record.run.runId, record.sourceName);
+                    }
+                }
                 else if (request.kind == Kind::Remove)
                     list->error = repo.remove(request.id);
                 else if (request.kind == Kind::Select)

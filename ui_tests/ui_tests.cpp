@@ -1457,7 +1457,7 @@ void UiTests::settingsLinksAndKeyboardNavigation()
     {
         auto *panel = window.findChild<CollapsiblePanel *>(entry.first); QVERIFY(panel);
         const bool initial = panel->isCollapsed();
-        const auto *grip = panel->findChild<QAbstractButton *>("sidePanelGrip"); QVERIFY(grip);
+        const auto *grip = panel->toggleButton(); QVERIFY(grip);
         const QKeySequence expectedShortcut(
             QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, entry.second));
         QCOMPARE(grip->shortcut(), expectedShortcut);

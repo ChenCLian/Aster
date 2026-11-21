@@ -36,8 +36,8 @@ private:
     std::optional<updates::Release> m_selectedRelease;
     QWidget *m_downloadOptions;
     QComboBox *m_source;
-    QLabel *m_destination;
-    QString m_directory,m_usedSource;
+    QLabel *m_destination, *m_announcementSource, *m_onlySource;
+    QString m_directory,m_usedSource,m_autoSource;
     bool m_packageReady=false,m_downloadDone=false;
     QTabBar *m_channels;
     QFrame *m_summary;

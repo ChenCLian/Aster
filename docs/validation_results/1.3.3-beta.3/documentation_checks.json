@@ -1,0 +1,16 @@
+{
+  "version": "1.3.3-beta.3",
+  "date": "2026-11-21",
+  "documentation": {
+    "status": "content_version_and_links_checked",
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "scope": "Chinese and English instructions for subplot titles, task panel controls, plot inspector tabs, update sources, and mirror maintenance.",
+    "packaged_help_resources": 109,
+    "generated_task_references": 58,
+    "generated_parameter_references": 270,
+    "help_generator_tests": 8
+  }
+}

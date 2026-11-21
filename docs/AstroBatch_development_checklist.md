@@ -1,6 +1,6 @@
 # AstroBatch 算法开发与功能扩展清单
 
-适用版本：**AstroBatch 1.3.3-beta.2**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
+适用版本：**AstroBatch 1.3.3-beta.3**。数值后端为 OpenBLAS/LAPACK + PocketFFT。
 
 当前验证见 [验证记录](validation_current.md)。算法说明按职责归入 `methods/`，任务入口见 [分类表](task_catalogue.md)。
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #include "io/database/result_repository.h"
 #include "io/database/plot_reader.h"
+#include "io/database/record_name.h"
 #include "io/database/data_codec.h"
 #include "io/database/peak_index.h"
 #include "io/database/record_query.h"
@@ -510,6 +511,8 @@ LoadResult ResultRepository::load(qint64 recordId, bool metadataOnly) const
     QMap<NodeId, NodeDefinition> definitions;
     for (const auto &n : definition.definition.nodes)
         definitions.insert(n.id, n);
+    result.sourceName = recordSourceName(result.displayName, run.sourceLabel, run.provenance,
+                                         definitions.value(run.root).method);
     q.prepare("SELECT "
               "node_uuid,state,report,error,warnings,execution_order,method,method_version,"
               "parameters FROM aster_nodes WHERE run_id=?");
@@ -633,7 +636,12 @@ NodeResult ResultRepository::loadPlotMetadata(const OutputReference &ref) const
     if (!threadError.isEmpty()) return NodeResult::failure(threadError);
     if (!ref.valid()) return NodeResult::failure("Invalid plot reference");
     QSqlQuery query(m_db);
-    query.prepare("SELECT n.method,n.report FROM aster_nodes n JOIN aster_runs r ON r.id=n.run_id "
+    // Normal UI references already carry the record name; restored references resolve it here.
+    const QString fields = ref.sourceName.isNull()
+        ? QStringLiteral(",r.display_name,r.source_label,r.provenance,(SELECT root.method FROM aster_nodes root "
+                         "WHERE root.run_id=r.id AND root.node_uuid=r.root_uuid)")
+        : QString();
+    query.prepare("SELECT n.method,n.report" + fields + " FROM aster_nodes n JOIN aster_runs r ON r.id=n.run_id "
                   "WHERE r.id=? AND r.run_uuid=? AND n.node_uuid=?");
     query.addBindValue(ref.recordId); query.addBindValue(uuid(ref.runId)); query.addBindValue(uuid(ref.nodeId));
     if (!query.exec()) return NodeResult::failure(query.lastError().text());
@@ -642,6 +650,10 @@ NodeResult ResultRepository::loadPlotMetadata(const OutputReference &ref) const
     auto report = object(query.value(1).toString(), error);
     if (!error.isEmpty()) return NodeResult::failure(error);
     report["plot_method"] = query.value(0).toString();
+    report["plot_source_name"] = ref.sourceName.isNull()
+        ? recordSourceName(query.value(2).toString(), query.value(3).toString(),
+                           QJsonDocument::fromJson(query.value(4).toByteArray()).object(),
+                           query.value(5).toString()) : ref.sourceName;
     return NodeResult::success({}, report);
 }
 NodeResult ResultRepository::loadPlot(const OutputReference &ref, qint64 budget) const

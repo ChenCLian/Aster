@@ -3,6 +3,7 @@
 #ifndef ASTER_PLOT_LAYOUT_WIDGET_H
 #define ASTER_PLOT_LAYOUT_WIDGET_H
 #include "ui/results/plot_arrangement.h"
+#include "io/database/output_reference.h"
 #include <QScrollArea>
 #include <QPointer>
 class QSplitter;
@@ -16,7 +17,8 @@ class PlotLayoutWidget : public QScrollArea
     Q_OBJECT
   public:
     explicit PlotLayoutWidget(QWidget *parent = nullptr);
-    QPushButton *createTitle(QUuid id, const QString &label);
+    QPushButton *createTitle(QUuid id, const OutputReference &ref);
+    static void updateTitle(QWidget *panel, const OutputReference &ref, const QString &resolution = {});
     bool arrange(const PlotArrangement &layout, const QMap<QUuid, QWidget *> &panels,
                  const QVector<QUuid> &defaultOrder);
     PlotArrangement snapshot() const;

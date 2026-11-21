@@ -1,13 +1,16 @@
 """Mirror the four tested program archives and record their verified metadata in the release description."""
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import re
 from pathlib import Path
 import secrets
+import socket
 import subprocess
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -17,6 +20,48 @@ from document_links import mirror_release_body
 from release_delivery import package_names, mirror_plan, REPO
 
 
+ATTEMPTS = 3
+
+
+class TemporaryTransferError(OSError):
+    pass
+
+
+def http_failure(label, code):
+    message = f'{label} (HTTP {code})'
+    if code in (408, 429, 500, 502, 503, 504):
+        return TemporaryTransferError(message)
+    return ValueError(message)
+
+
+def transient(error):
+    if isinstance(error, urllib.error.URLError):
+        error = error.reason
+    return isinstance(error, (TemporaryTransferError, TimeoutError, ConnectionError, http.client.IncompleteRead)) or (
+        isinstance(error, socket.gaierror) and error.errno == socket.EAI_AGAIN)
+
+
+def retry_read(label, read):
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            return read()
+        except (OSError, http.client.IncompleteRead) as error:
+            if not transient(error) or attempt == ATTEMPTS:
+                raise
+            print(f'{label}: {type(error).__name__}; retry {attempt + 1}/{ATTEMPTS}', flush=True)
+            time.sleep(5 * attempt)
+
+
+def transfer_chunks(stream, total, phase):
+    count = 0
+    last = time.monotonic()
+    while chunk := stream.read(1024 * 1024):
+        yield chunk
+        count += len(chunk)
+        now = time.monotonic()
+        if now - last >= 20:
+            print(f'  {phase}: {count / 2**20:.1f} / {total / 2**20:.1f} MiB', flush=True)
+            last = now
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -41,15 +86,20 @@ def public_download(url, path, limit, expected_hash=None, expected_size=None):
         try:
             response=opener.open(urllib.request.Request(url,headers={'User-Agent':'AstroBatch-release-mirror','Accept-Encoding':'identity'}),timeout=60)
         except urllib.error.HTTPError as error:
-            if error.code in (301,302,303,307,308) and error.headers.get('Location'):
-                url=urllib.parse.urljoin(url,error.headers['Location']); continue
-            raise ValueError('Public package verification failed: HTTP '+str(error.code)) from None
+            with error:
+                if error.code in (301,302,303,307,308) and error.headers.get('Location'):
+                    url=urllib.parse.urljoin(url,error.headers['Location'])
+                    continue
+                raise http_failure('Public package verification failed', error.code) from None
         count=0; sha=hashlib.sha256()
         with response, path.open('wb') as stream:
-            while chunk:=response.read(1024*1024):
+            length = response.headers.get('Content-Length', '')
+            for chunk in transfer_chunks(response, expected_size or limit, 'Public readback'):
                 count+=len(chunk)
                 if count>limit:raise ValueError('Public download exceeds size limit')
                 stream.write(chunk);sha.update(chunk)
+        if length.isdecimal() and count < int(length):
+            raise http.client.IncompleteRead(b'', int(length)-count)
         if expected_size is not None and count!=expected_size:raise ValueError('Mirror size mismatch')
         if expected_hash is not None and sha.hexdigest()!=expected_hash:raise ValueError('Mirror SHA-256 mismatch')
         return
@@ -73,9 +123,9 @@ class Gitee:
             def multipart():
                 yield opening
                 with file.open('rb') as stream:
-                    while chunk := stream.read(1024*1024):
-                        yield chunk
+                    yield from transfer_chunks(stream, file.stat().st_size, 'Upload')
                 yield closing
+                print('  Upload body sent; waiting for Gitee to confirm', flush=True)
             payload = multipart()
             headers['Content-Length'] = str(len(opening) + file.stat().st_size + len(closing))
             headers['Content-Type']='multipart/form-data; boundary='+boundary
@@ -83,10 +133,11 @@ class Gitee:
             payload=json.dumps(data).encode();headers['Content-Type']='application/json'
         request=urllib.request.Request('https://gitee.com/api/v5/repos/'+REPO+('/'+path if path else ''),headers=headers,data=payload,method=method)
         try:
-            with self.opener.open(request,timeout=180) as response:raw=response.read(8*1024*1024+1)
+            with self.opener.open(request,timeout=300 if file is not None else 180) as response:raw=response.read(8*1024*1024+1)
         except urllib.error.HTTPError as error:
-            if missing and error.code==404:return None
-            raise ValueError('Gitee API '+method+' failed (HTTP '+str(error.code)+'); check token permissions, quota and repository access') from None
+            with error:
+                if missing and error.code==404:return None
+                raise http_failure('Gitee API '+method+' failed', error.code) from None
         if len(raw)>8*1024*1024:raise ValueError('Gitee response too large')
         return json.loads(raw) if raw.strip() else None
     def assets(self,rid):
@@ -100,14 +151,39 @@ class Gitee:
     def upload(self,rid,path):return self.api(f'releases/{rid}/attach_files','POST',file=path)
 
 
+def attachment_names(api, rid, expected):
+    assets = retry_read('List Gitee attachments', lambda: api.assets(rid))
+    names = {a['name'] for a in assets}
+    if len(names) != len(assets):
+        raise ValueError('Duplicate Gitee attachment names; resolve them before retrying')
+    if names - expected:
+        raise ValueError('Unexpected existing Gitee attachments: ' + ', '.join(sorted(names - expected)))
+    return names
+
+
+def upload_missing(api, rid, original, expected):
+    for attempt in range(1, ATTEMPTS + 1):
+        print(f'Upload {original.name} (attempt {attempt}/{ATTEMPTS})', flush=True)
+        try:
+            api.upload(rid, original)
+            return
+        except (OSError, http.client.IncompleteRead) as error:
+            if not transient(error):
+                raise
+            print(f'Upload interrupted ({type(error).__name__}); checking the Gitee attachment list', flush=True)
+            time.sleep(5 * attempt)
+            if original.name in attachment_names(api, rid, expected):
+                print('Attachment already received; continuing with public verification', flush=True)
+                return
+            if attempt == ATTEMPTS:
+                raise
+
+
 def mirror_packages(api,rid,folder,metadata,version,verify=public_download):
-    plan=mirror_plan(folder,version);assets=api.assets(rid)
-    byname={a['name']:a for a in assets}
-    if len(byname)!=len(assets):raise ValueError('Duplicate Gitee attachment names; resolve them before retrying')
+    plan=mirror_plan(folder,version)
     selected={p['file']:p for p in plan['upload']}
     expected = package_names(version)
-    if set(byname) - expected:
-        raise ValueError('Unexpected existing Gitee attachments: '+', '.join(sorted(set(byname) - expected)))
+    existing = attachment_names(api, rid, expected)
     if set(selected) != expected:
         raise ValueError('All four original packages are required for a Gitee mirror')
     output=json.loads(json.dumps(metadata))
@@ -117,12 +193,18 @@ def mirror_packages(api,rid,folder,metadata,version,verify=public_download):
         original=folder/item['file']
         if digest(original)!=item['sha256'] or original.stat().st_size!=item['bytes']:
             raise ValueError('GitHub archive disagrees with metadata')
-        print('Mirror package: '+original.name,flush=True)
-        if original.name not in byname:api.upload(rid,original)
+        print(f"Mirror package: {original.name} ({item['bytes'] / 2**20:.1f} MiB)", flush=True)
+        if original.name in existing:
+            print('Reusing existing Gitee attachment', flush=True)
+        else:
+            upload_missing(api, rid, original, expected)
         # Deterministic public URL, not an arbitrary API-supplied download link.
         url=f'https://gitee.com/{REPO}/releases/download/v{version}/{original.name}'
         with tempfile.TemporaryDirectory(prefix='astrobatch-verify-') as temp:
-            verify(url,Path(temp)/'package',item['bytes'],item['sha256'],item['bytes'])
+            print('Verify public download: '+original.name, flush=True)
+            retry_read('Verify '+original.name,
+                       lambda: verify(url,Path(temp)/'package',item['bytes'],item['sha256'],item['bytes']))
+            print('Verified size and SHA-256: '+original.name, flush=True)
         item['sources'].append(dict(name='Gitee',url=url))
     return output,plan
 

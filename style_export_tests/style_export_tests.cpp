@@ -776,6 +776,25 @@ void StyleExportTests::narrowInspectorLayout()
     editor.resize(275, 440);
     editor.show();
     auto *tabs = editor.findChild<QTabWidget *>("plotStyleSections"); QVERIFY(tabs);
+    auto *bar=tabs->tabBar();
+    QCoreApplication::processEvents();
+    QCOMPARE(bar->count(),4);
+    for(int i=0;i<bar->count();++i){
+        const QRect hit=bar->tabRect(i);
+        QVERIFY(hit.height()>=32);
+        QVERIFY(bar->rect().contains(hit.center()));
+        if(bar->isTabEnabled(i)){
+            QTest::mouseClick(bar,Qt::LeftButton,Qt::NoModifier,hit.center());
+            QCOMPARE(tabs->currentIndex(),i);
+        }
+    }
+    tabs->setCurrentIndex(0);
+    bar->setFocus();QTest::keyClick(bar,Qt::Key_Right);QCOMPARE(tabs->currentIndex(),1);
+    const auto captures=qEnvironmentVariable("ASTER_UI_CAPTURE_DIR");
+    if(!captures.isEmpty() && fontSize==10){
+        QDir output(captures);QVERIFY(output.mkpath("."));
+        QVERIFY(editor.grab().save(output.filePath("plot-sections-"+language+"-"+theme+".png")));
+    }
     for (int i = 0; i < tabs->count(); ++i)
     {
         tabs->setCurrentIndex(i);

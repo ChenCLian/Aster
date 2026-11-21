@@ -1,0 +1,113 @@
+{
+  "version": "1.3.3-beta.3",
+  "date": "2026-11-21",
+  "status": "linux_desktop_regression_passed",
+  "previous_record": "docs/validation_results/1.3.3-beta.2/checks.json",
+  "desktop": {
+    "platform": "Debian 13 x86_64",
+    "qt": "6.8.2",
+    "build": "release",
+    "startup": "passed",
+    "tests": {
+      "passed": 2465,
+      "failed": 0,
+      "skipped": 0
+    },
+    "passed_by_executable": {
+      "aster_core_tests": 67,
+      "aster_batch_tests": 69,
+      "aster_analysis_tests": 724,
+      "aster_cross_spectrum_tests": 81,
+      "aster_ui_tests": 959,
+      "aster_joint_ui_tests": 39,
+      "aster_rewrite_tests": 32,
+      "aster_linked_input_tests": 53,
+      "aster_style_export_tests": 70,
+      "aster_workspace_tests": 87,
+      "aster_integration_tests": 95,
+      "aster_update_tests": 81,
+      "aster_download_tests": 75,
+      "aster_interaction_acceptance": 33
+    }
+  },
+  "plot_inspector": {
+    "languages": [
+      "zh",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "display_scale": [
+      1,
+      2
+    ],
+    "interactions": [
+      "tab hit targets",
+      "mouse selection",
+      "keyboard navigation"
+    ]
+  },
+  "updates": {
+    "single_source": "fixed source label",
+    "multiple_sources": "automatic priority or explicit choice",
+    "exercises": [
+      "GitHub announcement with Gitee metadata and archive",
+      "Gitee announcement with archive fallback to GitHub",
+      "missing metadata from both sites",
+      "recheck clears old source"
+    ],
+    "public_download": "New Linux client fetched, verified and extracted the published v1.3.3-beta.2 Linux package from Gitee."
+  },
+  "release_tooling": {
+    "tests": 241,
+    "passed": 240,
+    "failures": 0,
+    "skipped": 1,
+    "skip": "Installed Homebrew GSL recipe (macOS)",
+    "mirror": [
+      "bounded retries",
+      "reconcile interrupted upload",
+      "streamed multipart body",
+      "public size and checksum validation"
+    ]
+  },
+  "orbital_data_tool_tests": 4,
+  "task_panels": {
+    "controls": [
+      "live preview",
+      "step settings",
+      "task library"
+    ],
+    "hit_size_logical_px": [36, 36],
+    "icon_size_logical_px": 20,
+    "themes": ["light", "dark"],
+    "scale_factors": [1, 2],
+    "checks": [
+      "all eight open and closed combinations",
+      "fixed upper-right controls at window widths of 1000, 1280 and 1920 logical pixels",
+      "filled open buttons with inverted glyphs, outlined closed buttons and distinct keyboard focus",
+      "localized action, purpose and shortcut on hover and keyboard focus",
+      "clicks outside the icon and Space on the focused button",
+      "width released on collapse",
+      "keyboard shortcuts",
+      "horizontal resizing"
+    ]
+  },
+  "subplot_titles": {
+    "formats": [
+      "file basename with extension",
+      "built-in data name",
+      "record display name",
+      "reused database source"
+    ],
+    "checks": [
+      "independent names on adjacent plots",
+      "separate elision for source and output",
+      "full hover and accessible name",
+      "live rename while browsing another record",
+      "export figure and editing targets"
+    ]
+  }
+}

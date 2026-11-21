@@ -38,6 +38,7 @@ class RecordDirectoryPanel final : public QWidget
     void recordActivated(qint64 id);
     void recordsRemoved(aster::RecordIdentities records);
     void metadataEdited(qint64 id);
+    void recordNameChanged(QString path, QUuid runId, QString name);
     void busyChanged(bool busy);
     void mutationBusyChanged(bool busy);
     void message(QString message);

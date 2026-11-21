@@ -38,6 +38,7 @@ class PackagingLayoutTests(unittest.TestCase):
         for name, data in {
             'VERSION': b'1.1.1\n', 'PACKAGE_STATUS.json': b'{"version":"1.1.1"}',
             'LICENSE': b'terms', 'COPYRIGHT.md': b'copyright', 'SOURCE_CODE.md': b'source',
+            '.git': b'gitdir: /worktrees/private-local-path',
             'config/local.pri.example': b'template', 'config/local.pri': b'private path',
             'build-release/main.o': b'binary', 'dist/old.zip': b'archive',
             'src/main.cpp': b'int main(){}\n', '.github/workflows/build.yml': b'name: build\n',
@@ -62,7 +63,7 @@ class PackagingLayoutTests(unittest.TestCase):
                 package_source.main()
         dest = out / 'AstroBatch-source-export-1.1.1'
         self.assertEqual(list(out.iterdir()), [dest])
-        for name in ['config/local.pri', 'build-release', 'dist', 'results.sqlite', 'docs/.DS_Store',
+        for name in ['.git', 'config/local.pri', 'build-release', 'dist', 'results.sqlite', 'docs/.DS_Store',
                      'src/main.cpp~', 'src/main.cpp.orig', 'docs/._guide.md', '__MACOSX', 'docs/desktop.ini']:
             self.assertFalse((dest / name).exists())
         self.assertTrue((dest / '.github/workflows/build.yml').is_file())

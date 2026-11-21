@@ -1,6 +1,6 @@
 # 源码构建与开发
 
-适用版本：AstroBatch 1.3.3-beta.2。
+适用版本：AstroBatch 1.3.3-beta.3。
 
 [用户指南](../QUICK_START.md) · [发布与版本维护](release_maintenance_zh.md) · [文档索引](README.md)
 
@@ -29,6 +29,8 @@
 3. 当前 vcpkg 配置需要 `gsl:x64-windows`、`openblas:x64-windows` 、`lapack-reference:x64-windows` 和 `libarchive:x64-windows`。
 4. Qt Creator 打开根目录 **`AstroBatch.pro`**，选择 Kit 和 **Release**，运行 qmake，再构建整个工程。
 5. 运行配置选择 **desktop / AstroBatch**。程序输出通常位于构建根目录的 **`bin/AstroBatch.exe`**。
+
+覆盖源码后若出现 `LNK2019`，请核对实现文件是否列在所属模块的 `SOURCES` 中。例如，`recordSourceName` 的实现是 `src/io/database/record_name.cpp`，由 `io/io.pro` 编入 `aster_io.lib`。对该子项目重新运行 qmake 并重新构建，然后构建根工程。如果仍有相同错误，可为同一 Kit 选择新的 Release 构建目录。
 
 根工程统一构建依赖模块，使用 `bin/` 和 `lib/` 输出目录；桌面入口为 `AstroBatch`。直接运行开发构建时，仍需匹配的 Qt 插件和第三方运行库；Debug 与 Release 依赖不可混用。
 

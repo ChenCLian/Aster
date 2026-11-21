@@ -9,6 +9,7 @@
 #include <QPainterPath>
 #include <QFontDatabase>
 #include <QRegularExpression>
+#include <algorithm>
 namespace aster::ui
 {
 void setLanguage(const QString &language)
@@ -67,9 +68,36 @@ QString portLabel(const TaskDescriptor &descriptor, const QString &port)
     fallback = translatedLabel("port." + port, fallback);
     return translatedLabel("output." + descriptor.key + "." + port, fallback);
 }
-QString defaultPlotTitle(qint64 recordId, const QString &port)
+QString plotSourceLabel(const OutputReference &ref)
 {
-    return QString("ID %1 · %2").arg(recordId).arg(portLabel(port));
+    if (ref.sourceName.isNull()) return {};
+    return ref.sourceName.isEmpty() ? text("ui.unnamed_dataset") : ref.sourceName;
+}
+QString plotOutputLabel(const OutputReference &ref)
+{
+    if (!ref.valid()) return text("ui.empty_subplot");
+    return LanguageCatalog::instance().optionalLabel("output." + ref.method + "." + ref.port, portLabel(ref.port));
+}
+QString defaultPlotTitle(const OutputReference &ref)
+{
+    const auto source = plotSourceLabel(ref);
+    return source.isEmpty() ? plotOutputLabel(ref) : source + QStringLiteral(" · ") + plotOutputLabel(ref);
+}
+QString fittedPlotTitle(const QString &source, const QString &output, const QFontMetrics &metrics, int width)
+{
+    if (source.isEmpty()) return metrics.elidedText(output, Qt::ElideRight, width);
+    const QString separator = QStringLiteral(" · ");
+    const auto full = source + separator + output;
+    if (metrics.horizontalAdvance(full) <= width) return full;
+    const int available = width - metrics.horizontalAdvance(separator);
+    if (available < 4 * metrics.horizontalAdvance(QChar(0x2026)))
+        return metrics.elidedText(output, Qt::ElideRight, width);
+
+    // Each part gets half the row when both are long; a short part gives up its spare space.
+    const int outputBudget = std::max(available / 2, available - metrics.horizontalAdvance(source));
+    const auto end = metrics.elidedText(output, Qt::ElideRight, outputBudget);
+    const auto start = metrics.elidedText(source, Qt::ElideMiddle, available - metrics.horizontalAdvance(end));
+    return start + separator + end;
 }
 QString resultError(const NodeResult &result)
 {

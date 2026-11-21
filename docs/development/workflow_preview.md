@@ -1,6 +1,6 @@
 # 预览执行与桌面接口
 
-适用版本：AstroBatch 1.3.3-beta.2。用户操作见[即时预览](../ui/live_preview.md)。
+适用版本：AstroBatch 1.3.3-beta.3。用户操作见[即时预览](../ui/live_preview.md)。
 
 ## 执行与并发
 
@@ -26,7 +26,7 @@
 | `src/ui/panels/file_preview_panel.h/.cpp` | 文件读取、原始顺序绘图与内嵌概览 |
 | `src/ui/panels/parameter_editor.h/.cpp` | 自动提交、防抖和输入即失效信号 |
 | `src/ui/panels/source_panel.h/.cpp` | 当前根/文件与已自动提交的导入选项的统一预览选择快照 |
-| `src/ui/panels/collapsible_panel.h/.cpp` | 共用收缩/拖动把手，支持左右边缘和展开宽度上限 |
+| `src/ui/panels/collapsible_panel.h/.cpp` | 任务页右上沿的面板开关，支持独立开合、横向拖动和宽度上限 |
 | `src/ui/panels/pairing_panel.h/.cpp`、`joint_input_dialog.h/.cpp` | A/B 来源选择、配对草稿与预览配对身份 |
 | `src/core/batch_workflow.h`、`linked_batch.cpp` | 跨节点冻结计划与选定配对的依赖切片 |
 | `src/ui/app/main_window.h/.cpp` | 装配、画布选择来源、正式批次暂停和关闭协调 |

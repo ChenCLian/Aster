@@ -3,9 +3,11 @@
 #ifndef ASTER_UI_PRESENTATION_H
 #define ASTER_UI_PRESENTATION_H
 #include "core/task_registry.h"
+#include "io/database/output_reference.h"
 #include <QColor>
 #include <QIcon>
 #include <QKeySequence>
+#include <QFontMetrics>
 class QApplication;
 namespace aster::ui
 {
@@ -22,7 +24,10 @@ QString methodHelp(const QString &method);
 QString choiceLabel(const QString &parameter, const QString &value);
 QString portLabel(const QString &port);
 QString portLabel(const TaskDescriptor &descriptor, const QString &port);
-QString defaultPlotTitle(qint64 recordId, const QString &port);
+QString plotSourceLabel(const OutputReference &ref);
+QString plotOutputLabel(const OutputReference &ref);
+QString defaultPlotTitle(const OutputReference &ref);
+QString fittedPlotTitle(const QString &source, const QString &output, const QFontMetrics &metrics, int width);
 QString resultError(const NodeResult &result);
 QString stateLabel(NodeState state);
 QColor stateColor(NodeState state);

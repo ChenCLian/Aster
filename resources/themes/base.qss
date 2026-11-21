@@ -165,9 +165,13 @@ QTabBar#inspectorPrimaryNav::tab { padding: 10px 8px; margin: 0; border: 1px sol
 QTabBar#inspectorPrimaryNav::tab:selected { background: @accentFill@; color: @accentText@; border-color: @accentFill@; }
 QTabBar#inspectorPrimaryNav::tab:hover { background: @hover@; color: @text@; }
 QTabBar#inspectorPrimaryNav::tab:selected:hover { background: @accentHover@; color: @accentText@; }
-QTabBar#inspectorSectionNav::tab { padding: 6px 5px; margin: 0; border: 0; border-bottom: 2px solid @divider@; background: @surface@; color: @muted@; font-size: 10pt; }
-QTabBar#inspectorSectionNav::tab:selected { color: @text@; font-weight: 600; border-bottom: 2px solid @accent@; }
-QTabBar#inspectorSectionNav::tab:hover { background: @hover@; color: @text@; }
+QTabBar#inspectorSectionNav { background: @window@; }
+QTabBar#inspectorSectionNav::tab { margin: 3px 2px; padding: 5px 2px; min-height: 18px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: @text@; font-size: 10.5pt; }
+QTabBar#inspectorSectionNav::tab:!selected:hover { background: @selection@; border-color: @controlBorder@; }
+QTabBar#inspectorSectionNav::tab:selected { color: @accentText@; background: @accentFill@; font-weight: 600; }
+QTabBar#inspectorSectionNav::tab:selected:hover { color: @accentText@; background: @accentHover@; }
+QTabBar#inspectorSectionNav:focus::tab:selected { border: 1px dashed @accentText@; }
+QTabBar#inspectorSectionNav::tab:disabled { color: @disabled@; background: transparent; border-color: transparent; }
 QFrame#inspectorTarget { border: 1px solid @divider@; border-left: 3px solid @accent@; background: @surface@; }
 QLabel#activeStyleTarget { font-size: 10.5pt; font-weight: 600; color: @text@; }
 QFrame#settingsDivider { background: @divider@; border: 0; }

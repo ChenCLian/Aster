@@ -170,10 +170,26 @@ QString PlotWorkspace::destinationLabel() const
         {
             const auto ref = currentReference();
             return text("ui.plot_destination").arg(m_active + 1).arg(i + 1) +
-                (ref.valid() ? QString(" · ID %1 · %2").arg(ref.recordId).arg(portLabel(ref.port))
-                             : QString(" · ") + text("ui.empty_subplot"));
+                QStringLiteral(" · ") + defaultPlotTitle(ref);
         }
     return text("ui.plot_destination_page").arg(m_active + 1);
+}
+void PlotWorkspace::updateRecordName(const QString &database, QUuid runId, const QString &name)
+{
+    for (auto &page : m_pages)
+        for (auto &cell : page.cells)
+        {
+            for (auto *refs : {&cell.refs, &cell.pendingRefs})
+                for (auto &ref : *refs)
+                    if (ref.runId == runId && ref.databasePath == database)
+                        ref.sourceName = name;
+            if (cell.view && !cell.refs.isEmpty() && cell.refs.front().runId == runId &&
+                cell.refs.front().databasePath == database)
+            {
+                cell.view->setOutputReference(cell.refs.front());
+                PlotLayoutWidget::updateTitle(cell.view->parentWidget(), cell.refs.front(), cell.view->resolutionDescription());
+            }
+        }
 }
 void PlotWorkspace::openBatch(const QVector<OutputReference> &references, Target target)
 {
@@ -338,12 +354,7 @@ void PlotWorkspace::build()
         auto *panel = new QWidget;
         auto *vl = new QVBoxLayout(panel);
         vl->setContentsMargins(3, 3, 3, 3);
-        auto *button = page.host->createTitle(c.id,
-            c.refs.isEmpty()
-                ? text("ui.empty_subplot")
-                : defaultPlotTitle(c.refs[0].recordId, c.refs[0].port));
-        button->setObjectName("selectSubplot");
-        button->setCheckable(true);
+        auto *button = page.host->createTitle(c.id, c.refs.value(0));
         button->setChecked(c.id == m_selected);
         vl->addWidget(button);
         c.view = new PlotView;
@@ -616,7 +627,7 @@ void PlotWorkspace::pump()
                                                 ref.databasePath == c.refs.front().databasePath && c.style.curves.contains(ref.port) &&
                                                 std::none_of(c.refs.cbegin(), c.refs.cend(), [&ref](const OutputReference &v) { return v.key() == ref.key(); }))
                                                 c.style.curves[ref.port].visible = true;
-                                    c.refs = job.refs;
+                                    c.refs = c.pendingRefs;
                                     c.pendingRefs.clear();
                                     if (job.replacing) c.saved = false;
                                 }
@@ -625,13 +636,10 @@ void PlotWorkspace::pump()
                                 else
                                     c.view->showOutput(*result, c.refs[0].port, c.refs[0].key());
                                 c.refs[0].method = result->report["plot_method"].toString(c.refs[0].method);
+                                if (c.refs[0].sourceName.isNull())
+                                    c.refs[0].sourceName = result->report.value("plot_source_name").toString(QStringLiteral(""));
                                 c.view->setOutputReference(c.refs[0]);
-                                if (auto *label = c.view->parentWidget()->findChild<QPushButton *>(
-                                        "selectSubplot"))
-                                {
-                                    label->setText(defaultPlotTitle(c.refs[0].recordId, c.refs[0].port));
-                                    label->setToolTip(text("ui.plot_title_drag_help") + "\n" + c.view->resolutionDescription());
-                                }
+                                PlotLayoutWidget::updateTitle(c.view->parentWidget(), c.refs[0], c.view->resolutionDescription());
                                 if (auto *status = c.view->parentWidget()->findChild<QLabel *>("plotResolution"))
                                 {
                                     status->setText(c.view->resolutionDescription());
@@ -725,11 +733,7 @@ void PlotWorkspace::showEmpty(Cell &cell)
 {
     if (!cell.view) return;
     cell.view->clear(text("ui.empty_subplot_help"));
-    if (auto *title = cell.view->parentWidget()->findChild<QPushButton *>("selectSubplot"))
-    {
-        title->setText(text("ui.empty_subplot"));
-        title->setToolTip(text("ui.plot_title_drag_help"));
-    }
+    PlotLayoutWidget::updateTitle(cell.view->parentWidget(), {});
     if (auto *status = cell.view->parentWidget()->findChild<QLabel *>("plotResolution"))
     { status->clear(); status->setToolTip({}); }
 }

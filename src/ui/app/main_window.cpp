@@ -136,7 +136,13 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_taskSplitter = new QSplitter;
     m_taskSplitter->setObjectName("taskSplitter");
     m_taskSplitter->setChildrenCollapsible(false);
-    tl->addWidget(m_taskSplitter, 1);
+    auto *taskColumns = new QHBoxLayout;
+    taskColumns->setSpacing(3);
+    taskColumns->addWidget(m_taskSplitter, 1);
+    auto *panelControls = new PanelControlRail;
+    panelControls->setObjectName("taskPanelControls");
+    taskColumns->addWidget(panelControls, 0, Qt::AlignTop);
+    tl->addLayout(taskColumns, 1);
     m_sources = new SourcePanel(m_document);
     m_taskSplitter->addWidget(m_sources);
     auto *canvasPanel = new QWidget;
@@ -149,10 +155,9 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     m_canvas = new WorkflowCanvas(m_document);
     cv->addWidget(m_canvas, 1);
     m_preview = new WorkflowPreviewPanel(m_document);
-    m_previewPanel = new CollapsiblePanel(text("ui.preview_column"), m_preview, 520);
+    m_previewPanel = new CollapsiblePanel(CollapsiblePanel::Kind::Preview, text("ui.preview_column"), m_preview, 520, *panelControls);
     m_previewPanel->setObjectName("previewSidePanel");
     m_previewPanel->setExpandedWidthRange(300, 720);
-    m_previewPanel->setGripOnRight(true);
     m_taskSplitter->addWidget(m_previewPanel);
     m_previewPanel->setResizeTarget(canvasPanel);
     connect(m_sources, &SourcePanel::previewInputChanged, m_preview, &WorkflowPreviewPanel::setFile);
@@ -175,9 +180,9 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     static_cast<QVBoxLayout *>(m_editor->layout())->insertWidget(2, m_pairing);
     connect(m_pairing, &PairingPanel::pairSelected, m_preview->controller(), &WorkflowPreviewController::selectPair);
     connect(m_pairing, &PairingPanel::pairSelected, m_canvas, &WorkflowCanvas::setPreviewPair);
-    m_parameterPanel = new CollapsiblePanel(text("ui.step_settings"), m_editor, 300);
+    m_parameterPanel = new CollapsiblePanel(CollapsiblePanel::Kind::Settings, text("ui.step_settings"), m_editor, 300, *panelControls);
     m_parameterPanel->setObjectName("parameterSidePanel");
-    m_catalogPanel = new CollapsiblePanel(text("ui.task_library"), m_catalog, 260);
+    m_catalogPanel = new CollapsiblePanel(CollapsiblePanel::Kind::Catalog, text("ui.task_library"), m_catalog, 260, *panelControls);
     m_catalogPanel->setObjectName("catalogSidePanel");
     m_taskSplitter->addWidget(m_parameterPanel);
     m_taskSplitter->addWidget(m_catalogPanel);
@@ -457,8 +462,8 @@ MainWindow::MainWindow(AppSettings settings, bool persist, QWidget *p)
     {
         m_catalogPanel->setCollapsed(width() < 1750);
         m_parameterPanel->setCollapsed(width() < 1250);
-        const int settingsWidth = m_parameterPanel->isCollapsed() ? m_parameterPanel->minimumWidth() : 280;
-        const int catalogWidth = m_catalogPanel->isCollapsed() ? m_catalogPanel->minimumWidth() : 260;
+        const int settingsWidth = m_parameterPanel->isCollapsed() ? 0 : 280;
+        const int catalogWidth = m_catalogPanel->isCollapsed() ? 0 : 260;
         const auto sizes = m_taskSplitter->sizes();
         // Splitter sizes exclude the handles, including their theme-dependent widths.
         const int available = std::accumulate(sizes.cbegin(), sizes.cend(), 0);

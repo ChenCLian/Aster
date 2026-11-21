@@ -1,4 +1,4 @@
-# AstroBatch 1.3.3-beta.2 User Guide
+# AstroBatch 1.3.3-beta.3 User Guide
 
 [Classified contents](README_EN.md)
 
@@ -16,7 +16,7 @@ If Windows reports missing `VCRUNTIME` or `MSVCP` files, install the [Microsoft 
 
 ## Workspace
 
-Build a task tree on the Tasks page, inspect the selected node's output preview, then run the workflow to save results. The Results page provides database browsing, figures and export. On a wide window, the live preview starts at about one third of the window width. Drag its right edge to give the source and output plots more room, or click the grip to collapse it. Language, theme and concurrency are configured in Settings.
+Build a task tree on the Tasks page, inspect the selected node's output preview, then run the workflow to save results. The Results page provides database browsing, figures and export. On a wide window, the live preview starts at about one third of the window width. Three buttons at the upper right control Live preview (waveform), Step settings (sliders) and Task library (four squares), from top to bottom. Click each button independently. A filled button marks an open panel. An outlined button marks a closed panel. Click again to close it, or drag the button toward the canvas to widen the panel. Hover over a button or reach it with Tab to see what it controls, its current action and its shortcut. Language, theme and concurrency are configured in Settings.
 
 <a id="inputs"></a>
 
@@ -176,7 +176,7 @@ Each row under **Available outputs** has a type icon beside its name. A line rep
 
 Click an output to select it for plotting. An ordinary click replaces selections across all steps. Click the sole selected output again to deselect it. Ctrl-click (Command-click on macOS) to add or remove individual outputs across steps. Shift-click selects a range within the current step. Selected rows have blue-gray shading and a short bar on the left. When another step has selected outputs, the list heading shows how many. Use **Review selected** to see their names. **Clear selection** or Esc while the output list has focus clears all steps. Changing records also clears the selection. Drag the dividers to resize the lists. Reopening a collapsed panel restores its previous height.
 
-Click a page tab or a subplot title or plot to choose the destination. The title button above the active subplot has a thick border. The panel heading also identifies it. **Add plots** groups related outputs from the same step: spectra with their backgrounds, thresholds and peak markers; wavelet power with its cone of influence (COI). Heatmaps for different quantities, such as raw power, scale-corrected power and significance ratios, remain separate. Other outputs remain independent.
+Click a page tab or a subplot title or plot to choose the destination. Each subplot title shows its file or dataset name and output, such as “80001.csv · Data series”. In a narrow subplot, the middle of a long filename is shortened to leave room for the output. Hover over the title to read both names in full. A thick border marks the active subplot. The Steps and outputs heading shows its location and name. **Add plots** groups related outputs from the same step: spectra with their backgrounds, thresholds and peak markers; wavelet power with its cone of influence (COI). Heatmaps for different quantities, such as raw power, scale-corrected power and significance ratios, remain separate. Other outputs remain independent.
 
 There are four subplots per page and up to 32 pages. The number on **Add plots** shows how many new plots will be created; existing plots remain. For example, selecting all four wavelet heatmaps and the COI adds four plots, each with the COI. Add plots also works on an empty workspace. **More → Plot separately** provides individual-output views.
 
@@ -212,7 +212,7 @@ On ordinary paths, concurrency limits simultaneously processed inputs. Within a 
 
 Hover over an axis, its ticks or title for the interaction hint. Scroll to zoom that axis and drag to pan it. Interactions inside the plot affect both axes. Fit adjusts the view to show the entire plot.
 
-The fixed X/Y selector at the top of the Axes page chooses the editing target. Each axis keeps its own range, title, scale, direction, ticks and grid. Enable **Set display limits** to set the visible range using **Display minimum** and **Display maximum**. Enter values in the original axis coordinates. Logarithmic axes require positive values. When fitting a spectrum on a linear frequency axis, the plot adds a margin at each end. If the first frequency is zero, the left edge can fall slightly below zero. The CSV still records that frequency as zero.
+Under Plot, choose Canvas, Axes, Curves or Heatmap. The active tab uses reversed foreground and background colors with a small inset. Heatmap becomes available for a grid plot. The fixed X/Y selector at the top of the Axes page chooses the editing target. Each axis keeps its own range, title, scale, direction, ticks and grid. Enable **Set display limits** to set the visible range using **Display minimum** and **Display maximum**. Enter values in the original axis coordinates. Logarithmic axes require positive values. When fitting a spectrum on a linear frequency axis, the plot adds a margin at each end. If the first frequency is zero, the left edge can fall slightly below zero. The CSV still records that frequency as zero.
 
 MTM's frequency upper limit uses inverse input-axis units. It crops the output spectrum, threshold curves and peak table, affecting saved results and downstream data. Estimation, background fitting and peak detection still operate on the full spectrum. Use axis zoom to change only the view. The editor displays numeric `0` with a separate automatic-limit hint; zero selects the automatic limit for new nodes; if an older node retains a legacy ratio, explicitly enter zero and confirm with Enter or Tab to restore the full band.
 
@@ -244,7 +244,7 @@ Export filenames writes the IDs and original names of all checked records to CSV
 
 ## Keyboard shortcuts
 
-Buttons and panel grips include shortcuts in their tooltips. The table uses Windows/Linux notation; the interface displays native key names.
+Hover over a panel button to see its shortcut. The table uses Windows/Linux notation. The interface displays native key names.
 
 | Key | Action |
 | --- | --- |
@@ -289,4 +289,4 @@ Missing Chinese glyphs usually require a CJK font; Linux/WSL instructions are in
 
 COCO requires a depth axis. The metre-valued composite-depth labels `mcd` and `rmcd` are accepted with depth unit `m`, preserving the source depth reference. Resampling does not convert age to depth. COCO Monte Carlo allows 19–20000 simulations, subject to a separate fixed budget of 10 billion estimated work units per task. All scan-adjusted p values being one can be a valid result. See the [COCO FAQ (Chinese)](../FAQ.md#coco-units) for interpretation and budget diagnostics.
 
-Opening Settings → Check for updates checks the selected channel once. Stable and Beta are separate; Beta builds initially select Beta. Release notes support expandable details, and diagnostic information stays collapsed until requested. When package information is available, choose a destination and select Download and extract. AstroBatch downloads the full package over official HTTPS, verifies SHA-256 and extracts into a new folder. Automatic source selection may retry an identical package from another listed source; a manually selected source does not switch. Existing destination folders are never replaced. Temporary files are cleaned after completion. Open the folder, close the old application and start the new version yourself. Older releases without package information keep the browser download button. Alpha builds are developer-only and do not participate in online version checks. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.
+Opening Settings → Check for updates checks the selected channel once. Stable and Beta are separate; Beta builds initially select Beta. Release notes support expandable details, and diagnostic information stays collapsed until requested. When package information is available, choose a destination and select Download and extract. AstroBatch downloads the full package over official HTTPS, verifies SHA-256 and extracts into a new folder. The label beside the release notes identifies the announcement site. The download summary identifies the site serving the package. With one source, its name appears directly. With multiple sources, choose Automatic to allow fallback or select a specific site. Existing destination folders are never replaced. Temporary files are cleaned after completion. Open the folder, close the old application and start the new version yourself. Older releases without package information keep the browser download button. Alpha builds are developer-only and do not participate in online version checks. Keep the database and settings when replacing a program package. Reports should include version, platform, reproduction steps and errors; remove personal paths, credentials and confidential data.
